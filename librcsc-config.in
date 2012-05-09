@@ -1,0 +1,79 @@
+#!/bin/sh
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+usage="\
+Usage: rcsc-config [--version] [--libs] [--libs-only-L] [--libs-only-l] [--cflags]"
+
+usage()
+{
+    cat <<EOF
+Usage: librcsc-config [OPTION...]
+
+Generic options
+  --version     output librcsc version information
+  --help        display this help and exit
+
+Compilation support options
+  --cflags      print pre-processor and compiler flags
+  --libs        print library linking information
+  --libs-only-L only print the -L part of --libs
+  --libs-only-l only print the -l part of --libs
+
+EOF
+
+    exit $1
+}
+
+if test $# -eq 0; then
+      usage 1
+      exit 1
+fi
+
+if test ${libdir} != /usr/lib ; then
+  libsL=-L${libdir}
+fi
+
+libsl="-lrcsc_agent -lrcsc_ann -lrcsc_param -lrcsc_rcg -lrcsc_gz -lrcsc_geom -lz -lm"
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --version)
+      echo @VERSION@
+      exit 0
+      ;;
+    --help)
+      usage 0
+      ;;
+    --cflags)
+      if test ${includedir} != /usr/include ; then
+        includes="-I${includedir}"
+      fi
+      echo $includes
+      ;;
+    --libs)
+      echo $libsL $libsl
+      ;;
+    --libs-only-L)
+      echo $libsL
+      ;;
+    --libs-only-l)
+      echo $libsl
+      ;;
+    *)
+      echo "${usage}" 1>&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+exit 0

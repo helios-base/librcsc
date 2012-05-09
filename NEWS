@@ -1,0 +1,339 @@
+[4.1.0]
+  * ボロノイ図の計算でtriangleライブラリが暴走する問題に対応した．
+
+  * WorldModelのメソッド名を一部変更した．AbstractPlayerObjectを返す
+    関数にはteammate,opponentではなく，our,theirを用いるようにした．
+
+  * コーチ用デバッグクライアント機能を追加した．
+
+  * GlobalWorldModelのメソッド名，実装の一部を変更した．
+
+[4.0.0]
+  * rcssserverバージョン14をサポート．
+    - 新しいパラメータへ対応．
+    - ファウルへ対応
+    - イエローカード，レッドーカードへ対応
+
+  * ServerParamクラスに新しいパラメータ，参照用メソッドを追加
+    - tackleRandFactor()
+    - foulDetectProbability()
+    - foulExponent()
+    - foulExponent()
+    - foulCycles()
+    - randomSeed()
+    - goldenGoal()
+    - ourPenaltyArea(), theirPenaltyArea()
+    - ourGoalArea(), theirGoalArea()
+
+  * PlayerTypeクラスに新しいパラメータ，参照用メソッドを追加
+    - reliableCatchableDist()
+    - maxCatchableDist()
+    - getCatchProbability(dist)
+
+  * SelfObjectクラスに新しいパラメータを参照するメソッドを追加
+    - catchProbability()
+    - foulProbability()
+
+  * WorldModelクラスにプレイヤ参照用メソッドが追加された．最後にボール
+   に触ったチームの推定結果を参照できるようになった．
+    - getPlayerNearestTo()
+    - getDist{Player,Teammate,Opponent}NearestTo()
+    - existPlayerIn()
+    - countPlayer()
+    - lastKickerSide()
+
+  * スタミナキャパシティが0の場合，インターセプト予測でrecovery消費を
+    無視して計算するようになった．
+
+  * ペナルティキック時の位置測定の方針が変更された．キッカーまたはゴー
+    ルキーパは，通常プレイ時と同様に，常に左サイドの座標系で位置情報を
+    参照できるようになった．
+
+  * PenaltyKickState::isKicker(SideID,int)を追加した．
+
+  * obsoleteのアクションが配布物に含まれないようになった．
+
+  * 移動時にゴールポストを回避するルールを追加した．
+
+  * 首振りによる情報収集動作が改善され，観測済みのプレイヤをより多く視
+    界に収めるようになった．
+
+  * Vector2D::valid()がVector2D::isValid()へリネームされた．
+
+  * ConvexHullクラスが追加された．
+
+[3.1.3]
+  * エージェント自身の移動量推定のバグを修正した．この結果，ボールの速
+    度推定の精度が改善された．
+
+[3.1.2]
+  * FreeMessage::printDebug()が定義されていなかった不具合を修正．
+
+[3.1.1]
+  * gcc-4.4.1でのコンパイルの不具合を修正．Thanks go to Ivan Reche for
+    providing the patch.
+
+[3.1.0]
+  * TimeライブラリとNetライブラリが分離され，個別のライブラリとしてビ
+    ルドされるようになった
+
+  * RCGライブラリのFactoryがCreatorsに名前変更された
+
+  * Geometryライブラリが追加，修正された
+    - Triangleライブラリを追加．
+      http://www.cs.cmu.edu/~quake/triangle.research.html
+      ただし，librcscからはAPIを提供していない
+    - ボロノイ図クラス(VoronoiDiagram)を追加
+      VoronoiDiagramは内部でTriangleライブラリを使用している
+    - 制約付きDelaunay三角形分割クラス(Triangulation)を追加
+      Triangulationは内部でTriangleライブラリを使用している
+    - Vector2D
+      - Vector2D::XYCmpを追加
+      - equalsWeakly()を追加
+    - Segment2D
+      - a()をorigin()に，b()をterminal()にそれぞれリネーム
+      - equals(), equalsWeakly(), projection(), onSegmentWeakly()を追加
+      - Segment2D::intersection()に端点を含むかどうかを切り替えるスイッ
+        チ引数を追加
+    - DelaunayTriangulation
+      - addVertices()を追加
+      - edgeMap()をedges()に，triangleMap()をtriangles()にそれぞれリネー
+        ム
+
+  * フォーメーションの設定ファイルのフォーマットが変更された．.confファ
+    イルと.datファイルはひとつの.confファイルに統合されて管理されるよ
+    うになった
+
+  * デバッグサーバにコミュニケーション情報が送信されるようになった．
+
+  * Loggerの機能が拡張された
+    - デバッグレベルとしてANALYZER, RECURSIVEを追加
+    - 図形描画で塗りつぶしを指定できるようになった
+    - addArc(), addSector()を追加
+
+  * オフラインクライアント機能が実装された．プレイヤとコーチがサッカー
+    サーバから受信したメッセージを保存しておくことで，サッカーサーバを
+    用いずにデバッグできるようになった．
+
+  * デバッグログファイルのデフォルト拡張子名が以下のように変更された:
+    Loggerによるデバッグログ: .log
+    デバッグサーバログ（デバッグサーバへ送信するメッセージ）: .dcl
+    オフラインクライアントログ（rcssserverから受信したメッセージ）: .ocl
+
+  * オプションが追加，変更された
+    - プレイヤの追加オプション:
+      offline_logging
+      offline_log_ext
+      offline_client_number
+    - プレイヤの変更オプション:
+      debug_connect -> debug_server_connect
+      debug_write -> debug_server_logging
+      log_ext -> debug_log_ext
+    - コーチの追加オプション
+      offline_logging
+      offline_log_ext
+      offline_client_mode
+
+  * 自己位置測定の精度が若干改善された
+
+  * 全方位ダッシュに対応したインターセプト予測計算が実装された．
+
+  * 以下のアクションがHELIOS2009から移植された
+    Body_GoToPoint2009
+    Body_Intercept2009
+    Body_AdvanceBall2009
+    Body_ClearBall2009
+
+  * コーチによるプレイヤタイプ分析のスピードが大幅に改善された．
+
+[3.0.1]
+  * rcsc/common/free_message_parser.h のインクルードガードの不具合を修
+    正した．
+
+  * rcgライブラリをstaticライブラリとしてビルドした場合に起こる汎用ファ
+    クトリの不具合に対応した．
+
+[3.0.0]
+  * rcssserverバージョン13をサポート．
+    - 新しいセンサプロトコルのサポート．
+    - ゲームログバージョン5のサポート．
+    - 新ダッシュモデルのサポート．ただし，具体的なアクションは未完成．
+    - ServerParamクラスに新しいパラメータ用のアクセサ，ユーティリティ
+      を追加．
+      - staminaCapacity()
+      - maxDashAngle()
+      - minDashAngle()
+      - dashAngleStep()
+      - sideDashRate()
+      - backDashRate()
+      - maxDashPower()
+      - minDashPower()
+      - normalizeDashAngle(double)
+      - discretizeDashAngle(double)
+      - dashDirRate(double)
+
+  * 以下のアクションを追加した．
+    - Bhv_Shoot2008
+    - Body_HoldBall2008
+    - Body_Intercept2008
+    - Body_SmartKick
+    - View_ChangeWidth
+
+  * 以下のアクションを改善した．
+    - Body_TackleToPoint
+    - Neck_ScanField
+
+  * 以下のアクションはobsoleteとし，今後サポートしない．
+    - Body_Dribble2006
+    - Body_Dribble2007
+    - Body_HoldBall2007
+    - Body_Intercept2007
+    - Body_KickTwoStep
+    - Body_KickMultiStep
+    - Intention_Dribble2006
+    - Intention_Dribble2007
+    - Intention_Kick
+
+  * fullstateワールドモデルをサポートした．プレイヤは通常のワールドモ
+    デルとfullstate情報に基づく完全なワールドモデルを同時に参照可能と
+    なる．'use-fullstate'オプションをfalseにすると通常のワールド
+    モデルはそのままである．trueにすると，通常のワールドモデルも
+    fullstate情報によって更新される．rcssserverがプレイヤへfullstate情
+    報を送信しているなら，完全なワールドモデルは
+    PlayerAgent::fullstateWorld()でいつでも参照可能である．
+
+  * 新しい聴覚メッセージタイプを追加．
+    - SelfMessage
+      このメッセージは，メッセージ送信者のスタミナ情報を含む．
+
+  * 新しいPlayerPredicateを追加．
+    - GhostPlayerPredicate
+    - NoGhostPlayerPredicate
+
+  * インターセプトの予測性能を改善．
+    - スタミナが不十分な場合の自己インターセプトを改善．
+    - 他のプレイヤの予測を改善．
+    - ただし，新ダッシュモデルに基づくインターセプトはまだ完全にはサポー
+      トしていない．
+
+  * AbstractPlayerObject::unumCount() を追加．この関数は，最後に背番号
+    情報を観測してからの経過サイクル数を返す．
+
+  * 間違った使用法を避けるために，PlayerType::predictStamina*() 関連の
+    関数名を変更．
+
+  * Logger::HOLD と 'debug_hold' オプションを追加．
+
+  * ActionEffector::queuedNextCanSeeWithTurnNeck() を追加．
+
+  * 状態の履歴管理メカニズムを予備的にサポートした．現在，ViewAreaと
+    BallObject::Stateがdequeコンテナに記録される．履歴の大きさは
+    WorldModel::MAX_RECORDまたはBallObject::MAX_RECORDでそれぞれ定義さ
+    れる．
+
+  * Vector2Dクラスのいくつかの関数の名前を変更した．
+    - sclae(), reverse(), reversedVector(), normalizedVector()
+
+  * 抽象幾何形状クラスとしてRegion2Dを追加した． Triangle2D, Circle2D,
+    Sector2D, Rect2D, Polygon2DはRegion2Dの派生クラスとなる．コンポジッ
+    トクラスとしてUnitedRegion2DとIntersectedRegion2D も追加された．
+
+  * Rect2D::intersected() と Rect2D::united() を追加した．
+
+  * コマンドラインオプションに '-p' を追加．これは '--port' オプション
+    の別名である．
+
+  * コーチエージェントに 'team_graphic_file' オプションを追加した．
+
+  * CppUnitをサポートした．
+
+[2.0.1]
+  * Fixed gcc-4.3 build problems.
+
+[2.0.0]
+  * Supported rcssserver version 12.
+    - supported the synchronous timer mode.
+    - supported the new sensor protocol.
+    - supported the new monitor protocol and the new log format.
+
+  * Restructured the file location.
+    - audio_codec.{h,cpp}, audio_memory.{h,cpp}, audio_message.h and
+      logger.{h,cpp} have been moved from 'player' to 'common'.
+
+  * Improved the communication library.
+    - Supported duplicated messages.
+    - Added FreeMessage for convinience.
+    - Improved the ball information.
+    - Implemented online coach's audio sensor.
+
+  * Added AbstractPlayerObject class and its contaners.
+
+  * Added a pkg-config configuration file and a special config script.
+
+  * Added Polygon2D class.
+
+  * Supported team_graphic.
+
+[1.4.0]
+  * Supported rcssserver version 11.
+
+  * Reimplemented a player communication framework.
+
+  * Added inteface to get team names.
+
+  * Improved the accuracy of the player matching.
+
+  * Added player type analyzer for coach agent.
+
+  * Supported compressed message in the communication with rcssserver.
+
+  * Fixed several bugs.
+
+[1.3.2]
+  * Fixed a segmentation fault caused by the too small buffer size.
+
+[1.3.1]
+  * Fixed a bug of trainer's command.
+
+[1.3.0]
+  * Supported MacOSX.
+
+  * Supported 64-bits OS.
+
+  * added librcsc_ann, the artificial neural network library. 3 layer
+    BPN, RBF network and Normaized Gaussian network can be used.
+
+  * Redesigned agent structure.
+
+  * Changed a naming policy for the static factory methods.
+
+  * Changed a naming policy for the pure virtual method.
+
+  * Reimplemented players' communication. Now, player can say offside
+    line info. And several information can be integrated into one
+     message and players can parse it.
+
+  * Reimplemented intercept, dribble and shoot actions.
+
+[1.2.1]
+  * Fixed fullstate update bug for the right side team.
+
+[1.2.0]
+  * Reimplemented command line parser. Each agent must use
+    a reference of rcsc::CmdLineParser as an argument of doInit().
+
+  * Split a library file into several files. librcsc is split into
+    librcsc_gz, librcsc_rcg, librcsc_geom and librcsc_agent. These
+    libraries can be selected by configure's options.
+
+  * Added some minor chanes to geom library. Renamed several methods.
+
+  * Renamed many accessor methods.
+
+  * Added formation related libraries.
+
+[1.1.0]
+  * Supported trainer framework.
+
+[1.0.0]
+  * RoboCup book version.

@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: @PACKAGE@
+Description: a base library of the soccer agent and/or the tool
+program for the RoboCup soccer 2D simulation.
+Version: @VERSION@
+Libs: -L${libdir} -lrcsc_agent -lrcsc_ann -lrcsc_net -lrcsc_time
+-lrcsc_param -lrcsc_rcg -lrcsc_gz -lrcsc_geom -lz -lm
+Cflags: -I${includedir}

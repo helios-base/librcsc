@@ -1,0 +1,50 @@
+(server_param 14.02 5 0.3 0.4 0.1 60 1.2 1 4000 45 0 0.3 0.5 0.002 0 0.3 0.6 0.005 0.6 0.01 0 0 1 1 1 1 0.085 0.94 0.05 0.2 2.7 2.7 0.006 0.027 0.7 2 1.7 100 -100 180 -180 180 -180 90 -90 90 3 0 0 0 0 1.085 2 1 1 2 1 2.5 0 0 128 128 300 1 1 1 1 50 1 3000 100 150 10 100 300 10 1 1 1 5 1 1 1 9.15 50 0.1 0.01 -1 -1 -1 -1 -1 -1 -1 0 0 0 100 0 0 0 0 200)
+
+(player_param 7 3 3 0 0 0 0 0.2 25 0 0 -100 0 0.2 0.5 0 100 -0.002 -0.002)
+
+(player_type 0 1.2 45 0.4 5 0.006 0.3 0.7 0 0 1 0.6)
+(player_type 1 1.2 40.48 0.509 7.725 0.006452 0.3 0.8852 0.0926 27.7 0.9446 0.5446)
+(player_type 2 1.2 28.5 0.522 8.05 0.00765 0.3 0.7768 0.0384 77.9 0.8442 0.4442)
+(player_type 3 1.2 37.28 0.5826 9.565 0.006772 0.3 0.7306 0.0153 33.9 0.9322 0.5322)
+(player_type 4 1.2 28.02 0.4244 5.61 0.007698 0.3 0.764 0.032 48.3 0.9034 0.5034)
+(player_type 5 1.2 38.54 0.5494 8.735 0.006646 0.3 0.7776 0.0388 99.4 0.8012 0.4012)
+(player_type 6 1.2 40.54 0.5094 7.735 0.006446 0.3 0.7842 0.0421 11.2 0.9776 0.5776)
+
+
+
+
+
+(server_param (catch_ban_cycle 5)(clang_advice_win 1)(clang_define_win 1)(clang_del_win 1)(clang_info_win 1)(clang
+_mess_delay 50)(clang_mess_per_cycle 1)(clang_meta_win 1)(clang_rule_win 1)(clang_win_size 300)(coach_port 6001)(d
+rop_ball_time 200)(freeform_send_period 20)(freeform_wait_period 600)(game_log_compression 0)(game_log_version 3)(
+goalie_max_moves 2)(half_time 3000)(hear_decay 1)(hear_inc 1)(hear_max 1)(max_goal_kicks 3)(olcoach_port 6002)(poi
+nt_to_ban 5)(point_to_duration 20)(port 6000)(recv_step 10)(say_coach_cnt_max 128)(say_coach_msg_size 128)(say_msg
+_size 10)(send_step 150)(send_vi_step 100)(sense_body_step 100)(simulator_step 100)(slow_down_factor 1)(start_goal
+_l 0)(start_goal_r 0)(synch_micro_sleep 1)(synch_offset 60)(tackle_cycles 10)(text_log_compression 0)(game_log_dir
+ "/home/akiyama/work/log")(game_log_fixed_name "rcssserver")(landmark_file "~/.rcssserver-landmark.xml")(log_date_
+format "%m%d%H%M-")(text_log_dir "/home/akiyama/work/log")(text_log_fixed_name "rcssserver")(coach 0)(coach_w_refe
+ree 0)(old_coach_hear 0)(wind_none 0)(wind_random 0)(back_passes 1)(forbid_kick_off_offside 1)(free_kick_faults 1)
+(fullstate_l 0)(fullstate_r 0)(game_log_dated 1)(game_log_fixed 0)(game_logging 1)(log_times 0)(profile 0)(proper_
+goal_kicks 0)(record_messages 0)(send_comms 0)(synch_mode 0)(team_actuator_noise 0)(text_log_dated 1)(text_log_fix
+ed 0)(text_logging 1)(use_offside 1)(verbose 0)(audio_cut_dist 50)(ball_accel_max 2.7)(ball_decay 0.94)(ball_rand 
+0.05)(ball_size 0.085)(ball_speed_max 2.7)(ball_weight 0.2)(catch_probability 1)(catchable_area_l 2)(catchable_are
+a_w 1)(ckick_margin 1)(control_radius 2)(dash_power_rate 0.006)(effort_dec 0.005)(effort_dec_thr 0.3)(effort_inc 0
+.01)(effort_inc_thr 0.6)(effort_init 0)(effort_min 0.6)(goal_width 14.02)(inertia_moment 5)(kick_power_rate 0.027)
+(kick_rand 0)(kick_rand_factor_l 1)(kick_rand_factor_r 1)(kickable_margin 0.7)(maxmoment 180)(maxneckang 90)(maxne
+ckmoment 180)(maxpower 100)(minmoment -180)(minneckang -90)(minneckmoment -180)(minpower -100)(offside_active_area
+_size 2.5)(offside_kick_margin 9.15)(player_accel_max 1)(player_decay 0.4)(player_rand 0.1)(player_size 0.3)(playe
+r_speed_max 1.2)(player_weight 60)(prand_factor_l 1)(prand_factor_r 1)(quantize_step 0.1)(quantize_step_l 0.01)(re
+cover_dec 0.002)(recover_dec_thr 0.3)(recover_min 0.5)(slowness_on_top_for_left_team 1)(slowness_on_top_for_right_
+team 1)(stamina_inc_max 45)(stamina_max 4000)(stopped_ball_vel 0.01)(tackle_back_dist 0.5)(tackle_dist 2.5)(tackle
+_exponent 6)(tackle_power_rate 0.027)(tackle_width 1.25)(visible_angle 90)(visible_distance 3)(wind_ang 0)(wind_di
+r 0)(wind_force 0)(wind_rand 0))
+
+(player_param (player_types 7)(pt_max 3)(random_seed -1)(subs_max 3)(dash_power_rate_delta_max 0)(dash_power_rate_delta_min 0)(effort_max_delta_factor -0.002)(effort_min_delta_factor -0.002)(extra_stamina_delta_max 100)(extra_stamina_delta_min 0)(inertia_moment_delta_factor 25)(kick_rand_delta_factor 0.5)(kickable_margin_delta_max 0.2)(kickable_margin_delta_min 0)(new_dash_power_rate_delta_max 0.002)(new_dash_power_rate_delta_min 0)(new_stamina_inc_max_delta_factor -10000)(player_decay_delta_max 0.2)(player_decay_delta_min 0)(player_size_delta_factor -100)(player_speed_max_delta_max 0)(player_speed_max_delta_min 0)(stamina_inc_max_delta_factor 0))
+
+(player_type (id 0) (player_speed_max 1.2) (stamina_inc_max 45) (player_decay 0.4) (inertia_moment 5) (dash_power_rate 0.006) (player_size 0.3) (kickable_margin 0.7) (kick_rand 0) (extra_stamina 0) (effort_max 1) (effort_min 0.6))
+(player_type (id 1) (player_speed_max 1.2) (stamina_inc_max 43.16) (player_decay 0.5786) (inertia_moment 9.465) (dash_power_rate 0.006184) (player_size 0.3) (kickable_margin 0.729) (kick_rand 0.0145) (extra_stamina 53.6) (effort_max 0.8928) (effort_min 0.4928))
+(player_type (id 2) (player_speed_max 1.2) (stamina_inc_max 34.7) (player_decay 0.5892) (inertia_moment 9.73) (dash_power_rate 0.00703) (player_size 0.3) (kickable_margin 0.8786) (kick_rand 0.0893) (extra_stamina 34) (effort_max 0.932) (effort_min 0.532))
+(player_type (id 3) (player_speed_max 1.2) (stamina_inc_max 40.68) (player_decay 0.5308) (inertia_moment 8.27) (dash_power_rate 0.006432) (player_size 0.3) (kickable_margin 0.7002) (kick_rand 0.0001) (extra_stamina 98) (effort_max 0.804) (effort_min 0.404))
+(player_type (id 4) (player_speed_max 1.2) (stamina_inc_max 42.24) (player_decay 0.4018) (inertia_moment 5.045) (dash_power_rate 0.006276) (player_size 0.3) (kickable_margin 0.892) (kick_rand 0.096) (extra_stamina 7.3) (effort_max 0.9854) (effort_min 0.5854))
+(player_type (id 5) (player_speed_max 1.2) (stamina_inc_max 37.9) (player_decay 0.4572) (inertia_moment 6.43) (dash_power_rate 0.00671) (player_size 0.3) (kickable_margin 0.7462) (kick_rand 0.0231) (extra_stamina 67.4) (effort_max 0.8652) (effort_min 0.4652))
+(player_type (id 6) (player_speed_max 1.2) (stamina_inc_max 26.78) (player_decay 0.592) (inertia_moment 9.8) (dash_power_rate 0.007822) (player_size 0.3) (kickable_margin 0.7104) (kick_rand 0.0052) (extra_stamina 71.1) (effort_max 0.8578) (effort_min 0.4578))

@@ -1,0 +1,29 @@
+#!/bin/sh
+
+LIBPATH=@libdir@
+if [ x"$LIBPATH" != x ]; then
+  if [ x"$LD_LIBRARY_PATH" = x ]; then
+    LD_LIBRARY_PATH=$LIBPATH
+  else
+    LD_LIBRARY_PATH=$LIBPATH:$LD_LIBRARY_PATH
+  fi
+  export LD_LIBRARY_PATH
+fi
+
+usage()
+{
+  (echo "Usage: rcg3to4 <input.rcg> <output.rcg>") 1>&2
+}
+
+if [ ! $# -eq 2 ] ; then
+  usage
+  exit 1
+fi
+
+PROG=`which rcgverconv 2> /dev/null`
+if test $? -eq 1; then
+  echo "Error: rcgverconv executable could not be found in your PATH."
+  echo ""
+fi
+
+rcgverconv -v 4 -o $2 $1

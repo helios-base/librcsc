@@ -1,0 +1,135 @@
+[4.1.0]
+ * Fixed a defect of triangle library.
+
+[4.0.0]
+ * Supported rcssserver version 14.
+
+[3.1.3]
+ * Fixed a defect of ball velocity estimation.
+
+[3.1.2]
+ * Fixed defects of the FreeMessage definition.
+
+[3.1.1]
+ * Fixed gcc-4.4.1 compilation problem. Thanks go to Ivan Reche for
+   providing the patch.
+
+[3.1.0]
+ * Sepalated Time and Net library.
+
+ * Factory is renamed to Creators in the RCG library.
+
+ * Updated Geometry library.
+
+ * Changed the format of formation data file.
+
+ * Updated Logger library.
+
+ * Implemented offline client mode.
+
+ * Changed the default file extention name of debug logs.
+
+ * Added new options for offline client mode.
+
+ * Improved self localization.
+
+ * Implemented omni-directional interception.
+
+ * Ported some actions from HELIOS2009.
+
+ * Improved the speed of online coache's player type analysis.
+
+[3.0.1]
+  * Fixed a defect of the include guard in
+   rcsc/common/free_message_parser.h. Thanks go to Keisuke Endo for
+   reproting the problem.
+
+  * Fixed a defect of the generic factory.
+
+[3.0.0]
+  * Supported rcssserver version 13.
+    - supported the new sensor protocol.
+    - supported the game log version 5.
+    - supported new dash model, but not completed yet.
+    - added new methods to ServerParam class. staminaCapacity(),
+      maxDashAngle(), minDashAngle(),  dashAngleStep(),
+      sideDashRate(), backDashRate(), maxDashPower(), minDashPower()
+      normalizeDashAngle(double), discretizeDashAngle(double) and
+      dashDirRate(double)
+
+  * Added new actions:
+    - Bhv_Shoot2008
+    - Body_HoldBall2008
+    - Body_Intercept2008
+    - Body_SmartKick
+    - View_ChangeWidth
+
+  * Improved actions:
+    - Body_TackleToPoint
+    - Neck_ScanField
+
+  * Obsolete actions:
+    - Body_Dribble2006
+    - Body_Dribble2007
+    - Body_HoldBall2007
+    - Body_Intercept2007
+    - Body_KickTwoStep
+    - Body_KickMultiStep
+    - Intention_Dribble2006
+    - Intention_Dribble2007
+    - Intention_Kick
+
+  * Supported fullstate world model. Players can now refer both of the
+    normal world model and the complete world model updated by
+    fullstate information. If 'use-fullstate' option is false, the
+    normal world model is not updated by fullstate, but if this option
+    is true, the normal world model is also update by fullstate. The
+    complete world model can be referred by
+    PlayerAgent::fullstateWorld() if rcssserver sends fullstate
+    information to players.
+
+  * Added a new auditory message type:
+    - SelfMessage: This message contains the stamina information of
+      message sender.
+
+  * Added new player predicates:
+    - GhostPlayerPredicate
+    - NoGhostPlayerPredicate
+
+  * Improved intercept prediction:
+    - Implemented self intercept prediction for insufficient stamina.
+    - Improved other players' prediction.
+    - Note that a interception based on the new dash model has not
+      been supported yet.
+
+  * Added AbstractPlayerObject::unumCount() that represents the
+    accuracy count of uniform number since the last observation.
+
+  * Renamed PlayerType::predictStamina*() in order to prevent an
+	illegal usage.
+
+  * Added Logger::HOLD and 'debug_hold' option.
+
+  * Added ActionEffector::queuedNextCanSeeWithTurnNeck().
+
+  * Preliminary supported a state record mechanism. Now, ViewArea and
+    BallObject::State are recored to a deque container. The maximum
+    record size is defined by WorldModel::MAX_RECORD and
+    BallObject::MAX_RECORD respectively.
+
+  * Renamed some methods in Vector2D class
+    - sclae(), reverse(), reversedVector(), normalizedVector().
+
+  * Added Region2D class as an abstract geometric region. Triangle2D,
+    Circle2D, Sector2D, Rect2D and Polygon2D bocame a derived class of
+    Region2D. UnitedRegion2D and IntersectedRegion2D are also
+    available.
+
+  * Added Rect2D::intersected() and Rect2D::united()
+
+  * Added a short name command line option, '-p', as an alias of a
+    long name option '--port'.
+
+  * Added 'team_graphic_file' option for a coach agent.
+
+  * Supported CppUnit.

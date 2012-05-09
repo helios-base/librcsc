@@ -1,0 +1,149 @@
+
+MESSAGE :- META
+           | FREEFORM
+           | INFO
+           | ADVICE
+           | DEFINE
+           | UNSUPP
+           | RULE
+           | DEL
+
+==================================================
+
+META :- (meta META_TOKEN_LIST)
+
+FREEFORM :- (freeform "STRING")
+
+INFO :- (info TOKEN_LIST)
+
+ADVICE :- (advice TOKEN_LIST)
+
+DEFINE :- (define DEFINE_TOKEN_LIST)
+
+UNSUPP :- (unsupported_clang)
+
+RULE :- (rule ACTIVATION_LIST)
+
+DEL :- (delete ID_LIST)
+
+==================================================
+
+META_TOKEN_LIST :- META_TOKEN*
+META_TOKEN :- (ver INT)
+
+TOKEN_LIST :- TOKEN*
+TOKEN :- (INT CONDITION DIRECTIVE_LIST)
+       | (clear)
+
+DEFINE_TOKEN_LIST :- DEFINE_TOKEN*
+DEFINE_TOKEN :- (definec "STRING" CONDITION)
+              | (defined "STRING" DIRECTIVE)
+              | (definer "STRING" REGION)
+              | (definea "STRING" ACTION)
+              | (definerule DEFINE_RULE)
+
+CONDITION_LIST :- CONDITION*
+CONDITION :- (true)
+           | (false)
+           | (ppos TEAM UNUM_SET INT INT REGION)
+           | (bpos REGION)
+           | (bowner TEAM UNUM_SET)
+           | (playm PLAY_MODE)
+           | (and CONDITION_LIST)
+           | (or CONDITION_LIST)
+           | (not CONDITION)
+           | "STRING"
+           | (COND_CMP)
+           | (unum VAR UNUM_SET)
+           | (unum "STRING" UNUM_SET)
+
+
+DIRECTIVE_LIST : DIRECTIVE*
+DIRECTIVE :- (DO_DONT TEAM UNUM_SET ACTION_LIST)
+           | "STRING"
+
+
+DEFINE_RULE : VAR model RULE
+            | VAR direc RULE
+
+
+RULE_LIST :- RULE*
+RULE : (CONDITION DIRECTIVE_LIST)
+     | (CONDITION RULE_LIST)
+     | ID_LIST
+
+
+ACTIVATION_LIST :- ACTIVATION_ELEMENT*
+ACTIVATION_ELEMENT :- (ON_OFF ID_LIST) RCSS_CLANG_RP
+
+DO_DONT :- do | dont
+
+TEAM :- our | opp
+
+UNUM_SET :- {UNUM_LIST}
+UNUM_LIST :- UNUM*
+UNUM :- INT
+      | VAR
+      | "STRING"
+
+STRING :- [0-9A-Za-z\(\)\.\+\-\*\/\?\<\>\_ ]+
+VAR :- [abe-oqrt-zA-Z_][a-zA-Z0-9_]*
+
+COND_CMP :- TIME_CMP
+          | OPP_GOAL_CMP
+          | OUR_GOAL_CMP
+          | GOAL_DIFF_CMP
+
+TIME_CMP :- time CMP INT
+          | INT CMP time
+
+OPP_GOAL_CMP :- opp_goals CMP INT
+              | INT CMP opp_goals
+
+OUR_GOAL_CMP :- our_goals CMP INT
+              | INT CMP our_goals
+
+GOAL_DIFF_CMP :- goal_diff CMP INT
+               | INT CMP goal_diff
+
+CMP :- < | <= | > | >= | == | !=
+
+ON_OFF :- on | off
+
+ID_LIST :- VAR
+         | (ID_LIST2)
+         | all
+
+ID_LIST2 :- VAR*
+
+
+ACTION_LIST :- ACTION*
+ACTION : (pos REGION)
+       | (home REGION)
+       | (bto REGION BMOVE_TOKEN_SET)  // ball_to
+       | (bto UNUM_SET)
+       | (mark UNUM_SET)
+       | (markl UNUM_SET)
+       | (markl REGION)
+       | (oline REGION)
+       | (htype INT)
+       | "STRING"
+       | (pass REGION)
+       | (pass UNUM_SET)
+       | (dribble REGION)
+       | (clear REGION)
+       | (shoot)
+       | (hold)
+       | (intercept)
+       | (tackle UNUM_SET)
+
+
+==================================================
+
+Example:
+
+(info (6000 (true) (do our {1} (mark {2 3})(do our {2} (mark {4})))
+(advice (6000 (true) (do our {1} (mark {2 3})(do our {2} (mark {4})))
+
+(info (6000 (true) (do opp {1} (htype 1))(0 (true) (do opp {2} (htype 2))))
+(advice (6000 (true) (do opp {1} (htype 1))(0 (true) (do opp {2} (htype 2))))
