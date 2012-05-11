@@ -364,6 +364,7 @@ WorldModel::WorldModel()
       M_valid( true ),
       M_self(),
       M_ball(),
+      M_player_count( 0 ),
       M_our_goalie_unum( Unum_Unknown ),
       M_their_goalie_unum( Unum_Unknown ),
       M_offside_line_x( 0.0 ),
@@ -834,6 +835,7 @@ WorldModel::update( const ActionEffector & act,
         M_teammates.clear();
         M_opponents.clear();
         M_unknown_players.clear();
+        M_player_count = 0;
     }
 
     // update teammates
@@ -1284,7 +1286,7 @@ WorldModel::updateAfterFullstate( const FullstateSensor & fullstate,
         if ( ! player )
         {
             // create new player object
-            M_teammates.push_back( PlayerObject() );
+            M_teammates.push_back( PlayerObject( ++M_player_count ) );
             player = &(M_teammates.back());
         }
 #ifdef DEBUG_PRINT
@@ -1336,7 +1338,7 @@ WorldModel::updateAfterFullstate( const FullstateSensor & fullstate,
 
         if ( ! player )
         {
-            M_opponents.push_back( PlayerObject() );
+            M_opponents.push_back( PlayerObject( ++M_player_count ) );
             player = &(M_opponents.back());
         }
 
@@ -1656,7 +1658,7 @@ if ( d < min_dist
                       " add new goalie. heard_pos=(%.1f %.1f)",
                       heard_pos.x, heard_pos.y );
 #endif
-        M_opponents.push_back( PlayerObject() );
+        M_opponents.push_back( PlayerObject( ++M_player_count ) );
         goalie = &(M_opponents.back());
         goalie->updateByHear( theirSide(),
                               theirGoalieUnum(),
@@ -1732,8 +1734,8 @@ WorldModel::updatePlayerByHear()
         PlayerObject * player = static_cast< PlayerObject * >( 0 );
 
         PlayerObject::List & players = ( side == ourSide()
-                                 ? M_teammates
-                                 : M_opponents );
+                                         ? M_teammates
+                                         : M_opponents );
         for ( PlayerObject::List::iterator p = players.begin(), end = players.end();
               p != end;
               ++p )
@@ -1835,12 +1837,12 @@ WorldModel::updatePlayerByHear()
 #endif
             if ( side == ourSide() )
             {
-                M_teammates.push_back( PlayerObject() );
+                M_teammates.push_back( PlayerObject( ++M_player_count ) );
                 player = &( M_teammates.back() );
             }
             else
             {
-                M_opponents.push_back( PlayerObject() );
+                M_opponents.push_back( PlayerObject( ++M_player_count ) );
                 player = &( M_opponents.back() );
             }
 
@@ -2519,7 +2521,7 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
 
             if ( vel_r > estimate_speed + 0.1
                  || vel_r < estimate_speed * ( 1.0 - ServerParam::i().ballRand() * 3.0 ) - 0.1
-                 || ( vel - ball().vel() ).r() > estimate_speed * ServerParam::i().ballRand() * 3.0 + 0.1 )
+                            || ( vel - ball().vel() ).r() > estimate_speed * ServerParam::i().ballRand() * 3.0 + 0.1 )
             {
                 dlog.addText( Logger::WORLD,
                               "world.localizeBall: .failed to update ball vel using pos diff(2) " );
@@ -2547,9 +2549,9 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
                               vel.x, vel.y );
 #endif
             }
-        }
     }
 }
+    }
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -3172,7 +3174,7 @@ WorldModel::checkTeamPlayer( const SideID side,
                   player.pos_.x, player.pos_.y );
 #endif
 
-    new_known_players.push_back( PlayerObject( side, player ) );
+    new_known_players.push_back( PlayerObject( ++M_player_count, side, player ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -3484,7 +3486,7 @@ WorldModel::checkUnknownPlayer( const Localization::PlayerT & player,
                   player.pos_.x, player.pos_.y );
 #endif
 
-    new_unknown_players.push_back( PlayerObject( NEUTRAL, player ) );
+    new_unknown_players.push_back( PlayerObject( ++M_player_count, NEUTRAL, player ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -3610,10 +3612,6 @@ WorldModel::estimateUnknownPlayerUnum()
                           " set teammate unum %d (%.1f %.1f)",
                           *unum_set.begin(),
                           unknown_teammate->pos().x, unknown_teammate->pos().y );
-            //             std::cerr << self().unum() << ": " << this->time()
-            //                       << " updatePlayerStateCache  set teammate unum "
-            //                       << *unum_set.begin() << ' '
-            //                       << unknown_teammate->pos() << std::endl;
 #endif
             int unum = *unum_set.begin();
             unknown_teammate->setTeam( ourSide(),
@@ -3652,7 +3650,7 @@ WorldModel::estimateUnknownPlayerUnum()
             {
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
                 dlog.addText( Logger::WORLD,
-                              __FILE__":(updatePlayerStateCache)"
+                              __FILE__":(estimateUnknownPlayerUnum)"
                               " set opponent unum %d (%.1f %.1f)",
                               *unum_set.begin(),
                               unknown_opponent->pos().x, unknown_opponent->pos().y );
@@ -3668,8 +3666,8 @@ WorldModel::estimateUnknownPlayerUnum()
                 {
                     int unum = *unum_set.begin();
                     M_unknown_players.begin()->setTeam( theirSide(),
-                                               unum,
-                                               unum == M_their_goalie_unum );
+                                                        unum,
+                                                        unum == M_their_goalie_unum );
                     M_opponents.splice( M_opponents.end(), M_unknown_players );
                 }
             }
@@ -3774,13 +3772,13 @@ WorldModel::updatePlayerStateCache()
     dlog.addText( Logger::WORLD,
                   __FILE__" (updatePlayerStateCache) player set." );
     dlog.addText( Logger::WORLD,
-                  " teammatesFromSelf %d", M_teammates_from_self.size() );
+                  " teammatesFromSelf %zd", M_teammates_from_self.size() );
     dlog.addText( Logger::WORLD,
-                  " teammatesFromBall %d", M_teammates_from_ball.size() );
+                  " teammatesFromBall %zd", M_teammates_from_ball.size() );
     dlog.addText( Logger::WORLD,
-                  " opponentsFromSelf %d", M_opponents_from_self.size() );
+                  " opponentsFromSelf %zd", M_opponents_from_self.size() );
     dlog.addText( Logger::WORLD,
-                  " opponentsFromBall %d", M_opponents_from_ball.size() );
+                  " opponentsFromBall %zd", M_opponents_from_ball.size() );
 
     M_teammates.sort( PlayerUnumSorter() );
     for ( PlayerObject::List::const_iterator p = M_teammates.begin(), end = M_teammates.end();
@@ -3788,8 +3786,8 @@ WorldModel::updatePlayerStateCache()
           ++p )
     {
         dlog.addText( Logger::WORLD,
-                      "teammate %d (%.1f %.1f) count=%d %s",
-                      p->unum(), p->pos().x, p->pos().y, p->posCount(),
+                      "teammate id=%d unum=%d (%.1f %.1f) count=%d %s",
+                      p->id(), p->unum(), p->pos().x, p->pos().y, p->posCount(),
                       ( p->goalie() ? "goalie" : "" ) );
     }
     M_opponents.sort( PlayerUnumSorter() );
@@ -3798,8 +3796,8 @@ WorldModel::updatePlayerStateCache()
           ++p )
     {
         dlog.addText( Logger::WORLD,
-                      "opponent %d (%.1f %.1f) count=%d %s ",
-                      p->unum(), p->pos().x, p->pos().y, p->posCount(),
+                      "opponent id=%d unum=%d (%.1f %.1f) count=%d %s ",
+                      p->id(), p->unum(), p->pos().x, p->pos().y, p->posCount(),
                       ( p->goalie() ? "goalie" : "" ) );
     }
     M_unknown_players.sort( PlayerCountSorter() );
@@ -3808,8 +3806,8 @@ WorldModel::updatePlayerStateCache()
           ++p )
     {
         dlog.addText( Logger::WORLD,
-                      "unknown %d (%.1f %.1f) count=%d %s",
-                      p->unum(), p->pos().x, p->pos().y, p->posCount(),
+                      "unknown id=%d unum=%d (%.1f %.1f) count=%d %s",
+                      p->id(), p->unum(), p->pos().x, p->pos().y, p->posCount(),
                       ( p->goalie() ? "goalie" : "" ) );
     }
 #endif

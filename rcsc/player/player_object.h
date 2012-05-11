@@ -81,14 +81,16 @@ public:
     /*!
       \brief initialize member variables.
     */
-    PlayerObject();
+    explicit
+    PlayerObject( const int id );
 
     /*!
       \brief initialize member variables using observed info
       \param side analyzed side info
       \param p analyzed seen player info
     */
-    PlayerObject( const SideID side,
+    PlayerObject( const int id,
+                  const SideID side,
                   const Localization::PlayerT & p );
 
     /*!

@@ -44,7 +44,7 @@
 
 #include <iostream>
 
-// #define DEBUG_PRINT
+#define DEBUG_PRINT
 
 namespace rcsc {
 
@@ -655,11 +655,12 @@ BallObject::updateSelfRelated( const SelfObject & self,
             M_dist_from_self = rpos().r();
             M_angle_from_self = rpos().th();
         }
-        else if ( posValid() )
+        else if ( posValid()
+                  && self.posValid() )
         {
 #ifdef DEBUG_PRINT
             dlog.addText( Logger::WORLD,
-                          __FILE__" (updateSelfRelated) set rpos by pos" );
+                          __FILE__" (updateSelfRelated) set rpos by global pos" );
 #endif
             M_rpos = pos() - self.pos();
             M_rpos_error = posError() + self.posError();

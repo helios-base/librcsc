@@ -53,8 +53,8 @@ int PlayerObject::S_face_count_thr = 2;
 /*!
 
 */
-PlayerObject::PlayerObject()
-    : AbstractPlayerObject(),
+PlayerObject::PlayerObject( const int id )
+    : AbstractPlayerObject( id ),
       M_ghost_count( 0 ),
       M_pointto_angle( 0.0 ),
       M_pointto_count( 1000 ),
@@ -67,9 +67,10 @@ PlayerObject::PlayerObject()
 /*!
 
 */
-PlayerObject::PlayerObject( const SideID side,
+PlayerObject::PlayerObject( const int id,
+                            const SideID side,
                             const Localization::PlayerT & p )
-    : AbstractPlayerObject( side, p ),
+    : AbstractPlayerObject( id, side, p ),
       M_ghost_count( 0 ),
       M_pointto_angle( 0.0 ),
       M_pointto_count( 1000 ),

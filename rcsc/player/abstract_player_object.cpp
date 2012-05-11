@@ -48,8 +48,9 @@ namespace rcsc {
 /*!
 
 */
-AbstractPlayerObject::AbstractPlayerObject()
-    : M_side( NEUTRAL ),
+AbstractPlayerObject::AbstractPlayerObject( const int id )
+    : M_id( id ),
+      M_side( NEUTRAL ),
       M_unum( Unum_Unknown ),
       M_unum_count( 1000 ),
       M_goalie( false ),
@@ -83,9 +84,11 @@ AbstractPlayerObject::AbstractPlayerObject()
 /*!
 
 */
-AbstractPlayerObject::AbstractPlayerObject( const SideID side,
+AbstractPlayerObject::AbstractPlayerObject( const int id,
+                                            const SideID side,
                                             const Localization::PlayerT & p )
-    : M_side( side ),
+    : M_id( id ),
+      M_side( side ),
       M_unum( p.unum_ ),
       M_unum_count( 1000 ),
       M_goalie( p.goalie_ ),

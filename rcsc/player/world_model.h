@@ -115,6 +115,8 @@ private:
     PlayerObject::List M_opponents; //!< opponents instance. at least, the side information is observed
     PlayerObject::List M_unknown_players; //!< unknown players instance
 
+    int M_player_count; //!< total observation count of player (includes self=0)
+
     //////////////////////////////////////////////////
     // object reference (pointers to each object)
     // these containers are updated just before decision making

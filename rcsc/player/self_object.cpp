@@ -62,7 +62,7 @@ int SelfObject::S_face_count_thr = 5;
 
 */
 SelfObject::SelfObject()
-    : AbstractPlayerObject(),
+    : AbstractPlayerObject( 0 ),
       M_time( -1, 0 ),
       M_sense_body_time( -1, 0 ),
       M_pos_error( 0.0, 0.0 ),
@@ -977,7 +977,9 @@ SelfObject::updateBallInfo( const BallObject & ball )
     M_tackle_probability = 0.0;
     M_foul_probability = 0.0;
 
-    if ( ! ball.posValid() )
+    if ( M_pos_count > 100
+         || ! ball.posValid() )
+
     {
         return;
     }

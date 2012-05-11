@@ -57,6 +57,8 @@ public:
 
 protected:
 
+    int M_id; //!< identical number as object ID
+
     SideID M_side; //!< team side
     int  M_unum; //!< uniform number
     int M_unum_count; //!< accuracy count
@@ -96,19 +98,25 @@ private:
 
     int M_ball_reach_step; //!< estimated minimum ball interception step.
 
+
+    // not used
+    AbstractPlayerObject();
 public:
 
     /*!
       \brief initialize member variables.
     */
-    AbstractPlayerObject();
+    explicit
+    AbstractPlayerObject( const int id );
 
     /*!
       \brief initialize member variables using observed info
+      \param id ID number for this object
       \param side analyzed side info
       \param p analyzed seen player info
     */
-    AbstractPlayerObject( const SideID side,
+    AbstractPlayerObject( const int id,
+                          const SideID side,
                           const Localization::PlayerT & p );
 
     /*!
@@ -184,7 +192,17 @@ public:
           M_ball_reach_step = step;
       }
 
-    // ------------------------------------------
+    //------------------------------------------
+
+    /*!
+      \brief get the ID number for this object
+      \return ID number
+     */
+    int id() const
+      {
+          return M_id;
+      }
+
 
     /*!
       \brief get team side id

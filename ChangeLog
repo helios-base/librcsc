@@ -1,3 +1,15 @@
+2012-05-12  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/abstract_player_object.cpp:
+	* rcsc/player/abstract_player_object.h:
+	* rcsc/player/ball_object.cpp:
+	* rcsc/player/player_object.cpp:
+	* rcsc/player/player_object.h:
+	* rcsc/player/self_object.cpp:
+	* rcsc/player/world_model.cpp:
+	* rcsc/player/world_model.h:
+	- サイドや背番号が不明なプレイヤを一意に識別するためのID番号を追加した．IDは観測された順番に割り振られる
+
 2012-05-03  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/coach/coach_agent.cpp:
