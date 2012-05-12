@@ -1,5 +1,9 @@
 2012-05-12  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* librcsc-config.in:
+	* librcsc.pc.in:
+	- clang, color, timeを追加
+
 	* rcsc/player/abstract_player_object.cpp:
 	* rcsc/player/abstract_player_object.h:
 	* rcsc/player/ball_object.cpp:

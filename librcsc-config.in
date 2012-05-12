@@ -37,7 +37,7 @@ if test ${libdir} != /usr/lib ; then
   libsL=-L${libdir}
 fi
 
-libsl="-lrcsc_agent -lrcsc_ann -lrcsc_param -lrcsc_rcg -lrcsc_gz -lrcsc_geom -lz -lm"
+libsl="-lrcsc_agent -lrcsc_clang -lrcsc_ann -lrcsc_net -lrcsc_color -lrcsc_time -lrcsc_param -lrcsc_rcg -lrcsc_gz -lrcsc_geom -lz -lm"
 
 while test $# -gt 0; do
   case "$1" in
