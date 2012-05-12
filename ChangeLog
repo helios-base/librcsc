@@ -1,3 +1,9 @@
+2012-05-13  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/coach/coach_debug_client.cpp:
+	* rcsc/player/debug_client.cpp:
+	- 観測した指差し方向をデバッグサーバメッセージに含めるように変更
+
 2012-05-12  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* librcsc-config.in:

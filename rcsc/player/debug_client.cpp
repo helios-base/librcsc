@@ -233,12 +233,19 @@ public:
           //
           if ( p->bodyValid() )
           {
-              M_os << " (bd " << rint( p->body().degree() )
-                   << ')';
+              M_os << " (bd " << rint( p->body().degree() ) << ')';
           }
 
           //
-          // comment (goalie, unumCount, posPount, velCount, [vel], faceCount, [face], [{t|k}], [y], ballReachStep, comment)
+          // pointto
+          //
+          if ( p->pointtoCount() < 10 )
+          {
+              M_os << " (pt " << rint( p->pointtoAngle().degree() ) << ')';
+          }
+
+          //
+          // comment (goalie, unumCount, posPount, velCount, [vel], faceCount, [{t|k}], [y], ballReachStep, comment)
           //
           M_os << " (c \"";
 

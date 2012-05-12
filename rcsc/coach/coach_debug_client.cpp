@@ -173,6 +173,10 @@ public:
           M_os << ' ' << ROUND( p->pos().x, 0.01 )
                << ' ' << ROUND( p->pos().y, 0.01 );
           M_os << " (bd " << rint( p->body().degree() ) << ')';
+          if ( p->pointtoCycle() > 0 )
+          {
+              M_os << " (pt " << rint( p->pointtoAngle().degree() ) << ')';
+          }
 
           M_os << " (c \"";
 
