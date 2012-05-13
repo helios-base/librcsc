@@ -1,0 +1,13 @@
+librcsc-config
+librcsc.pc
+librcsc.spec
+librcscenv
+thermo_color_test
+rcg2txt
+rcgrenameteam
+rcgresultprinter
+rcgreverse
+rcgverconv
+rcgversion
+rclmscheduler
+rclmtableprinter
