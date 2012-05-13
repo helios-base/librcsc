@@ -98,7 +98,7 @@ private:
     GameTime M_fullstate_time; //!< fullstate update time
 
     GameTime M_last_set_play_start_time; //!< SetPlay started time
-    long M_setplay_count; //!< setplay counter
+    int M_setplay_count; //!< setplay counter
 
     GameMode M_game_mode; //!< playmode and scores
 
@@ -667,7 +667,7 @@ public:
       \brief get cycle count that setplay type playmode is keeped
       \return counted long integer
     */
-    const long & setplayCount() const { return M_setplay_count; }
+    int getSetPlayCount() const { return M_setplay_count; }
 
     /*!
       \brief get current playmode info

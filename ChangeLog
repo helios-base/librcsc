@@ -1,5 +1,11 @@
 2012-05-13  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/world_model.cpp:
+	* rcsc/player/world_model.h:
+	- setplayCount()をgetSetPlayCount()へリネーム
+	- WaitRequestメッセージによる修正処理を削除し，getSetPlayCount()の
+	値を正確にセットプレイ開始後のカウント数に変更
+
 	* rcsc/coach/coach_debug_client.cpp:
 	* rcsc/player/debug_client.cpp:
 	- 観測した指差し方向をデバッグサーバメッセージに含めるように変更

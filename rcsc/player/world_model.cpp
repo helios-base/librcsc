@@ -1894,15 +1894,7 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
         update( act, current );
     }
 
-    if ( M_audio_memory->waitRequestTime() == current )
-    {
-        M_setplay_count = 0;
-    }
-    else
-    {
-        // always increment
-        ++M_setplay_count;
-    }
+    ++M_setplay_count; // always increment
 
     updateBallByHear( act );
     updateGoalieByHear();
