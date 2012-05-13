@@ -202,6 +202,7 @@ public:
       \return cycle count from last observation
     */
     int velCount() const { return M_vel_count; }
+
     /*!
       \brief get the last seen velocity
       \return const reference to the point object
@@ -213,6 +214,18 @@ public:
       \return count since last velocity seen
     */
     int seenVelCount() const { return M_seen_vel_count; }
+
+    /*!
+      \brief get the last seen velocity
+      \return const reference to the point object
+     */
+    const Vector2D & heardVel() const { return M_heard_vel; }
+
+    /*!
+      \brief get the number of cycles since last velocity seen
+      \return count since last velocity seen
+    */
+    int heardVelCount() const { return M_heard_vel_count; }
 
     /*!
       \brief get count since ball lost

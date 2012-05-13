@@ -1,3 +1,8 @@
+2012-05-14  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/ball_object.h:
+	- heardVel()とheardVelCount()が無かったので追加
+
 2012-05-13  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/coach/coach_agent.cpp:
