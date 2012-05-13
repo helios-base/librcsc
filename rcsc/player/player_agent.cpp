@@ -772,8 +772,7 @@ PlayerAgent::initImpl( CmdLineParser & cmd_parser )
         ( "help", "", BoolSwitch( &help ), "print help message.")
         ( "player-config", "", &player_config_file, "specifies player config file." );
 
-    ParamMap player_param_map( "Player options" );
-    M_config.createParamMap( player_param_map );
+    ParamMap & player_param_map = M_config.paramMap();
 
     // analyze command line for system options.
     cmd_parser.parse( system_param_map );

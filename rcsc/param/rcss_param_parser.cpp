@@ -79,7 +79,7 @@ RCSSParamParser::parse( ParamMap & param_map )
           ++it )
     {
         // get parameter entry from map
-        ParamPtr param_ptr = param_map.findLongName( it->first );
+        ParamEntity::Ptr param_ptr = param_map.findLongName( it->first );
 
         // analyze value string
         if ( param_ptr

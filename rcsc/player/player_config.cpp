@@ -47,8 +47,10 @@ namespace rcsc {
 
 */
 PlayerConfig::PlayerConfig()
+    : M_param_map( new ParamMap( "Player options" ) )
 {
     setDefaultParam();
+    createParamMap();
 }
 
 /*-------------------------------------------------------------------*/
@@ -57,8 +59,8 @@ PlayerConfig::PlayerConfig()
 */
 PlayerConfig::~PlayerConfig()
 {
-
-    //cerr << "delete PlayerConfig" << endl;
+    delete M_param_map;
+    M_param_map = static_cast< ParamMap * >( 0 );
 }
 
 /*-------------------------------------------------------------------*/
@@ -173,9 +175,9 @@ PlayerConfig::setDefaultParam()
 
 */
 void
-PlayerConfig::createParamMap( ParamMap & param_map )
+PlayerConfig::createParamMap()
 {
-    param_map.add()
+    M_param_map->add()
         ( "team_name", "t", &M_team_name, "specifies team name string." )
         ( "version", "v", &M_version, "specifies the protocol version to communicate with the rcssserver." )
         ( "reconnect", "r", &M_reconnect_number,

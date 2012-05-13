@@ -48,10 +48,10 @@ namespace rcsc {
 */
 ConfFileParser::ConfFileParser( const std::string & file_path,
                                 const std::string & delim,
-                                const std::string & name_space )
+                                const std::string & realm )
     : M_file_path( file_path ),
       M_delimiters( delim ),
-      M_namespace( name_space )
+      M_realm( realm )
 {
 
 }
@@ -95,22 +95,22 @@ ConfFileParser::parse( ParamMap & param_map )
             continue;
         }
 
-        if ( ! M_namespace.empty() )
+        if ( ! M_realm.empty() )
         {
-            char ns[256];
+            char realm[256];
             int n_read = 0;
-            if ( std::sscanf( line_buf.c_str(), " %255s[^ :] :: %n ",
-                              ns, &n_read ) != 1
+            if ( std::sscanf( line_buf.c_str(), " %255[^ :] :: %n ",
+                              realm, &n_read ) != 1
                  || n_read == 0 )
             {
-                // illegal namespace format
+                // illegal relm format
                 //std:: cerr << "***WARNING*** ConfFileParser "
-                //           << " Illegal namespace format ["
+                //           << " Illegal realm format ["
                 //           << line_buf << "]" << std::endl;
                 continue;
             }
 
-            if ( M_namespace != ns )
+            if ( M_realm != realm )
             {
                 // namespace does not match.
                 continue;
@@ -137,7 +137,7 @@ ConfFileParser::parse( ParamMap & param_map )
         }
 
         // get parameter entry from map
-        ParamPtr param_ptr = param_map.findLongName( name_str );
+        ParamEntity::Ptr param_ptr = param_map.findLongName( name_str );
 
         if ( ! param_ptr )
         {

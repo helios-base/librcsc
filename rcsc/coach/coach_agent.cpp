@@ -484,8 +484,7 @@ CoachAgent::initImpl( CmdLineParser & cmd_parser )
         ( "help" , "", BoolSwitch( &help ), "print help message.")
         ( "coach-config", "", &coach_config_file, "specifies coach config file." );
 
-    ParamMap coach_param_map( "Coach options" );
-    M_config.createParamMap( coach_param_map );
+    ParamMap & coach_param_map = M_config.paramMap();
 
     // analyze command line for system options
     cmd_parser.parse( system_param_map );

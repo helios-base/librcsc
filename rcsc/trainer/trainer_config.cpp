@@ -44,8 +44,10 @@ namespace rcsc {
 
 */
 TrainerConfig::TrainerConfig()
+    : M_param_map( new ParamMap( "Trainer options" ) )
 {
     setDefaultParam();
+    createParamMap();
 }
 
 /*-------------------------------------------------------------------*/
@@ -54,8 +56,8 @@ TrainerConfig::TrainerConfig()
 */
 TrainerConfig::~TrainerConfig()
 {
-
-    // std::cerr << "delete TrainerConfig" << std::endl;
+    delete M_param_map;
+    M_param_map = static_cast< ParamMap * >( 0 );
 }
 
 /*-------------------------------------------------------------------*/
@@ -129,9 +131,9 @@ TrainerConfig::setDefaultParam()
 
 */
 void
-TrainerConfig::createParamMap( ParamMap & param_map )
+TrainerConfig::createParamMap()
 {
-    param_map.add()
+    M_param_map->add()
         ( "team_name", "t", &M_team_name )
         ( "version", "v", &M_version )
 

@@ -138,9 +138,9 @@ CmdLineParser::parse( ParamMap & param_map )
             continue;
         }
 
-        ParamPtr param_ptr = ( is_long_name
-                               ? param_map.findLongName( name_str )
-                               : param_map.findShortName( name_str ) );
+        ParamEntity::Ptr param_ptr = ( is_long_name
+                                       ? param_map.findLongName( name_str )
+                                       : param_map.findShortName( name_str ) );
 
         if ( ! param_ptr )
         {

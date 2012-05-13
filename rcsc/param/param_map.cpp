@@ -43,16 +43,16 @@ namespace rcsc {
   \struct LongNamePredicate
   \brief function object to check if the parameter's long name is same
   or not.
- */
+*/
 struct LongNamePredicate
-    : public std::unary_function< ParamPtr, bool > {
+    : public std::unary_function< ParamEntity::Ptr, bool > {
 
     std::string name_; //!< name string to be compared
 
     /*!
       \brief construct with the compared long name string
       \param long_name the compared long name
-     */
+    */
     explicit
     LongNamePredicate( const std::string & long_name )
         : name_( long_name )
@@ -62,7 +62,7 @@ struct LongNamePredicate
       \brief predicate operator
       \param arg compared parameter
       \return compared result
-     */
+    */
     result_type operator()( const argument_type & arg ) const
       {
           return arg->longName() == name_;
@@ -74,7 +74,7 @@ namespace {
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 inline
 bool
 is_true( const std::string & value_str )
@@ -88,7 +88,7 @@ is_true( const std::string & value_str )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 inline
 bool
 is_false( const std::string & value_str )
@@ -104,7 +104,7 @@ is_false( const std::string & value_str )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 std::ostream &
 ParamEntity::printFormat( std::ostream & os ) const
 {
@@ -121,7 +121,7 @@ ParamEntity::printFormat( std::ostream & os ) const
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 bool
 ParamGeneric< bool >::analyze( const std::string & value_str )
 {
@@ -158,7 +158,7 @@ ParamGeneric< bool >::analyze( const std::string & value_str )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 std::ostream &
 ParamGeneric< bool >::printValue( std::ostream & os ) const
 {
@@ -176,7 +176,7 @@ ParamGeneric< bool >::printValue( std::ostream & os ) const
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 bool
 ParamSwitch::analyze( const std::string & value_str )
 {
@@ -209,7 +209,7 @@ ParamSwitch::analyze( const std::string & value_str )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 std::ostream &
 ParamSwitch::printFormat( std::ostream & os ) const
 {
@@ -225,7 +225,7 @@ ParamSwitch::printFormat( std::ostream & os ) const
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 std::ostream &
 ParamSwitch::printValue( std::ostream & os ) const
 {
@@ -243,7 +243,7 @@ ParamSwitch::printValue( std::ostream & os ) const
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 ParamMap::Registrar &
 ParamMap::Registrar::operator()( const std::string & long_name,
                                  const std::string & short_name,
@@ -264,10 +264,10 @@ ParamMap::Registrar::operator()( const std::string & long_name,
         return *this;
     }
 
-    ParamPtr ptr( new ParamGeneric< bool >( long_name,
-                                            short_name,
-                                            value,
-                                            description ) );
+    ParamEntity::Ptr ptr( new ParamGeneric< bool >( long_name,
+                                                    short_name,
+                                                    value,
+                                                    description ) );
 
     M_param_map.add( ptr );
 
@@ -278,7 +278,7 @@ ParamMap::Registrar::operator()( const std::string & long_name,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 ParamMap::Registrar &
 ParamMap::Registrar::operator()( const std::string & long_name,
                                  const std::string & short_name,
@@ -299,10 +299,10 @@ ParamMap::Registrar::operator()( const std::string & long_name,
         return *this;
     }
 
-    ParamPtr ptr( new ParamSwitch( long_name,
-                                   short_name,
-                                   value.ptr_,
-                                   description ) );
+    ParamEntity::Ptr ptr( new ParamSwitch( long_name,
+                                           short_name,
+                                           value.ptr_,
+                                           description ) );
     M_param_map.add( ptr );
 
     return *this;
@@ -311,7 +311,7 @@ ParamMap::Registrar::operator()( const std::string & long_name,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 ParamMap::Registrar &
 ParamMap::Registrar::operator()( const std::string & long_name,
                                  const std::string & short_name,
@@ -332,10 +332,10 @@ ParamMap::Registrar::operator()( const std::string & long_name,
         return *this;
     }
 
-    ParamPtr ptr( new ParamSwitch( long_name,
-                                   short_name,
-                                   value,
-                                   description ) );
+    ParamEntity::Ptr ptr( new ParamSwitch( long_name,
+                                           short_name,
+                                           value,
+                                           description ) );
     M_param_map.add( ptr );
 
     return *this;
@@ -344,7 +344,7 @@ ParamMap::Registrar::operator()( const std::string & long_name,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 bool
 ParamMap::Registrar::checkName( const std::string & long_name,
                                 const std::string & short_name ) const
@@ -376,7 +376,7 @@ ParamMap::Registrar::checkName( const std::string & long_name,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 // ParamMap &
 // ParamMap::add( ParamMap & param_map )
 // {
@@ -385,7 +385,7 @@ ParamMap::Registrar::checkName( const std::string & long_name,
 //         return *this;
 //     }
 //
-//     for ( std::vector< ParamPtr >::iterator it = param_map.M_parameters.begin();
+//     for ( std::vector< ParamEntity::Ptr >::iterator it = param_map.M_parameters.begin();
 //           it != param_map.M_parameters.end();
 //           ++it )
 //     {
@@ -398,15 +398,15 @@ ParamMap::Registrar::checkName( const std::string & long_name,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 ParamMap::Registrar &
-ParamMap::add( ParamPtr param )
+ParamMap::add( ParamEntity::Ptr param )
 {
     if ( ! param )
     {
         std::cerr << __FILE__ << ':' << __LINE__
                   << " ***ERROR*** ParamMap::add(). "
-                  << "detected null ParamPtr."
+                  << "detected null ParamEntity::Ptr."
                   << std::endl;
         return M_registrar;
     }
@@ -466,7 +466,7 @@ ParamMap::add( ParamPtr param )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 void
 ParamMap::remove( const std::string & long_name )
 {
@@ -475,12 +475,12 @@ ParamMap::remove( const std::string & long_name )
                                         LongNamePredicate( long_name ) ),
                         M_parameters.end() );
 
-    std::map< std::string, ParamPtr >::iterator it_long = M_long_name_map.find( long_name );
+    std::map< std::string, ParamEntity::Ptr >::iterator it_long = M_long_name_map.find( long_name );
     if ( it_long != M_long_name_map.end() )
     {
         if ( ! it_long->second->shortName().empty() )
         {
-            std::map< std::string, ParamPtr >::iterator it_short
+            std::map< std::string, ParamEntity::Ptr >::iterator it_short
                 = M_short_name_map.find( it_long->second->shortName() );
             M_short_name_map.erase( it_short );
         }
@@ -492,41 +492,41 @@ ParamMap::remove( const std::string & long_name )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
-ParamPtr
+ */
+ParamEntity::Ptr
 ParamMap::findLongName( const std::string & long_name )
 {
-    std::map< std::string, ParamPtr >::iterator it = M_long_name_map.find( long_name );
+    std::map< std::string, ParamEntity::Ptr >::iterator it = M_long_name_map.find( long_name );
 
     if ( it != M_long_name_map.end() )
     {
         return it->second;
     }
 
-    return ParamPtr( static_cast< ParamEntity * >( 0 ) );
+    return ParamEntity::Ptr( static_cast< ParamEntity * >( 0 ) );
 }
 
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
-ParamPtr
+ */
+ParamEntity::Ptr
 ParamMap::findShortName( const std::string & short_name )
 {
-    std::map< std::string, ParamPtr >::iterator it = M_short_name_map.find( short_name );
+    std::map< std::string, ParamEntity::Ptr >::iterator it = M_short_name_map.find( short_name );
 
     if ( it != M_short_name_map.end() )
     {
         return it->second;
     }
 
-    return ParamPtr( static_cast< ParamEntity * >( 0 ) );
+    return ParamEntity::Ptr( static_cast< ParamEntity * >( 0 ) );
 }
 
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 std::ostream &
 ParamMap::printHelp( std::ostream & os,
                      const bool with_default ) const
@@ -542,7 +542,7 @@ ParamMap::printHelp( std::ostream & os,
 
     size_t width = 22;
 
-    for ( std::vector< ParamPtr >::const_iterator it = M_parameters.begin(),
+    for ( std::vector< ParamEntity::Ptr >::const_iterator it = M_parameters.begin(),
               end = M_parameters.end();
           it != end;
           ++it )
@@ -559,7 +559,7 @@ ParamMap::printHelp( std::ostream & os,
     const std::size_t max_len = 80;
     const std::string indent( width, ' ' );
 
-    for ( std::vector< ParamPtr >::const_iterator it = M_parameters.begin(),
+    for ( std::vector< ParamEntity::Ptr >::const_iterator it = M_parameters.begin(),
               end = M_parameters.end();
           it != end;
           ++it )
@@ -635,11 +635,11 @@ ParamMap::printHelp( std::ostream & os,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 std::ostream &
 ParamMap::printValues( std::ostream & os ) const
 {
-    for ( std::vector< ParamPtr >::const_iterator it = M_parameters.begin(),
+    for ( std::vector< ParamEntity::Ptr >::const_iterator it = M_parameters.begin(),
               end = M_parameters.end();
           it != end;
           ++it )

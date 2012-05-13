@@ -45,6 +45,8 @@ class ParamMap;
 class PlayerConfig {
 private:
 
+    ParamMap * M_param_map; //!< parameter map instance
+
     // basic setting
 
     std::string M_team_name; //!< team name string
@@ -160,28 +162,34 @@ private:
 public:
 
     /*!
-      \brief init variables by default value. create parametermap
+      \brief init variables by default value. create ParamMap instance
      */
     PlayerConfig();
 
     /*!
-      \brief nothing to do
+      \brief delete ParamMap instance
      */
     ~PlayerConfig();
 
-
     /*!
       \brief create parameter map
-      \param param_map reference to the parameter map instance
+      \return reference to the parameter map instance
      */
-    void createParamMap( ParamMap & param_map );
-
+    ParamMap & paramMap()
+      {
+          return *M_param_map;
+      }
 
 protected:
     /*!
       \brief set default value
     */
     void setDefaultParam();
+
+    /*!
+      \brief set parameter entries
+     */
+    void createParamMap();
 
 public:
 

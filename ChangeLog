@@ -1,5 +1,26 @@
 2012-05-13  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/coach/coach_agent.cpp:
+	* rcsc/coach/coach_config.cpp:
+	* rcsc/coach/coach_config.h:
+	* rcsc/common/player_param.cpp:
+	* rcsc/common/server_param.cpp:
+	* rcsc/param/cmd_line_parser.cpp:
+	* rcsc/param/conf_file_parser.cpp:
+	* rcsc/param/conf_file_parser.h:
+	* rcsc/param/param_map.cpp:
+	* rcsc/param/param_map.h:
+	* rcsc/param/rcss_param_parser.cpp:
+	* rcsc/player/player_agent.cpp:
+	* rcsc/player/player_config.cpp:
+	* rcsc/player/player_config.h:
+	* rcsc/trainer/trainer_agent.cpp:
+	* rcsc/trainer/trainer_config.cpp:
+	* rcsc/trainer/trainer_config.h:
+	- ParamPtrをParamEntity::Ptrへ変更
+	- ConfFileParserでrealm文字列をパースできていなかったバグ修正
+	- Configクラスの設計を改善し，パラメータマップの生成をクラス内部で完結
+
 	* rcsc/player/world_model.cpp:
 	* rcsc/player/world_model.h:
 	- setplayCount()をgetSetPlayCount()へリネーム

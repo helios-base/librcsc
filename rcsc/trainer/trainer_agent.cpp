@@ -501,8 +501,7 @@ TrainerAgent::initImpl( CmdLineParser & cmd_parser )
         ( "help" , "", BoolSwitch( &help ), "print help message.")
         ( "trainer-config", "", &trainer_config_file, "specifies trainer config file." );
 
-    ParamMap trainer_param_map( "Trainer options" );
-    M_config.createParamMap( trainer_param_map );
+    ParamMap & trainer_param_map = M_config.paramMap();
 
     // analyze command line for system options.
     cmd_parser.parse( system_param_map );

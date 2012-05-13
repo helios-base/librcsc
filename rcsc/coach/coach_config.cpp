@@ -44,8 +44,10 @@ namespace rcsc {
 
 */
 CoachConfig::CoachConfig()
+    : M_param_map( new ParamMap( "Coach options" ) )
 {
     setDefaultParam();
+    createParamMap();
 }
 
 /*-------------------------------------------------------------------*/
@@ -54,8 +56,8 @@ CoachConfig::CoachConfig()
 */
 CoachConfig::~CoachConfig()
 {
-
-    // std::cerr << "delete CoachConfig" << std::endl;
+    delete M_param_map;
+    M_param_map = static_cast< ParamMap * >( 0 );
 }
 
 /*-------------------------------------------------------------------*/
@@ -152,9 +154,9 @@ CoachConfig::setDefaultParam()
 
 */
 void
-CoachConfig::createParamMap( ParamMap & param_map )
+CoachConfig::createParamMap()
 {
-    param_map.add()
+    M_param_map->add()
         ( "team_name", "t", &M_team_name )
         ( "version", "v", &M_version )
 

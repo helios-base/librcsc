@@ -51,8 +51,8 @@ private:
     //! delimiter character set
     const std::string M_delimiters;
 
-    //! parameter's namespace
-    const std::string M_namespace;
+    //! parameter's realm
+    const std::string M_realm;
 
     //! not used
     ConfFileParser();
@@ -61,12 +61,12 @@ public:
       \brief construct with file path and delimiters
       \param file_path path string to the config file to be parsed
       \param delim delimiter character set
-      \param name_space namespace string
+      \param realm realm string
      */
     explicit
     ConfFileParser( const std::string & file_path,
                     const std::string & delim = ":=",
-                    const std::string & name_space = "" );
+                    const std::string & realm = "" );
 
     /*!
       \brief analyze file content and results are stored to parameter map

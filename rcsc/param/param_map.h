@@ -130,6 +130,11 @@ private:
   \brief abstract parameter
 */
 class ParamEntity {
+public:
+
+    //! ParamEntity smart pointer type
+    typedef boost::shared_ptr< ParamEntity > Ptr;
+
 private:
     //! long parameter name
     std::string M_long_name;
@@ -232,11 +237,6 @@ public:
     std::ostream & printValue( std::ostream & os ) const = 0;
 
 };
-
-/*!
-  \brief type of ParamEntity pointer
- */
-typedef boost::shared_ptr< ParamEntity > ParamPtr;
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -532,10 +532,10 @@ private:
                   return *this;
               }
 
-              ParamPtr ptr( new ParamGeneric< ValueType >( long_name,
-                                                           short_name,
-                                                           value_ptr,
-                                                           description ) );
+              ParamEntity::Ptr ptr( new ParamGeneric< ValueType >( long_name,
+                                                                   short_name,
+                                                                   value_ptr,
+                                                                   description ) );
               M_param_map.add( ptr );
               return *this;
           }
@@ -599,13 +599,13 @@ private:
     std::string M_group_name;
 
     //! parameter container
-    std::vector< ParamPtr > M_parameters;
+    std::vector< ParamEntity::Ptr > M_parameters;
 
     //! long name option map
-    std::map< std::string, ParamPtr > M_long_name_map;
+    std::map< std::string, ParamEntity::Ptr > M_long_name_map;
 
     //! short name option map
-    std::map< std::string, ParamPtr > M_short_name_map;
+    std::map< std::string, ParamEntity::Ptr > M_short_name_map;
 
 
     // no copyable
@@ -661,7 +661,7 @@ public:
       \brief get the container of all parameters
       \return const reference to the container instance
      */
-    const std::vector< ParamPtr > & parameters() const
+    const std::vector< ParamEntity::Ptr > & parameters() const
       {
           return M_parameters;
       }
@@ -670,7 +670,7 @@ public:
       \brief get the long name parameter map
       \return const reference to the container instance
      */
-    const std::map< std::string, ParamPtr > & longNameMap() const
+    const std::map< std::string, ParamEntity::Ptr > & longNameMap() const
       {
           return M_long_name_map;
       }
@@ -679,7 +679,7 @@ public:
       \brief get the short name parameter map
       \return const reference to the container instance
      */
-    const std::map< std::string, ParamPtr > & shortNameMap() const
+    const std::map< std::string, ParamEntity::Ptr > & shortNameMap() const
       {
           return M_short_name_map;
       }
@@ -697,7 +697,7 @@ public:
       \brief add new parameter entry
       \param param shared pointer of parameter entry
      */
-    Registrar & add( ParamPtr param );
+    Registrar & add( ParamEntity::Ptr param );
 
     /*!
       \brief remove registered parameter pointer
@@ -710,14 +710,14 @@ public:
       \param long_name long version parameter name string
       \return parameter entry pointer. if not found, NULL is returned.
      */
-    ParamPtr findLongName( const std::string & long_name );
+    ParamEntity::Ptr findLongName( const std::string & long_name );
 
     /*!
       \brief get parameter entry that has the argument name
       \param short_name set of the parameter name character
       \return parameter entry pointer. if not found, NULL is returned.
      */
-    ParamPtr findShortName( const std::string & short_name );
+    ParamEntity::Ptr findShortName( const std::string & short_name );
 
     /*!
       \brief output parameter usage by command line option style
