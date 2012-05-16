@@ -192,7 +192,7 @@ PassMessageParser::parse( const int sender,
     dlog.addText( Logger::SENSOR,
                   "PassMessageParser::parse() success! receiver %d"
                   " recv_pos(%.1f %.1f)"
-                  " bpos(%.1f %.1f) bvel(%.1f %.1f)",
+                  " bpos(%.3f %.3f) bvel(%.3f %.3f)",
                   receiver_number,
                   receive_pos.x, receive_pos.y,
                   ball_pos.x, ball_pos.y,
