@@ -1,5 +1,11 @@
 2012-05-16  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/common/audio_codec.cpp:
+	* rcsc/player/say_message_builder.cpp:
+	- ボール速度の圧縮方法を値域全体の正規化から絶対値の正規化+正負フ
+	ラグに変更．速度0を正確に伝えられるようになったが，情報の精度はや
+	や落ちる
+
 	* rcsc/common/say_message_parser.cpp:
 	- デバッグ出力の数値の精度を上げた
 

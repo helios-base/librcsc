@@ -368,13 +368,28 @@ AudioCodec::posVelToBit31( const Vector2D & pos,
 
     boost::int32_t rval = posToBit19( pos );
 
+#if 1
+    {
+        rval <<= 1;
+        if ( vel.x < 0.0 ) rval |= 1;
+        rval <<= 5;
+        double vx = std::min( vel.absX(), max_speed );
+        vx *= ( 31.0 / max_speed );
+        rval |= static_cast< boost::int32_t >( rint( vx ) );
+    }
+    {
+        rval <<= 1;
+        if ( vel.y < 0.0 ) rval |= 1;
+        rval <<= 5;
+        double vy = std::min( vel.absY(), max_speed );
+        vy *= ( 31.0 / max_speed );
+        rval |= static_cast< boost::int32_t >( rint( vy ) );
+    }
+#else
     rval <<= 6; // 6 bits shift for next info
 
     // vel.x value -> 6 bits (=[0,63])
     {
-        //double vx = min_max( -2.7, vel.x, 2.7 );
-        //vx += 2.7;
-        //vx *= ( 63.0 / 5.4 ); // vx /= (5.4/63.0);
         double vx = min_max( -max_speed, vel.x, max_speed );
         vx += max_speed;
         vx *= ( 63.0 / ( max_speed*2.0 ) );
@@ -385,14 +400,12 @@ AudioCodec::posVelToBit31( const Vector2D & pos,
 
     // vel.y value -> 6 bits (=[0,63])
     {
-        //double vy = min_max( -2.7, vel.y, 2.7 );
-        //vy += 2.7;
-        //vy *= ( 63.0 / 5.4 ); // vy /= (5.4/63.0);
         double vy = min_max( -max_speed, vel.y, max_speed );
         vy += max_speed;
         vy *= ( 63.0 / ( max_speed*2.0 ) );
         rval |= static_cast< boost::int32_t >( rint( vy ) );
     }
+#endif
 
     return rval;
 }
@@ -410,6 +423,24 @@ AudioCodec::bit31ToPosVel( const boost::int32_t & val,
 
     bit19ToPos( val >> 12, pos );
 
+#if 1
+    {
+        boost::int32_t ivx = ( val >> 6 ) & MASK_5;
+        vel->x = ivx * ( max_speed / 31.0 );
+        if ( ( val >> 11 ) & MASK_1 )
+        {
+            vel->x *= -1.0;
+        }
+    }
+    {
+        boost::int32_t ivy = val & MASK_5;
+        vel->y = ivy * ( max_speed / 31.0 );
+        if ( ( val >> 5 ) & MASK_1 )
+        {
+            vel->y *= -1.0;
+        }
+    }
+#else
     // vel.x
     {
         boost::int32_t ivx = ( val >> 6 ) & MASK_6;
@@ -421,6 +452,7 @@ AudioCodec::bit31ToPosVel( const boost::int32_t & val,
         boost::int32_t ivy = val & MASK_6;
         vel->y = ivy * ( ( max_speed*2.0 ) / 63.0 ) - max_speed;
     }
+#endif
 }
 
 /*-------------------------------------------------------------------*/

@@ -72,7 +72,7 @@ BallMessage::appendTo( std::string & to ) const
                   << std::endl;
         dlog.addText( Logger::SENSOR,
                       "BallMessage. error!"
-                      " pos=(%.1f %.1f) vel=(%.1f %.1f)",
+                      " pos=(%f %f) vel=(%f %f)",
                       M_ball_pos.x, M_ball_pos.y,
                       M_ball_vel.x, M_ball_vel.y );
         return false;
@@ -80,7 +80,7 @@ BallMessage::appendTo( std::string & to ) const
 
     dlog.addText( Logger::SENSOR,
                   "BallMessage. success!"
-                  " pos=(%.1f %.1f) vel=(%.1f %.1f) -> [%s]",
+                  " pos=(%f %f) vel=(%f %f) -> [%s]",
                   M_ball_pos.x, M_ball_pos.y,
                   M_ball_vel.x, M_ball_vel.y,
                   msg.c_str() );
@@ -132,7 +132,7 @@ PassMessage::appendTo( std::string & to ) const
                   << std::endl;
 
         dlog.addText( Logger::SENSOR,
-                      "PassMessage. error! receiver=%d pos=(%.1f %.1f)",
+                      "PassMessage. error! receiver=%d pos=(%f %f)",
                       M_receiver_unum,
                       M_receive_point.x, M_receive_point.y );
         return false;
@@ -147,7 +147,7 @@ PassMessage::appendTo( std::string & to ) const
                   << std::endl;
         dlog.addText( Logger::SENSOR,
                       "PassMessage. error!"
-                      " ball_pos=(%.1f %.1f) vel=(%.1f %.1f)",
+                      " ball_pos=(%f %f) vel=(%f %f)",
                       M_ball_pos.x, M_ball_pos.y,
                       M_ball_vel.x, M_ball_vel.y );
         return false;
@@ -167,8 +167,8 @@ PassMessage::appendTo( std::string & to ) const
 
     dlog.addText( Logger::SENSOR,
                   "PassMessage. success!"
-                  " receiver=%d recv_pos=(%.1f %.1f)"
-                  " bpos(%.1f %.1f) bvel(%.1f %.1f) -> [%s]",
+                  " receiver=%d recv_pos=(%f %f)"
+                  " bpos(%f %f) bvel(%f %f) -> [%s]",
                   M_receiver_unum,
                   M_receive_point.x, M_receive_point.y,
                   M_ball_pos.x, M_ball_pos.y,
@@ -223,7 +223,7 @@ GoalieMessage::appendTo( std::string & to ) const
 //                   << M_goalie_pos
 //                   << std::endl;
         dlog.addText( Logger::SENSOR,
-                      "GoalieMessage. over the position range : (%.1f %.1f)",
+                      "GoalieMessage. over the position range : (%f %f)",
                       M_goalie_pos.x, M_goalie_pos.y );
         return false;
     }
@@ -254,14 +254,14 @@ GoalieMessage::appendTo( std::string & to ) const
                   << std::endl;
 
         dlog.addText( Logger::SENSOR,
-                      "GoalieMessage. error! unum=%d pos=(%.1f %.1f) body=%.1f",
+                      "GoalieMessage. error! unum=%d pos=(%f %f) body=%f",
                       M_goalie_unum, M_goalie_pos.x, M_goalie_pos.y,
                       M_goalie_body.degree() );
         return false;
     }
 
     dlog.addText( Logger::SENSOR,
-                  "GoalieMessage. success! unum=%d pos=(%.1f %.1f) x=%f y=%f -> [%s]",
+                  "GoalieMessage. success! unum=%d pos=(%f %f) x=%f y=%f -> [%s]",
                   M_goalie_unum, M_goalie_pos.x, M_goalie_pos.y,
                   x, y,
                   msg.c_str() );
@@ -307,7 +307,7 @@ GoalieAndPlayerMessage::appendTo( std::string & to ) const
          || M_goalie_pos.absY() > 19.9 )
     {
         dlog.addText( Logger::SENSOR,
-                      "GoalieAndPlayerMessage. over the position range : (%.1f %.1f)",
+                      "GoalieAndPlayerMessage. over the position range : (%f %f)",
                       M_goalie_pos.x, M_goalie_pos.y );
         return false;
     }
@@ -358,7 +358,7 @@ GoalieAndPlayerMessage::appendTo( std::string & to ) const
                   << std::endl;
 
         dlog.addText( Logger::SENSOR,
-                      "GoalieAndPlayerMessage. error! goalie unum=%d (%.2f %.2f) body=%.1f"
+                      "GoalieAndPlayerMessage. error! goalie unum=%d (%.2f %.2f) body=%f"
                       " player=%d (%.2f %.2f)",
                       M_goalie_unum, M_goalie_pos.x, M_goalie_pos.y,
                       M_goalie_body.degree(),
@@ -426,13 +426,13 @@ OffsideLineMessage::appendTo( std::string & to ) const
                   << M_offside_line_x
                   << std::endl;
         dlog.addText( Logger::SENSOR,
-                      "OffsideLineMessage. error! real_x=%.1f, rate=%.3f",
+                      "OffsideLineMessage. error! real_x=%f, rate=%f",
                       M_offside_line_x, rate );
         return false;
     }
 
     dlog.addText( Logger::SENSOR,
-                  "OffsideLineMessage. success! x=%.1f rate=%.3f [%c]",
+                  "OffsideLineMessage. success! x=%f rate=%f [%c]",
                   M_offside_line_x, rate, ch );
 
     to += header();
@@ -483,13 +483,13 @@ DefenseLineMessage::appendTo( std::string & to ) const
                   << " ***ERROR*** DefenseLineMessage. value = " << M_defense_line_x
                   << std::endl;
         dlog.addText( Logger::SENSOR,
-                      "DefenseLineMessage. error! x=%.1f, rate=%.3f",
+                      "DefenseLineMessage. error! x=%f, rate=%f",
                       M_defense_line_x, rate );
         return false;
     }
 
     dlog.addText( Logger::SENSOR,
-                  "DefenseLineMessage. success! x=%.1f rate=%.3f -> [%c]",
+                  "DefenseLineMessage. success! x=%f rate=%f -> [%c]",
                   M_defense_line_x, rate, ch );
 
     to += header();
@@ -631,13 +631,13 @@ PassRequestMessage::appendTo( std::string & to ) const
                   << M_target_point
                   << std::endl;
         dlog.addText( Logger::SENSOR,
-                      "PassRequestMessage. error!. dash_target=(%.1f %.1f)",
+                      "PassRequestMessage. error!. dash_target=(%f %f)",
                       M_target_point.x, M_target_point.y );
         return false;
     }
 
     dlog.addText( Logger::SENSOR,
-                  "PassRequestMessage. success!. dash_target=(%.1f %.1f) -> [%s]",
+                  "PassRequestMessage. success!. dash_target=(%f %f) -> [%s]",
                   M_target_point.x, M_target_point.y,
                   msg.c_str() );
 
@@ -683,13 +683,13 @@ StaminaMessage::appendTo( std::string & to ) const
                   << " ***ERROR*** Say_Stamina. value = " << M_stamina
                   << std::endl;
         dlog.addText( Logger::SENSOR,
-                      "StaminaMessage. error! value= %.1f",
+                      "StaminaMessage. error! value= %f",
                       M_stamina );
         return false;
     }
 
     dlog.addText( Logger::SENSOR,
-                  "StaminaMessage. success! value= %.1f",
+                  "StaminaMessage. success! value= %f",
                   M_stamina );
 
     to += header();
@@ -737,13 +737,13 @@ RecoveryMessage::appendTo( std::string & to ) const
                   << " ***ERROR*** RecoveryMessage. value = " << M_recovery
                   << std::endl;
         dlog.addText( Logger::SENSOR,
-                      "RecoveryMessage: error!. value = %.1f. rate = %.3f",
+                      "RecoveryMessage: error!. value = %f. rate = %f",
                       M_recovery, rate );
         return false;
     }
 
     dlog.addText( Logger::SENSOR,
-                  "RecoveryMessage: success!. value = %.1f. rate = %.3f",
+                  "RecoveryMessage: success!. value = %f. rate = %f",
                   M_recovery, rate );
 
     to += header();
@@ -788,13 +788,13 @@ StaminaCapacityMessage::appendTo( std::string & to ) const
                   << " ***ERROR*** StaminaCapacityMessage. value = " << M_stamina_capacity
                   << std::endl;
         dlog.addText( Logger::SENSOR,
-                      "StaminaCapacityMessage: error!. value = %.1f. rate = %.3f",
+                      "StaminaCapacityMessage: error!. value = %f. rate = %f",
                       M_stamina_capacity, rate );
         return false;
     }
 
     dlog.addText( Logger::SENSOR,
-                  "RecoveryMessage: success!. capacity = %.1f. rate = %.3f",
+                  "RecoveryMessage: success!. capacity = %f. rate = %f",
                   M_stamina_capacity, rate );
 
     to += header();
@@ -858,7 +858,7 @@ DribbleMessage::appendTo( std::string & to ) const
                   << " ***ERROR*** DribbleMessage. target=" << M_target_point
                   << std::endl;
         dlog.addText( Logger::SENSOR,
-                      "DribbleMessage. error!. pos=(%.1f %.1f) count=%d,"
+                      "DribbleMessage. error!. pos=(%f %f) count=%d,"
                       " message_length=%d",
                       M_target_point.x, M_target_point.y,
                       M_queue_count, msg.length() );
@@ -866,7 +866,7 @@ DribbleMessage::appendTo( std::string & to ) const
     }
 
     dlog.addText( Logger::SENSOR,
-                  "DribbleMessage. success!. pos=(%.1f %.1f) count=%d -> [%s]",
+                  "DribbleMessage. success!. pos=(%f %f) count=%d -> [%s]",
                   M_target_point.x, M_target_point.y,
                   M_queue_count,
                   msg.c_str() );
@@ -914,7 +914,7 @@ BallGoalieMessage::appendTo( std::string & to ) const
                   << M_goalie_pos
                   << std::endl;
         dlog.addText( Logger::SENSOR,
-                      "BallGoalieMessage. over the position range : (%.1f %.1f)",
+                      "BallGoalieMessage. over the position range : (%f %f)",
                       M_goalie_pos.x, M_goalie_pos.y );
         return false;
     }
@@ -977,8 +977,8 @@ BallGoalieMessage::appendTo( std::string & to ) const
 
         dlog.addText( Logger::SENSOR,
                       "BallGoalieMessage. error!"
-                      " bpos(%.1f %.1f) bvel(%.1f %.1f)"
-                      " gpos=(%.1f %.1f) gbody=%.1f",
+                      " bpos(%f %f) bvel(%f %f)"
+                      " gpos=(%f %f) gbody=%f",
                       M_ball_pos.x, M_ball_pos.y,
                       M_ball_vel.x, M_ball_vel.y,
                       M_goalie_pos.x, M_goalie_pos.y,
@@ -987,8 +987,8 @@ BallGoalieMessage::appendTo( std::string & to ) const
     }
 
     dlog.addText( Logger::SENSOR,
-                  "BallGoalieMessage. success!. bpos=(%.1f %.1f) bvel(%.1f %.1f)"
-                  " gpos(%.1f %.1f) gbody %.1f -> [%s]",
+                  "BallGoalieMessage. success!. bpos=(%f %f) bvel(%f %f)"
+                  " gpos(%f %f) gbody %f -> [%s]",
                   M_ball_pos.x, M_ball_pos.y,
                   M_ball_vel.x, M_ball_vel.y,
                   M_goalie_pos.x, M_goalie_pos.y,
@@ -1069,14 +1069,14 @@ OnePlayerMessage::appendTo( std::string & to ) const
 
         dlog.addText( Logger::SENSOR,
                       "OnePlayerMessage. error!"
-                      " unum=%d pos=(%.1f %.1f)",
+                      " unum=%d pos=(%f %f)",
                       M_unum,
                       M_player_pos.x, M_player_pos.y );
         return false;
     }
 
     dlog.addText( Logger::SENSOR,
-                  "OnePlayerMessage. success!. unum = %d pos=(%.1f %.1f) -> [%s]",
+                  "OnePlayerMessage. success!. unum = %d pos=(%f %f) -> [%s]",
                   M_unum,
                   M_player_pos.x, M_player_pos.y,
                   msg.c_str() );
@@ -1177,7 +1177,7 @@ TwoPlayerMessage::appendTo( std::string & to ) const
         for ( int i = 0; i < 2; ++i )
         {
             dlog.addText( Logger::SENSOR,
-                          "TwoPlayerMessage. error! unum=%d pos=(%.1f %.1f)",
+                          "TwoPlayerMessage. error! unum=%d pos=(%f %f)",
                           M_player_unum[i],
                           M_player_pos[i].x, M_player_pos[i].y );
         }
@@ -1189,7 +1189,7 @@ TwoPlayerMessage::appendTo( std::string & to ) const
         for ( int i = 0; i < 2; ++i )
         {
             dlog.addText( Logger::SENSOR,
-                          "TwoPlayerMessage. success!. unum=%d pos=(%.1f %.1f)",
+                          "TwoPlayerMessage. success!. unum=%d pos=(%f %f)",
                           M_player_unum[i],
                           M_player_pos[i].x, M_player_pos[i].y );
         }
@@ -1406,7 +1406,7 @@ SelfMessage::appendTo( std::string & to ) const
 
         dlog.addText( Logger::SENSOR,
                       "SelfMessage. error!"
-                      " pos=(%.1f %.1f) body=%.1f stamina=%f",
+                      " pos=(%f %f) body=%f stamina=%f",
                       M_self_pos.x, M_self_pos.y,
                       M_self_body.degree(),
                       M_self_stamina );
@@ -1415,8 +1415,8 @@ SelfMessage::appendTo( std::string & to ) const
 
     dlog.addText( Logger::SENSOR,
                   "SelfMessage. success!."
-                  " pos=(%.1f %.1f)"
-                  " body=%.1f stamina_rate=%f-> [%s]",
+                  " pos=(%f %f)"
+                  " body=%f stamina_rate=%f-> [%s]",
                   M_self_pos.x, M_self_pos.y,
                   M_self_body.degree(),
                   M_self_stamina,
@@ -1498,7 +1498,7 @@ TeammateMessage::appendTo( std::string & to ) const
 
         dlog.addText( Logger::SENSOR,
                       "TeammateMessage. error!"
-                      " unum=%d pos=(%.1f %.1f) body=%.1f",
+                      " unum=%d pos=(%f %f) body=%f",
                       M_unum,
                       M_player_pos.x, M_player_pos.y,
                       M_player_body.degree() );
@@ -1506,8 +1506,8 @@ TeammateMessage::appendTo( std::string & to ) const
     }
 
     dlog.addText( Logger::SENSOR,
-                  "TeammateMessage. success!. unum = %d pos=(%.1f %.1f)"
-                  " body=%.1f -> [%s]",
+                  "TeammateMessage. success!. unum = %d pos=(%f %f)"
+                  " body=%f -> [%s]",
                   M_unum,
                   M_player_pos.x, M_player_pos.y,
                   M_player_body.degree(),
@@ -1590,7 +1590,7 @@ OpponentMessage::appendTo( std::string & to ) const
 
         dlog.addText( Logger::SENSOR,
                       "OpponentMessage. error!"
-                      " unum=%d pos=(%.1f %.1f) body=%.1f",
+                      " unum=%d pos=(%f %f) body=%f",
                       M_unum,
                       M_player_pos.x, M_player_pos.y,
                       M_player_body.degree() );
@@ -1598,8 +1598,8 @@ OpponentMessage::appendTo( std::string & to ) const
     }
 
     dlog.addText( Logger::SENSOR,
-                  "OpponentMessage. success!. unum = %d pos=(%.1f %.1f)"
-                  " body=%.1f -> [%s]",
+                  "OpponentMessage. success!. unum = %d pos=(%f %f)"
+                  " body=%f -> [%s]",
                   M_unum,
                   M_player_pos.x, M_player_pos.y,
                   M_player_body.degree(),
@@ -1670,7 +1670,7 @@ BallPlayerMessage::appendTo( std::string & to ) const
                   << std::endl;
         dlog.addText( Logger::SENSOR,
                       "BallPlayerMessage. ball encode error!"
-                      " pos=(%.1f %.1f) vel=(%.1f %.1f)",
+                      " pos=(%f %f) vel=(%f %f)",
                       M_ball_pos.x, M_ball_pos.y,
                       M_ball_vel.x, M_ball_vel.y );
         return false;
@@ -1709,7 +1709,7 @@ BallPlayerMessage::appendTo( std::string & to ) const
 
         dlog.addText( Logger::SENSOR,
                       "BallPlayerMessage. player encode error!"
-                      " unum=%d pos=(%.1f %.1f) body=%.1f",
+                      " unum=%d pos=(%f %f) body=%f",
                       M_unum,
                       M_player_pos.x, M_player_pos.y,
                       M_player_body.degree() );
@@ -1718,8 +1718,8 @@ BallPlayerMessage::appendTo( std::string & to ) const
 
     dlog.addText( Logger::SENSOR,
                   "BallPlayerMessage. success!."
-                  " bpos(%.1f %.1f) bvel(%.1f %.1f)"
-                  " unum=%d ppos(%.1f %.1f) pbody=%.1f"
+                  " bpos(%f %f) bvel(%f %f)"
+                  " unum=%d ppos(%f %f) pbody=%f"
                   " -> [%s]",
                   M_ball_pos.x, M_ball_pos.y,
                   M_ball_vel.x, M_ball_vel.y,
