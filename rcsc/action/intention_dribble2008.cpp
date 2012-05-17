@@ -180,7 +180,7 @@ IntentionDribble2008::execute( PlayerAgent * agent )
         if ( wm.self().pos().x > 36.0
              && wm.self().pos().absY() < 20.0 )
         {
-            agent->setNeckAction( new Neck_TurnToGoalieOrScan() );
+            agent->setNeckAction( new Neck_TurnToGoalieOrScan( 2 ) );
         }
         else
         {

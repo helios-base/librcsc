@@ -1,5 +1,10 @@
 2012-05-17  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/action/intention_dribble2008.cpp:
+	* rcsc/action/neck_turn_to_goalie_or_scan.h:
+	- Neck_TurnToGoalieOrScanのデフォルト引数を削除
+	- Neck_TurnToGoalieOrScan::clone()でcount_thrが使用されていなかった誤りを修正
+
 	* rcsc/action/body_advance_ball2009.cpp:
 	* rcsc/action/body_intercept2009.cpp:
 	* rcsc/action/neck_turn_to_goalie_or_scan.cpp:

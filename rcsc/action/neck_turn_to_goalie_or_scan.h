@@ -52,9 +52,10 @@ private:
 public:
     /*!
       \brief accessible from global.
+      \param count_thr accuracy count threshold to determine whether the agent check opponent goalie or not
      */
     explicit
-    Neck_TurnToGoalieOrScan( const int count_thr = 2 )
+    Neck_TurnToGoalieOrScan( const int count_thr )
         : M_count_thr( count_thr )
       { }
 
@@ -71,7 +72,7 @@ public:
      */
     NeckAction * clone() const
       {
-          return new Neck_TurnToGoalieOrScan;
+          return new Neck_TurnToGoalieOrScan( M_count_thr );
       }
 };
 
