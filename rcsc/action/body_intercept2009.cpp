@@ -60,7 +60,7 @@ namespace rcsc {
 bool
 Body_Intercept2009::execute( PlayerAgent * agent )
 {
-    dlog.addText( Logger::TEAM,
+    dlog.addText( Logger::INTERCEPT,
                   __FILE__": Body_Intercept2009" );
 
     const WorldModel & wm = agent->world();

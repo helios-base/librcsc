@@ -156,7 +156,7 @@ Body_AdvanceBall2009::execute( PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
 
-    dlog.addText( Logger::TEAM,
+    dlog.addText( Logger::ACTION,
                   __FILE__": Body_AdvanceBall" );
 
     if ( ! wm.self().isKickable() )
