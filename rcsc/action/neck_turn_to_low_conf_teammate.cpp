@@ -111,7 +111,7 @@ Neck_TurnToLowConfTeammate::execute( PlayerAgent * agent )
         dlog.addText( Logger::ACTION,
                       __FILE__": no candidate. pos_count=%d",
                       pos_count );
-        return Neck_TurnToBallOrScan().execute( agent );
+        return Neck_TurnToBallOrScan( 0 ).execute( agent );
     }
 
     dlog.addText( Logger::ACTION,

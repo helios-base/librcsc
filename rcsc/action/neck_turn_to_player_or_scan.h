@@ -53,13 +53,13 @@ public:
     /*!
       \brief constructor
       \param target_player pointer to the target player object
-      \param count_thr if player's posCount is smaller than this, agent will scan field.
+      \param count_thr if player's posCount is smaller than this value, agent will scan field.
      */
     explicit
     Neck_TurnToPlayerOrScan( const AbstractPlayerObject * target_player,
-                             const int count_thr = 1 )
-        : M_target_player( target_player )
-        , M_count_thr( count_thr )
+                             const int count_thr )
+        : M_target_player( target_player ),
+          M_count_thr( count_thr )
       { }
 
     /*!

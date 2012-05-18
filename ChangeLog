@@ -1,3 +1,14 @@
+2012-05-18  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/action/neck_turn_to_ball_and_player.cpp:
+	* rcsc/action/neck_turn_to_ball_and_player.h:
+	* rcsc/action/neck_turn_to_ball_or_scan.h:
+	* rcsc/action/neck_turn_to_low_conf_teammate.cpp:
+	* rcsc/action/neck_turn_to_player_or_scan.cpp:
+	* rcsc/action/neck_turn_to_player_or_scan.h:
+	- 首振り動作で対象物体の信頼性カウントしきい値のデフォルト値を設定
+	しないように変更
+
 2012-05-17  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/action/intention_dribble2008.cpp:

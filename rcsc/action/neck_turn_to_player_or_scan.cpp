@@ -66,7 +66,7 @@ Neck_TurnToPlayerOrScan::execute( PlayerAgent * agent )
     {
         dlog.addText( Logger::ACTION,
                       __FILE__": target player is ghost" );
-        return Neck_TurnToBallOrScan().execute( agent );
+        return Neck_TurnToBallOrScan( 0 ).execute( agent );
     }
 
     const Vector2D my_next = agent->effector().queuedNextSelfPos();
@@ -91,7 +91,7 @@ Neck_TurnToPlayerOrScan::execute( PlayerAgent * agent )
                       M_target_player->unum(),
                       player_next.x, player_next.y );
 
-        return Neck_TurnToBallOrScan().execute( agent );
+        return Neck_TurnToBallOrScan( 0 ).execute( agent );
     }
 
     dlog.addText( Logger::ACTION,

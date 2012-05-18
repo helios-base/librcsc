@@ -63,7 +63,8 @@ Neck_TurnToBallAndPlayer::execute( PlayerAgent * agent )
                       __FILE__": no target player" );
         return Neck_TurnToBall().execute( agent );
     }
-    if ( M_target_player->posCount() < M_count_thr )
+
+    if ( M_target_player->posCount() <= M_count_thr )
     {
         dlog.addText( Logger::ACTION,
                       __FILE__": player %d.is already known",
