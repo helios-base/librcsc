@@ -1390,6 +1390,13 @@ WorldModel::updateGameMode( const GameMode & game_mode,
                 M_last_set_play_start_time = current;
                 M_setplay_count = 0;
             }
+
+            if ( game_mode.type() == GameMode::GoalKick_ )
+            {
+                M_ball.updateOnlyVel( Vector2D( 0.0, 0.0 ),
+                                      Vector2D( 0.0, 0.0 ),
+                                      0 );
+            }
         }
 
         // check human referee's interaction

@@ -195,6 +195,16 @@ BallObject::update( const ActionEffector & act,
     {
         // ball position may change.
         M_pos_count = std::min( 1000, M_pos_count + 1 );
+
+        if ( pmode == GameMode::GoalieCatch_ )
+        {
+            new_vel.assign( 0.0, 0.0 );
+
+            M_vel_error.assign( 0.0, 0.0 );
+            M_vel_count = 0;
+            M_seen_vel.assign( 0.0, 0.0 );
+            M_seen_vel_count = 0;
+        }
     }
     else
     {

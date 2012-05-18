@@ -1,5 +1,12 @@
 2012-05-18  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/ball_object.cpp:
+	* rcsc/player/world_model.cpp:
+	- キーパーがボールをキャッチ中はボール速度を強制的に0にするルール
+	を追加
+	- プレイモードがゴールキックに変わった直後はボール速度を強制的に0
+	にするルールを追加
+
 	* rcsc/action/neck_turn_to_ball_and_player.cpp:
 	* rcsc/action/neck_turn_to_ball_and_player.h:
 	* rcsc/action/neck_turn_to_ball_or_scan.h:
