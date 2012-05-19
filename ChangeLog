@@ -1,3 +1,8 @@
+2012-05-19  Tomoharu NAKASHIMA  <tomoharu.nakashima@kis.osakafu-u.ac.jp>
+
+	* configure.ac
+	- スペルミスを修正
+
 2012-05-18  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/ball_object.cpp:
