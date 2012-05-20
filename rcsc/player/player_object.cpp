@@ -464,6 +464,11 @@ PlayerObject::setCollisionEffect()
     {
         M_vel *= -0.1;
     }
+
+    if ( M_seen_vel.isValid() )
+    {
+        M_seen_vel *= -0.1;
+    }
 }
 
 /*-------------------------------------------------------------------*/

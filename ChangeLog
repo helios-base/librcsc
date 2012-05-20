@@ -1,6 +1,9 @@
 2012-05-21  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/player_object.cpp:
+	- M_seen_velに衝突の影響を反映できていなかったのを修正
+
+	* rcsc/player/player_object.cpp:
 	* rcsc/player/player_object.h:
 	* rcsc/player/world_model.cpp:
 	* rcsc/player/world_model.h:
