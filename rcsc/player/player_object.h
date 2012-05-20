@@ -290,6 +290,11 @@ public:
                                 const Vector2D & ball );
 
     /*!
+      \brief set collision effect to player's velocity
+     */
+    void setCollisionEffect();
+
+    /*!
       \brief reset accuracy info
     */
     void forget();

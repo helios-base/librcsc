@@ -488,9 +488,14 @@ private:
                              PlayerObject::List & new_unknown_players );
 
     /*!
-      \brief check collision.
+      \brief set collision effect with ball
     */
-    void updateCollision();
+    void updateBallCollision();
+
+    /*!
+      \brief set collision effect with players
+    */
+    void updatePlayersCollision();
 
     /*!
       \brief check ghost object

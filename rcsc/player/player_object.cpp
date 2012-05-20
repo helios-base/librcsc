@@ -452,6 +452,20 @@ PlayerObject::updateSelfBallRelated( const Vector2D & self,
     M_angle_from_self = ( M_pos - self ).th();
 }
 
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+void
+PlayerObject::setCollisionEffect()
+{
+    if ( M_vel.isValid() )
+    {
+        M_vel *= -0.1;
+    }
+}
+
 /*-------------------------------------------------------------------*/
 /*!
 

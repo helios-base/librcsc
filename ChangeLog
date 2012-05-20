@@ -1,3 +1,13 @@
+2012-05-21  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/player_object.cpp:
+	* rcsc/player/player_object.h:
+	* rcsc/player/world_model.cpp:
+	* rcsc/player/world_model.h:
+	- WorldModel::updatePlayersCollision()を追加．他プレイヤとの衝突を
+	検出した場合に，衝突したプレイヤの速度情報に衝突の影響を反映する
+	- WorldModel::updateCollision()をupdateBallCollision()に変更
+
 2012-05-19  Tomoharu NAKASHIMA  <tomoharu.nakashima@kis.osakafu-u.ac.jp>
 
 	* configure.ac

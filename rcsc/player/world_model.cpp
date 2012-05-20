@@ -917,8 +917,6 @@ WorldModel::updateAfterSenseBody( const BodySensor & sense_body,
                       __FILE__" (updateAfterSense) call internal update" );
         // internal update
         update( act, current );
-        // check collision
-        //updateCollision();
     }
 }
 
@@ -927,10 +925,8 @@ WorldModel::updateAfterSenseBody( const BodySensor & sense_body,
 
  */
 void
-WorldModel::updateCollision()
+WorldModel::updateBallCollision()
 {
-    // called in updateJustBeforeDecision()
-
     if ( ! ball().posValid()
          || ! ball().velValid()
          || ! self().posValid()
@@ -951,16 +947,16 @@ WorldModel::updateCollision()
 
     if ( self().hasSensedCollision() )
     {
-#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT_BALL_UPDATE
         dlog.addText( Logger::WORLD,
-                      __FILE__" (updateCollision) agent has sensed collision info" );
+                      __FILE__" (updateBallCollision) agent has sensed collision info" );
 #endif
         collided_with_ball = self().collidesWithBall();
         if ( collided_with_ball )
         {
-#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT_BALL_UPDATE
             dlog.addText( Logger::WORLD,
-                          __FILE__" (updateCollision) detected by sense_body" );
+                          __FILE__" (updateBallCollision) detected by sense_body" );
 #endif
         }
     }
@@ -984,9 +980,9 @@ WorldModel::updateCollision()
                                           - 0.2 ) ) )
              )
         {
-#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT_BALL_UPDATE
             dlog.addText( Logger::WORLD,
-                          __FILE__" (updateCollision) detected. ball_dist= %.3f",
+                          __FILE__" (updateBallCollision) detected. ball_dist= %.3f",
                           self_ball_dist );
 #endif
             collided_with_ball = true;
@@ -1015,9 +1011,9 @@ WorldModel::updateCollision()
             M_ball.updateByCollision( new_ball_pos, ball().posCount() + 1,
                                       new_ball_rpos, ball().rposCount() + 1,
                                       new_ball_vel, ball().velCount() + 1 );
-#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT_BALL_UPDATE
             dlog.addText( Logger::WORLD,
-                          __FILE__" (updateCollision) new bpos(%.2f %.2f) rpos(%.2f %.2f)"
+                          __FILE__" (updateBallCollision) new bpos(%.2f %.2f) rpos(%.2f %.2f)"
                           " vel(%.2f %.2f)",
                           new_ball_pos.x, new_ball_pos.y,
                           new_ball_rpos.x, new_ball_rpos.y,
@@ -1033,9 +1029,9 @@ WorldModel::updateCollision()
 
                 M_self.updateByCollision( new_my_pos, new_my_pos_error );
 
-#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT_SELF_UPDATE
                 dlog.addText( Logger::WORLD,
-                              __FILE__" (updateCollision) new mypos(%.2f %.2f) error(%.2f %.2f)",
+                              __FILE__" (updateBallCollision) new mypos(%.2f %.2f) error(%.2f %.2f)",
                               new_my_pos.x, new_my_pos.y,
                               new_my_pos_error.x, new_my_pos_error.y );
 #endif
@@ -1050,11 +1046,80 @@ WorldModel::updateCollision()
             M_ball.updateByCollision( ball().pos(), ball().posCount(),
                                       ball().rpos(), ball().rposCount(),
                                       ball().vel() * -0.1, vel_count );
-#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT_BALL_UPDATE
             dlog.addText( Logger::WORLD,
-                          __FILE__" (updateCollision) seen ball. new_vel=(%.2f %.2f)",
+                          __FILE__" (updateBallCollision) seen ball. new_vel=(%.2f %.2f)",
                           ball().vel().x, ball().vel().y );
 #endif
+        }
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+WorldModel::updatePlayersCollision()
+{
+    if ( ! self().pos().isValid()
+         || ! self().hasSensedCollision()
+         || ! self().collidesWithPlayer() )
+    {
+        return;
+    }
+
+    // dlog.addText( Logger::WORLD,
+    //               __FILE__"(updatePlayersCollision) detect collision" );
+
+    for ( PlayerObject::List::iterator p = M_teammates.begin(), end = M_teammates.end();
+          p != end;
+          ++p )
+    {
+        if ( p->velCount() > 0
+             && p->pos().dist2( self().pos() ) < std::pow( self().playerType().playerSize()
+                                                           + p->playerTypePtr()->playerSize()
+                                                           + 0.15,
+                                                           2 ) )
+        {
+            // dlog.addText( Logger::WORLD,
+            //               __FILE__"(updatePlayersCollision) set collision to teammate %d (%.1f %.1f)",
+            //               p->unum(), p->pos().x, p->pos().y );
+            p->setCollisionEffect();
+        }
+    }
+
+    for ( PlayerObject::List::iterator p = M_opponents.begin(), end = M_opponents.end();
+          p != end;
+          ++p )
+    {
+        if ( p->velCount() > 0
+             && p->pos().dist2( self().pos() ) < std::pow( self().playerType().playerSize()
+                                                           + p->playerTypePtr()->playerSize()
+                                                           + 0.15,
+                                                           2 ) )
+        {
+            // dlog.addText( Logger::WORLD,
+            //               __FILE__"(updatePlayersCollision) set collision to opponent %d (%.1f %.1f)",
+            //               p->unum(), p->pos().x, p->pos().y );
+            p->setCollisionEffect();
+        }
+    }
+
+    for ( PlayerObject::List::iterator p = M_unknown_players.begin(), end = M_unknown_players.end();
+          p != end;
+          ++p )
+    {
+        if ( p->velCount() > 0
+             && p->pos().dist2( self().pos() ) < std::pow( self().playerType().playerSize()
+                                                           + p->playerTypePtr()->playerSize()
+                                                           + 0.15,
+                                                           2 ) )
+        {
+            // dlog.addText( Logger::WORLD,
+            //               __FILE__"(updatePlayersCollision) set collision to unknown player (%.1f %.1f)",
+            //               p->pos().x, p->pos().y );
+            p->setCollisionEffect();
         }
     }
 }
@@ -1604,7 +1669,7 @@ WorldModel::updateGoalieByHear()
         if ( it->unum() != Unum_Unknown ) continue;
 
         if ( it->pos().x < ServerParam::i().theirPenaltyAreaLineX()
-                           || it->pos().absY() > ServerParam::i().penaltyAreaHalfWidth() )
+             || it->pos().absY() > ServerParam::i().penaltyAreaHalfWidth() )
         {
             // out of penalty area
             continue;
@@ -1617,7 +1682,7 @@ WorldModel::updateGoalieByHear()
             min_dist = d;
             goalie = &(*it);
         }
-}
+    }
 
     for ( PlayerObject::List::iterator it = M_unknown_players.begin(),
               u_end = M_unknown_players.begin();
@@ -1625,20 +1690,20 @@ WorldModel::updateGoalieByHear()
           ++it )
     {
         if ( it->pos().x < ServerParam::i().theirPenaltyAreaLineX()
-                           || it->pos().absY() > ServerParam::i().penaltyAreaHalfWidth() )
+             || it->pos().absY() > ServerParam::i().penaltyAreaHalfWidth() )
         {
             // out of penalty area
             continue;
         }
 
-double d = it->pos().dist( heard_pos );
-if ( d < min_dist
-     && d < it->posCount() * goalie_speed_max + it->distFromSelf() * 0.06 )
- {
-     min_dist = d;
-     goalie = &(*it);
- }
-}
+        double d = it->pos().dist( heard_pos );
+        if ( d < min_dist
+             && d < it->posCount() * goalie_speed_max + it->distFromSelf() * 0.06 )
+        {
+            min_dist = d;
+            goalie = &(*it);
+        }
+    }
 
 
     if ( goalie )
@@ -1907,7 +1972,8 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
     updateGoalieByHear();
     updatePlayerByHear();
 
-    updateCollision();
+    updateBallCollision();
+    updatePlayersCollision();
 
     M_ball.updateSelfRelated( self(), prevBall() );
     M_self.updateBallInfo( ball() );
@@ -2520,7 +2586,7 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
 
             if ( vel_r > estimate_speed + 0.1
                  || vel_r < estimate_speed * ( 1.0 - ServerParam::i().ballRand() * 3.0 ) - 0.1
-                            || ( vel - ball().vel() ).r() > estimate_speed * ServerParam::i().ballRand() * 3.0 + 0.1 )
+                 || ( vel - ball().vel() ).r() > estimate_speed * ServerParam::i().ballRand() * 3.0 + 0.1 )
             {
                 dlog.addText( Logger::WORLD,
                               "world.localizeBall: .failed to update ball vel using pos diff(2) " );
@@ -2548,9 +2614,9 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
                               vel.x, vel.y );
 #endif
             }
+        }
     }
 }
-    }
 
 /*-------------------------------------------------------------------*/
 /*!
