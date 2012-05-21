@@ -1,5 +1,8 @@
 2012-05-21  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/action/body_go_to_point2010.cpp:
+	- ベクトルの回転計算をMatrix2Dで置き換え
+
 	* rcsc/player/player_object.cpp:
 	- M_seen_velに衝突の影響を反映できていなかったのを修正
 

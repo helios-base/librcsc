@@ -43,6 +43,7 @@
 #include <rcsc/common/server_param.h>
 #include <rcsc/geom/circle_2d.h>
 #include <rcsc/geom/segment_2d.h>
+#include <rcsc/geom/matrix_2d.h>
 #include <rcsc/soccer_math.h>
 #include <rcsc/math_util.h>
 
@@ -298,6 +299,7 @@ Body_GoToPoint2010::doAdjustDash( PlayerAgent * agent )
             continue;
         }
 
+        const Matrix2D rotate_matrix = Matrix2D::make_rotation( -dash_angle );
         const double dash_rate = wm.self().dashRate() * SP.dashDirRate( dir );
 
 #ifdef DEBUG_PRINT
@@ -321,9 +323,7 @@ Body_GoToPoint2010::doAdjustDash( PlayerAgent * agent )
         int cycle = 0;
         for ( ; cycle < max_cycle; ++cycle )
         {
-            Vector2D required_move = target_rel - my_pos;
-            required_move.rotate( - dash_angle );
-
+            Vector2D required_move = rotate_matrix.transform( target_rel - my_pos );
             double required_x_accel
                 = calc_first_term_geom_series( required_move.x,
                                                wm.self().playerType().playerDecay(),
