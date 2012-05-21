@@ -1,5 +1,9 @@
 2012-05-21  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/world_model.cpp:
+	- プレイや同士の衝突計算でプレイヤタイプのヌルポインタ参照を起こす
+	バグを修正．プレイヤの衝突計算はプレイヤタイプ更新後に実行する
+
 	* rcsc/action/body_go_to_point2010.cpp:
 	- ベクトルの回転計算をMatrix2Dで置き換え
 

@@ -1973,7 +1973,6 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
     updatePlayerByHear();
 
     updateBallCollision();
-    updatePlayersCollision();
 
     M_ball.updateSelfRelated( self(), prevBall() );
     M_self.updateBallInfo( ball() );
@@ -1986,6 +1985,8 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
 
     updatePlayerCard();
     updatePlayerType(); // have to be called after see message.
+
+    updatePlayersCollision(); // have to be called after player type update.
 
 #if 1
     // 2008-04-18: akiyama
