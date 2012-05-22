@@ -47,6 +47,7 @@
 #include <rcsc/soccer_math.h>
 #include <rcsc/math_util.h>
 
+// #define USE_OMNI_DASH_2012
 
 // #define DEBUG_PRINT
 
@@ -214,6 +215,7 @@ Body_GoToPoint2010::checkGoalPost( const PlayerAgent * agent )
     M_target_point = new_target;
 }
 
+#ifdef USE_OMNI_DASH_2012
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -325,6 +327,8 @@ Body_GoToPoint2010::doOmniDash( PlayerAgent * agent )
               dir < max_dash_angle;
               dir += dash_angle_step )
         {
+            if ( std::fabs( dir ) > 100.0 ) continue; // Magic Number
+
             const AngleDeg dash_angle = SP.discretizeDashAngle( dir );
             const double dash_rate = ptype.dashPowerRate() * stamina_model.effort() * SP.dashDirRate( dir );
             const Vector2D required_accel_rel = required_accel.rotatedVector( -dash_angle );
@@ -395,13 +399,14 @@ Body_GoToPoint2010::doOmniDash( PlayerAgent * agent )
     return false;
 }
 
-#if 0
+#else
+
 /*-------------------------------------------------------------------*/
 /*!
 
  */
 bool
-Body_GoToPoint2010::doAdjustDash( PlayerAgent * agent )
+Body_GoToPoint2010::doOmniDash( PlayerAgent * agent )
 {
     const ServerParam & SP = ServerParam::i();
     const WorldModel & wm = agent->world();

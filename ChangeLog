@@ -1,6 +1,9 @@
 2012-05-22  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/action/body_go_to_point2010.cpp:
+	- 悪影響が出ているようなので，新しいアルゴリズムの使用を一旦停止
+
+	* rcsc/action/body_go_to_point2010.cpp:
 	* rcsc/action/body_go_to_point2010.h:
 	- 全方位移動ダッシュを再実装し，発見的探索なアルゴリズムに修正．最
 	終的には完全なA*への再設計が必要
