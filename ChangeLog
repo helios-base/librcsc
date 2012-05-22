@@ -1,7 +1,14 @@
+2012-05-22  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/action/body_go_to_point2010.cpp:
+	* rcsc/action/body_go_to_point2010.h:
+	- 全方位移動ダッシュを再実装し，発見的探索なアルゴリズムに修正．最
+	終的には完全なA*への再設計が必要
+
 2012-05-21  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/world_model.cpp:
-	- プレイや同士の衝突計算でプレイヤタイプのヌルポインタ参照を起こす
+	- プレイヤ同士の衝突計算でプレイヤタイプのヌルポインタ参照を起こす
 	バグを修正．プレイヤの衝突計算はプレイヤタイプ更新後に実行する
 
 	* rcsc/action/body_go_to_point2010.cpp:

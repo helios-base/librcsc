@@ -111,7 +111,7 @@ private:
       \param agent pointer to the agent
       \return true if action is performed, otherwise false
     */
-    bool doAdjustDash( PlayerAgent * agent );
+    bool doOmniDash( PlayerAgent * agent );
 
     /*!
       \brief if necesarry, perform turn action and return true

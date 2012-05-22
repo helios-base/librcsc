@@ -47,7 +47,6 @@
 #include <rcsc/soccer_math.h>
 #include <rcsc/math_util.h>
 
-#define USE_ADJUST_DASH
 
 // #define DEBUG_PRINT
 
@@ -112,12 +111,10 @@ Body_GoToPoint2010::execute( PlayerAgent * agent )
     //
     // omnidir dash
     //
-#ifdef USE_ADJUST_DASH
-    if ( doAdjustDash( agent ) )
+    if ( doOmniDash( agent ) )
     {
         return true;
     }
-#endif
 
     //
     // turn
@@ -217,6 +214,188 @@ Body_GoToPoint2010::checkGoalPost( const PlayerAgent * agent )
     M_target_point = new_target;
 }
 
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+Body_GoToPoint2010::doOmniDash( PlayerAgent * agent )
+{
+    const WorldModel & wm = agent->world();
+
+    const Vector2D inertia_point = wm.self().inertiaPoint( M_cycle );
+
+    if ( inertia_point.dist2( M_target_point ) > std::pow( M_dist_thr + M_omni_dash_dist_thr, 2 ) )
+    {
+#ifdef DEBUG_PRINT
+        dlog.addText( Logger::ACTION,
+                      __FILE__": (doOmniDash) over adjustable distance. %f",
+                      inertia_point.dist( M_target_point ) );
+#endif
+        return false;
+    }
+
+    const Matrix2D rotate_matrix = Matrix2D::make_rotation( -wm.self().body() );
+
+    const Vector2D target_rel = rotate_matrix.transform( M_target_point - inertia_point );
+
+    if ( target_rel.absY() < M_dist_thr )
+    {
+#ifdef DEBUG_PRINT
+        dlog.addText( Logger::ACTION,
+                      __FILE__": (doOmniDash) target_y_diff=%.3f, omni dash is not required.",
+                      target_rel.y );
+#endif
+        return false;
+    }
+
+    const AngleDeg target_angle = target_rel.th();
+
+    if ( target_angle.abs() < M_dir_thr )
+    {
+#ifdef DEBUG_PRINT
+        dlog.addText( Logger::ACTION,
+                      __FILE__": (doOmniDash) target_angle=%.3f dir_thr=%.3f omni dash is not required.",
+                      target_angle.degree(), M_dir_thr );
+#endif
+        return false;
+    }
+
+    const ServerParam & SP = ServerParam::i();
+    const PlayerType & ptype = wm.self().playerType();
+
+    const double dash_angle_step = std::max( 15.0, SP.dashAngleStep() );
+    const double min_dash_angle = ( -180.0 < SP.minDashAngle() && SP.maxDashAngle() < 180.0
+                                    ? SP.minDashAngle()
+                                    : dash_angle_step * static_cast< int >( -180.0 / dash_angle_step ) );
+    const double max_dash_angle = ( -180.0 < SP.minDashAngle() && SP.maxDashAngle() < 180.0
+                                    ? SP.maxDashAngle() + dash_angle_step * 0.5
+                                    : dash_angle_step * static_cast< int >( 180.0 / dash_angle_step ) - 1.0 );
+
+    const int max_step = std::min( 3, M_cycle );
+
+
+    Vector2D self_pos( 0.0, 0.0 );
+    Vector2D self_vel = rotate_matrix.transform( wm.self().vel() );
+    StaminaModel stamina_model = wm.self().staminaModel();
+
+    std::vector< double > result_dash_powers;
+    result_dash_powers.reserve( 4 );
+    std::vector< double > result_dash_dirs;
+    result_dash_dirs.reserve( 4 );
+#ifdef DEBUG_PRINT
+    std::vector< Vector2D > result_self_pos;
+    result_self_pos.reserve( 4 );
+#endif
+
+    for ( int step = 0; step < max_step; ++step )
+    {
+        if ( std::fabs( target_rel.y - self_pos.y ) < 0.001 )
+        {
+            break;
+        }
+
+        const Vector2D required_vel = ( target_rel - self_pos )
+            * ( ( 1.0 - ptype.playerDecay() )
+                / ( 1.0 - std::pow( ptype.playerDecay(), M_cycle - step ) ) );
+        const Vector2D required_accel = required_vel - self_vel;
+
+        const double max_dash_power = ( M_save_recovery
+                                        ? stamina_model.getSafetyDashPower( ptype, M_max_dash_power )
+                                        : std::fabs( M_max_dash_power ) );
+
+#ifdef DEBUG_PRINT
+        dlog.addText( Logger::ACTION,
+                      "(doOmniDash_Test) step=%d self_pos=(%.2f %.2f) vel=(%.2f %.2f)",
+                      step, self_pos.x, self_pos.y, self_vel.x, self_vel.y );
+        dlog.addText( Logger::ACTION,
+                      "required_vel=(%.2f %.2f) accel=(%.2f %.2f) max_power=%.2f",
+                      step,
+                      required_vel.x, required_vel.y,
+                      required_accel.x, required_accel.y,
+                      max_dash_power );
+#endif
+
+        double min_dist2 = 1000000.0;
+        Vector2D best_self_pos = Vector2D::INVALIDATED;
+        Vector2D best_self_vel;
+        double best_dash_power = 0.0;
+        double best_dash_dir = 0.0;
+        for ( double dir = min_dash_angle;
+              dir < max_dash_angle;
+              dir += dash_angle_step )
+        {
+            const AngleDeg dash_angle = SP.discretizeDashAngle( dir );
+            const double dash_rate = ptype.dashPowerRate() * stamina_model.effort() * SP.dashDirRate( dir );
+            const Vector2D required_accel_rel = required_accel.rotatedVector( -dash_angle );
+
+            const double dash_power = bound( 0.0, required_accel_rel.x / dash_rate, max_dash_power );
+            const Vector2D dash_accel = Vector2D::polar2vector( dash_rate * dash_power, dash_angle );
+
+            const Vector2D tmp_self_vel = self_vel + dash_accel;
+            const Vector2D tmp_self_pos = self_pos + tmp_self_vel;
+            const double d2 = tmp_self_pos.dist2( target_rel );
+
+#ifdef DEBUG_PRINT
+            dlog.addText( Logger::ACTION,
+                          "__ %d: dir=%.1f drate=%f dpower=%.2f self=(%.2f %.2f) move_dist=%.3f",
+                          step, dir, dash_rate, dash_power, tmp_self_pos.x, tmp_self_pos.y, std::sqrt( d2 ) );
+#endif
+            if ( d2 < min_dist2 )
+            {
+#ifdef DEBUG_PRINT
+                dlog.addText( Logger::ACTION,
+                              "== updated" );
+#endif
+                min_dist2 = d2;
+                best_self_pos = tmp_self_pos;
+                best_self_vel = tmp_self_vel;
+                best_dash_power = dash_power;
+                best_dash_dir = dir;
+            }
+        }
+
+        self_pos = best_self_pos;
+        self_vel = best_self_vel;
+        self_vel *= ptype.playerDecay();
+        stamina_model.simulateDash( ptype, best_dash_power );
+
+        result_dash_powers.push_back( best_dash_power );
+        result_dash_dirs.push_back( best_dash_dir );
+#ifdef DEBUG_PRINT
+        result_self_pos.push_back( self_pos );
+#endif
+    }
+
+    if ( ! result_dash_powers.empty() )
+    {
+        AngleDeg dash_dir = SP.discretizeDashAngle( result_dash_dirs.front() );
+#ifdef DEBUG_PRINT
+        agent->debugClient().addMessage( "OmniDash%.0f", dash_dir.degree() );
+        dlog.addText( Logger::ACTION,
+                      __FILE__": (doOmniDash) power=%.3f dir=%.1f",
+                      result_dash_powers.front(), dash_dir.degree() );
+        for ( size_t i = 0; i < result_self_pos.size(); ++i )
+        {
+            Vector2D pos = inertia_point + result_self_pos[i].rotate( wm.self().body() );
+            char msg[8]; snprintf( msg, 8, "%zd", i + 1 );
+            dlog.addCircle( Logger::ACTION,
+                            pos, 0.3, "#00F", false );
+            dlog.addMessage( Logger::ACTION,
+                             pos, msg, "#00F" );
+            dlog.addText( Logger::ACTION,
+                          "result : step=%zd power=%.3f dir=%.1f",
+                          i + 1, result_dash_powers[i], result_dash_dirs[i] );
+
+        }
+#endif
+        return agent->doDash( result_dash_powers.front(), dash_dir );
+    }
+
+    return false;
+}
+
+#if 0
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -425,7 +604,7 @@ Body_GoToPoint2010::doAdjustDash( PlayerAgent * agent )
 
     return false;
 }
-
+#endif
 /*-------------------------------------------------------------------*/
 /*!
 
