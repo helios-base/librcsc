@@ -376,7 +376,7 @@ Neck_TurnToBall::execute( PlayerAgent * agent )
             dlog.addText( Logger::ACTION,
                           __FILE__": (Neck_TurnToBall) target_angle=%.1f moment=%.1f",
                           target_angle.degree(), neck_moment.degree() );
-            agent->debugClient().addMessage( "NeckBall:ScanPl" );
+            agent->debugClient().addMessage( "NeckBall:ScanPl%.0f", target_angle.degree() );
             agent->doTurnNeck( neck_moment );
             return true;
         }

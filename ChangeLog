@@ -1,3 +1,8 @@
+2012-05-23  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/action/basic_actions.cpp:
+	- デバッグメッセージ修正
+
 2012-05-22  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/action/body_go_to_point2010.cpp:
