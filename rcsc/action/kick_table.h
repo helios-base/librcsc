@@ -52,27 +52,9 @@ class WorldModel;
 class KickTable {
 public:
 
-    static const double NEAR_SIDE_RATE; //!< kickable margin rate for the near side sub-target
-    static const double MID_RATE; //!< kickable margin rate for the middle distance sub-target
-    static const double FAR_SIDE_RATE; //!< kickable margin rate for the far side sub-target
-
     enum {
-        MAX_DEPTH = 2,
-    };
-
-    enum {
-        STATE_DIVS_NEAR = 8,
-        STATE_DIVS_MID = 12,
-        STATE_DIVS_FAR = 15,
-        NUM_STATE = STATE_DIVS_NEAR + STATE_DIVS_MID + STATE_DIVS_FAR,
-    };
-
-    enum {
-        DEST_DIR_DIVS = 72, // step: 5 degree
-    };
-
-    enum {
-        MAX_TABLE_SIZE = 256,
+        MAX_DEPTH = 2, //!< max search depth
+        DEST_DIR_DIVS = 72, //! max division of target angles, step = 5 degree
     };
 
     /*!
@@ -107,10 +89,10 @@ public:
           \brief construct an illegal state object
          */
         State()
-            : index_( -1 )
-            , dist_( 0.0 )
-            , kick_rate_( 0.0 )
-            , flag_( 0xFFFF )
+            : index_( -1 ),
+              dist_( 0.0 ),
+              kick_rate_( 0.0 ),
+              flag_( 0xFFFF )
           { }
 
         /*!
@@ -124,11 +106,11 @@ public:
                const double & dist,
                const Vector2D & pos,
                const double & kick_rate )
-            : index_( index )
-            , dist_( dist )
-            , pos_( pos )
-            , kick_rate_( kick_rate )
-            , flag_( SAFETY )
+            : index_( index ),
+              dist_( dist ),
+              pos_( pos ),
+              kick_rate_( kick_rate ),
+              flag_( SAFETY )
           { }
 
     };
@@ -150,10 +132,10 @@ public:
          */
         Path( const int origin,
               const int dest )
-            : origin_( origin )
-            , dest_( dest )
-            , max_speed_( 0.0 )
-            , power_( 1000.0 )
+            : origin_( origin ),
+              dest_( dest ),
+              max_speed_( 0.0 ),
+              power_( 1000.0 )
           { }
 
     };
@@ -173,43 +155,12 @@ public:
           \brief constuct an illegal sequence object
          */
         Sequence()
-            : flag_( 0x0000 )
-            , speed_( 0.0 )
-            , power_( 10000.0 )
-            , score_( 0.0 )
+            : flag_( 0x0000 ),
+              speed_( 0.0 ),
+              power_( 10000.0 ),
+              score_( 0.0 )
           { }
 
-        /*!
-          \brief copy constructor
-          \param arg another instance
-         */
-        Sequence( const Sequence & arg )
-            : flag_( arg.flag_ )
-            , pos_list_( arg.pos_list_ )
-            , speed_( arg.speed_ )
-            , power_( arg.power_ )
-            , score_( arg.score_ )
-          { }
-
-        /*!
-          \brief copy operator
-          \param arg another instance
-          \return const reference to this instance
-         */
-        const
-        Sequence & operator=( const Sequence & arg )
-          {
-              if ( this != &arg )
-              {
-                  flag_ = arg.flag_;
-                  pos_list_ = arg.pos_list_;
-                  speed_ = arg.speed_;
-                  power_ = arg.power_;
-                  score_ = arg.score_;
-              }
-
-              return *this;
-          }
     };
 
     /*!

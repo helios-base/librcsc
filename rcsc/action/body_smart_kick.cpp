@@ -46,6 +46,8 @@
 
 #include <algorithm>
 
+// #define DEBUG_PRINT
+
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
@@ -90,7 +92,7 @@ Body_SmartKick::execute( PlayerAgent * agent )
          || M_sequence.speed_ >= first_speed_thr )
     {
         agent->debugClient().addMessage( "SmartKick%d", (int)M_sequence.pos_list_.size() );
-#ifdef DEBUG
+#ifdef DEBUG_PRINT
         for ( std::vector< Vector2D >::const_iterator p = M_sequence.pos_list_.begin();
               p != M_sequence.pos_list_.end();
               ++p )

@@ -59,11 +59,19 @@
 
 namespace rcsc {
 
-const double KickTable::NEAR_SIDE_RATE = 0.3;
-const double KickTable::MID_RATE = 0.5;
-const double KickTable::FAR_SIDE_RATE = 0.7;
-
 namespace  {
+
+const double NEAR_SIDE_RATE = 0.2;
+const double MID_RATE = 0.5;
+const double FAR_SIDE_RATE = 0.7;
+
+const int STATE_DIVS_NEAR = 12;
+const int STATE_DIVS_MID = 15;
+const int STATE_DIVS_FAR = 20;
+const int NUM_STATE = STATE_DIVS_NEAR + STATE_DIVS_MID + STATE_DIVS_FAR;
+
+const size_t MAX_TABLE_SIZE = 256;
+
 
 /*!
  \struct TableCmp
@@ -79,7 +87,7 @@ struct TableCmp {
     bool operator()( const KickTable::Path & lhs,
                      const KickTable::Path & rhs )
       {
-          if ( lhs.max_speed_ == rhs.max_speed_ )
+          if ( std::fabs( lhs.max_speed_ - rhs.max_speed_ ) < 1.0e-3 )
           {
               return lhs.power_ < rhs.power_;
           }
@@ -125,7 +133,7 @@ calc_near_dist( const PlayerType & player_type,
                                player_type.kickableMargin() + kick_margin_delta );
     return bound( player_type.playerSize() + ServerParam::i().ballSize() + 0.1,
                   ( player_type.playerSize()
-                    + ( kmargin * KickTable::NEAR_SIDE_RATE )
+                    + ( kmargin * NEAR_SIDE_RATE )
                     + ServerParam::i().ballSize() ),
                   player_type.kickableArea() - 0.2 );
 }
@@ -149,7 +157,7 @@ calc_mid_dist( const PlayerType & player_type,
                                player_type.kickableMargin() + kick_margin_delta );
     return bound( player_type.playerSize() + ServerParam::i().ballSize() + 0.1,
                   ( player_type.playerSize()
-                    + ( kmargin * KickTable::MID_RATE )
+                    + ( kmargin * MID_RATE )
                     + ServerParam::i().ballSize() ),
                   player_type.kickableArea() - 0.2 );
 }
@@ -181,7 +189,7 @@ calc_far_dist( const PlayerType & player_type,
                                player_type.kickableMargin() + kick_margin_delta );
     return bound( player_type.playerSize() + ServerParam::i().ballSize() + 0.1,
                   ( player_type.playerSize()
-                    + ( kmargin * KickTable::FAR_SIDE_RATE )
+                    + ( kmargin * FAR_SIDE_RATE )
                     + ServerParam::i().ballSize() ),
                   player_type.kickableArea() - 0.2 );
 }
@@ -322,7 +330,7 @@ KickTable::createTables()
     }
 
     dlog.addText( Logger::KICK,
-                  __FILE__": createTables() elapsed %.3f [ms]",
+                  __FILE__": createTables() elapsed %f [ms]",
                   timer.elapsedReal() );
 
 #if 0
@@ -714,7 +722,7 @@ KickTable::updateState( const WorldModel & world )
 
 #ifdef DEBUG_PROFILE
     dlog.addText( Logger::KICK,
-                  __FILE__": updateState() elapsed %.3f [ms]",
+                  __FILE__": (KickTable::updateState) KickTable_elapsed %f [ms]",
                   timer.elapsedReal() );
 #endif
 }
@@ -1635,7 +1643,7 @@ KickTable::simulateThreeStep( const WorldModel & world,
     int success_count = 0;
     double max_speed2 = 0.0;
 
-    int count = 0;
+    size_t count = 0;
     const std::vector< Path >::const_iterator end = table.end();
     for ( std::vector< Path >::const_iterator it = table.begin();
           it != end && count < MAX_TABLE_SIZE && success_count <= 10;
@@ -1755,7 +1763,7 @@ KickTable::simulateThreeStep( const WorldModel & world,
         accel = vel2 - vel1;
         accel_r2 = accel.r2();
 
-        if ( accel_r2 > square( std::min( state_1st.kick_rate_ * max_power, accel_max ) ) )
+        if ( accel_r2 > square( std::min( state_1st.kick_rate_ * max_power * 0.9, accel_max ) ) )
         {
 #ifdef DEBUG_THREE_STEP
             dlog.addText( Logger::KICK,
@@ -2045,7 +2053,7 @@ KickTable::simulate( const WorldModel & world,
                                   SequenceCmp() );
 
     dlog.addText( Logger::KICK,
-                  __FILE__": simulate() result next_pos=(%.2f %.2f)  flag=%x n_kick=%d speed=%.2f power=%.2f score=%.2f",
+                  __FILE__": (KickTable::simulate) result next_pos=(%.2f %.2f) flag=%x n_kick=%d speed=%.2f power=%.2f score=%.2f",
                   sequence.pos_list_.front().x,
                   sequence.pos_list_.front().y,
                   sequence.flag_,
@@ -2056,7 +2064,7 @@ KickTable::simulate( const WorldModel & world,
 
 #ifdef DEBUG_PROFILE
     dlog.addText( Logger::KICK,
-                  __FILE__": simulate() kick_table_elapsed=%.4f [ms].",
+                  __FILE__": (KickTable::simulate) KickTable_elapsed=%f [ms].",
                   timer.elapsedReal() );
 #endif
     return sequence.speed_ >= target_speed - rcsc::EPS;

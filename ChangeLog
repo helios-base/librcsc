@@ -1,3 +1,14 @@
+2012-05-25  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/action/body_smart_kick.cpp:
+	* rcsc/action/kick_table.cpp:
+	* rcsc/action/kick_table.h:
+	- スマートキックのパラメータ変更．キッカブルエリア内の候補位置を増
+	やした
+	- スマートキック探索で，3ステップキックの2ステップ目のみ要求するパ
+	ワーのしきい値を厳しめに変更．2ステップ目のキックで目標位置へ到達
+	させられず失敗することが多い問題への対応
+
 2012-05-23  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/action/basic_actions.cpp:
