@@ -55,6 +55,7 @@ AudioMemory::AudioMemory()
       M_offside_line_time( -1, 0 ),
       M_defense_line_time( -1, 0 ),
       M_wait_request_time( -1, 0 ),
+      M_setplay_time( -1, 0 ),
       M_pass_request_time( -1, 0 ),
       M_run_request_time( -1, 0 ),
       M_stamina_time( -1, 0 ),
@@ -333,6 +334,32 @@ AudioMemory::setWaitRequest( const int sender,
 
     M_wait_request.push_back( WaitRequest( sender ) );
     M_wait_request_time = current;
+
+    M_time = current;
+}
+
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+void
+AudioMemory::setSetplay( const int sender,
+                         const int wait_step,
+                         const GameTime & current )
+{
+    dlog.addText( Logger::WORLD,
+                  __FILE__": set heard setplay. sender=%d wait_step=%d",
+                  sender, wait_step );
+
+    if ( M_setplay_time != current )
+    {
+        M_setplay.clear();
+    }
+
+    M_setplay.push_back( Setplay( sender, wait_step ) );
+    M_setplay_time = current;
 
     M_time = current;
 }

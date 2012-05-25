@@ -548,6 +548,54 @@ WaitRequestMessage::printDebug( std::ostream & os ) const
 
 */
 bool
+SetplayMessage::appendTo( std::string & to ) const
+{
+    if ( (int)to.length() + slength() > ServerParam::i().playerSayMsgSize() )
+    {
+        dlog.addText( Logger::SENSOR,
+                      "SetplayMessage. over the message size : buf = %d, this = %d",
+                      to.length(), slength() );
+        return false;
+    }
+
+    char ch;
+    try
+    {
+        ch = AudioCodec::i().intToCharMap().at( M_wait_step );
+    }
+    catch ( std::exception & e )
+    {
+        std::cerr << __FILE__ << ":" << __LINE__
+                  << " ***ERROR*** SetplayMessage. cannot encode wait_step = " << M_wait_step
+                  << std::endl;
+        return false;
+    }
+
+    dlog.addText( Logger::SENSOR,
+                  "SetplayMessage. success! step=%d -> [F%c]", M_wait_step, ch );
+
+    to += header();
+    to += ch;
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+std::ostream &
+SetplayMessage::printDebug( std::ostream & os ) const
+{
+    os << "[Setplay:" << M_wait_step << ']';
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+bool
 InterceptMessage::appendTo( std::string & to ) const
 {
     if ( (int)to.length() + slength() > ServerParam::i().playerSayMsgSize() )

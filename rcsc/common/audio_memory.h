@@ -54,7 +54,7 @@ public:
       \brief heard ball info
      */
     struct Ball {
-        int sender_; //!< info sender number
+        int sender_; //!< message sender number
         Vector2D pos_; //!< heard ball position
         Vector2D vel_; //!< heard ball velocity
 
@@ -75,7 +75,7 @@ public:
       \brief heard pass info
      */
     struct Pass {
-        int sender_; //!< info sender number
+        int sender_; //!< message sender number
         int receiver_; //!< heard pass receiver number
         Vector2D receive_pos_; //!< heard pass receive pos
 
@@ -96,7 +96,7 @@ public:
       \brief heard our intercept info
      */
     struct OurIntercept {
-        int sender_; //!< info sender number
+        int sender_; //!< message sender number
         int interceptor_; //!< interceptor number
         int cycle_; //!< intercept cycle
 
@@ -117,7 +117,7 @@ public:
       \brief heard opp intercept info
      */
     struct OppIntercept {
-        int sender_; //!< info sender number
+        int sender_; //!< message sender number
         int interceptor_; //!< interceptor number
         int cycle_; //!< intercept cycle
 
@@ -138,7 +138,7 @@ public:
       \brief opponent goalie info
      */
     struct Goalie {
-        int sender_; //!< goalie info sender number
+        int sender_; //!< goalie message sender number
         Vector2D pos_; //!< heard goalie positon
         AngleDeg body_; //!< heard goalie's body angle
 
@@ -159,7 +159,7 @@ public:
       \brief player info
      */
     struct Player {
-        int sender_; //!< player info sender number
+        int sender_; //!< player message sender number
         int unum_; //!< heard player unum. if opponent player, += 11
         Vector2D pos_; //!< heard player position
         double body_; //!< heard player's body angle
@@ -204,7 +204,7 @@ public:
       \brief defense line info
      */
     struct DefenseLine {
-        int sender_; //!< defense line info sender number
+        int sender_; //!< defense line message sender number
         double x_; //!< heard defense line value
 
         /*!
@@ -222,13 +222,31 @@ public:
       \brief wait request info
      */
     struct WaitRequest {
-        int sender_; //!< wait request info sender number;
+        int sender_; //!< wait request message sender number;
 
         /*!
           \brief initialize all member
         */
         WaitRequest( const int sender )
             : sender_( sender )
+          { }
+    };
+
+    /*!
+      \struct Setplay
+      \brief setplay info
+     */
+    struct Setplay {
+        int sender_; //!< wait request message sender number;
+        int wait_step_;
+
+        /*!
+          \brief initialize all member
+        */
+        Setplay( const int sender,
+                 const int wait_step )
+            : sender_( sender ),
+              wait_step_( wait_step )
           { }
     };
 
@@ -265,9 +283,9 @@ public:
         RunRequest( const int sender,
                     const int runner,
                     const Vector2D & pos )
-            : sender_( sender )
-            , runner_( runner )
-            , pos_( pos )
+            : sender_( sender ),
+              runner_( runner ),
+              pos_( pos )
           { }
     };
 
@@ -374,52 +392,55 @@ protected:
     GameTime M_time;
 
     std::vector< Ball > M_ball; //!< heard info
-    GameTime M_ball_time; //!< info heard time
+    GameTime M_ball_time; //!< heard time
 
     std::vector< Pass > M_pass; //!< heard info
-    GameTime M_pass_time; //!< info heard time
+    GameTime M_pass_time; //!< heard time
 
     std::vector< OurIntercept > M_our_intercept; //!< heard info
-    GameTime M_our_intercept_time; //!< info heard time
+    GameTime M_our_intercept_time; //!< heard time
 
     std::vector< OppIntercept > M_opp_intercept; //!< heard info
-    GameTime M_opp_intercept_time; //!< info heard time
+    GameTime M_opp_intercept_time; //!< heard time
 
     std::vector< Goalie > M_goalie; //!< heard info
-    GameTime M_goalie_time; //!< info heard time
+    GameTime M_goalie_time; //!< heard time
 
     std::vector< Player > M_player; //!< heard info
-    GameTime M_player_time; //!< info heard time
+    GameTime M_player_time; //!< heard time
 
     std::vector< OffsideLine > M_offside_line; //!< heard info
-    GameTime M_offside_line_time; //!< info heard time
+    GameTime M_offside_line_time; //!< heard time
 
     std::vector< DefenseLine > M_defense_line; //!< heard info
-    GameTime M_defense_line_time; //!< info heard time
+    GameTime M_defense_line_time; //!< heard time
 
     std::vector< WaitRequest > M_wait_request; //!< heard info
-    GameTime M_wait_request_time; //!< info heard time
+    GameTime M_wait_request_time; //!< heard time
+
+    std::vector< Setplay > M_setplay; //!< heard info
+    GameTime M_setplay_time; //!< heard time
 
     std::vector< PassRequest > M_pass_request; //!< heard info
-    GameTime M_pass_request_time; //!< info heard time
+    GameTime M_pass_request_time; //!< heard time
 
     std::vector< RunRequest > M_run_request; //!< heard info
-    GameTime M_run_request_time; //!< info heard time
+    GameTime M_run_request_time; //!< heard time
 
     std::vector< Stamina > M_stamina; //!< heard info
-    GameTime M_stamina_time; //!< info heard time
+    GameTime M_stamina_time; //!< heard time
 
     std::vector< Recovery > M_recovery; //!< heard info
-    GameTime M_recovery_time; //!< info heard time
+    GameTime M_recovery_time; //!< heard time
 
     std::vector< StaminaCapacity > M_stamina_capacity; //!< heard info
-    GameTime M_stamina_capacity_time; //!< info heard time
+    GameTime M_stamina_capacity_time; //!< heard time
 
     std::vector< Dribble > M_dribble; //!< heard info
-    GameTime M_dribble_time; //!< info heard time
+    GameTime M_dribble_time; //!< heard time
 
     std::vector< FreeMessage > M_free_message; //!< heard info
-    GameTime M_free_message_time; //!< info heard time
+    GameTime M_free_message_time; //!< heard time
 
 
     //! memory of heared players
@@ -861,6 +882,17 @@ public:
     virtual
     void setWaitRequest( const int sender,
                          const GameTime & current );
+
+    /*!
+      \brief set heard setplay info
+      \param sender sender's uniform number
+      \param wait_step time step until the setplay will start
+      \param current current game time
+     */
+    virtual
+    void setSetplay( const int sender,
+                     const int wait_step,
+                     const GameTime & current );
 
     /*!
       \brief set heard pass request info

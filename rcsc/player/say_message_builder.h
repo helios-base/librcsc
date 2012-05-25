@@ -643,6 +643,75 @@ public:
 
 /*-------------------------------------------------------------------*/
 /*!
+  \class SetplayMessage
+  \brief setplay message encoder
+
+  format:
+  "F<wait:1>"
+  the length of message == 2
+*/
+class SetplayMessage
+    : public SayMessage {
+private:
+
+    int M_wait_step;
+
+public:
+
+    /*!
+      \brief construct with raw information
+    */
+    explicit
+    SetplayMessage( const int wait_step )
+        : M_wait_step( wait_step )
+      { }
+
+    /*!
+      \brief get the header character of this message
+      \return header character of this message
+     */
+    char header() const
+      {
+          return SetplayMessageParser::sheader();
+      }
+
+    /*!
+      \brief get the length of this message.
+      \return the length of encoded message
+    */
+    static
+    int slength()
+      {
+          return SetplayMessageParser::slength();
+      }
+
+    /*!
+      \brief get the length of this message
+      \return the length of encoded message
+    */
+    int length() const
+      {
+          return slength();
+      }
+
+    /*!
+      \brief append this info to the audio message
+      \param to reference to the message string instance
+      \return result status of encoding
+    */
+    bool appendTo( std::string & to ) const;
+
+    /*!
+      \brief append the debug message
+      \param os reference to the output stream
+      \return reference to the output stream
+     */
+    std::ostream & printDebug( std::ostream & os ) const;
+
+};
+
+/*-------------------------------------------------------------------*/
+/*!
   \class PassRequestMessage
   \brief pass request info message encoder
 

@@ -44,17 +44,60 @@
 #include <algorithm>
 #include <limits>
 
+namespace {
+
+const double X_NORM_FACTOR = 57.5; //!< x normalize factor (field length) to limit inputed x
+const double Y_NORM_FACTOR = 39.0; //!< y normalze factor (field width) to limit inputed y
+const double SPEED_NORM_FACTOR = 3.0; //!< speed normalize factor to limit inputed speed range
+
+const double COORD_STEP_L2 = 0.1; //!< used by encodeCoordToStr2/decodeStr2ToCoord
+const double SPEED_STEP_L1 = 0.1; //!< used by encodeSpeedToChar/decodeCharToSpeed
+
+
+/*!
+  \brief bit mask enumeration
+*/
+enum {
+    MASK_1 = 0x00000001,
+    MASK_2 = 0x00000003,
+    MASK_3 = 0x00000007,
+    MASK_4 = 0x0000000F,
+    MASK_5 = 0x0000001F,
+    MASK_6 = 0x0000003F,
+    MASK_7 = 0x0000007F,
+    MASK_8 = 0x000000FF,
+    MASK_9 = 0x000001FF,
+    MASK_10 = 0x000003FF,
+    MASK_11 = 0x000007FF,
+    MASK_12 = 0x00000FFF,
+    MASK_13 = 0x00001FFF,
+    MASK_14 = 0x00003FFF,
+    MASK_15 = 0x00007FFF,
+    MASK_16 = 0x0000FFFF,
+    MASK_17 = 0x0001FFFF,
+    MASK_18 = 0x0003FFFF,
+    MASK_19 = 0x0007FFFF,
+    MASK_20 = 0x000FFFFF,
+    MASK_21 = 0x001FFFFF,
+    MASK_22 = 0x003FFFFF,
+    MASK_23 = 0x007FFFFF,
+    MASK_24 = 0x00FFFFFF,
+    MASK_25 = 0x01FFFFFF,
+    MASK_26 = 0x03FFFFFF,
+    MASK_27 = 0x07FFFFFF,
+    MASK_28 = 0x0FFFFFFF,
+    MASK_29 = 0x1FFFFFFF,
+    MASK_30 = 0x3FFFFFFF,
+    MASK_31 = 0x7FFFFFFF,
+    MASK_32 = 0xFFFFFFFF,
+};
+
+}
+
+
 namespace rcsc {
 
 const double AudioCodec::ERROR_VALUE = std::numeric_limits< double >::max();
-
-const double AudioCodec::X_NORM_FACTOR = 57.5;
-const double AudioCodec::Y_NORM_FACTOR = 39.0;
-const double AudioCodec::SPEED_NORM_FACTOR = 3.0;
-
-const double AudioCodec::COORD_STEP_L2 = 0.1;
-const double AudioCodec::SPEED_STEP_L1 = 0.1;
-
 
 //[-0-9a-zA-Z ().+*/?<>_]
 const std::string AudioCodec::CHAR_SET =

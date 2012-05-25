@@ -606,7 +606,6 @@ DefenseLineMessageParser::parse( const int sender,
     return slength();
 }
 
-
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -633,6 +632,60 @@ WaitRequestMessageParser::parse( const int sender,
     }
 
     M_memory->setWaitRequest( sender, current );
+    return slength();
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+SetplayMessageParser::SetplayMessageParser( boost::shared_ptr< AudioMemory > memory )
+    : M_memory( memory )
+{
+
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+int
+SetplayMessageParser::parse( const int sender,
+                             const double & ,
+                             const char * msg,
+                             const GameTime & current )
+{
+    // format:
+    //    "F<wait:1>"
+    // the length of message == 2
+
+    if ( *msg != sheader() )
+    {
+        return 0;
+    }
+
+    if ( (int)std::strlen( msg ) < slength() )
+    {
+        std::cerr << "(SetplayMessageParser::parse) illegal message [" << msg
+                  << ']' << std::endl;
+        dlog.addText( Logger::SENSOR,
+                      "SetplayMessageParser: illegal message length [%s]", msg );
+        return -1;
+    }
+    ++msg;
+
+    AudioCodec::CharToIntCont::const_iterator it = AudioCodec::i().charToIntMap().find( *msg );
+    if ( it == AudioCodec::i().charToIntMap().end()
+         || it->second <= 0 )
+    {
+        std::cerr << "(SetplayMessageParser::parse) illegal value [" << msg
+                  << ']' << std::endl;
+        dlog.addText( Logger::SENSOR,
+                      "SetplayMessageParser: Failed to decode [%s]", msg );
+        return -1;
+    }
+
+    M_memory->setSetplay( sender, it->second, current );
     return slength();
 }
 

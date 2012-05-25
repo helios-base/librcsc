@@ -602,6 +602,68 @@ public:
 
 /*-------------------------------------------------------------------*/
 /*!
+  \class SetplayMessageParser
+  \brief setplay information message parser
+
+  format:
+  "F<wait>"
+  the length of message == 2
+ */
+class SetplayMessageParser
+    : public SayMessageParser {
+private:
+
+    //! pointer to the audio memory
+    boost::shared_ptr< AudioMemory > M_memory;
+
+public:
+
+    /*!
+      \brief construct with audio memory
+      \param memory pointer to the memory
+     */
+    explicit
+    SetplayMessageParser( boost::shared_ptr< AudioMemory > memory );
+
+    /*!
+      \brief get the header character.
+      \return header character.
+     */
+    static
+    char sheader() { return 'F'; }
+
+    /*!
+      \brief get the header character.
+      \return header character.
+     */
+    char header() const { return sheader(); }
+
+    /*!
+      \brief get the length of this message.
+      \return the length of encoded message
+    */
+    static
+    int slength() { return 2; }
+
+    /*!
+      \brief virtual method which analyzes audio messages.
+      \param sender sender's uniform number
+      \param dir sender's direction
+      \param msg raw audio message
+      \param current current game time
+      \retval bytes read if success
+      \retval 0 message ID is not match. other parser should be tried.
+      \retval -1 failed to parse
+    */
+    int parse( const int sender,
+               const double & dir,
+               const char * msg,
+               const GameTime & current );
+
+};
+
+/*-------------------------------------------------------------------*/
+/*!
   \class PassRequestMessageParser
   \brief pass request (hey pass) message parser
 
