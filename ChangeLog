@@ -1,5 +1,10 @@
 2012-05-25  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/common/audio_memory.h:
+	* rcsc/player/world_model.cpp:
+	- AudioMomory::Setplayへのアクセサメソッドを追加
+	- サイクル停止からの復帰後にセットプレイカウントを0にセットするように変更
+
 	* rcsc/common/audio_codec.cpp:
 	* rcsc/common/audio_codec.h:
 	* rcsc/common/audio_memory.cpp:

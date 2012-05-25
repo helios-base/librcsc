@@ -64,9 +64,9 @@ public:
         Ball( const int sender,
               const Vector2D & pos,
               const Vector2D & vel )
-            : sender_( sender )
-            , pos_( pos )
-            , vel_( vel )
+            : sender_( sender ),
+              pos_( pos ),
+              vel_( vel )
           { }
     };
 
@@ -85,9 +85,9 @@ public:
         Pass( const int sender,
               const int receiver,
               const Vector2D & pos )
-            : sender_( sender )
-            , receiver_( receiver )
-            , receive_pos_( pos )
+            : sender_( sender ),
+              receiver_( receiver ),
+              receive_pos_( pos )
           { }
     };
 
@@ -106,9 +106,9 @@ public:
         OurIntercept( const int sender,
                       const int interceptor,
                       const int cycle )
-            : sender_( sender )
-            , interceptor_( interceptor )
-            , cycle_( cycle )
+            : sender_( sender ),
+              interceptor_( interceptor ),
+              cycle_( cycle )
           { }
     };
 
@@ -148,9 +148,9 @@ public:
         Goalie( const int sender,
                 const Vector2D & pos,
                 const AngleDeg & body )
-            : sender_( sender )
-            , pos_( pos )
-            , body_( body )
+            : sender_( sender ),
+              pos_( pos ),
+              body_( body )
           { }
     };
 
@@ -173,11 +173,11 @@ public:
                 const Vector2D & pos,
                 const double & body = -360.0,
                 const double & stamina = -1.0 )
-            : sender_( sender )
-            , unum_( unum )
-            , pos_( pos )
-            , body_( body )
-            , stamina_( stamina )
+            : sender_( sender ),
+              unum_( unum ),
+              pos_( pos ),
+              body_( body ),
+              stamina_( stamina )
           { }
     };
 
@@ -194,8 +194,8 @@ public:
         */
         OffsideLine( const int sender,
                      const double & x )
-            : sender_( sender )
-            , x_( x )
+            : sender_( sender ),
+              x_( x )
           { }
     };
 
@@ -212,8 +212,8 @@ public:
         */
        DefenseLine( const int sender,
                     const double & x )
-            : sender_( sender )
-            , x_( x )
+            : sender_( sender ),
+              x_( x )
           { }
     };
 
@@ -263,8 +263,8 @@ public:
         */
         PassRequest( const int sender,
                      const Vector2D & pos )
-            : sender_( sender )
-            , pos_( pos )
+            : sender_( sender ),
+              pos_( pos )
           { }
     };
 
@@ -302,8 +302,8 @@ public:
         */
         Stamina( const int sender,
                  const double & rate )
-            : sender_( sender )
-            , rate_( rate )
+            : sender_( sender ),
+              rate_( rate )
           { }
     };
 
@@ -320,8 +320,8 @@ public:
         */
         Recovery( const int sender,
                   const double & rate )
-            : sender_( sender )
-            , rate_( rate )
+            : sender_( sender ),
+              rate_( rate )
           { }
     };
 
@@ -338,8 +338,8 @@ public:
         */
         StaminaCapacity( const int sender,
                          const double & rate )
-            : sender_( sender )
-            , rate_( rate )
+            : sender_( sender ),
+              rate_( rate )
           { }
     };
 
@@ -358,9 +358,9 @@ public:
         Dribble( const int sender,
                  const Vector2D & target,
                  const int queue_count )
-            : sender_( sender )
-            , target_( target )
-            , queue_count_( queue_count )
+            : sender_( sender ),
+              target_( target ),
+              queue_count_( queue_count )
           { }
     };
 
@@ -377,8 +377,8 @@ public:
         */
         FreeMessage( const int sender,
                      const std::string & message )
-            : sender_( sender )
-            , message_( message )
+            : sender_( sender ),
+              message_( message )
           { }
     };
 
@@ -639,6 +639,24 @@ public:
     const GameTime & waitRequestTime() const
       {
           return M_wait_request_time;
+      }
+
+    /*!
+      \brief get setplay info
+      \return setplay info container
+     */
+    const std::vector< Setplay > & setplay() const
+      {
+          return M_setplay;
+      }
+
+    /*!
+      \brief get setplay heared time
+      \return time value
+     */
+    const GameTime & setplayTime() const
+      {
+          return M_setplay_time;
       }
 
     /*!

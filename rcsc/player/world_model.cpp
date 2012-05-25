@@ -1437,20 +1437,20 @@ WorldModel::updateGameMode( const GameMode & game_mode,
         // playmode is changed
         if ( gameMode().type() != game_mode.type() )
         {
-            if ( game_mode.type() == GameMode::FreeKick_
-                 && ( gameMode().type() == GameMode::OffSide_
-                      || gameMode().type() == GameMode::FoulCharge_
-                      || gameMode().type() == GameMode::FoulPush_
-                      || gameMode().type() == GameMode::BackPass_
-                      || gameMode().type() == GameMode::FreeKickFault_
-                      || gameMode().type() == GameMode::CatchFault_
-                      || gameMode().type() == GameMode::IndFreeKick_
-                      )
-                 )
-            {
-                // nothing to do
-            }
-            else
+            // if ( game_mode.type() == GameMode::FreeKick_
+            //      && ( gameMode().type() == GameMode::OffSide_
+            //           || gameMode().type() == GameMode::FoulCharge_
+            //           || gameMode().type() == GameMode::FoulPush_
+            //           || gameMode().type() == GameMode::BackPass_
+            //           || gameMode().type() == GameMode::FreeKickFault_
+            //           || gameMode().type() == GameMode::CatchFault_
+            //           || gameMode().type() == GameMode::IndFreeKick_
+            //           )
+            //      )
+            // {
+            //     // nothing to do
+            // }
+            // else
             {
                 M_last_set_play_start_time = current;
                 M_setplay_count = 0;
