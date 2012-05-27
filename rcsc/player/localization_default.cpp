@@ -213,14 +213,14 @@ public:
       \param markers seen marker container
       \return self face angle. if failed, retun VisualSensor::DIR_ERR
     */
-    double getFaceDirByMarkers( const VisualSensor::MarkerCont & markers );
+    double getFaceDirByMarkers( const VisualSensor::MarkerCont & markers ) const;
 
     /*!
       \brief estimate self global face angle from seen lines
       \param lines seen line info
       \return self face angle. if failed, retun VisualSensor::DIR_ERR
     */
-    double getFaceDirByLines( const VisualSensor::LineCont & lines );
+    double getFaceDirByLines( const VisualSensor::LineCont & lines ) const;
 };
 
 /*-------------------------------------------------------------------*/
@@ -270,7 +270,7 @@ LocalizationDefault::Impl::getNearestMarker( const VisualSensor::ObjectType objt
 
  */
 double
-LocalizationDefault::Impl::getFaceDirByLines( const VisualSensor::LineCont & lines )
+LocalizationDefault::Impl::getFaceDirByLines( const VisualSensor::LineCont & lines ) const
 {
     if ( lines.empty() )
     {
@@ -913,7 +913,7 @@ LocalizationDefault::Impl::getDirRange( const double & seen_dir,
 
  */
 double
-LocalizationDefault::Impl::getFaceDirByMarkers( const VisualSensor::MarkerCont & markers )
+LocalizationDefault::Impl::getFaceDirByMarkers( const VisualSensor::MarkerCont & markers ) const
 {
     double angle = VisualSensor::DIR_ERR;
 
@@ -1262,7 +1262,7 @@ LocalizationDefault::localizeBallRelative( const VisualSensor & see,
                                            Vector2D * rpos,
                                            Vector2D * rpos_err,
                                            Vector2D * rvel,
-                                           Vector2D * rvel_err )
+                                           Vector2D * rvel_err ) const
 {
     if ( see.balls().empty() )
     {
@@ -1469,7 +1469,7 @@ LocalizationDefault::localizePlayer( const VisualSensor::PlayerT & from,
                                      const double & self_face_err,
                                      const Vector2D & self_pos,
                                      const Vector2D & self_vel,
-                                     PlayerT * to )
+                                     PlayerT * to ) const
 {
     ////////////////////////////////////////////////////////////////////
     // get polar range info

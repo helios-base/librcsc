@@ -1596,7 +1596,7 @@ LocalizationPFilter::updateBySenseBody( const BodySensor & )
 bool
 LocalizationPFilter::estimateSelfFace( const VisualSensor & see,
                                        double * self_face,
-                                       double * self_face_err )
+                                       double * self_face_err ) const
 {
     *self_face = M_impl->getFaceDirByLines( see.lines() );
 
@@ -1794,7 +1794,7 @@ LocalizationPFilter::localizeBallRelative( const VisualSensor & see,
                                            Vector2D * rpos,
                                            Vector2D * rpos_err,
                                            Vector2D * rvel,
-                                           Vector2D * rvel_err )
+                                           Vector2D * rvel_err ) const
 {
     if ( see.balls().empty() )
     {
@@ -1997,7 +1997,7 @@ LocalizationPFilter::localizePlayer( const VisualSensor::PlayerT & from,
                                      const double & self_face_err,
                                      const Vector2D & self_pos,
                                      const Vector2D & self_vel,
-                                     PlayerT * to )
+                                     PlayerT * to ) const
 {
     ////////////////////////////////////////////////////////////////////
     // get polar range info

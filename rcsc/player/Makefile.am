@@ -12,7 +12,6 @@ librcsc_player_la_SOURCES = \
 	fullstate_sensor.cpp \
 	intercept_table.cpp \
 	localization_default.cpp \
-	localization_pfilter.cpp \
 	object_table.cpp \
 	penalty_kick_state.cpp \
 	player_command.cpp \
@@ -48,7 +47,6 @@ librcsc_playerinclude_HEADERS = \
 	intercept_table.h \
 	localization.h \
 	localization_default.h \
-	localization_pfilter.h \
 	object_table.h \
 	penalty_kick_state.h \
 	player_command.h \

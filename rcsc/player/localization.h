@@ -223,7 +223,7 @@ public:
                                Vector2D * rpos,
                                Vector2D * rpos_err,
                                Vector2D * rvel,
-                               Vector2D * rvel_err ) = 0;
+                               Vector2D * rvel_err ) const = 0;
 
     /*!
       \brief localze other player
@@ -241,7 +241,7 @@ public:
                          const double & self_face_err,
                          const Vector2D & self_pos,
                          const Vector2D & self_vel,
-                         PlayerT * to ) = 0;
+                         PlayerT * to ) const = 0;
 };
 
 }

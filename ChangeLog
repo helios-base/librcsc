@@ -1,3 +1,15 @@
+2012-05-27  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/Makefile.am:
+	* rcsc/player/localization.h:
+	* rcsc/player/localization_default.cpp:
+	* rcsc/player/localization_default.h:
+	* rcsc/player/localization_pfilter.cpp:
+	* rcsc/player/localization_pfilter.h:
+	* rcsc/player/world_model.cpp:
+	- プレイヤマッチングアルゴリズム再実装中．動作確認はできたが設計を
+	修正する必要あり
+
 2012-05-25  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/common/audio_memory.h:

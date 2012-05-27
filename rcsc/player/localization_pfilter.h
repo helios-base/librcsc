@@ -89,7 +89,7 @@ public:
     virtual
     bool estimateSelfFace( const VisualSensor & see,
                            double * self_face,
-                           double * self_face_err );
+                           double * self_face_err ) const;
 
     /*!
       \brief localize self position.
@@ -125,7 +125,7 @@ public:
                                Vector2D * rpos,
                                Vector2D * rpos_err,
                                Vector2D * rvel,
-                               Vector2D * rvel_err );
+                               Vector2D * rvel_err ) const;
 
     /*!
       \brief localze other player
@@ -143,7 +143,7 @@ public:
                          const double & self_face_err,
                          const Vector2D & self_pos,
                          const Vector2D & self_vel,
-                         PlayerT * to );
+                         PlayerT * to ) const;
 };
 
 }
