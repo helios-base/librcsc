@@ -95,6 +95,19 @@ struct PlayerCountSorter {
       }
 };
 
+struct ResultPairPlayerTEqual {
+    const Localization::PlayerT * player_;
+
+    ResultPairPlayerTEqual( const Localization::PlayerT * p )
+        : player_( p )
+      { }
+
+    bool operator()( const ResultPair & p ) const
+      {
+          return p.second == player_;
+      }
+};
+
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -380,13 +393,13 @@ add_matching_candidates( MatchingPair & result,
         {
             count = old_player->heardPosCount();
             old_pos = old_player->heardPos();
-            sensor_error = 2.0; // magit number
+            sensor_error = 2.0; // magic number
         }
 
         double dist2 = seen->pos_.dist2( old_pos );
         if ( dist2 > std::pow( old_player->playerTypePtr()->realSpeedMax() * dash_noise * count
                                + self_error
-                               + sensor_error * 2.0,
+                               + sensor_error * 3.5, // magic number
                                2 ) )
         {
 // #ifdef DEBUG_PRINT
@@ -438,6 +451,10 @@ add_matching_pairs( PlayerObject::List & old_players,
                                : p->heardPos() );
 
         result.candidates_.sort( MatchingDistanceSorter( pos ) );
+        if ( result.candidates_.size() > 3 )
+        {
+            result.candidates_.resize( 3 );
+        }
 
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::WORLD,
@@ -590,8 +607,10 @@ void
 find_single_candidate( std::list< MatchingPair > * matching_pairs,
                        std::vector< ResultPair > * result_pairs )
 {
+#ifdef DEBUG_PRINT
     dlog.addText( Logger::WORLD,
                   "========= start single matching loop ========== " );
+#endif
 
     std::list< MatchingPair >::iterator it = matching_pairs->begin();
 
@@ -633,6 +652,142 @@ find_single_candidate( std::list< MatchingPair > * matching_pairs,
     }
 
 }
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+evaluate_combination( std::vector< ResultPair > * combination_stack,
+                      std::vector< ResultPair > * best_pairs,
+                      double * best_value )
+{
+    double sum_dist2 = 0.0;
+    int count = 0;
+    for ( std::vector< ResultPair >::const_iterator it = combination_stack->begin();
+          it != combination_stack->end();
+          ++it )
+    {
+        const Vector2D & pos = ( it->first->seenPosCount() <= it->first->heardPosCount()
+                                 ? it->first->seenPos()
+                                 : it->first->heardPos() );
+        sum_dist2 += pos.dist2( it->second->pos_ );
+        ++count;
+    }
+
+    if ( count == 0 )
+    {
+        return;
+    }
+
+    double average_dist2 = sum_dist2 / count;
+
+    if ( *best_value > average_dist2 )
+    {
+        *best_pairs = *combination_stack;
+        *best_value = average_dist2;
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+create_combination( std::list< MatchingPair >::iterator first,
+                    std::list< MatchingPair >::iterator last,
+                    std::vector< ResultPair > * combination_stack,
+                    std::vector< ResultPair > * best_pairs,
+                    double * best_value )
+{
+#ifdef DEBUG_PRINT
+    dlog.addText( Logger::WORLD,
+                  "create_combination stack size=%zd", combination_stack->size() );
+#endif
+    if ( first == last )
+    {
+#ifdef DEBUG_PRINT
+        dlog.addText( Logger::WORLD,
+                      "create_combination evaluation(1)" );
+#endif
+        evaluate_combination( combination_stack, best_pairs, best_value );
+        return;
+    }
+
+    bool found = false;
+    for ( std::list< const Localization::PlayerT * >::iterator c = first->candidates_.begin();
+          c != first->candidates_.end();
+          ++c )
+    {
+        if ( std::find_if( combination_stack->begin(), combination_stack->end(),
+                           ResultPairPlayerTEqual( *c ) )
+             == combination_stack->end() )
+        {
+            found = true;
+            combination_stack->push_back( ResultPair( first->old_player_, *c ) );
+            create_combination( ++first, last, combination_stack, best_pairs, best_value );
+            --first;
+            combination_stack->pop_back();
+        }
+    }
+
+    if ( ! found )
+    {
+#ifdef DEBUG_PRINT
+        dlog.addText( Logger::WORLD,
+                      "create_combination evaluation(2)" );
+#endif
+        evaluate_combination( combination_stack, best_pairs, best_value );
+    }
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+find_best_combination( std::list< MatchingPair > * matching_pairs,
+                       std::vector< ResultPair > * result_pairs )
+{
+    if ( matching_pairs->empty() )
+    {
+        return;
+    }
+
+#ifdef DEBUG_PRINT
+    dlog.addText( Logger::WORLD,
+                  "========= start find best combination ==========" );
+#endif
+
+    std::vector< ResultPair > combination_stack;
+    std::vector< ResultPair > best_result;
+    combination_stack.reserve( matching_pairs->size() );
+    best_result.reserve( matching_pairs->size() );
+
+    double best_value = 100000000.0;
+    create_combination( matching_pairs->begin(), matching_pairs->end(),
+                        &combination_stack,
+                        &best_result,
+                        &best_value );
+#ifdef DEBUG_PRINT
+    dlog.addText( Logger::WORLD,
+                  "best pair: value=%f", best_value );
+    for ( std::vector< ResultPair >::const_iterator it = best_result.begin();
+          it != best_result.end();
+          ++it )
+    {
+        dlog.addText( Logger::WORLD,
+                      "__ old: %s %d (%.1f %.1f) <==> seen: %s %d (%.1f %.1f)",
+                      side_str( it->first->side() ), it->first->unum(), it->first->pos().x, it->first->pos().y,
+                      side_str( it->second->side_ ), it->second->unum_, it->second->pos_.x, it->second->pos_.y );
+    }
+#endif
+
+    // append the best combination
+    result_pairs->insert( result_pairs->end(), best_result.begin(), best_result.end() );
+}
+
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -915,7 +1070,8 @@ PlayerObjectUpdater::localizePlayers( const SelfObject & self,
     //
     // find the nearest candidate
     //
-    find_nearest_candidate( &matching_pairs, &result_pairs );
+    //find_nearest_candidate( &matching_pairs, &result_pairs );
+    find_best_combination( &matching_pairs, &result_pairs );
 
 #ifdef DEBUG_PRINT
     debug_print_result_pairs( result_pairs );
@@ -953,7 +1109,7 @@ PlayerObjectUpdater::localizePlayers( const SelfObject & self,
 
 #ifdef DEBUG_PROFILE
     dlog.addText( Logger::WORLD,
-                  "(localizePlayers) elpased %lf [ms]", timer.elapsedReal() );
+                  __FILE__":(localizePlayers) elpased %lf [ms]", timer.elapsedReal() );
 #endif
 
 #ifdef DEBUG_PRINT

@@ -2633,11 +2633,273 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
 void
 WorldModel::localizePlayers( const VisualSensor & see )
 {
+#if 0
     if ( ! M_player_object_updater->localizePlayers( M_self, see, M_localize,
                                                      M_teammates, M_opponents, M_unknown_players ) )
     {
         return;
     }
+#else
+    if ( ! self().faceValid()
+         || ! self().posValid() )
+    {
+        return;
+    }
+
+    ////////////////////////////////////////////////////////////////
+    // update policy
+    //   for each (seen player objects)
+    //       if exist matched player in memory list
+    //           -> splice from memory to temporary
+    //       else
+    //           -> assign new data to temporary list
+    //   after loop, copy from temporary to memory again
+
+    // temporary data list
+    PlayerObject::List new_teammates;
+    PlayerObject::List new_opponents;
+    PlayerObject::List new_unknown_players;
+
+    const Vector2D MYPOS = self().pos();
+    const Vector2D MYVEL = self().vel();
+    const double MY_FACE = self().face().degree();
+    const double MY_FACE_ERR = self().faceError();
+
+    //////////////////////////////////////////////////////////////////
+    // search order is very important !!
+    //   If we replace the unknown player to unknown teammate,
+    //   it may cause a mistake for pass target selection.
+
+    // current version search order is
+    //   [unum opp -> side opp -> unum mate -> side mate -> unknown]
+
+    // if matched, that player is removed from memory list
+    // and copy to temporary
+
+    //////////////////////////////////////////////////////////////////
+    // localize, matching and splice from memory list to temporary list
+
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+    dlog.addText( Logger::WORLD,
+                  __FILE__" ========== (localizePlayers) ==========" );
+#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
+    dlog.addText( Logger::WORLD,
+                  "<<<<< old players start" );
+    for ( PlayerObject::List::const_iterator p = M_teammates.begin();
+          p != M_teammates.end();
+          ++p )
+    {
+        dlog.addText( Logger::WORLD,
+                      "teammate %d (%.2f %.2f)", p->unum(), p->pos().x, p->pos().y );
+    }
+    for ( PlayerObject::List::const_iterator p = M_opponents.begin();
+          p != M_opponents.end();
+          ++p )
+    {
+        dlog.addText( Logger::WORLD,
+                      "opponent %d (%.2f %.2f)", p->unum(), p->pos().x, p->pos().y );
+    }
+    for ( PlayerObject::List::const_iterator p = M_unknown_players.begin();
+          p != M_unknown_players.end();
+          ++p )
+    {
+        dlog.addText( Logger::WORLD,
+                      "unknown %d (%.2f %.2f)", p->unum(), p->pos().x, p->pos().y );
+    }
+    dlog.addText( Logger::WORLD,
+                  "<<<<< old players end" );
+#endif
+#endif
+
+    //
+    // opponent (side & unum)
+    //
+    for ( VisualSensor::PlayerCont::const_iterator it = see.opponents().begin(),
+              o_end = see.opponents().end();
+          it != o_end;
+          ++it )
+    {
+        Localization::PlayerT player;
+        if ( ! M_localize->localizePlayer( *it,
+                                           MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
+                                           &player ) )
+        {
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+            dlog.addText( Logger::WORLD,
+                          "(localizePlayers) failed opponent %d",
+                          player.unum_ );
+#endif
+            continue;
+        }
+
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+        dlog.addText( Logger::WORLD,
+                      "(localizePlayers)"
+                      " opponent %d pos=(%.2f, %.2f) vel=(%.2f, %.2f)",
+                      player.unum_,
+                      player.pos_.x, player.pos_.y,
+                      player.vel_.x, player.vel_.y );
+#endif
+        // matching, splice or create
+        checkTeamPlayer( theirSide(),
+                         player,
+                         M_opponents,
+                         M_unknown_players,
+                         new_opponents );
+    }
+
+    //
+    // unknown opponent (no uniform number)
+    //
+    for ( VisualSensor::PlayerCont::const_iterator it = see.unknownOpponents().begin(),
+              uo_end = see.unknownOpponents().end();
+          it != uo_end;
+          ++it )
+    {
+        Localization::PlayerT player;
+        if ( ! M_localize->localizePlayer( *it,
+                                           MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
+                                           &player ) )
+        {
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+            dlog.addText( Logger::WORLD,
+                          "(localizePlayers) failed unknown opponent" );
+#endif
+            continue;
+        }
+
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+        dlog.addText( Logger::WORLD,
+                      "(localizePlayers)"
+                      " unknown opponent pos=(%.2f, %.2f)",
+                      player.pos_.x, player.pos_.y );
+#endif
+        // matching, splice or create
+        checkTeamPlayer( theirSide(),
+                         player,
+                         M_opponents,
+                         M_unknown_players,
+                         new_opponents );
+    }
+
+    //
+    // teammate (side & unum)
+    //
+    for ( VisualSensor::PlayerCont::const_iterator it = see.teammates().begin(),
+              t_end = see.teammates().end();
+          it != t_end;
+          ++it )
+    {
+        Localization::PlayerT player;
+        if ( ! M_localize->localizePlayer( *it,
+                                           MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
+                                           &player ) )
+        {
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+            dlog.addText( Logger::WORLD,
+                          __FILE__" (localizePlayers) failed teammate %d",
+                          player.unum_ );
+#endif
+            continue;
+        }
+
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+        dlog.addText( Logger::WORLD,
+                      "(localizePlayers)"
+                      " teammate %d pos=(%.2f, %.2f) vel=(%.2f, %.2f)",
+                      player.unum_,
+                      player.pos_.x, player.pos_.y,
+                      player.vel_.x, player.vel_.y );
+#endif
+        // matching, splice or create
+        checkTeamPlayer( ourSide(),
+                         player,
+                         M_teammates,
+                         M_unknown_players,
+                         new_teammates );
+    }
+
+    //
+    // unknown teammate (no uniform number)
+    //
+    for ( VisualSensor::PlayerCont::const_iterator it = see.unknownTeammates().begin(),
+              ut_end = see.unknownTeammates().end();
+          it != ut_end;
+          ++it )
+    {
+        Localization::PlayerT player;
+        if ( ! M_localize->localizePlayer( *it,
+                                           MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
+                                           &player ) )
+        {
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+            dlog.addText( Logger::WORLD,
+                          "(localizePlayers) failed uunknown teammate" );
+#endif
+            continue;
+        }
+
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+        dlog.addText( Logger::WORLD,
+                      "(localizePlayers)"
+                      " unknown teammate pos=(%.2f, %.2f)",
+                      player.pos_.x, player.pos_.y );
+#endif
+        // matching, splice or create
+        checkTeamPlayer( ourSide(),
+                         player,
+                         M_teammates,
+                         M_unknown_players,
+                         new_teammates );
+    }
+
+    //
+    // unknown player
+    //
+    for ( VisualSensor::PlayerCont::const_iterator it = see.unknownPlayers().begin(),
+              u_end = see.unknownPlayers().end();
+          it != u_end;
+          ++it )
+    {
+        Localization::PlayerT player;
+        // localize
+        if ( ! M_localize->localizePlayer( *it,
+                                           MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
+                                           &player ) )
+        {
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+            dlog.addText( Logger::WORLD,
+                          __FILE__" (localizePlayers) failed unknown player" );
+#endif
+            continue;
+        }
+
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+        dlog.addText( Logger::WORLD,
+                      "(localizePlayers)"
+                      " unknown player: pos=(%.2f, %.2f)",
+                      player.pos_.x, player.pos_.y );
+#endif
+        // matching, splice or create
+        checkUnknownPlayer( player,
+                            M_teammates,
+                            M_opponents,
+                            M_unknown_players,
+                            new_teammates,
+                            new_opponents,
+                            new_unknown_players );
+    }
+
+    //////////////////////////////////////////////////////////////////
+    // splice temporary seen players to memory list
+    // temporary lists are cleared
+    M_teammates.splice( M_teammates.end(),
+                        new_teammates );
+    M_opponents.splice( M_opponents.end(),
+                        new_opponents );
+    M_unknown_players.splice( M_unknown_players.end(),
+                              new_unknown_players );
+#endif
 
     //////////////////////////////////////////////////////////////////
     // create team member pointer vector for sort
@@ -2756,6 +3018,586 @@ WorldModel::localizePlayers( const VisualSensor & see )
 
     //////////////////////////////////////////////////////////////////
     // ghost check is done in checkGhost()
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+WorldModel::checkTeamPlayer( const SideID side,
+                             const Localization::PlayerT & player,
+                             PlayerObject::List & old_known_players,
+                             PlayerObject::List & old_unknown_players,
+                             PlayerObject::List & new_known_players )
+{
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //
+    //  if matched player is found, that player is removed from old list
+    //  and updated data is splice to new container
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //
+
+    //////////////////////////////////////////////////////////////////
+    // pre check
+    // unum is seen -> search the player that has the same uniform number
+    if ( player.unum_ != Unum_Unknown )
+    {
+        // search from old unum known players
+        for ( PlayerObject::List::iterator it = old_known_players.begin(),
+                  end = old_known_players.end();
+              it != end;
+              ++it )
+        {
+            if ( it->unum() == player.unum_ )
+            {
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+                dlog.addText( Logger::WORLD,
+                              "(checkTeamPlayer)"
+                              " >>> matched!"
+                              " unum = %d pos =(%.1f %.1f)",
+                              player.unum_, player.pos_.x, player.pos_.y );
+#endif
+                it->updateBySee( side, player );
+                new_known_players.splice( new_known_players.end(),
+                                          old_known_players,
+                                          it );
+                return; // success!!
+            }
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////
+    // find nearest player
+
+    const double dash_noise = 1.0 + ServerParam::i().playerRand();
+    const double self_error = 0.5 * 2.0;
+
+    double min_team_dist = 10.0 * 10.0;
+    double min_unknown_dist = 10.0 * 10.0;
+
+    PlayerObject::List::iterator candidate_team = old_known_players.end();
+    PlayerObject::List::iterator candidate_unknown = old_unknown_players.end();
+
+    //////////////////////////////////////////////////////////////////
+    // search from old same team players
+    for ( PlayerObject::List::iterator it = old_known_players.begin(),
+              end = old_known_players.end();
+          it != end;
+          ++it )
+    {
+        if ( player.unum_ != Unum_Unknown
+             && it->unum() != Unum_Unknown
+             && it->unum() != player.unum_ )
+        {
+            // unum is seen
+            // and it does not match with old player's unum.
+#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
+            dlog.addText( Logger::WORLD,
+                          __FILE__" (checkTeamPlayer)"
+                          "___ known player: unum is not match."
+                          " seen unum = %d, old_unum = %d",
+                          player.unum_, it->unum() );
+#endif
+            continue;
+        }
+
+        int count = it->seenPosCount();
+        Vector2D old_pos = it->seenPos();
+        double heard_error = 0.0;
+        if ( it->heardPosCount() < it->seenPosCount() )
+        {
+            count = it->heardPosCount();
+            old_pos = it->heardPos();
+            heard_error = 2.0;
+        }
+
+        const double d = player.pos_.dist( old_pos );
+
+        if ( d > ( it->playerTypePtr()->realSpeedMax() * dash_noise * count
+                   + heard_error
+                   + self_error
+                   + player.dist_error_ * 2.0 ) )
+        {
+            // TODO: inertia movement should be considered.
+#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
+            dlog.addText( Logger::WORLD,
+                          "(checkTeamPlayer)"
+                          "___ known player: dist over."
+                          " dist=%.2f > buf=%.2f"
+                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
+                          d,
+                          it->playerTypePtr()->realSpeedMax() * dash_noise * count
+                          + heard_error
+                          + self_error
+                          + player.dist_error_ * 2.0,
+                          player.pos_.x, player.pos_.y,
+                          it->pos().x, it->pos().y );
+#endif
+            continue;
+        }
+
+        if ( d < min_team_dist )
+        {
+#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
+            dlog.addText( Logger::WORLD,
+                          "(checkTeamPlayer)"
+                          "___ known player: update."
+                          " dist=%.2f < min_team_dist=%.2f"
+                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
+                          d,
+                          min_team_dist,
+                          player.pos_.x, player.pos_.y,
+                          it->pos().x, it->pos().y );
+#endif
+            min_team_dist = d;
+            candidate_team = it;
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////
+    // search from unknown players
+    for ( PlayerObject::List::iterator it = old_unknown_players.begin(),
+              end = old_unknown_players.end();
+          it != end;
+          ++it )
+    {
+        int count = it->seenPosCount();
+        Vector2D old_pos = it->seenPos();
+        double heard_error = 0.0;
+        if ( it->heardPosCount() < it->seenPosCount() )
+        {
+            count = it->heardPosCount();
+            old_pos = it->heardPos();
+            heard_error = 2.0;
+        }
+
+        const double d = player.pos_.dist( old_pos );
+
+        if ( d > ( it->playerTypePtr()->realSpeedMax() * dash_noise * count
+                   + heard_error
+                   + self_error
+                   + player.dist_error_ * 2.0 ) )
+        {
+            // TODO: inertia movement should be considered.
+#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
+            dlog.addText( Logger::WORLD,
+                          "(checkTeamPlayer)"
+                          "__ unknown player: dist over. "
+                          "dist=%.2f > buf=%.2f"
+                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
+                          d,
+                          it->playerTypePtr()->realSpeedMax() * dash_noise * count
+                          + heard_error
+                          + self_error
+                          + player.dist_error_ * 2.0,
+                          player.pos_.x, player.pos_.y,
+                          old_pos.x, old_pos.y );
+#endif
+            continue;
+        }
+
+        if ( d < min_unknown_dist )
+        {
+#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
+            dlog.addText( Logger::WORLD,
+                          "(checkTeamPlayer)"
+                          "__ unknown player: update. "
+                          " dist=%.2f < min_unknown_dist=%.2f"
+                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
+                          d,
+                          min_unknown_dist,
+                          player.pos_.x, player.pos_.y,
+                          old_pos.x, old_pos.y );
+#endif
+            min_unknown_dist = d;
+            candidate_unknown = it;
+        }
+    }
+
+    PlayerObject::List::iterator candidate = old_unknown_players.end();
+    PlayerObject::List * target_list = static_cast< PlayerObject::List * >( 0 );
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+    double min_dist = 1000.0;
+#endif
+
+    if ( candidate_team != old_known_players.end()
+         && min_team_dist < min_unknown_dist )
+    {
+        candidate = candidate_team;
+        target_list = &old_known_players;
+
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+        min_dist = min_team_dist;
+        dlog.addText( Logger::WORLD,
+                      "(checkTeamPlayer)"
+                      ">>> %d (%.1f %.1f)"
+                      " -> %s player %d %s (%.2f, %.2f) dist=%.2f",
+                      player.unum_,
+                      player.pos_.x, player.pos_.y,
+                      side_str( candidate->side() ),
+                      candidate->unum(),
+                      ( candidate->goalie() ? "goalie" : "field" ),
+                      candidate->pos().x, candidate->pos().y,
+                      min_dist );
+#endif
+    }
+
+    if ( candidate_unknown != old_unknown_players.end()
+         && min_unknown_dist < min_team_dist )
+    {
+        candidate = candidate_unknown;
+        target_list = &old_unknown_players;
+
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+        min_dist = min_unknown_dist;
+        dlog.addText( Logger::WORLD,
+                      "(checkTeamPlayer)"
+                      ">>> %d (%.1f %.1f)"
+                      " -> unknown player (%.2f, %.2f) dist=%.2f",
+                      player.unum_,
+                      player.pos_.x, player.pos_.y,
+                      candidate->pos().x, candidate->pos().y,
+                      min_dist );
+#endif
+    }
+
+    if ( candidate != old_unknown_players.end()
+         && target_list )
+    {
+        // update & splice to new list
+        candidate->updateBySee( side, player );
+
+        new_known_players.splice( new_known_players.end(),
+                                  *target_list,
+                                  candidate );
+        return;
+    }
+
+    //
+    // not found -> generate new player
+    //
+
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+    dlog.addText( Logger::WORLD,
+                  "(checkTeamPlayer)"
+                  " XXX unmatch. min_dist= %.2f"
+                  " generate new known player pos=(%.2f, %.2f)",
+                  min_dist,
+                  player.pos_.x, player.pos_.y );
+#endif
+
+    new_known_players.push_back( PlayerObject( side, player ) );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+WorldModel::checkUnknownPlayer( const Localization::PlayerT & player,
+                                PlayerObject::List & old_teammates,
+                                PlayerObject::List & old_opponents,
+                                PlayerObject::List & old_unknown_players,
+                                PlayerObject::List & new_teammates,
+                                PlayerObject::List & new_opponents,
+                                PlayerObject::List & new_unknown_players )
+{
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //
+    //  if matched player is found, that player is removed from old list
+    //  and updated data is splice to new container
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //
+
+    // matching start
+    // search the nearest player
+
+    double min_opponent_dist = 100.0;
+    double min_teammate_dist = 100.0;
+    double min_unknown_dist = 100.0;
+
+    PlayerObject::List::iterator candidate_opponent = old_opponents.end();
+    PlayerObject::List::iterator candidate_teammate = old_teammates.end();
+    PlayerObject::List::iterator candidate_unknown = old_unknown_players.end();
+
+    const double dash_noise = 1.0 + ServerParam::i().playerRand();
+    const double self_error = 0.5 * 2.0;
+
+    //////////////////////////////////////////////////////////////////
+    // search from old opponents
+    for ( PlayerObject::List::iterator it = old_opponents.begin(),
+              end = old_opponents.end();
+          it != end;
+          ++it )
+    {
+        int count = it->seenPosCount();
+        Vector2D old_pos = it->seenPos();
+        double heard_error = 0.0;
+        if ( it->heardPosCount() < it->seenPosCount() )
+        {
+            count = it->heardPosCount();
+            old_pos = it->heardPos();
+            heard_error = 2.0;
+        }
+
+        const double d = player.pos_.dist( old_pos );
+
+        if ( d > ( it->playerTypePtr()->realSpeedMax() * dash_noise * count
+                   + heard_error
+                   + self_error
+                   + player.dist_error_ * 2.0 ) )
+        {
+#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
+            dlog.addText( Logger::WORLD,
+                          "(checkUnknownPlayer)"
+                          "__ opp %d: dist over."
+                          " dist=%.2f > buf=%.2f"
+                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
+                          it->unum(),
+                          d,
+                          it->playerTypePtr()->realSpeedMax() * dash_noise * count
+                          + heard_error
+                          + self_error
+                          + player.dist_error_ * 2.0,
+                          player.pos_.x, player.pos_.y,
+                          old_pos.x, old_pos.y );
+#endif
+            continue;
+        }
+
+        if ( d < min_opponent_dist )
+        {
+#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
+            dlog.addText( Logger::WORLD,
+                          "(checkUnknownPlayer)"
+                          "__ opp player: update."
+                          " dist=%.2f < min_opp_dist=%.2f"
+                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
+                          d,
+                          min_opponent_dist,
+                          player.pos_.x, player.pos_.y,
+                          old_pos.x, old_pos.y );
+#endif
+            min_opponent_dist = d;
+            candidate_opponent = it;
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////
+    // search from old teammates
+    for ( PlayerObject::List::iterator it = old_teammates.begin(),
+              end = old_teammates.end();
+          it != end;
+          ++it )
+    {
+        int count = it->seenPosCount();
+        Vector2D old_pos = it->seenPos();
+        double heard_error = 0.0;
+        if ( it->heardPosCount() <= it->seenPosCount() )
+        {
+            count = it->heardPosCount();
+            old_pos = it->heardPos();
+            heard_error = 2.0;
+        }
+
+        const double d = player.pos_.dist( old_pos );
+
+        if ( d > ( it->playerTypePtr()->realSpeedMax() * dash_noise * count
+                   + heard_error
+                   + self_error
+                   + player.dist_error_ * 2.0 ) )
+        {
+#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
+            dlog.addText( Logger::WORLD,
+                          "(checkUnknownPlayer)"
+                          "__ our %d: dist over."
+                          " dist=%.2f > buf=%.2f"
+                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
+                          it->unum(),
+                          d,
+                          it->playerTypePtr()->realSpeedMax() * dash_noise * count
+                          + heard_error
+                          + self_error
+                          + player.dist_error_ * 2.0,
+                          player.pos_.x, player.pos_.y,
+                          old_pos.x, old_pos.y );
+#endif
+            continue;
+        }
+
+        if ( d < min_teammate_dist )
+        {
+#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
+            dlog.addText( Logger::WORLD,
+                          "(checkUnknownPlayer)"
+                          "__ our player: update."
+                          " dist=%.2f < min_our_dist=%.2f"
+                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
+                          d,
+                          min_teammate_dist,
+                          player.pos_.x, player.pos_.y,
+                          old_pos.x, old_pos.y );
+#endif
+            min_teammate_dist = d;
+            candidate_teammate = it;
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////
+    // search from old unknown players
+    for ( PlayerObject::List::iterator it = old_unknown_players.begin(),
+              end = old_unknown_players.end();
+          it != end;
+          ++it )
+    {
+        int count = it->seenPosCount();
+        Vector2D old_pos = it->seenPos();
+        double heard_error = 0.0;
+        if ( it->heardPosCount() < it->seenPosCount() )
+        {
+            count = it->heardPosCount();
+            old_pos = it->heardPos();
+            heard_error = 2.0;
+        }
+
+        const double d = player.pos_.dist( old_pos );
+
+        if ( d > ( it->playerTypePtr()->realSpeedMax() * dash_noise * count
+                   + heard_error
+                   + self_error
+                   + player.dist_error_ * 2.0 ) )
+        {
+#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
+            dlog.addText( Logger::WORLD,
+                          "(checkUnknownPlayer)"
+                          "__ unknown player: dist over."
+                          " dist=%.2f > buf=%.2f"
+                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
+                          d,
+                          it->playerTypePtr()->realSpeedMax() * dash_noise * count
+                          + heard_error
+                          + self_error
+                          + player.dist_error_ * 2.0,
+                          player.pos_.x, player.pos_.y,
+                          old_pos.x, old_pos.y );
+#endif
+            continue;
+        }
+
+        if ( d < min_unknown_dist )
+        {
+#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
+            dlog.addText( Logger::WORLD,
+                          "(checkUnknownPlayer)"
+                          "__ unknown player: update."
+                          " dist=%.2f < min_unknown_dist=%.2f"
+                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
+                          d,
+                          min_unknown_dist,
+                          player.pos_.x, player.pos_.y,
+                          old_pos.x, old_pos.y );
+#endif
+            min_unknown_dist = d;
+            candidate_unknown = it;
+        }
+    }
+
+    PlayerObject::List::iterator candidate = old_unknown_players.end();;
+    PlayerObject::List * new_list = static_cast< PlayerObject::List * >( 0 );
+    PlayerObject::List * old_list = static_cast< PlayerObject::List * >( 0 );
+    SideID side = NEUTRAL;
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+    double min_dist = 1000.0;
+#endif
+
+    if ( candidate_teammate != old_teammates.end()
+         && min_teammate_dist < min_opponent_dist
+         && min_teammate_dist < min_unknown_dist )
+    {
+        candidate = candidate_teammate;
+        new_list = &new_teammates;
+        old_list = &old_teammates;
+        side = ourSide();
+
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+        min_dist = min_teammate_dist;
+        dlog.addText( Logger::WORLD,
+                      "(checkUnknownPlayer)"
+                      ">>> (%.1f %.1f) -> teammate %d (%.1f %.1f) dist=%.2f",
+                      player.pos_.x, player.pos_.y,
+                      candidate->unum(),
+                      candidate->pos().x, candidate->pos().y,
+                      min_dist );
+#endif
+    }
+
+    if ( candidate_opponent != old_opponents.end()
+         //&& min_opponent_dist * 0.5 - 3.0 < min_teammate_dist
+         && min_opponent_dist < min_teammate_dist
+         && min_opponent_dist < min_unknown_dist )
+    {
+        candidate = candidate_opponent;
+        new_list = &new_opponents;
+        old_list = &old_opponents;
+        side = theirSide();
+
+#ifdef DEBUG_PRINT_PLAYER_UPDATE
+        min_dist = min_opponent_dist;
+        dlog.addText( Logger::WORLD,
+                      "(checkUnknownPlayer)"
+                      ">>> (%.1f %.1f) -> opponent %d (%.1f %.1f) dist=%.2f",
+                      player.pos_.x, player.pos_.y,
+                      candidate->unum(),
+                      candidate->pos().x, candidate->pos().y,
+                      min_dist );
+#endif
+    }
+
+    if ( candidate_unknown != old_unknown_players.end()
+         //&& min_unknown_dist * 0.5 - 3.0 < min_teammate_dist
+         && min_unknown_dist < min_teammate_dist
+         && min_unknown_dist < min_opponent_dist )
+    {
+        candidate = candidate_unknown;
+        new_list = &new_unknown_players;
+        old_list = &old_unknown_players;
+        side = NEUTRAL;
+
+#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
+        min_dist = min_unknown_dist;
+        dlog.addText( Logger::WORLD,
+                      "(checkUnknownPlayer)"
+                      ">>> (%.1f %.1f) -> unknown (%.1f %.1f) dist=%.2f",
+                      player.pos_.x, player.pos_.y,
+                      candidate->pos().x, candidate->pos().y,
+                      min_dist );
+#endif
+    }
+
+
+    //////////////////////////////////////////////////////////////////
+    // check player movable radius
+    if ( candidate != old_unknown_players.end()
+         && new_list
+         && old_list )
+    {
+        // update & splice to new list
+        candidate->updateBySee( side, player );
+        new_list->splice( new_list->end(),
+                          *old_list,
+                          candidate );
+        return;
+    }
+
+    //////////////////////////////////////////////////////////////////
+    // generate new player
+#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
+    dlog.addText( Logger::WORLD,
+                  "(checkUnknownPlayer)"
+                  " XXX unmatch. dist_error=%f"
+                  " generate new unknown player. pos=(%.2f, %.2f)",
+                  player.dist_error_,
+                  player.pos_.x, player.pos_.y );
+#endif
+
+    new_unknown_players.push_back( PlayerObject( NEUTRAL, player ) );
 }
 
 /*-------------------------------------------------------------------*/

@@ -1,6 +1,11 @@
 2012-05-29  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/player_object_updater.cpp:
+	* rcsc/player/world_model.cpp:
+	* rcsc/player/world_model.h:
+	- 新しいマッチングアルゴリズムの動作がまだ不安定なため，テスト完了するまで旧アルゴリズムに戻す
+
+	* rcsc/player/player_object_updater.cpp:
 	- 分身が起きないように観測誤差を調整
 
 2012-05-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
