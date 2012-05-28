@@ -1,5 +1,28 @@
 2012-05-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/action/body_go_to_point.cpp:
+	* rcsc/action/Makefile.am:
+	* rcsc/action/body_go_to_point.h:
+	* rcsc/action/bhv_shoot.h:
+	* rcsc/action/bhv_shoot2008.cpp:
+	* rcsc/action/bhv_shoot2008.h:
+	* rcsc/action/body_go_to_point2009.cpp:
+	* rcsc/action/body_go_to_point2009.h:
+	* rcsc/action/body_go_to_point2010.cpp:
+	* rcsc/action/body_go_to_point2010.h:
+	* rcsc/action/obsolete/bhv_shoot.h:
+	* rcsc/action/obsolete/bhv_shoot2008.cpp:
+	* rcsc/action/obsolete/bhv_shoot2008.h:
+	* rcsc/action/obsolete/body_go_to_point2009.cpp:
+	* rcsc/action/obsolete/body_go_to_point2009.h:
+	* rcsc/action/obsolete/body_go_to_point2010.cpp:
+	* rcsc/action/obsolete/body_go_to_point2010.h:
+	* rcsc/action/obsolete/shoot_table2008.cpp:
+	* rcsc/action/obsolete/shoot_table2008.h:
+	* rcsc/action/shoot_table2008.cpp:
+	* rcsc/action/shoot_table2008.h:
+	- obsoleteな行動クラスを移動
+
 	* rcsc/player/player_object_updater.cpp:
 	* rcsc/player/player_object_updater.h:
 	* rcsc/player/Makefile.am:

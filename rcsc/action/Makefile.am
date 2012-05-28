@@ -9,12 +9,10 @@ librcsc_action_la_SOURCES = \
 	bhv_emergency.cpp \
 	bhv_go_to_point_look_ball.cpp \
 	bhv_scan_field.cpp \
-	bhv_shoot2008.cpp \
 	body_advance_ball2009.cpp \
 	body_clear_ball2009.cpp \
 	body_dribble2008.cpp \
-	body_go_to_point2009.cpp \
-	body_go_to_point2010.cpp \
+	body_go_to_point.cpp \
 	body_go_to_point_dodge.cpp \
 	body_hold_ball2008.cpp \
 	body_intercept2009.cpp \
@@ -35,15 +33,17 @@ librcsc_action_la_SOURCES = \
 	neck_turn_to_player_or_scan.cpp \
 	neck_turn_to_low_conf_teammate.cpp \
 	view_synch.cpp \
-	kick_table.cpp \
-	shoot_table2008.cpp
+	kick_table.cpp
 
 ## librcsc_action_obsolete_la_SOURCES = \
+##	obsolete/bhv_shoot2008.cpp \
 ## 	obsolete/body_advance_ball2007.cpp \
 ## 	obsolete/body_clear_ball2007.cpp \
 ## 	obsolete/body_dribble2006.cpp \
 ## 	obsolete/body_dribble2007.cpp \
 ## 	obsolete/body_go_to_point2007.cpp \
+## 	obsolete/body_go_to_point2009.cpp \
+## 	obsolete/body_go_to_point2010.cpp \
 ## 	obsolete/body_hold_ball2007.cpp \
 ## 	obsolete/body_intercept2007.cpp \
 ## 	obsolete/body_intercept2008.cpp \
@@ -51,7 +51,8 @@ librcsc_action_la_SOURCES = \
 ## 	obsolete/body_kick_two_step.cpp \
 ## 	obsolete/intention_dribble2006.cpp \
 ## 	obsolete/intention_dribble2007.cpp \
-## 	obsolete/intention_kick2007.cpp
+## 	obsolete/intention_kick2007.cpp \
+##	obsolete/shoot_table2008.cpp
 
 librcsc_actionincludedir = $(includedir)/rcsc/action
 
@@ -69,8 +70,6 @@ librcsc_actioninclude_HEADERS = \
 	bhv_neck_body_to_ball.h \
 	bhv_neck_body_to_point.h \
 	bhv_scan_field.h \
-	bhv_shoot.h \
-	bhv_shoot2008.h \
 	body_advance_ball.h \
 	body_advance_ball2009.h \
 	body_clear_ball.h \
@@ -78,8 +77,6 @@ librcsc_actioninclude_HEADERS = \
 	body_dribble.h \
 	body_dribble2008.h \
 	body_go_to_point.h \
-	body_go_to_point2009.h \
-	body_go_to_point2010.h \
 	body_go_to_point_dodge.h \
 	body_hold_ball.h \
 	body_hold_ball2008.h \
@@ -112,15 +109,18 @@ librcsc_actioninclude_HEADERS = \
 	view_normal.h \
 	view_synch.h \
 	view_wide.h \
-	kick_table.h \
-	shoot_table2008.h
+	kick_table.h
 
 ## librcsc_action_obsoleteinclude_HEADERS = \
+##	obsolete/bhv_shoot.h \
+##	obsolete/bhv_shoot2008.h \
 ## 	obsolete/body_advance_ball2007.h \
 ## 	obsolete/body_clear_ball2007.h \
 ## 	obsolete/body_dribble2006.h \
 ## 	obsolete/body_dribble2007.h \
 ## 	obsolete/body_go_to_point2007.h \
+## 	obsolete/body_go_to_point2009.h \
+## 	obsolete/body_go_to_point2010.h \
 ## 	obsolete/body_hold_ball2007.h \
 ## 	obsolete/body_intercept2007.h \
 ## 	obsolete/body_intercept2008.h \
@@ -128,7 +128,8 @@ librcsc_actioninclude_HEADERS = \
 ## 	obsolete/body_kick_two_step.h \
 ## 	obsolete/intention_dribble2006.h \
 ## 	obsolete/intention_dribble2007.h \
-## 	obsolete/intention_kick2007.h
+## 	obsolete/intention_kick2007.h \
+##	obsolete/shoot_table2008.h
 
 
 AM_CPPFLAGS = -I$(top_srcdir)
