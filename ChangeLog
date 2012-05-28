@@ -1,3 +1,20 @@
+2012-05-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/player_object_updater.cpp:
+	* rcsc/player/player_object_updater.h:
+	* rcsc/player/Makefile.am:
+	* rcsc/player/player_object.cpp:
+	* rcsc/player/player_object.h:
+	* rcsc/player/world_model.cpp:
+	* rcsc/player/world_model.h:
+	- see情報に基づくプレイヤ情報更新を再実装
+	- PlayerObjectUpdaterクラスへ移譲する設計としているが，再設計が必要かもしれない
+	- PlayerObjectのカウンタをWorldModelのメンバ変数からPlayerObjectク
+	ラスのstaticメンバ変数へ変更．カウンタ変数はPlayerObjectのコンスト
+	ラクタ内部でのみインクリメントされる
+	- プレイヤカウンタ変数を0にリセットするstaticメンバ関数を
+	PlayerObjectクラスに追加
+
 2012-05-27  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/Makefile.am:

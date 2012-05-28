@@ -44,6 +44,7 @@
 #include "intercept_table.h"
 #include "penalty_kick_state.h"
 #include "player_command.h"
+#include "player_object_updater.h"
 #include "player_predicate.h"
 
 #include <rcsc/common/audio_memory.h>
@@ -76,6 +77,7 @@
 // #defin USE_VIEW_GRID_MAP
 
 namespace rcsc {
+
 
 namespace  {
 
@@ -233,7 +235,7 @@ get_self_face_angle( const WorldModel & wm,
 
 const
 AbstractPlayerObject *
-get_our_goalie_strict( const WorldModel & wm )
+get_our_goalie_loop( const WorldModel & wm )
 {
     if ( wm.self().goalie() )
     {
@@ -256,7 +258,7 @@ get_our_goalie_strict( const WorldModel & wm )
 
 const
 AbstractPlayerObject *
-get_their_goalie_strict( const WorldModel & wm )
+get_their_goalie_loop( const WorldModel & wm )
 {
     for ( PlayerObject::Cont::const_iterator it = wm.opponents().begin(),
               end = wm.opponents().end();
@@ -351,6 +353,7 @@ const double WorldModel::DIR_STEP = 360.0 / static_cast< double >( DIR_CONF_DIVS
  */
 WorldModel::WorldModel()
     : M_localize( new LocalizationDefault() ),
+      M_player_object_updater( new PlayerObjectUpdater() ),
       M_intercept_table( new InterceptTable( *this ) ),
       M_audio_memory( new AudioMemory() ),
       M_penalty_kick_state( new PenaltyKickState() ),
@@ -365,7 +368,6 @@ WorldModel::WorldModel()
       M_valid( true ),
       M_self(),
       M_ball(),
-      M_player_count( 0 ),
       M_our_goalie_unum( Unum_Unknown ),
       M_their_goalie_unum( Unum_Unknown ),
       M_offside_line_x( 0.0 ),
@@ -416,6 +418,12 @@ WorldModel::~WorldModel()
     {
         delete M_localize;
         M_localize = static_cast< Localization * >( 0 );
+    }
+
+    if ( M_player_object_updater )
+    {
+        delete M_player_object_updater;
+        M_player_object_updater = static_cast< PlayerObjectUpdater * >( 0 );
     }
 
     if ( M_intercept_table )
@@ -836,7 +844,8 @@ WorldModel::update( const ActionEffector & act,
         M_teammates.clear();
         M_opponents.clear();
         M_unknown_players.clear();
-        M_player_count = 0;
+
+        PlayerObject::reset_player_count();
     }
 
     // update teammates
@@ -1295,8 +1304,8 @@ WorldModel::updateAfterFullstate( const FullstateSensor & fullstate,
     dlog.addText( Logger::WORLD,
                   "*************** updateAfterFullstate ***************" );
 
-    // clear unkown players
-    M_unknown_players.clear();
+    PlayerObject::reset_player_count();
+    M_unknown_players.clear(); // clear unkown players
 
     // update teammates
     for ( FullstateSensor::PlayerCont::const_iterator fp = fullstate.ourPlayers().begin(),
@@ -1337,8 +1346,7 @@ WorldModel::updateAfterFullstate( const FullstateSensor & fullstate,
 
         // update teammate
         PlayerObject * player = static_cast< PlayerObject * >( 0 );
-        for ( PlayerObject::List::iterator p = M_teammates.begin(),
-                  t_end = M_teammates.end();
+        for ( PlayerObject::List::iterator p = M_teammates.begin(), t_end = M_teammates.end();
               p != t_end;
               ++p )
         {
@@ -1352,7 +1360,7 @@ WorldModel::updateAfterFullstate( const FullstateSensor & fullstate,
         if ( ! player )
         {
             // create new player object
-            M_teammates.push_back( PlayerObject( ++M_player_count ) );
+            M_teammates.push_back( PlayerObject() );
             player = &(M_teammates.back());
         }
 #ifdef DEBUG_PRINT
@@ -1390,8 +1398,7 @@ WorldModel::updateAfterFullstate( const FullstateSensor & fullstate,
         M_their_card[fp->unum_ - 1] = fp->card_;
 
         PlayerObject * player = static_cast< PlayerObject * >( 0 );
-        for ( PlayerObject::List::iterator p = M_opponents.begin(),
-                  o_end = M_opponents.end();
+        for ( PlayerObject::List::iterator p = M_opponents.begin(), o_end = M_opponents.end();
               p != o_end;
               ++p )
         {
@@ -1404,7 +1411,7 @@ WorldModel::updateAfterFullstate( const FullstateSensor & fullstate,
 
         if ( ! player )
         {
-            M_opponents.push_back( PlayerObject( ++M_player_count ) );
+            M_opponents.push_back( PlayerObject() );
             player = &(M_opponents.back());
         }
 
@@ -1731,7 +1738,7 @@ WorldModel::updateGoalieByHear()
                       " add new goalie. heard_pos=(%.1f %.1f)",
                       heard_pos.x, heard_pos.y );
 #endif
-        M_opponents.push_back( PlayerObject( ++M_player_count ) );
+        M_opponents.push_back( PlayerObject() );
         goalie = &(M_opponents.back());
         goalie->updateByHear( theirSide(),
                               theirGoalieUnum(),
@@ -1761,8 +1768,7 @@ WorldModel::updatePlayerByHear()
 
     // TODO: consider duplicated player
 
-    for ( std::vector< AudioMemory::Player >::const_iterator
-              heard_player = M_audio_memory->player().begin(),
+    for ( std::vector< AudioMemory::Player >::const_iterator heard_player = M_audio_memory->player().begin(),
               heard_end = M_audio_memory->player().end();
           heard_player != heard_end;
           ++heard_player )
@@ -1910,12 +1916,12 @@ WorldModel::updatePlayerByHear()
 #endif
             if ( side == ourSide() )
             {
-                M_teammates.push_back( PlayerObject( ++M_player_count ) );
+                M_teammates.push_back( PlayerObject() );
                 player = &( M_teammates.back() );
             }
             else
             {
-                M_opponents.push_back( PlayerObject( ++M_player_count ) );
+                M_opponents.push_back( PlayerObject() );
                 player = &( M_opponents.back() );
             }
 
@@ -2620,685 +2626,6 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
     }
 }
 
-namespace {
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-void
-create_localized_players_list( const VisualSensor::PlayerCont & seen,
-                               const SideID side,
-                               Localization * M_localize,
-                               const SelfObject & M_self,
-                               std::list< Localization::PlayerT > * localized )
-{
-    for ( VisualSensor::PlayerCont::const_iterator it = seen.begin(), end = seen.end();
-          it != end;
-          ++it )
-    {
-        localized->push_back( Localization::PlayerT() );
-        localized->back().side_ = side;
-        if ( ! M_localize->localizePlayer( *it,
-                                           M_self.face().degree(), M_self.faceError(),
-                                           M_self.pos(), M_self.vel(),
-                                           &(localized->back()) ) )
-        {
-            localized->pop_back();
-        }
-    }
-}
-
-void
-update_unum_matched_players( std::list< Localization::PlayerT > * seen_players,
-                             PlayerObject::List * old_players,
-                             PlayerObject::List * new_players )
-{
-    std::list< Localization::PlayerT >::iterator seen = seen_players->begin();
-    while ( seen != seen_players->end() )
-    {
-        if ( seen->unum_ == Unum_Unknown )
-        {
-            ++seen;
-            continue;
-        }
-
-        PlayerObject::List::iterator matched = old_players->end();
-        for ( PlayerObject::List::iterator p = old_players->begin();
-              p != old_players->end();
-              ++p )
-        {
-            if ( p->unum() == seen->unum_ )
-            {
-                matched = p;
-                break;
-            }
-        }
-
-        if ( matched == old_players->end() )
-        {
-            ++seen;
-            continue;
-        }
-
-        dlog.addText( Logger::WORLD,
-                      "unum match: old:%s %d (%.1f %.1f) <--> seen: %s %d (%.1f %.1f)",
-                      side_str( matched->side() ), matched->unum(), matched->pos().x, matched->pos().y,
-                      side_str( seen->side_ ), seen->unum_, seen->pos_.x, seen->pos_.y );
-
-        matched->updateBySee( matched->side(), *seen );
-        seen = seen_players->erase( seen );
-        new_players->splice( new_players->end(), *old_players, matched );
-    }
-}
-
-struct MatchingPair {
-    PlayerObject * old_player_;
-    std::list< const Localization::PlayerT * > candidates_;
-
-    MatchingPair( PlayerObject * p )
-        : old_player_( p )
-      { }
-};
-
-void
-add_matching_candidates( MatchingPair & result,
-                         const std::list< Localization::PlayerT > & seen_players )
-{
-    const PlayerObject * old_player = result.old_player_;
-    const double self_error = 1.0;
-    const double dash_noise = 1.0 + ServerParam::i().playerRand();
-
-    for ( std::list< Localization::PlayerT >::const_iterator seen = seen_players.begin();
-          seen != seen_players.end();
-          ++seen )
-    {
-        if ( old_player->unum() != Unum_Unknown
-             && seen->unum_ != Unum_Unknown )
-        {
-            // dlog.addText( Logger::WORLD,
-            //               "____ add_matching_candidates: different unum. seen = %s %d (%.1f %.1f)",
-            //               side_str( seen->side_ ), seen->unum_, seen->pos_.x, seen->pos_.y );
-            continue; // completely different uniforn number
-        }
-
-        int count = old_player->seenPosCount();
-        Vector2D old_pos = old_player->seenPos();
-        double sensor_error = seen->dist_error_;
-        if ( old_player->heardPosCount() < old_player->seenPosCount() )
-        {
-            count = old_player->heardPosCount();
-            old_pos = old_player->heardPos();
-            sensor_error = 1.0; // magit number
-        }
-
-        double dist2 = seen->pos_.dist2( old_pos );
-        if ( dist2 > std::pow( old_player->playerTypePtr()->realSpeedMax() * dash_noise * count
-                               + self_error
-                               + sensor_error * 2.0,
-                               2 ) )
-        {
-            // dlog.addText( Logger::WORLD,
-            //               "____ add_matching_candidates: distance over (%.3f > %.3f). seen = %s %d (%.1f %.1f)",
-            //               std::sqrt( dist2 ),
-            //               old_player->.playerTypePtr()->realSpeedMax() * dash_noise * count
-            //               + self_error
-            //               + sensor_error * 2.0,
-            //               side_str( seen->side_ ), seen->unum_, seen->pos_.x, seen->pos_.y );
-            continue;
-        }
-
-        result.candidates_.push_back( &(*seen) );
-    }
-}
-
-
-struct MatchingDistanceSorter {
-    const Vector2D pos_;
-
-    MatchingDistanceSorter( const Vector2D & pos )
-        : pos_( pos )
-      { }
-
-    bool operator()( const Localization::PlayerT * lhs,
-                     const Localization::PlayerT * rhs ) const
-      {
-          return lhs->pos_.dist2( pos_ ) < rhs->pos_.dist2( pos_ );
-      }
-};
-
-void
-add_matching_pairs( PlayerObject::List & old_players,
-                    const std::list< Localization::PlayerT > & seen_players,
-                    const std::list< Localization::PlayerT > & seen_unknown_unum_players,
-                    const std::list< Localization::PlayerT > & seen_unknown_players,
-                    std::list< MatchingPair > & result_list )
-{
-    for ( PlayerObject::List::iterator p = old_players.begin();
-          p != old_players.end();
-          ++p )
-    {
-        result_list.push_back( MatchingPair( &(*p) ) );
-        MatchingPair & result = result_list.back();
-
-        add_matching_candidates( result, seen_players );
-        add_matching_candidates( result, seen_unknown_unum_players );
-        add_matching_candidates( result, seen_unknown_players );
-
-        if ( result.candidates_.empty() )
-        {
-            result_list.pop_back();
-            continue;
-        }
-
-        const Vector2D pos = ( p->seenPosCount() <= p->heardPosCount()
-                               ? p->seenPos()
-                               : p->heardPos() );
-
-        result.candidates_.sort( MatchingDistanceSorter( pos ) );
-
-        dlog.addText( Logger::WORLD,
-                      "add_matching_pairs %s %d (%.1f %.1f) candidate %d",
-                      side_str( p->side() ), p->unum(), p->pos().x, p->pos().y,
-                      result.candidates_.size() );
-
-        for ( std::list< const Localization::PlayerT * >::const_iterator c = result.candidates_.begin();
-              c != result.candidates_.end();
-              ++c )
-        {
-            dlog.addText( Logger::WORLD,
-                          "__ candidate %s %d (%.1f %.1f) dist=%.3f",
-                          side_str( (*c)->side_ ), (*c)->unum_, (*c)->pos_.x, (*c)->pos_.y,
-                          pos.dist( (*c)->pos_ ) );
-
-        }
-    }
-}
-
-
-void
-add_matching_pairs( PlayerObject::List & old_players,
-                    const std::list< Localization::PlayerT > & seen_teammates,
-                    const std::list< Localization::PlayerT > & seen_unknown_teammates,
-                    const std::list< Localization::PlayerT > & seen_opponents,
-                    const std::list< Localization::PlayerT > & seen_unknown_opponents,
-                    const std::list< Localization::PlayerT > & seen_unknown_players,
-                    std::list< MatchingPair > & result_list )
-{
-    for ( PlayerObject::List::iterator p = old_players.begin();
-          p != old_players.end();
-          ++p )
-    {
-        result_list.push_back( MatchingPair( &(*p) ) );
-        MatchingPair & result = result_list.back();
-
-        add_matching_candidates( result, seen_teammates );
-        add_matching_candidates( result, seen_unknown_teammates );
-        add_matching_candidates( result, seen_opponents );
-        add_matching_candidates( result, seen_unknown_opponents );
-        add_matching_candidates( result, seen_unknown_players );
-
-        if ( result.candidates_.empty() )
-        {
-            result_list.pop_back();
-            continue;
-        }
-
-        const Vector2D pos = ( p->seenPosCount() <= p->heardPosCount()
-                               ? p->seenPos()
-                               : p->heardPos() );
-
-        result.candidates_.sort( MatchingDistanceSorter( pos ) );
-
-        dlog.addText( Logger::WORLD,
-                      "add_matching_pairs %s %d (%.1f %.1f) candidate %d",
-                      side_str( p->side() ), p->unum(), p->pos().x, p->pos().y,
-                      result.candidates_.size() );
-
-        for ( std::list< const Localization::PlayerT * >::const_iterator c = result.candidates_.begin();
-              c != result.candidates_.end();
-              ++c )
-        {
-            dlog.addText( Logger::WORLD,
-                          "__ candidate %s %d (%.1f %.1f) dist=%.3f",
-                          side_str( (*c)->side_ ), (*c)->unum_, (*c)->pos_.x, (*c)->pos_.y,
-                          pos.dist( (*c)->pos_ ) );
-
-        }
-    }
-
-}
-
-bool
-exist_duplicated_candidate( const std::list< MatchingPair > & pairs,
-                            std::list< MatchingPair >::const_iterator target )
-{
-    for ( std::list< MatchingPair >::const_iterator it = pairs.begin();
-          it != pairs.end();
-          ++it )
-    {
-        if ( it == target ) continue;
-
-        if ( it->candidates_.size() == 1
-             && it->candidates_.front() == target->candidates_.front() )
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-
-void
-erase_candidate( const Localization::PlayerT * candidate,
-                 std::list< MatchingPair > & matching_pairs )
-{
-    std::list< MatchingPair >::iterator it = matching_pairs.begin();
-    while ( it != matching_pairs.end() )
-    {
-        std::list< const Localization::PlayerT * >::iterator c = it->candidates_.begin();
-        while ( c != it->candidates_.end() )
-        {
-            if ( *c == candidate )
-            {
-                c = it->candidates_.erase( c );
-                break;
-            }
-            else
-            {
-                ++c;
-            }
-        }
-
-        if ( it->candidates_.empty() )
-        {
-            it = matching_pairs.erase( it );
-        }
-        else
-        {
-            ++it;
-        }
-    }
-}
-
-void
-debug_print_matching_pairs( const std::list< MatchingPair > & matching_pairs )
-{
-    dlog.addText( Logger::WORLD,
-                  "debug_print_matching_pairs" );
-    for ( std::list< MatchingPair >::const_iterator it = matching_pairs.begin();
-          it != matching_pairs.end();
-          ++it )
-    {
-        const PlayerObject * p = it->old_player_;
-        dlog.addText( Logger::WORLD,
-                      "matching_pairs %s %d (%.1f %.1f) candidate %d",
-                      side_str( p->side() ), p->unum(), p->pos().x, p->pos().y,
-                      it->candidates_.size() );
-        for ( std::list< const Localization::PlayerT * >::const_iterator c = it->candidates_.begin();
-              c != it->candidates_.end();
-              ++c )
-        {
-            dlog.addText( Logger::WORLD,
-                          "__ candidate %zx %s %d (%.1f %.1f) dist=%f",
-                          (size_t)*c, side_str( (*c)->side_ ), (*c)->unum_, (*c)->pos_.x, (*c)->pos_.y,
-                          p->pos().dist( (*c)->pos_ ) );
-
-        }
-    }
-}
-
-void
-debug_print_player_list( const PlayerObject::List & players,
-                         const char * header )
-
-
-{
-    for ( PlayerObject::List::const_iterator p = players.begin();
-          p != players.end();
-          ++p )
-    {
-        dlog.addText( Logger::WORLD,
-                      "%s: %d (%.1f %.1f)",
-                      header, p->unum(), p->pos().x, p->pos().y );
-    }
-}
-
-void
-erase_seen_player( const Localization::PlayerT * p,
-                   std::list< Localization::PlayerT > & players )
-{
-    std::list< Localization::PlayerT >::iterator it = players.begin();
-    while ( it != players.end() )
-    {
-        if ( &(*it) == p )
-        {
-            dlog.addText( Logger::WORLD,
-                          "erase: %s %d (%.1f %.1f)",
-                      side_str( p->side_ ), p->unum_, p->pos_.x, p->pos_.y );
-            it = players.erase( it );
-            return;
-        }
-
-        ++it;
-    }
-}
-
-void
-add_new_players( const SideID side,
-                 std::list< Localization::PlayerT > & seen_players,
-                 PlayerObject::List & player_list )
-{
-    for ( std::list< Localization::PlayerT >::iterator it = seen_players.begin();
-          it != seen_players.end();
-          ++it )
-    {
-        dlog.addText( Logger::WORLD,
-                          "add: %s %d (%.1f %.1f)",
-                      side_str( side ), it->unum_, it->pos_.x, it->pos_.y );
-        player_list.push_back( PlayerObject( -1, side, *it ) );
-    }
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-void
-localizePlayersImpl( const VisualSensor & see,
-                     Localization * M_localize,
-                     const SelfObject & M_self,
-                     PlayerObject::List M_teammates,
-                     PlayerObject::List M_opponents,
-                     PlayerObject::List M_unknown_players )
-{
-    dlog.addText( Logger::WORLD,
-                  "========== (localizePlayers) ==========" );
-
-    if ( ! M_self.faceValid()
-         || ! M_self.posValid() )
-    {
-        return;
-    }
-
-    dlog.addText( Logger::WORLD,
-                  "========== initial list ==========" );
-    debug_print_player_list( M_teammates, "teammate" );
-    debug_print_player_list( M_opponents, "opponent" );
-    debug_print_player_list( M_unknown_players, "unknown" );
-    dlog.addText( Logger::WORLD,
-                  "====================" );
-
-    Timer timer;
-
-    const SideID our_side = M_self.side();
-    const SideID their_side = ( our_side == LEFT ? RIGHT : LEFT );
-
-    PlayerObject::List new_teammates;
-    PlayerObject::List new_opponents;
-
-    std::list< Localization::PlayerT > seen_teammates;
-    std::list< Localization::PlayerT > seen_unknown_teammates;
-    std::list< Localization::PlayerT > seen_opponents;
-    std::list< Localization::PlayerT > seen_unknown_opponents;
-    std::list< Localization::PlayerT > seen_unknown_players;
-
-    //
-    // create localized players
-    //
-    create_localized_players_list( see.teammates(), our_side, M_localize, M_self, &seen_teammates );
-    create_localized_players_list( see.unknownTeammates(), our_side, M_localize, M_self, &seen_unknown_teammates );
-    create_localized_players_list( see.opponents(), their_side, M_localize, M_self, &seen_opponents );
-    create_localized_players_list( see.unknownOpponents(), their_side, M_localize, M_self, &seen_unknown_opponents );
-    create_localized_players_list( see.unknownPlayers(), NEUTRAL, M_localize, M_self, &seen_unknown_players );
-
-    dlog.addText( Logger::WORLD,
-                  "localized: old teammate size = %zd", M_teammates.size() );
-    dlog.addText( Logger::WORLD,
-                  "localized: seen teammate size = %zd", seen_teammates.size() );
-    dlog.addText( Logger::WORLD,
-                  "localized: seen unknown teammate size = %zd", seen_unknown_teammates.size() );
-
-    dlog.addText( Logger::WORLD,
-                  "localized: old opponent size = %zd", M_opponents.size() );
-    dlog.addText( Logger::WORLD,
-                  "localized: seen opponent size = %zd", seen_opponents.size() );
-    dlog.addText( Logger::WORLD,
-                  "localized: seen unknown opponent size = %zd", seen_unknown_opponents.size() );
-
-    dlog.addText( Logger::WORLD,
-                  "localized: old unknown size = %zd", M_unknown_players.size() );
-    dlog.addText( Logger::WORLD,
-                  "localized: seen unknown size = %zd", seen_unknown_players.size() );
-
-    //
-    // uniform number matching
-    //
-    dlog.addText( Logger::WORLD,
-                  "========= uniform number matching ========== " );
-    update_unum_matched_players( &seen_teammates, &M_teammates, &new_teammates );
-    update_unum_matched_players( &seen_opponents, &M_opponents, &new_opponents );
-
-    dlog.addText( Logger::WORLD,
-                  "----------" );
-    dlog.addText( Logger::WORLD,
-                  "unum checked: seen teammate size = %zd", seen_teammates.size() );
-    dlog.addText( Logger::WORLD,
-                  "unum checked: seen unknown teammate size = %zd", seen_unknown_teammates.size() );
-    dlog.addText( Logger::WORLD,
-                  "unum checked: old teammate size = %zd", M_teammates.size() );
-    dlog.addText( Logger::WORLD,
-                  "unum checked: new teammate size = %zd", new_teammates.size() );
-    dlog.addText( Logger::WORLD,
-                  "unum checked: seen opponent size = %zd", seen_opponents.size() );
-    dlog.addText( Logger::WORLD,
-                  "unum checked: seen unknown opponent size = %zd", seen_unknown_opponents.size() );
-    dlog.addText( Logger::WORLD,
-                  "unum checked: old opponent size = %zd", M_opponents.size() );
-    dlog.addText( Logger::WORLD,
-                  "unum checked: new opponent size = %zd", new_opponents.size() );
-    dlog.addText( Logger::WORLD,
-                  "----------" );
-
-    //
-    // matching
-    //
-
-    std::list< MatchingPair > matching_pairs;
-
-    dlog.addText( Logger::WORLD,
-                  "========= create matching pairs ========== " );
-
-    add_matching_pairs( M_teammates,
-                        seen_teammates, seen_unknown_teammates, seen_unknown_players,
-                        matching_pairs );
-    add_matching_pairs( M_opponents,
-                        seen_opponents, seen_unknown_opponents, seen_unknown_players,
-                        matching_pairs );
-    add_matching_pairs( M_unknown_players,
-                        seen_teammates, seen_unknown_teammates,
-                        seen_opponents, seen_unknown_opponents, seen_unknown_players,
-                        matching_pairs );
-
-    dlog.addText( Logger::WORLD,
-                  "========= start matching loop ========== " );
-    debug_print_matching_pairs( matching_pairs );
-    dlog.addText( Logger::WORLD,
-                  "------------------------" );
-
-    typedef std::pair< PlayerObject *, const Localization::PlayerT * > ResultPair;
-    std::vector< ResultPair > result_pairs;
-
-    //
-    // find the single candidate
-    //
-    std::list< MatchingPair >::iterator it = matching_pairs.begin();
-    while ( it != matching_pairs.end() )
-    {
-        if ( it->candidates_.size() == 1 )
-        {
-            if ( ! exist_duplicated_candidate( matching_pairs, it ) )
-            {
-                dlog.addText( Logger::WORLD,
-                              "found matching: old %s %d (%.1f %.1f)",
-                              side_str( it->old_player_->side() ),
-                              it->old_player_->unum(),
-                              it->old_player_->pos().x, it->old_player_->pos().y );
-
-                const Localization::PlayerT * candidate = it->candidates_.front();
-
-                result_pairs.push_back( ResultPair( it->old_player_, candidate ) );
-
-                matching_pairs.erase( it );
-                erase_candidate( candidate, matching_pairs ); // erace the candidate from other list
-                it = matching_pairs.begin();
-
-                dlog.addText( Logger::WORLD,
-                              "========= restart matching loop ==========" );
-                debug_print_matching_pairs( matching_pairs );
-                dlog.addText( Logger::WORLD,
-                              "------------------------" );
-                continue;
-            }
-        }
-
-        ++it;
-    }
-
-    while ( ! matching_pairs.empty() )
-    {
-        double min_dist2 = 10000000.0;
-        std::list< MatchingPair >::iterator best = matching_pairs.end();
-        for ( it = matching_pairs.begin(); it != matching_pairs.end(); ++it )
-        {
-            if ( it->candidates_.empty() ) continue;
-
-            Vector2D pos = ( it->old_player_->seenPosCount() <= it->old_player_->heardPosCount()
-                             ? it->old_player_->seenPos()
-                             : it->old_player_->heardPos() );
-            double d2 = pos.dist2( it->candidates_.front()->pos_ );
-            if ( d2 < min_dist2 )
-            {
-                min_dist2 = d2;
-                best = it;
-            }
-        }
-
-        if ( best == matching_pairs.end() )
-        {
-            break;
-        }
-
-        const Localization::PlayerT * best_seen = best->candidates_.front();
-
-        result_pairs.push_back( std::make_pair( best->old_player_, best_seen ) );
-
-        dlog.addText( Logger::WORLD,
-                      "nearest: old %s %d (%.1f %.1f) dist=%.3f",
-                      side_str( best->old_player_->side() ),
-                      best->old_player_->unum(),
-                      best->old_player_->pos().x, best->old_player_->pos().y,
-                      std::sqrt( min_dist2 ) );
-        matching_pairs.erase( best );
-        erase_candidate( best_seen, matching_pairs );
-    }
-
-    if ( ! matching_pairs.empty() )
-    {
-        dlog.addText( Logger::WORLD,
-                      "xxxxx remained pairs %zd", matching_pairs.size() );
-        debug_print_matching_pairs( matching_pairs );
-        dlog.addText( Logger::WORLD,
-                      "------------------------" );
-    }
-
-    dlog.addText( Logger::WORLD,
-                  "========== matching result ==========" );
-    for ( std::vector< ResultPair >::iterator it = result_pairs.begin();
-          it != result_pairs.end();
-          ++it )
-    {
-        dlog.addText( Logger::WORLD,
-                      "old: %s %d (%.1f %.1f) <==> seen: %s %d (%.1f %.1f)",
-                      side_str( it->first->side() ), it->first->unum(), it->first->pos().x, it->first->pos().y,
-                      side_str( it->second->side_ ), it->second->unum_, it->second->pos_.x, it->second->pos_.y );
-        SideID side = ( it->first->side() != NEUTRAL
-                        ? it->first->side()
-                        : it->second->side_ );
-
-        it->first->updateBySee( side, *(it->second) );
-
-        //
-        // erase from seen list
-        //
-        if ( it->second->side_ == NEUTRAL )
-        {
-            erase_seen_player( it->second, seen_unknown_players );
-        }
-        else if ( it->second->side_ == M_self.side() )
-        {
-            if ( it->second->unum_ != Unum_Unknown )
-            {
-                erase_seen_player( it->second, seen_teammates );
-            }
-            else
-            {
-                erase_seen_player( it->second, seen_unknown_teammates );
-            }
-        }
-        else
-        {
-            if ( it->second->unum_ != Unum_Unknown )
-            {
-                erase_seen_player( it->second, seen_opponents );
-            }
-            else
-            {
-                erase_seen_player( it->second, seen_unknown_opponents );
-            }
-        }
-    }
-
-    dlog.addText( Logger::WORLD,
-                  "========== add new players ==========" );
-    add_new_players( M_self.side(), seen_teammates, new_teammates );
-    add_new_players( M_self.side(), seen_unknown_teammates, new_teammates );
-    add_new_players( their_side, seen_opponents, new_opponents );
-    add_new_players( their_side, seen_unknown_opponents, new_opponents );
-
-    M_teammates.splice( M_teammates.end(), new_teammates );
-    M_opponents.splice( M_opponents.end(), new_opponents );
-
-    add_new_players( NEUTRAL, seen_unknown_players, M_unknown_players );
-
-    //
-    //
-    //
-    dlog.addText( Logger::WORLD,
-                  "(localizePlayersImpl) elpased %lf [ms]", timer.elapsedReal() );
-    dlog.addText( Logger::WORLD,
-                  "========== result list ==========" );
-    M_teammates.sort( PlayerUnumSorter() );
-    M_opponents.sort( PlayerUnumSorter() );
-    M_unknown_players.sort( PlayerCountSorter() );
-
-    dlog.addText( Logger::WORLD,
-                  "----- teammate %zd -----", M_teammates.size() );
-    debug_print_player_list( M_teammates, "teammate" );
-    dlog.addText( Logger::WORLD,
-                  "----- opponent %zd -----", M_opponents.size() );
-    debug_print_player_list( M_opponents, "opponent" );
-    dlog.addText( Logger::WORLD,
-                  "----- unknown %zd -----", M_unknown_players.size() );
-    debug_print_player_list( M_unknown_players, "unknown" );
-
-    dlog.addText( Logger::WORLD,
-                  "====================" );
-}
-
-}
-
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -3306,269 +2633,11 @@ localizePlayersImpl( const VisualSensor & see,
 void
 WorldModel::localizePlayers( const VisualSensor & see )
 {
-    if ( ! self().faceValid()
-         || ! self().posValid() )
+    if ( ! M_player_object_updater->localizePlayers( M_self, see, M_localize,
+                                                     M_teammates, M_opponents, M_unknown_players ) )
     {
         return;
     }
-
-#if 0
-    localizePlayersImpl( see, M_localize, M_self, M_teammates, M_opponents, M_unknown_players );
-#endif
-
-    ////////////////////////////////////////////////////////////////
-    // update policy
-    //   for each (seen player objects)
-    //       if exist matched player in memory list
-    //           -> splice from memory to temporary
-    //       else
-    //           -> assign new data to temporary list
-    //   after loop, copy from temporary to memory again
-
-    // temporary data list
-    PlayerObject::List new_teammates;
-    PlayerObject::List new_opponents;
-    PlayerObject::List new_unknown_players;
-
-    const Vector2D MYPOS = self().pos();
-    const Vector2D MYVEL = self().vel();
-    const double MY_FACE = self().face().degree();
-    const double MY_FACE_ERR = self().faceError();
-
-    //////////////////////////////////////////////////////////////////
-    // search order is very important !!
-    //   If we replace the unknown player to unknown teammate,
-    //   it may cause a mistake for pass target selection.
-
-    // current version search order is
-    //   [unum opp -> side opp -> unum mate -> side mate -> unknown]
-
-    // if matched, that player is removed from memory list
-    // and copy to temporary
-
-    //////////////////////////////////////////////////////////////////
-    // localize, matching and splice from memory list to temporary list
-
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-    dlog.addText( Logger::WORLD,
-                  __FILE__" ========== (localizePlayers) ==========" );
-#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
-    dlog.addText( Logger::WORLD,
-                  "<<<<< old players start" );
-    for ( PlayerObject::List::const_iterator p = M_teammates.begin();
-          p != M_teammates.end();
-          ++p )
-    {
-        dlog.addText( Logger::WORLD,
-                      "teammate %d (%.2f %.2f)", p->unum(), p->pos().x, p->pos().y );
-    }
-    for ( PlayerObject::List::const_iterator p = M_opponents.begin();
-          p != M_opponents.end();
-          ++p )
-    {
-        dlog.addText( Logger::WORLD,
-                      "opponent %d (%.2f %.2f)", p->unum(), p->pos().x, p->pos().y );
-    }
-    for ( PlayerObject::List::const_iterator p = M_unknown_players.begin();
-          p != M_unknown_players.end();
-          ++p )
-    {
-        dlog.addText( Logger::WORLD,
-                      "unknown %d (%.2f %.2f)", p->unum(), p->pos().x, p->pos().y );
-    }
-    dlog.addText( Logger::WORLD,
-                  "<<<<< old players end" );
-#endif
-#endif
-
-    //
-    // opponent (side & unum)
-    //
-    for ( VisualSensor::PlayerCont::const_iterator it = see.opponents().begin(),
-              o_end = see.opponents().end();
-          it != o_end;
-          ++it )
-    {
-        Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( *it,
-                                           MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
-                                           &player ) )
-        {
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-            dlog.addText( Logger::WORLD,
-                          "(localizePlayers) failed opponent %d",
-                          player.unum_ );
-#endif
-            continue;
-        }
-
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-        dlog.addText( Logger::WORLD,
-                      "(localizePlayers)"
-                      " opponent %d pos=(%.2f, %.2f) vel=(%.2f, %.2f)",
-                      player.unum_,
-                      player.pos_.x, player.pos_.y,
-                      player.vel_.x, player.vel_.y );
-#endif
-        // matching, splice or create
-        checkTeamPlayer( theirSide(),
-                         player,
-                         M_opponents,
-                         M_unknown_players,
-                         new_opponents );
-    }
-
-    //
-    // unknown opponent (no uniform number)
-    //
-    for ( VisualSensor::PlayerCont::const_iterator it = see.unknownOpponents().begin(),
-              uo_end = see.unknownOpponents().end();
-          it != uo_end;
-          ++it )
-    {
-        Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( *it,
-                                           MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
-                                           &player ) )
-        {
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-            dlog.addText( Logger::WORLD,
-                          "(localizePlayers) failed unknown opponent" );
-#endif
-            continue;
-        }
-
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-        dlog.addText( Logger::WORLD,
-                      "(localizePlayers)"
-                      " unknown opponent pos=(%.2f, %.2f)",
-                      player.pos_.x, player.pos_.y );
-#endif
-        // matching, splice or create
-        checkTeamPlayer( theirSide(),
-                         player,
-                         M_opponents,
-                         M_unknown_players,
-                         new_opponents );
-    }
-
-    //
-    // teammate (side & unum)
-    //
-    for ( VisualSensor::PlayerCont::const_iterator it = see.teammates().begin(),
-              t_end = see.teammates().end();
-          it != t_end;
-          ++it )
-    {
-        Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( *it,
-                                           MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
-                                           &player ) )
-        {
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-            dlog.addText( Logger::WORLD,
-                          __FILE__" (localizePlayers) failed teammate %d",
-                          player.unum_ );
-#endif
-            continue;
-        }
-
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-        dlog.addText( Logger::WORLD,
-                      "(localizePlayers)"
-                      " teammate %d pos=(%.2f, %.2f) vel=(%.2f, %.2f)",
-                      player.unum_,
-                      player.pos_.x, player.pos_.y,
-                      player.vel_.x, player.vel_.y );
-#endif
-        // matching, splice or create
-        checkTeamPlayer( ourSide(),
-                         player,
-                         M_teammates,
-                         M_unknown_players,
-                         new_teammates );
-    }
-
-    //
-    // unknown teammate (no uniform number)
-    //
-    for ( VisualSensor::PlayerCont::const_iterator it = see.unknownTeammates().begin(),
-              ut_end = see.unknownTeammates().end();
-          it != ut_end;
-          ++it )
-    {
-        Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( *it,
-                                           MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
-                                           &player ) )
-        {
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-            dlog.addText( Logger::WORLD,
-                          "(localizePlayers) failed uunknown teammate" );
-#endif
-            continue;
-        }
-
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-        dlog.addText( Logger::WORLD,
-                      "(localizePlayers)"
-                      " unknown teammate pos=(%.2f, %.2f)",
-                      player.pos_.x, player.pos_.y );
-#endif
-        // matching, splice or create
-        checkTeamPlayer( ourSide(),
-                         player,
-                         M_teammates,
-                         M_unknown_players,
-                         new_teammates );
-    }
-
-    //
-    // unknown player
-    //
-    for ( VisualSensor::PlayerCont::const_iterator it = see.unknownPlayers().begin(),
-              u_end = see.unknownPlayers().end();
-          it != u_end;
-          ++it )
-    {
-        Localization::PlayerT player;
-        // localize
-        if ( ! M_localize->localizePlayer( *it,
-                                           MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
-                                           &player ) )
-        {
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-            dlog.addText( Logger::WORLD,
-                          __FILE__" (localizePlayers) failed unknown player" );
-#endif
-            continue;
-        }
-
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-        dlog.addText( Logger::WORLD,
-                      "(localizePlayers)"
-                      " unknown player: pos=(%.2f, %.2f)",
-                      player.pos_.x, player.pos_.y );
-#endif
-        // matching, splice or create
-        checkUnknownPlayer( player,
-                            M_teammates,
-                            M_opponents,
-                            M_unknown_players,
-                            new_teammates,
-                            new_opponents,
-                            new_unknown_players );
-    }
-
-    //////////////////////////////////////////////////////////////////
-    // splice temporary seen players to memory list
-    // temporary lists are cleared
-    M_teammates.splice( M_teammates.end(),
-                        new_teammates );
-    M_opponents.splice( M_opponents.end(),
-                        new_opponents );
-    M_unknown_players.splice( M_unknown_players.end(),
-                              new_unknown_players );
 
     //////////////////////////////////////////////////////////////////
     // create team member pointer vector for sort
@@ -3597,15 +2666,11 @@ WorldModel::localizePlayers( const VisualSensor & see )
     // sort by accuracy count
     std::sort( all_teammates_ptr.begin(),
                all_teammates_ptr.end(),
-               //PlayerObject::PtrCountCmp() );
                PlayerPtrCountSorter() );
     std::sort( all_opponents_ptr.begin(),
                all_opponents_ptr.end(),
-               //PlayerObject::PtrCountCmp() );
                PlayerPtrCountSorter() );
-    //M_unknown_players.sort( PlayerObject::CountCmp() );
     M_unknown_players.sort( PlayerCountSorter() );
-
 
     //////////////////////////////////////////////////////////////////
     // check the number of players
@@ -3691,586 +2756,6 @@ WorldModel::localizePlayers( const VisualSensor & see )
 
     //////////////////////////////////////////////////////////////////
     // ghost check is done in checkGhost()
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-void
-WorldModel::checkTeamPlayer( const SideID side,
-                             const Localization::PlayerT & player,
-                             PlayerObject::List & old_known_players,
-                             PlayerObject::List & old_unknown_players,
-                             PlayerObject::List & new_known_players )
-{
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //
-    //  if matched player is found, that player is removed from old list
-    //  and updated data is splice to new container
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //
-
-    //////////////////////////////////////////////////////////////////
-    // pre check
-    // unum is seen -> search the player that has the same uniform number
-    if ( player.unum_ != Unum_Unknown )
-    {
-        // search from old unum known players
-        for ( PlayerObject::List::iterator it = old_known_players.begin(),
-                  end = old_known_players.end();
-              it != end;
-              ++it )
-        {
-            if ( it->unum() == player.unum_ )
-            {
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-                dlog.addText( Logger::WORLD,
-                              "(checkTeamPlayer)"
-                              " >>> matched!"
-                              " unum = %d pos =(%.1f %.1f)",
-                              player.unum_, player.pos_.x, player.pos_.y );
-#endif
-                it->updateBySee( side, player );
-                new_known_players.splice( new_known_players.end(),
-                                          old_known_players,
-                                          it );
-                return; // success!!
-            }
-        }
-    }
-
-    //////////////////////////////////////////////////////////////////
-    // find nearest player
-
-    const double dash_noise = 1.0 + ServerParam::i().playerRand();
-    const double self_error = 0.5 * 2.0;
-
-    double min_team_dist = 10.0 * 10.0;
-    double min_unknown_dist = 10.0 * 10.0;
-
-    PlayerObject::List::iterator candidate_team = old_known_players.end();
-    PlayerObject::List::iterator candidate_unknown = old_unknown_players.end();
-
-    //////////////////////////////////////////////////////////////////
-    // search from old same team players
-    for ( PlayerObject::List::iterator it = old_known_players.begin(),
-              end = old_known_players.end();
-          it != end;
-          ++it )
-    {
-        if ( player.unum_ != Unum_Unknown
-             && it->unum() != Unum_Unknown
-             && it->unum() != player.unum_ )
-        {
-            // unum is seen
-            // and it does not match with old player's unum.
-#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
-            dlog.addText( Logger::WORLD,
-                          __FILE__" (checkTeamPlayer)"
-                          "___ known player: unum is not match."
-                          " seen unum = %d, old_unum = %d",
-                          player.unum_, it->unum() );
-#endif
-            continue;
-        }
-
-        int count = it->seenPosCount();
-        Vector2D old_pos = it->seenPos();
-        double heard_error = 0.0;
-        if ( it->heardPosCount() < it->seenPosCount() )
-        {
-            count = it->heardPosCount();
-            old_pos = it->heardPos();
-            heard_error = 2.0;
-        }
-
-        const double d = player.pos_.dist( old_pos );
-
-        if ( d > ( it->playerTypePtr()->realSpeedMax() * dash_noise * count
-                   + heard_error
-                   + self_error
-                   + player.dist_error_ * 2.0 ) )
-        {
-            // TODO: inertia movement should be considered.
-#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
-            dlog.addText( Logger::WORLD,
-                          "(checkTeamPlayer)"
-                          "___ known player: dist over."
-                          " dist=%.2f > buf=%.2f"
-                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
-                          d,
-                          it->playerTypePtr()->realSpeedMax() * dash_noise * count
-                          + heard_error
-                          + self_error
-                          + player.dist_error_ * 2.0,
-                          player.pos_.x, player.pos_.y,
-                          it->pos().x, it->pos().y );
-#endif
-            continue;
-        }
-
-        if ( d < min_team_dist )
-        {
-#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
-            dlog.addText( Logger::WORLD,
-                          "(checkTeamPlayer)"
-                          "___ known player: update."
-                          " dist=%.2f < min_team_dist=%.2f"
-                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
-                          d,
-                          min_team_dist,
-                          player.pos_.x, player.pos_.y,
-                          it->pos().x, it->pos().y );
-#endif
-            min_team_dist = d;
-            candidate_team = it;
-        }
-    }
-
-    //////////////////////////////////////////////////////////////////
-    // search from unknown players
-    for ( PlayerObject::List::iterator it = old_unknown_players.begin(),
-              end = old_unknown_players.end();
-          it != end;
-          ++it )
-    {
-        int count = it->seenPosCount();
-        Vector2D old_pos = it->seenPos();
-        double heard_error = 0.0;
-        if ( it->heardPosCount() < it->seenPosCount() )
-        {
-            count = it->heardPosCount();
-            old_pos = it->heardPos();
-            heard_error = 2.0;
-        }
-
-        const double d = player.pos_.dist( old_pos );
-
-        if ( d > ( it->playerTypePtr()->realSpeedMax() * dash_noise * count
-                   + heard_error
-                   + self_error
-                   + player.dist_error_ * 2.0 ) )
-        {
-            // TODO: inertia movement should be considered.
-#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
-            dlog.addText( Logger::WORLD,
-                          "(checkTeamPlayer)"
-                          "__ unknown player: dist over. "
-                          "dist=%.2f > buf=%.2f"
-                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
-                          d,
-                          it->playerTypePtr()->realSpeedMax() * dash_noise * count
-                          + heard_error
-                          + self_error
-                          + player.dist_error_ * 2.0,
-                          player.pos_.x, player.pos_.y,
-                          old_pos.x, old_pos.y );
-#endif
-            continue;
-        }
-
-        if ( d < min_unknown_dist )
-        {
-#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
-            dlog.addText( Logger::WORLD,
-                          "(checkTeamPlayer)"
-                          "__ unknown player: update. "
-                          " dist=%.2f < min_unknown_dist=%.2f"
-                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
-                          d,
-                          min_unknown_dist,
-                          player.pos_.x, player.pos_.y,
-                          old_pos.x, old_pos.y );
-#endif
-            min_unknown_dist = d;
-            candidate_unknown = it;
-        }
-    }
-
-    PlayerObject::List::iterator candidate = old_unknown_players.end();
-    PlayerObject::List * target_list = static_cast< PlayerObject::List * >( 0 );
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-    double min_dist = 1000.0;
-#endif
-
-    if ( candidate_team != old_known_players.end()
-         && min_team_dist < min_unknown_dist )
-    {
-        candidate = candidate_team;
-        target_list = &old_known_players;
-
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-        min_dist = min_team_dist;
-        dlog.addText( Logger::WORLD,
-                      "(checkTeamPlayer)"
-                      ">>> %d (%.1f %.1f)"
-                      " -> %s player %d %s (%.2f, %.2f) dist=%.2f",
-                      player.unum_,
-                      player.pos_.x, player.pos_.y,
-                      side_str( candidate->side() ),
-                      candidate->unum(),
-                      ( candidate->goalie() ? "goalie" : "field" ),
-                      candidate->pos().x, candidate->pos().y,
-                      min_dist );
-#endif
-    }
-
-    if ( candidate_unknown != old_unknown_players.end()
-         && min_unknown_dist < min_team_dist )
-    {
-        candidate = candidate_unknown;
-        target_list = &old_unknown_players;
-
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-        min_dist = min_unknown_dist;
-        dlog.addText( Logger::WORLD,
-                      "(checkTeamPlayer)"
-                      ">>> %d (%.1f %.1f)"
-                      " -> unknown player (%.2f, %.2f) dist=%.2f",
-                      player.unum_,
-                      player.pos_.x, player.pos_.y,
-                      candidate->pos().x, candidate->pos().y,
-                      min_dist );
-#endif
-    }
-
-    if ( candidate != old_unknown_players.end()
-         && target_list )
-    {
-        // update & splice to new list
-        candidate->updateBySee( side, player );
-
-        new_known_players.splice( new_known_players.end(),
-                                  *target_list,
-                                  candidate );
-        return;
-    }
-
-    //
-    // not found -> generate new player
-    //
-
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-    dlog.addText( Logger::WORLD,
-                  "(checkTeamPlayer)"
-                  " XXX unmatch. min_dist= %.2f"
-                  " generate new known player pos=(%.2f, %.2f)",
-                  min_dist,
-                  player.pos_.x, player.pos_.y );
-#endif
-
-    new_known_players.push_back( PlayerObject( ++M_player_count, side, player ) );
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-void
-WorldModel::checkUnknownPlayer( const Localization::PlayerT & player,
-                                PlayerObject::List & old_teammates,
-                                PlayerObject::List & old_opponents,
-                                PlayerObject::List & old_unknown_players,
-                                PlayerObject::List & new_teammates,
-                                PlayerObject::List & new_opponents,
-                                PlayerObject::List & new_unknown_players )
-{
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //
-    //  if matched player is found, that player is removed from old list
-    //  and updated data is splice to new container
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //
-
-    // matching start
-    // search the nearest player
-
-    double min_opponent_dist = 100.0;
-    double min_teammate_dist = 100.0;
-    double min_unknown_dist = 100.0;
-
-    PlayerObject::List::iterator candidate_opponent = old_opponents.end();
-    PlayerObject::List::iterator candidate_teammate = old_teammates.end();
-    PlayerObject::List::iterator candidate_unknown = old_unknown_players.end();
-
-    const double dash_noise = 1.0 + ServerParam::i().playerRand();
-    const double self_error = 0.5 * 2.0;
-
-    //////////////////////////////////////////////////////////////////
-    // search from old opponents
-    for ( PlayerObject::List::iterator it = old_opponents.begin(),
-              end = old_opponents.end();
-          it != end;
-          ++it )
-    {
-        int count = it->seenPosCount();
-        Vector2D old_pos = it->seenPos();
-        double heard_error = 0.0;
-        if ( it->heardPosCount() < it->seenPosCount() )
-        {
-            count = it->heardPosCount();
-            old_pos = it->heardPos();
-            heard_error = 2.0;
-        }
-
-        const double d = player.pos_.dist( old_pos );
-
-        if ( d > ( it->playerTypePtr()->realSpeedMax() * dash_noise * count
-                   + heard_error
-                   + self_error
-                   + player.dist_error_ * 2.0 ) )
-        {
-#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
-            dlog.addText( Logger::WORLD,
-                          "(checkUnknownPlayer)"
-                          "__ opp %d: dist over."
-                          " dist=%.2f > buf=%.2f"
-                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
-                          it->unum(),
-                          d,
-                          it->playerTypePtr()->realSpeedMax() * dash_noise * count
-                          + heard_error
-                          + self_error
-                          + player.dist_error_ * 2.0,
-                          player.pos_.x, player.pos_.y,
-                          old_pos.x, old_pos.y );
-#endif
-            continue;
-        }
-
-        if ( d < min_opponent_dist )
-        {
-#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
-            dlog.addText( Logger::WORLD,
-                          "(checkUnknownPlayer)"
-                          "__ opp player: update."
-                          " dist=%.2f < min_opp_dist=%.2f"
-                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
-                          d,
-                          min_opponent_dist,
-                          player.pos_.x, player.pos_.y,
-                          old_pos.x, old_pos.y );
-#endif
-            min_opponent_dist = d;
-            candidate_opponent = it;
-        }
-    }
-
-    //////////////////////////////////////////////////////////////////
-    // search from old teammates
-    for ( PlayerObject::List::iterator it = old_teammates.begin(),
-              end = old_teammates.end();
-          it != end;
-          ++it )
-    {
-        int count = it->seenPosCount();
-        Vector2D old_pos = it->seenPos();
-        double heard_error = 0.0;
-        if ( it->heardPosCount() <= it->seenPosCount() )
-        {
-            count = it->heardPosCount();
-            old_pos = it->heardPos();
-            heard_error = 2.0;
-        }
-
-        const double d = player.pos_.dist( old_pos );
-
-        if ( d > ( it->playerTypePtr()->realSpeedMax() * dash_noise * count
-                   + heard_error
-                   + self_error
-                   + player.dist_error_ * 2.0 ) )
-        {
-#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
-            dlog.addText( Logger::WORLD,
-                          "(checkUnknownPlayer)"
-                          "__ our %d: dist over."
-                          " dist=%.2f > buf=%.2f"
-                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
-                          it->unum(),
-                          d,
-                          it->playerTypePtr()->realSpeedMax() * dash_noise * count
-                          + heard_error
-                          + self_error
-                          + player.dist_error_ * 2.0,
-                          player.pos_.x, player.pos_.y,
-                          old_pos.x, old_pos.y );
-#endif
-            continue;
-        }
-
-        if ( d < min_teammate_dist )
-        {
-#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
-            dlog.addText( Logger::WORLD,
-                          "(checkUnknownPlayer)"
-                          "__ our player: update."
-                          " dist=%.2f < min_our_dist=%.2f"
-                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
-                          d,
-                          min_teammate_dist,
-                          player.pos_.x, player.pos_.y,
-                          old_pos.x, old_pos.y );
-#endif
-            min_teammate_dist = d;
-            candidate_teammate = it;
-        }
-    }
-
-    //////////////////////////////////////////////////////////////////
-    // search from old unknown players
-    for ( PlayerObject::List::iterator it = old_unknown_players.begin(),
-              end = old_unknown_players.end();
-          it != end;
-          ++it )
-    {
-        int count = it->seenPosCount();
-        Vector2D old_pos = it->seenPos();
-        double heard_error = 0.0;
-        if ( it->heardPosCount() < it->seenPosCount() )
-        {
-            count = it->heardPosCount();
-            old_pos = it->heardPos();
-            heard_error = 2.0;
-        }
-
-        const double d = player.pos_.dist( old_pos );
-
-        if ( d > ( it->playerTypePtr()->realSpeedMax() * dash_noise * count
-                   + heard_error
-                   + self_error
-                   + player.dist_error_ * 2.0 ) )
-        {
-#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
-            dlog.addText( Logger::WORLD,
-                          "(checkUnknownPlayer)"
-                          "__ unknown player: dist over."
-                          " dist=%.2f > buf=%.2f"
-                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
-                          d,
-                          it->playerTypePtr()->realSpeedMax() * dash_noise * count
-                          + heard_error
-                          + self_error
-                          + player.dist_error_ * 2.0,
-                          player.pos_.x, player.pos_.y,
-                          old_pos.x, old_pos.y );
-#endif
-            continue;
-        }
-
-        if ( d < min_unknown_dist )
-        {
-#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
-            dlog.addText( Logger::WORLD,
-                          "(checkUnknownPlayer)"
-                          "__ unknown player: update."
-                          " dist=%.2f < min_unknown_dist=%.2f"
-                          " seen_pos(%.1f %.1f) old_pos(%.1f %.1f)",
-                          d,
-                          min_unknown_dist,
-                          player.pos_.x, player.pos_.y,
-                          old_pos.x, old_pos.y );
-#endif
-            min_unknown_dist = d;
-            candidate_unknown = it;
-        }
-    }
-
-    PlayerObject::List::iterator candidate = old_unknown_players.end();;
-    PlayerObject::List * new_list = static_cast< PlayerObject::List * >( 0 );
-    PlayerObject::List * old_list = static_cast< PlayerObject::List * >( 0 );
-    SideID side = NEUTRAL;
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-    double min_dist = 1000.0;
-#endif
-
-    if ( candidate_teammate != old_teammates.end()
-         && min_teammate_dist < min_opponent_dist
-         && min_teammate_dist < min_unknown_dist )
-    {
-        candidate = candidate_teammate;
-        new_list = &new_teammates;
-        old_list = &old_teammates;
-        side = ourSide();
-
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-        min_dist = min_teammate_dist;
-        dlog.addText( Logger::WORLD,
-                      "(checkUnknownPlayer)"
-                      ">>> (%.1f %.1f) -> teammate %d (%.1f %.1f) dist=%.2f",
-                      player.pos_.x, player.pos_.y,
-                      candidate->unum(),
-                      candidate->pos().x, candidate->pos().y,
-                      min_dist );
-#endif
-    }
-
-    if ( candidate_opponent != old_opponents.end()
-         //&& min_opponent_dist * 0.5 - 3.0 < min_teammate_dist
-         && min_opponent_dist < min_teammate_dist
-         && min_opponent_dist < min_unknown_dist )
-    {
-        candidate = candidate_opponent;
-        new_list = &new_opponents;
-        old_list = &old_opponents;
-        side = theirSide();
-
-#ifdef DEBUG_PRINT_PLAYER_UPDATE
-        min_dist = min_opponent_dist;
-        dlog.addText( Logger::WORLD,
-                      "(checkUnknownPlayer)"
-                      ">>> (%.1f %.1f) -> opponent %d (%.1f %.1f) dist=%.2f",
-                      player.pos_.x, player.pos_.y,
-                      candidate->unum(),
-                      candidate->pos().x, candidate->pos().y,
-                      min_dist );
-#endif
-    }
-
-    if ( candidate_unknown != old_unknown_players.end()
-         //&& min_unknown_dist * 0.5 - 3.0 < min_teammate_dist
-         && min_unknown_dist < min_teammate_dist
-         && min_unknown_dist < min_opponent_dist )
-    {
-        candidate = candidate_unknown;
-        new_list = &new_unknown_players;
-        old_list = &old_unknown_players;
-        side = NEUTRAL;
-
-#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
-        min_dist = min_unknown_dist;
-        dlog.addText( Logger::WORLD,
-                      "(checkUnknownPlayer)"
-                      ">>> (%.1f %.1f) -> unknown (%.1f %.1f) dist=%.2f",
-                      player.pos_.x, player.pos_.y,
-                      candidate->pos().x, candidate->pos().y,
-                      min_dist );
-#endif
-    }
-
-
-    //////////////////////////////////////////////////////////////////
-    // check player movable radius
-    if ( candidate != old_unknown_players.end()
-         && new_list
-         && old_list )
-    {
-        // update & splice to new list
-        candidate->updateBySee( side, player );
-        new_list->splice( new_list->end(),
-                          *old_list,
-                          candidate );
-        return;
-    }
-
-    //////////////////////////////////////////////////////////////////
-    // generate new player
-#ifdef DEBUG_PRINT_PLAYER_UPDATE_DETAIL
-    dlog.addText( Logger::WORLD,
-                  "(checkUnknownPlayer)"
-                  " XXX unmatch. dist_error=%f"
-                  " generate new unknown player. pos=(%.2f, %.2f)",
-                  player.dist_error_,
-                  player.pos_.x, player.pos_.y );
-#endif
-
-    new_unknown_players.push_back( PlayerObject( ++M_player_count, NEUTRAL, player ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -4584,7 +3069,7 @@ WorldModel::updatePlayerStateCache()
                       p->id(), p->unum(), p->pos().x, p->pos().y, p->posCount(),
                       ( p->goalie() ? "goalie" : "" ) );
     }
-    M_unknown_players.sort( PlayerCountSorter() );
+    //M_unknown_players.sort( PlayerCountSorter() );
     for ( PlayerObject::List::const_iterator p = M_unknown_players.begin(), end = M_unknown_players.end();
           p != end;
           ++p )
@@ -4604,8 +3089,8 @@ WorldModel::updatePlayerStateCache()
 void
 WorldModel::estimateGoalie()
 {
-    const AbstractPlayerObject * our_goalie = get_our_goalie_strict( *this );
-    const AbstractPlayerObject * their_goalie = get_their_goalie_strict( *this );
+    const AbstractPlayerObject * our_goalie = get_our_goalie_loop( *this );
+    const AbstractPlayerObject * their_goalie = get_their_goalie_loop( *this );
 #ifdef DEBUG_PRINT_GOALIE_UPDATE
     dlog.addText( Logger::WORLD,
                   __FILE__": (estimateGoalie) our_goalie=%d their_goalie=%d",
@@ -4659,7 +3144,7 @@ WorldModel::estimateGoalie()
 void
 WorldModel::estimateOurGoalie()
 {
-    const AbstractPlayerObject * our_goalie = get_our_goalie_strict( *this );
+    const AbstractPlayerObject * our_goalie = get_our_goalie_loop( *this );
 
     if ( ! our_goalie
          && M_teammates.size() >= 9 )
@@ -4726,7 +3211,7 @@ WorldModel::estimateOurGoalie()
 void
 WorldModel::estimateTheirGoalie()
 {
-    const AbstractPlayerObject * their_goalie = get_their_goalie_strict( *this );
+    const AbstractPlayerObject * their_goalie = get_their_goalie_loop( *this );
 
     if ( ! their_goalie
          && M_teammates.size() >= 10

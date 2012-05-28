@@ -19,6 +19,7 @@ librcsc_player_la_SOURCES = \
 	player_config.cpp \
 	player_intercept.cpp \
 	player_object.cpp \
+	player_object_updater.cpp \
 	player_state.cpp \
 	say_message_builder.cpp \
 	see_state.cpp \

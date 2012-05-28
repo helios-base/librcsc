@@ -69,6 +69,9 @@ private:
     //! validation count threshold value for M_body and M_face
     static int S_face_count_thr;
 
+    //! the player observation count, used as the id value for each player object.
+    static int S_player_count;
+
     int M_ghost_count; //!< count that this object is recognized as a ghost object.
 
     AngleDeg M_pointto_angle; //!< global pointing angle
@@ -81,16 +84,14 @@ public:
     /*!
       \brief initialize member variables.
     */
-    explicit
-    PlayerObject( const int id );
+    PlayerObject();
 
     /*!
       \brief initialize member variables using observed info
       \param side analyzed side info
       \param p analyzed seen player info
     */
-    PlayerObject( const int id,
-                  const SideID side,
+    PlayerObject( const SideID side,
                   const Localization::PlayerT & p );
 
     /*!
@@ -109,6 +110,12 @@ public:
     void set_count_thr( const int pos_thr,
                         const int vel_thr,
                         const int face_thr );
+
+    /*!
+      \brief reset player count to 0.
+     */
+    static
+    void reset_player_count();
 
     // ------------------------------------------
 

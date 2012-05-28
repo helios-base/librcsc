@@ -49,12 +49,14 @@ int PlayerObject::S_pos_count_thr = 30;
 int PlayerObject::S_vel_count_thr = 5;
 int PlayerObject::S_face_count_thr = 2;
 
+int PlayerObject::S_player_count = 0;
+
 /*-------------------------------------------------------------------*/
 /*!
 
 */
-PlayerObject::PlayerObject( const int id )
-    : AbstractPlayerObject( id ),
+PlayerObject::PlayerObject()
+    : AbstractPlayerObject( ++S_player_count ),
       M_ghost_count( 0 ),
       M_pointto_angle( 0.0 ),
       M_pointto_count( 1000 ),
@@ -67,10 +69,9 @@ PlayerObject::PlayerObject( const int id )
 /*!
 
 */
-PlayerObject::PlayerObject( const int id,
-                            const SideID side,
+PlayerObject::PlayerObject( const SideID side,
                             const Localization::PlayerT & p )
-    : AbstractPlayerObject( id, side, p ),
+    : AbstractPlayerObject( ++S_player_count, side, p ),
       M_ghost_count( 0 ),
       M_pointto_angle( 0.0 ),
       M_pointto_count( 1000 ),
@@ -125,6 +126,16 @@ PlayerObject::set_count_thr( const int pos_thr,
     S_pos_count_thr = pos_thr;
     S_vel_count_thr = vel_thr;
     S_face_count_thr = face_thr;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+void
+PlayerObject::reset_player_count()
+{
+    S_player_count = 0;
 }
 
 /*-------------------------------------------------------------------*/

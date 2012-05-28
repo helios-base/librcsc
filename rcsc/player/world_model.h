@@ -56,6 +56,7 @@ class FullstateSensor;
 class InterceptTable;
 class Localization;
 class PenaltyKickState;
+class PlayerObjectUpdater;
 class PlayerPredicate;
 class PlayerType;
 class VisualSensor;
@@ -79,6 +80,7 @@ public:
 private:
 
     Localization * M_localize; //!< localization module
+    PlayerObjectUpdater * M_player_object_updater; //!< player object update module
     InterceptTable * M_intercept_table; //!< interception info table
     boost::shared_ptr< AudioMemory > M_audio_memory; //!< heard deqinfo memory
     PenaltyKickState * M_penalty_kick_state; //!< penalty kick mode status
@@ -115,8 +117,6 @@ private:
     PlayerObject::List M_opponents; //!< opponents instance. at least, the side information is observed
     PlayerObject::List M_unknown_players; //!< unknown players instance
 
-    int M_player_count; //!< total observation count of player (includes self=0)
-
     //////////////////////////////////////////////////
     // object reference (pointers to each object)
     // these containers are updated just before decision making
@@ -132,8 +132,8 @@ private:
     AbstractPlayerObject::Cont M_our_players; //!< all teammates pointers includes self
     AbstractPlayerObject::Cont M_their_players; //!< all opponents pointers includes unknown
 
-    AbstractPlayerObject * M_our_player_array[12]; //!< unum known teammates (include self)
-    AbstractPlayerObject * M_their_player_array[12]; //!< unum known opponents (exclude unknown player)
+    AbstractPlayerObject * M_our_player_array[12]; //!< teammates indexed by uniform number (include self)
+    AbstractPlayerObject * M_their_player_array[12]; //!< opponents indexed by uniform number (exclude unknown player)
 
     //////////////////////////////////////////////////
     // analyzed result
@@ -454,38 +454,6 @@ private:
       \param current current game time
     */
     void localizePlayers( const VisualSensor & see );
-
-    /*!
-      \brief check player that has team info
-      \param side seen side info
-      \param player localized info
-      \param old_known_players old team known players
-      \param old_unknown_players previous unknown players
-      \param new_known_players new team known players
-    */
-    void checkTeamPlayer( const SideID side,
-                          const Localization::PlayerT & player,
-                          PlayerObject::List & old_known_players,
-                          PlayerObject::List & old_unknown_players,
-                          PlayerObject::List & new_known_players );
-
-    /*!
-      \brief check player that has no identifier. matching to unknown players
-      \param player localized info
-      \param old_teammates previous seen teammates
-      \param old_opponents previous seen opponents
-      \param old_unknown_players previous seen unknown player
-      \param new_teammates current seen teammates
-      \param new_opponents current seen opponents
-      \param new_unknown_players current seen unknown players
-    */
-    void checkUnknownPlayer( const Localization::PlayerT & player,
-                             PlayerObject::List & old_teammates,
-                             PlayerObject::List & old_opponent,
-                             PlayerObject::List & old_unknown_players,
-                             PlayerObject::List & new_teammates,
-                             PlayerObject::List & new_opponents,
-                             PlayerObject::List & new_unknown_players );
 
     /*!
       \brief set collision effect with ball
