@@ -1,5 +1,10 @@
 2012-05-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/action/body_kick_collide_with_ball.cpp:
+	* rcsc/action/body_kick_collide_with_ball.h:
+	* rcsc/action/Makefile.am:
+	- Body_KickCollideWithBallを削除
+
 	* rcsc/action/body_go_to_point.cpp:
 	* rcsc/action/Makefile.am:
 	* rcsc/action/body_go_to_point.h:
