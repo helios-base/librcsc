@@ -1,3 +1,8 @@
+2012-05-29  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/player_object_updater.cpp:
+	- 分身が起きないように観測誤差を調整
+
 2012-05-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/player_object_updater.cpp:

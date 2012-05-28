@@ -355,7 +355,7 @@ add_matching_candidates( MatchingPair & result,
                          const std::list< Localization::PlayerT > & seen_players )
 {
     const PlayerObject * old_player = result.old_player_;
-    const double self_error = 1.0;
+    const double self_error = 1.2; // magic number
     const double dash_noise = 1.0 + ServerParam::i().playerRand();
 
     for ( std::list< Localization::PlayerT >::const_iterator seen = seen_players.begin();
@@ -365,9 +365,11 @@ add_matching_candidates( MatchingPair & result,
         if ( old_player->unum() != Unum_Unknown
              && seen->unum_ != Unum_Unknown )
         {
-            // dlog.addText( Logger::WORLD,
-            //               "____ add_matching_candidates: different unum. seen = %s %d (%.1f %.1f)",
-            //               side_str( seen->side_ ), seen->unum_, seen->pos_.x, seen->pos_.y );
+// #ifdef DEBUG_PRINT
+//             dlog.addText( Logger::WORLD,
+//                           "____ add_matching_candidates: different unum. seen = %s %d (%.1f %.1f)",
+//                           side_str( seen->side_ ), seen->unum_, seen->pos_.x, seen->pos_.y );
+// #endif
             continue; // completely different uniforn number
         }
 
@@ -378,7 +380,7 @@ add_matching_candidates( MatchingPair & result,
         {
             count = old_player->heardPosCount();
             old_pos = old_player->heardPos();
-            sensor_error = 1.0; // magit number
+            sensor_error = 2.0; // magit number
         }
 
         double dist2 = seen->pos_.dist2( old_pos );
@@ -387,13 +389,15 @@ add_matching_candidates( MatchingPair & result,
                                + sensor_error * 2.0,
                                2 ) )
         {
-            // dlog.addText( Logger::WORLD,
-            //               "____ add_matching_candidates: distance over (%.3f > %.3f). seen = %s %d (%.1f %.1f)",
-            //               std::sqrt( dist2 ),
-            //               old_player->.playerTypePtr()->realSpeedMax() * dash_noise * count
-            //               + self_error
-            //               + sensor_error * 2.0,
-            //               side_str( seen->side_ ), seen->unum_, seen->pos_.x, seen->pos_.y );
+// #ifdef DEBUG_PRINT
+//             dlog.addText( Logger::WORLD,
+//                           "____ add_matching_candidates: distance over (%.3f > %.3f). seen = %s %d (%.1f %.1f)",
+//                           std::sqrt( dist2 ),
+//                           old_player->playerTypePtr()->realSpeedMax() * dash_noise * count
+//                           + self_error
+//                           + sensor_error * 2.0,
+//                           side_str( seen->side_ ), seen->unum_, seen->pos_.x, seen->pos_.y );
+// #endif
             continue;
         }
 
