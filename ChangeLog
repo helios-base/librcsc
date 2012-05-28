@@ -1,5 +1,9 @@
 2012-05-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/action/intention_with_condition.cpp:
+	* rcsc/action/intention_with_condition.h:
+	- 未使用ファイルを削除
+
 	* rcsc/action/body_kick_collide_with_ball.cpp:
 	* rcsc/action/body_kick_collide_with_ball.h:
 	* rcsc/action/Makefile.am:
