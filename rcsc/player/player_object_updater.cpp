@@ -43,8 +43,8 @@
 #include <rcsc/common/server_param.h>
 #include <rcsc/time/timer.h>
 
-#define DEBUG_PROFILE
-#define DEBUG_PRINT
+// #define DEBUG_PROFILE
+// #define DEBUG_PRINT
 
 namespace {
 
@@ -435,6 +435,7 @@ add_matching_pairs( PlayerObject::List & old_players,
 
         result.candidates_.sort( MatchingDistanceSorter( pos ) );
 
+#ifdef DEBUG_PRINT
         dlog.addText( Logger::WORLD,
                       "add_matching_pairs %s %d (%.1f %.1f) candidate %d",
                       side_str( p->side() ), p->unum(), p->pos().x, p->pos().y,
@@ -450,6 +451,7 @@ add_matching_pairs( PlayerObject::List & old_players,
                           pos.dist( (*c)->pos_ ) );
 
         }
+#endif
     }
 }
 
@@ -636,8 +638,10 @@ void
 find_nearest_candidate( std::list< MatchingPair > * matching_pairs,
                         std::vector< ResultPair > * result_pairs )
 {
+#ifdef DEBUG_PRINT
     dlog.addText( Logger::WORLD,
                   "========= start nearest matching loop ========== " );
+#endif
 
     while ( ! matching_pairs->empty() )
     {

@@ -1,5 +1,8 @@
 2012-05-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/player_object_updater.cpp:
+	- デバッグ出力を停止
+
 	* rcsc/action/intention_with_condition.cpp:
 	* rcsc/action/intention_with_condition.h:
 	- 未使用ファイルを削除
