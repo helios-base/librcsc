@@ -1981,6 +1981,8 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
 
     updateBallCollision();
 
+    M_ball.updateByGameMode( gameMode() );
+
     M_ball.updateSelfRelated( self(), prevBall() );
     M_self.updateBallInfo( ball() );
 

@@ -55,6 +55,7 @@ class SelfObject;
   -> updateAll() (updatePos(),updateOnlyVel(), updateOnlyRelativePos())
   -> updateByHeardInfo()
   -> updateByCollision()
+  -> updateByGameMode()
   -> updateSelfRelated()
 */
 class BallObject {
@@ -323,6 +324,12 @@ public:
                             const int rpos_count,
                             const Vector2D & vel,
                             const int vel_count );
+
+    /*!
+      \brief update positional data based on the current game mode
+      \param mode current game mode
+     */
+    void updateByGameMode( const GameMode & mode );
 
     /*!
       \brief update relative position using see info.

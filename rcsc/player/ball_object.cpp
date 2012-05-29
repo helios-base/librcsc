@@ -40,6 +40,7 @@
 #include "player_command.h"
 
 #include <rcsc/common/logger.h>
+#include <rcsc/common/server_param.h>
 #include <rcsc/game_mode.h>
 
 #include <iostream>
@@ -195,39 +196,16 @@ BallObject::update( const ActionEffector & act,
     {
         // ball position may change.
         M_pos_count = std::min( 1000, M_pos_count + 1 );
-
-        if ( pmode == GameMode::GoalieCatch_ )
-        {
-            new_vel.assign( 0.0, 0.0 );
-
-            M_vel_error.assign( 0.0, 0.0 );
-            M_vel_count = 0;
-            M_seen_vel.assign( 0.0, 0.0 );
-            M_seen_vel_count = 0;
-        }
     }
     else
     {
         // if setplay playmode, ball does not move until playmode change to playon.
-
-        if ( pmode == GameMode::BeforeKickOff
-             || pmode == GameMode::KickOff_ )
-        {
-            M_pos.assign( 0.0, 0.0 );
-            M_pos_count = 0;
-            M_seen_pos.assign( 0.0, 0.0 );
-
-#ifdef DEBUG_PRINT
-            dlog.addText( Logger::WORLD,
-                          __FILE__" (update) before_kick_off. set to center." );
-#endif
-        }
-        // if I didin't see the ball in this setplay playmode,
-        // we must check the ball first.
-        else if ( posCount() > 1
-                  || ( rposCount() > 0
-                       && distFromSelf() < ServerParam::i().visibleDistance() )
-                  )
+        // if the agent didin't see the ball in this setplay playmode,
+        // the agent has to check the ball first.
+        if ( posCount() > 1
+             || ( rposCount() > 0
+                  && distFromSelf() < ServerParam::i().visibleDistance() )
+             )
         {
             // NOT seen at last cycle, but internal info means ball visible.
             // !!! IMPORTANT to check the ghost
@@ -382,6 +360,85 @@ BallObject::updateByCollision( const Vector2D & pos,
     M_rpos_count = rpos_count;
     M_vel = vel;
     M_vel_count = vel_count;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+BallObject::updateByGameMode( const GameMode & mode )
+{
+    const GameMode::Type type = mode.type();
+
+    if ( type == GameMode::PlayOn
+         || type == GameMode::GoalKick_
+         //|| type == GameMode::GoalieCatch_
+         || type == GameMode::PenaltyTaken_ )
+    {
+        return;
+    }
+
+    M_vel.assign( 0.0, 0.0 );
+    M_vel_error.assign( 0.0, 0.0 );
+    M_vel_count = 0;
+    M_seen_vel.assign( 0.0, 0.0 );
+    M_seen_vel_count = 0;
+
+    if ( type == GameMode::GoalieCatch_ )
+    {
+        // reset only the velocity
+        return;
+    }
+
+    if ( type == GameMode::CornerKick_ )
+    {
+        if ( posCount() <= 1 )
+        {
+            M_pos.x = ( M_pos.x > 0.0
+                        ? +ServerParam::i().pitchHalfLength() - ServerParam::i().cornerKickMargin()
+                        : -ServerParam::i().pitchHalfLength() + ServerParam::i().cornerKickMargin() );
+            M_pos.y = ( M_pos.y > 0.0
+                        ? +ServerParam::i().pitchHalfWidth() - ServerParam::i().cornerKickMargin()
+                        : -ServerParam::i().pitchHalfWidth() + ServerParam::i().cornerKickMargin() );
+#ifdef DEBUG_PRINT
+            dlog.addText( Logger::WORLD,
+                          __FILE__" (updateByGameMode) corner_kick. set to corner." );
+#endif
+        }
+        return;
+    }
+
+    if ( type == GameMode::KickIn_ )
+    {
+        if ( posCount() <= 1 )
+        {
+            M_pos.y = ( M_pos.y > 0.0
+                        ? +ServerParam::i().pitchHalfWidth()
+                        : -ServerParam::i().pitchHalfWidth() );
+#ifdef DEBUG_PRINT
+            dlog.addText( Logger::WORLD,
+                          __FILE__" (updateByGameMode) kick_in. set on the side line." );
+#endif
+        }
+        return;
+    }
+
+    if ( type == GameMode::BeforeKickOff
+         || type == GameMode::KickOff_ )
+    {
+        M_pos.assign( 0.0, 0.0 );
+        M_pos_count = 0;
+        M_seen_pos.assign( 0.0, 0.0 );
+        M_lost_count = 0;
+
+#ifdef DEBUG_PRINT
+        dlog.addText( Logger::WORLD,
+                      __FILE__" (updateByGameMode) before_kick_off. set to center." );
+#endif
+        return;
+    }
+
 }
 
 /*-------------------------------------------------------------------*/

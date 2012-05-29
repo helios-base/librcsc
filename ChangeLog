@@ -1,5 +1,10 @@
 2012-05-29  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/ball_object.cpp:
+	* rcsc/player/ball_object.h:
+	* rcsc/player/world_model.cpp:
+	- プレイモードに応じてボール位置が定まる場合の更新関数を追加
+
 	* rcsc/player/player_object_updater.cpp:
 	* rcsc/player/world_model.cpp:
 	* rcsc/player/world_model.h:
