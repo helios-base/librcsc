@@ -1,3 +1,10 @@
+2012-05-30  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/action_effector.cpp:
+	* rcsc/player/self_object.cpp:
+	* rcsc/player/self_object.h:
+	- キャッチコマンドを失敗した場合に実行時間をリセットしていた誤りを修正
+
 2012-05-29  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/ball_object.cpp:

@@ -294,7 +294,7 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
                       sense.catchCount(),
                       M_command_counter[PlayerCommand::CATCH] );
         M_last_body_command_type[0] = PlayerCommand::ILLEGAL;
-        M_catch_time.assign( 0, 0 );
+        //M_catch_time.assign( 0, 0 ); // Do *NOT* reset the time
         M_command_counter[PlayerCommand::CATCH] = sense.catchCount();
     }
 

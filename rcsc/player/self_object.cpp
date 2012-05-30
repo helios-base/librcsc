@@ -218,7 +218,7 @@ SelfObject::update( const ActionEffector & act,
         //M_vel_error.assign( 0.0, 0.0 );
         break;
     case PlayerCommand::CATCH:
-        M_last_catch_time = act.lastActionTime();
+        // M_last_catch_time = act.lastActionTime();
         break;
     case PlayerCommand::KICK:
         M_kicking = true;
@@ -228,6 +228,8 @@ SelfObject::update( const ActionEffector & act,
         //          << std::endl;
         break;
     }
+
+    M_last_catch_time = act.getCatchTime();
 
     /////////////////////////////////////////
     // support command
@@ -461,14 +463,14 @@ SelfObject::updateAfterSenseBody( const BodySensor & sense,
     M_kicking = ( act.lastBodyCommandType() == PlayerCommand::KICK
                   || act.lastBodyCommandType() == PlayerCommand::TACKLE );
 
-    if ( act.lastBodyCommandType() == PlayerCommand::CATCH )
-    {
-        M_last_catch_time = current;
-    }
-    else if ( M_last_catch_time == current )
-    {
-        M_last_catch_time.assign( 0, 0 );
-    }
+    // if ( act.lastBodyCommandType() == PlayerCommand::CATCH )
+    // {
+    //     M_last_catch_time = current;
+    // }
+    // else if ( M_last_catch_time == current )
+    // {
+    //     M_last_catch_time.assign( 0, 0 );
+    // }
 
     // ------------------------------------------------
     // use sense_body

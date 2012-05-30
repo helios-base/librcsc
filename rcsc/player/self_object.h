@@ -268,7 +268,7 @@ public:
       }
 
     /*!
-      \brief get last catch performed time
+      \brief get time when the last catch command is performed
       \return const reference to the time object
     */
     const GameTime & catchTime() const
