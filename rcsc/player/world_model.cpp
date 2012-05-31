@@ -308,12 +308,22 @@ struct PlayerCountSorter {
       }
 };
 
-struct PlayerPtrCountSorter {
+struct PlayerPtrAccuracySorter {
     bool operator()( const PlayerObject * lhs,
                      const PlayerObject * rhs ) const
       {
           if ( lhs->goalie() ) return true;
           if ( rhs->goalie() ) return false;
+          if ( lhs->unum() != Unum_Unknown
+               && rhs->unum() == Unum_Unknown )
+          {
+              return true;
+          }
+          if ( lhs->unum() == Unum_Unknown
+               && rhs->unum() != Unum_Unknown )
+          {
+              return false;
+          }
           return lhs->posCount() + lhs->ghostCount() * 10
               < rhs->posCount() + rhs->ghostCount() * 10;
       }
@@ -1988,10 +1998,6 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
 
     updatePlayerStateCache();
 
-    // have to be moved to updatePlayerStateCache();
-    // estimateGoalie();
-    // estimateUnknownPlayerUnum();
-
     updatePlayerCard();
     updatePlayerType(); // have to be called after see message.
 
@@ -2930,10 +2936,10 @@ WorldModel::localizePlayers( const VisualSensor & see )
     // sort by accuracy count
     std::sort( all_teammates_ptr.begin(),
                all_teammates_ptr.end(),
-               PlayerPtrCountSorter() );
+               PlayerPtrAccuracySorter() );
     std::sort( all_opponents_ptr.begin(),
                all_opponents_ptr.end(),
-               PlayerPtrCountSorter() );
+               PlayerPtrAccuracySorter() );
     M_unknown_players.sort( PlayerCountSorter() );
 
     //////////////////////////////////////////////////////////////////
@@ -2941,7 +2947,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
     // if overflow is detected, player is removed based on confidence value
 
     // remove from teammates
-    PlayerObject::Cont::size_type teammate_count = all_teammates_ptr.size();
+    int teammate_count = all_teammates_ptr.size();
     while ( teammate_count > 11 - 1 )
     {
         // reset least confidence value player
@@ -2959,7 +2965,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
     }
 
     // remove from not-teammates
-    PlayerObject::Cont::size_type opponent_count = all_opponents_ptr.size();
+    int opponent_count = all_opponents_ptr.size();
     while ( opponent_count > 11 )
     {
         // reset least confidence value player
@@ -2977,13 +2983,10 @@ WorldModel::localizePlayers( const VisualSensor & see )
     }
 
     // remove from unknown players
-    PlayerObject::List::size_type n_size_unknown = M_unknown_players.size();
-    size_t n_size_total
-        = static_cast< size_t >( n_size_unknown )
-        + static_cast< size_t >( teammate_count )
-        + static_cast< size_t >( opponent_count );
-    while ( n_size_unknown > 0
-            && n_size_total > 11 + 15 - 1 ) //11 * 2 - 1 )
+    int unknown_count = M_unknown_players.size();
+    int total_count = unknown_count + teammate_count + opponent_count;
+    while ( unknown_count > 0
+            && total_count > 25 ) //11 * 2 - 1 )
     {
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
         dlog.addText( Logger::WORLD,
@@ -2999,8 +3002,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
         }
         // remove least confidence value player
         M_unknown_players.pop_back();
-        --n_size_unknown;
-        --n_size_total;
+        --unknown_count;
+        --total_count;
     }
 
 
