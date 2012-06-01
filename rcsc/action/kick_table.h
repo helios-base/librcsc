@@ -145,6 +145,7 @@ public:
       \brief simulated kick sequence
      */
     struct Sequence {
+        int index_;
         int flag_; //!< safety level flags. usually the combination of State flags
         std::vector< Vector2D > pos_list_; //!< ball positions
         double speed_; //!< released ball speed
@@ -155,7 +156,8 @@ public:
           \brief constuct an illegal sequence object
          */
         Sequence()
-            : flag_( 0x0000 ),
+            : index_( -1 ),
+              flag_( 0x0000 ),
               speed_( 0.0 ),
               power_( 10000.0 ),
               score_( 0.0 )

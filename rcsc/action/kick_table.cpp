@@ -56,6 +56,7 @@
 // #define DEBUG
 // #define DEBUG_EVALUATE
 // #define DEBUG_THREE_STEP
+// #define DEBUG_THREE_STEP_DETAIL
 
 namespace rcsc {
 
@@ -1483,7 +1484,8 @@ KickTable::simulateTwoStep( const WorldModel & world,
                           "xx__ 2 step: interfere after release. state_pos=(%.2f %.2f)",
                           state.pos_.x, state.pos_.y );
 #endif
-            return false;
+            //return false;
+            continue;
         }
 
         int kick_miss_flag = SAFETY;
@@ -1654,62 +1656,63 @@ KickTable::simulateThreeStep( const WorldModel & world,
 
         if ( state_1st.flag_ & OUT_OF_PITCH )
         {
-#ifdef DEBUG_THREE_STEP
+#ifdef DEBUG_THREE_STEP_DETAIL
             dlog.addText( Logger::KICK,
-                          "xx__ 3 step: skip. out of pitch. state_1st pos=(%.2f %.2f)",
-                          state_1st.pos_.x, state_1st.pos_.y );
+                          "%zd: xx__ 3 step: skip. out of pitch. state_1st pos=(%.2f %.2f)",
+                          count, state_1st.pos_.x, state_1st.pos_.y );
 #endif
             continue;
         }
 
         if ( state_2nd.flag_ & OUT_OF_PITCH )
         {
-#ifdef DEBUG_THREE_STEP
+#ifdef DEBUG_THREE_STEP_DETAIL
             dlog.addText( Logger::KICK,
-                          "xx__ 3 step: skip. out of pitch. state_2nd pos=(%.2f %.2f)",
-                          state_2nd.pos_.x, state_2nd.pos_.y );
+                          "%zd: xx__ 3 step: skip. out of pitch. state_2nd pos=(%.2f %.2f)",
+                          count, state_2nd.pos_.x, state_2nd.pos_.y );
 #endif
             continue;
         }
 
         if ( state_1st.flag_ & KICKABLE )
         {
-#ifdef DEBUG_THREE_STEP
+#ifdef DEBUG_THREE_STEP_DETAIL
             dlog.addText( Logger::KICK,
-                          "xx__ 3 step: skip. exist kicable opp. state_1st pos=(%.2f %.2f)",
-                          state_1st.pos_.x, state_1st.pos_.y );
+                          "%zd: xx__ 3 step: skip. exist kicable opp. state_1st pos=(%.2f %.2f)",
+                          count, state_1st.pos_.x, state_1st.pos_.y );
 #endif
             continue;
         }
 
         if ( state_2nd.flag_ & KICKABLE )
         {
-#ifdef DEBUG_THREE_STEP
+#ifdef DEBUG_THREE_STEP_DETAIL
             dlog.addText( Logger::KICK,
-                          "xx__ 3 step: skip. exist kicable opp. state_2nd pos=(%.2f %.2f)",
-                          state_2nd.pos_.x, state_2nd.pos_.y );
+                          "%zd: xx__ 3 step: skip. exist kicable opp. state_2nd pos=(%.2f %.2f)",
+                          count, state_2nd.pos_.x, state_2nd.pos_.y );
 #endif
             continue;
         }
 
         if ( state_2nd.flag_ & SELF_COLLISION )
         {
-#ifdef DEBUG_THREE_STEP
+#ifdef DEBUG_THREE_STEP_DETAIL
             dlog.addText( Logger::KICK,
-                          "xx__ 3 step: skip. self collision. state_2nd_pos=(%.2f %.2f)",
-                          state_2nd.pos_.x, state_2nd.pos_.y );
+                          "%zd: xx__ 3 step: skip. self collision. state_2nd_pos=(%.2f %.2f)",
+                          count, state_2nd.pos_.x, state_2nd.pos_.y );
 #endif
             continue;
         }
 
         if ( state_2nd.flag_ & RELEASE_INTERFERE )
         {
-#ifdef DEBUG_THREE_STEP
+#ifdef DEBUG_THREE_STEP_DETAIL
             dlog.addText( Logger::KICK,
-                          "xx__ 3 step: interfere after release. state_pos=(%.2f %.2f)",
-                          state.pos_.x, state.pos_.y );
+                          "%zd: xx__ 3 step: interfere after release. state_pos=(%.2f %.2f)",
+                          count, state_2nd.pos_.x, state_2nd.pos_.y );
 #endif
-            return false;
+            //return false;
+            continue;
         }
 
 
@@ -1723,10 +1726,10 @@ KickTable::simulateThreeStep( const WorldModel & world,
 
         if ( accel_r2 > current_max_accel2 )
         {
-#ifdef DEBUG_THREE_STEP
+#ifdef DEBUG_THREE_STEP_DETAIL
             dlog.addText( Logger::KICK,
-                          "xx__ 3 step: failed(1) required_accel=%.3f > max_accel=%.3f",
-                          std::sqrt( accel_r2 ), std::sqrt( current_max_accel2 ) );
+                          "%zd: xx__ 3 step: failed(1) required_accel=%.3f > max_accel=%.3f",
+                          count, std::sqrt( accel_r2 ), std::sqrt( current_max_accel2 ) );
 #endif
             continue;
         }
@@ -1739,14 +1742,15 @@ KickTable::simulateThreeStep( const WorldModel & world,
                 = self_type.kickRand()
                 * ( kick_power / param.maxPower() )
                 * ( current_pos_rate + current_speed_rate );
-            if ( ( my_noise1 + ball_noise + max_kick_rand ) //* 0.95
-                 > my_kickable_area - state_1st.dist_ - 0.05 ) //0.1 )
+            if ( ( my_noise1 + ball_noise + max_kick_rand )
+                 > my_kickable_area - state_1st.dist_ - 0.1 )
             {
 #ifdef DEBUG_THREE_STEP
                 dlog.addText( Logger::KICK,
-                              "xx__ 3 step: failed. 1st kick may cause unkickable. power=%.3f"
+                              "%zd: xx__ 3 step: 1st kick may cause unkickable. power=%.3f"
                               " my_kickable=%.3f state_dist=%.3f,"
                               " noise=%f(my_noise=%f ball_noise=%f kick_rand=%f)",
+                              count,
                               kick_power,
                               my_kickable_area, state_1st.dist_,
                               ( my_noise1 + ball_noise + max_kick_rand ) * 0.9,
@@ -1765,9 +1769,10 @@ KickTable::simulateThreeStep( const WorldModel & world,
 
         if ( accel_r2 > square( std::min( state_1st.kick_rate_ * max_power * 0.9, accel_max ) ) )
         {
-#ifdef DEBUG_THREE_STEP
+#ifdef DEBUG_THREE_STEP_DETAIL
             dlog.addText( Logger::KICK,
-                          "xx__ 3 step: failed(2) required_accel=%.3f > max_accel=%.3f",
+                          "%zd: xx__ 3 step: failed(2) required_accel=%.3f > max_accel=%.3f",
+                          count,
                           std::sqrt( accel_r2 ),
                           std::min( state_1st.kick_rate_ * max_power, accel_max ) );
 #endif
@@ -1779,7 +1784,7 @@ KickTable::simulateThreeStep( const WorldModel & world,
         accel_r2 = accel.r2();
         if ( accel_r2 > square( std::min( state_2nd.kick_rate_ * max_power, accel_max ) ) )
         {
-#ifdef DEBUG_THREE_STEP
+#ifdef DEBUG_THREE_STEP_DETAIL
             dlog.addText( Logger::KICK,
                           "xx__ 3 step: failed(3) required_accel=%.3f > max_accel=%.3f",
                           std::sqrt( accel_r2 ),
@@ -1793,13 +1798,14 @@ KickTable::simulateThreeStep( const WorldModel & world,
                 double d2 = max_vel.r2();
                 if ( max_speed2 < d2 )
                 {
-                    if ( max_speed2 == 0.0 )
+                    if ( M_candidates.empty() ) // max_speed2 == 0.0
                     {
                         M_candidates.push_back( Sequence() );
                     }
                     max_speed2 = d2;
                     accel = max_vel - vel2;
 
+                    M_candidates.back().index_ = count;
                     M_candidates.back().flag_ = ( ( M_current_state.flag_ & ~RELEASE_INTERFERE )
                                                   | ( state_1st.flag_ & ~RELEASE_INTERFERE )
                                                   | state_2nd.flag_ );
@@ -1822,6 +1828,7 @@ KickTable::simulateThreeStep( const WorldModel & world,
         }
 
         M_candidates.push_back( Sequence() );
+        M_candidates.back().index_ = count;
         M_candidates.back().flag_ = ( ( M_current_state.flag_ & ~RELEASE_INTERFERE )
                                       | ( state_1st.flag_ & ~RELEASE_INTERFERE )
                                       | state_2nd.flag_
@@ -1834,7 +1841,8 @@ KickTable::simulateThreeStep( const WorldModel & world,
 
 #ifdef DEBUG_THREE_STEP
         dlog.addText( Logger::KICK,
-                      "ok__ 3 step: last_power=%.2f sub1=(%.2f %.2f) sub2(%.2f %.2f)",
+                      "%zd: ok__ 3 step: last_power=%.2f sub1=(%.2f %.2f) sub2(%.2f %.2f)",
+                      count,
                       M_candidates.back().power_,
                       state_1st.pos_.x, state_1st.pos_.y,
                       state_2nd.pos_.x, state_2nd.pos_.y );
@@ -1941,21 +1949,14 @@ KickTable::evaluate( const double & first_speed,
             it->score_ -= 30.0;
 #ifdef DEBUG_EVALUATE
             dlog.addText( Logger::KICK,
-                          "____ sequence kick miss possibility flag=%x n_kick=%d speed=%.3f last_kick_power=%f",
-                          it->flag_,
-                          n_kick,
-                          it->speed_,
-                          it->power_ );
+                          "(eval) %d maybe kick failure flag=%x n_kick=%d speed=%.3f last_kick_power=%f",
+                          it->index_, it->flag_, n_kick, it->speed_, it->power_ );
 #endif
         }
 #ifdef DEBUG_EVALUATE
         dlog.addText( Logger::KICK,
-                      "__ sequence score %.2f flag=%x n_kick=%d speed=%.3f last_kick_power=%f",
-                      it->score_,
-                      it->flag_,
-                      n_kick,
-                      it->speed_,
-                      it->power_ );
+                      "(eval) %d score %.2f flag=%x n_kick=%d speed=%.3f last_kick_power=%f",
+                      it->index_, it->score_, it->flag_, n_kick, it->speed_, it->power_ );
 #endif
     }
 }

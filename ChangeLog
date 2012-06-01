@@ -1,5 +1,12 @@
 2012-06-01  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/action/kick_table.cpp:
+	* rcsc/action/kick_table.h:
+	- キックノイズの影響でボールを制御範囲外に出してしまうことがあるの
+	で，バッファの値を0.05から0.1へ変更
+	- 蹴り出した後に敵に妨害されると判定されるとそのままreturnでループ
+	を抜けてしまっていたので，続行できるようにcontinueに変更
+
 	* rcsc/player/world_model.cpp:
 	- 分身やワープが起きないように，信頼性が高くても背番号を認識できて
 	いないプレイヤを先に消去する方針に変更
