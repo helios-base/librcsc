@@ -318,10 +318,10 @@ PlayerObject::updateBySee( const SideID side,
             M_tackle_count = 0;
         }
     }
-    else
-    {
-        M_tackle_count = 1000;
-    }
+    // else
+    // {
+    //     M_tackle_count = 1000;
+    // }
 }
 
 /*-------------------------------------------------------------------*/

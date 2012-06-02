@@ -1,5 +1,9 @@
 2012-06-02  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/player_object.cpp:
+	- seeで認識したがタックルを観測出来なかった場合にカウントがリセッ
+	トされていたバグを修正
+
 	* rcsc/action/body_smart_kick.cpp:
 	* rcsc/action/kick_table.cpp:
 	- デバッグ出力修正
