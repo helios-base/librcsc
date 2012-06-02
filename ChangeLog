@@ -3,6 +3,7 @@
 	* rcsc/player/player_object.cpp:
 	- seeで認識したがタックルを観測出来なかった場合にカウントがリセッ
 	トされていたバグを修正
+	- 観測距離がvisible distanceより遠い場合はタックルカウントをリセットする
 
 	* rcsc/action/body_smart_kick.cpp:
 	* rcsc/action/kick_table.cpp:

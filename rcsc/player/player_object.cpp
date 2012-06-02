@@ -318,10 +318,10 @@ PlayerObject::updateBySee( const SideID side,
             M_tackle_count = 0;
         }
     }
-    // else
-    // {
-    //     M_tackle_count = 1000;
-    // }
+    else if ( p.rpos_.r2() > std::pow( ServerParam::i().visibleDistance(), 2 ) )
+    {
+        M_tackle_count = 1000;
+    }
 }
 
 /*-------------------------------------------------------------------*/
