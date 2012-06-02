@@ -1383,6 +1383,7 @@ KickTable::simulateOneStep( const WorldModel & world,
                                               world.ball().vel() );
         accel = max_vel - world.ball().vel();
         M_candidates.push_back( Sequence() );
+        M_candidates.back().index_ = 0;
         M_candidates.back().flag_ = M_current_state.flag_;
         M_candidates.back().pos_list_.push_back( world.ball().pos() + max_vel );
         M_candidates.back().speed_ = max_vel.r();
@@ -1391,6 +1392,7 @@ KickTable::simulateOneStep( const WorldModel & world,
     }
 
     M_candidates.push_back( Sequence() );
+    M_candidates.back().index_ = 0;
     M_candidates.back().flag_ = M_current_state.flag_;
     M_candidates.back().pos_list_.push_back( world.ball().pos() + target_vel );
     M_candidates.back().speed_ = first_speed;
@@ -1443,8 +1445,9 @@ KickTable::simulateTwoStep( const WorldModel & world,
 
     int success_count = 0;
     double max_speed2 = 0.0;
+    int index = -1;
 
-    for ( int i = 0; i < NUM_STATE; ++i )
+    for ( int i = 0; i < NUM_STATE; ++i, --index )
     {
         const State & state = M_state_cache[0][i];
 
@@ -1452,8 +1455,8 @@ KickTable::simulateTwoStep( const WorldModel & world,
         {
 #ifdef DEBUG_TWO_STEP
             dlog.addText( Logger::KICK,
-                          "xx__ 2 step: skip. out of pitch. state_pos=(%.2f %.2f)",
-                          state.pos_.x, state.pos_.y );
+                          "%d: xx__ 2 step: skip. out of pitch. state_pos=(%.2f %.2f)",
+                          index, state.pos_.x, state.pos_.y );
 #endif
             continue;
         }
@@ -1462,8 +1465,8 @@ KickTable::simulateTwoStep( const WorldModel & world,
         {
 #ifdef DEBUG_TWO_STEP
             dlog.addText( Logger::KICK,
-                          "xx__ 2 step: skip. exist kicable opp. state_pos=(%.2f %.2f)",
-                          state.pos_.x, state.pos_.y );
+                          "%d: xx__ 2 step: skip. exist kicable opp. state_pos=(%.2f %.2f)",
+                          index, state.pos_.x, state.pos_.y );
 #endif
             continue;
         }
@@ -1472,8 +1475,8 @@ KickTable::simulateTwoStep( const WorldModel & world,
         {
 #ifdef DEBUG_TWO_STEP
             dlog.addText( Logger::KICK,
-                          "xx__ 2 step: skip. self collision. state_pos=(%.2f %.2f)",
-                          state.pos_.x, state.pos_.y );
+                          "%d: xx__ 2 step: skip. self collision. state_pos=(%.2f %.2f)",
+                          index, state.pos_.x, state.pos_.y );
 #endif
             continue;
         }
@@ -1482,8 +1485,8 @@ KickTable::simulateTwoStep( const WorldModel & world,
         {
 #ifdef DEBUG_TWO_STEP
             dlog.addText( Logger::KICK,
-                          "xx__ 2 step: interfere after release. state_pos=(%.2f %.2f)",
-                          state.pos_.x, state.pos_.y );
+                          "%d: xx__ 2 step: interfere after release. state_pos=(%.2f %.2f)",
+                          index, state.pos_.x, state.pos_.y );
 #endif
             //return false;
             continue;
@@ -1500,8 +1503,8 @@ KickTable::simulateTwoStep( const WorldModel & world,
         {
 #ifdef DEBUG_TWO_STEP
             dlog.addText( Logger::KICK,
-                          "xx__ 2 step: failed(1) required_accel=%.3f > max_accel=%.3f",
-                          accel_r, current_max_accel );
+                          "%d: xx__ 2 step: failed(1) required_accel=%.3f > max_accel=%.3f",
+                          index, accel_r, current_max_accel );
 #endif
             continue;
         }
@@ -1517,10 +1520,10 @@ KickTable::simulateTwoStep( const WorldModel & world,
             {
 #ifdef DEBUG_TWO_STEP
                 dlog.addText( Logger::KICK,
-                              "xx__ 2 step: failed. buffer is not safety. power=%.3f"
+                              "%d: xx__ 2 step: failed. buffer is not safety. power=%.3f"
                               " my_kickable=%.3f state_dist=%.3f,"
                               " noise=%f(my_noise=%f ball_noise=%f kick_rand=%f)",
-                              kick_power,
+                              index, kick_power,
                               my_kickable_area, state.dist_,
                               ( my_noise + ball_noise + max_kick_rand ) * 0.9,
                               my_noise, ball_noise, max_kick_rand );
@@ -1538,8 +1541,8 @@ KickTable::simulateTwoStep( const WorldModel & world,
         {
 #ifdef DEBUG_TWO_STEP
             dlog.addText( Logger::KICK,
-                          "xx__ 2step: failed(2) required_accel=%.3f > max_accel=%.3f",
-                          accel_r, std::min( state.kick_rate_ * max_power, accel_max ) );
+                          "%d: xx__ 2step: failed(2) required_accel=%.3f > max_accel=%.3f",
+                          index, accel_r, std::min( state.kick_rate_ * max_power, accel_max ) );
 #endif
             if ( success_count == 0 )
             {
@@ -1556,6 +1559,7 @@ KickTable::simulateTwoStep( const WorldModel & world,
                     max_speed2 = d2;
                     accel = max_vel - vel;
 
+                    M_candidates.back().index_ = index;
                     M_candidates.back().flag_ = ( ( M_current_state.flag_ & ~RELEASE_INTERFERE )
                                                   | state.flag_ );
                     M_candidates.back().pos_list_.clear();
@@ -1565,8 +1569,8 @@ KickTable::simulateTwoStep( const WorldModel & world,
                     M_candidates.back().power_ = accel.r() / state.kick_rate_;
 #ifdef DEBUG_TWO_STEP
                     dlog.addText( Logger::KICK,
-                                  "____ update max vel (%.2f %.2f) %.3f",
-                                  max_vel.x, max_vel.y,
+                                  "%d: ____ update max vel (%.2f %.2f) %.3f",
+                                  index, max_vel.x, max_vel.y,
                                   M_candidates.back().speed_ );
 #endif
                 }
@@ -1575,6 +1579,7 @@ KickTable::simulateTwoStep( const WorldModel & world,
         }
 
         M_candidates.push_back( Sequence() );
+        M_candidates.back().index_ = index;
         M_candidates.back().flag_ = ( ( M_current_state.flag_ & ~RELEASE_INTERFERE )
                                       | state.flag_
                                       | kick_miss_flag );
@@ -1584,8 +1589,8 @@ KickTable::simulateTwoStep( const WorldModel & world,
         M_candidates.back().power_ = accel_r / state.kick_rate_;
 #ifdef DEBUG_TWO_STEP
         dlog.addText( Logger::KICK,
-                      "ok__ 2 step: last_power=%.2f subtarget=(%.2f %.2f)",
-                      M_candidates.back().power_,
+                      "%d: ok__ 2 step: last_power=%.2f subtarget=(%.2f %.2f)",
+                      index, M_candidates.back().power_,
                       state.pos_.x, state.pos_.y );
 #endif
     }

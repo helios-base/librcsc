@@ -1,5 +1,9 @@
 2012-06-02  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/action/body_smart_kick.cpp:
+	* rcsc/action/kick_table.cpp:
+	- デバッグ出力修正
+
 	* rcsc/action/kick_table.cpp:
 	- 衝突を起こすことがあるので，近い方の中間目標距離の率を0.2から0.3
 	に戻した

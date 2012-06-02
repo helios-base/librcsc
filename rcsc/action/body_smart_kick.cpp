@@ -83,12 +83,12 @@ Body_SmartKick::execute( PlayerAgent * agent )
     double first_speed_thr = std::max( 0.0, M_first_speed_thr );
     int max_step = std::max( 1, M_max_step );
 
-    if ( rcsc::KickTable::instance().simulate( wm,
-                                               M_target_point,
-                                               first_speed,
-                                               first_speed_thr,
-                                               max_step,
-                                               M_sequence )
+    if ( KickTable::instance().simulate( wm,
+                                         M_target_point,
+                                         first_speed,
+                                         first_speed_thr,
+                                         max_step,
+                                         M_sequence )
          || M_sequence.speed_ >= first_speed_thr )
     {
         agent->debugClient().addMessage( "SmartKick%d", (int)M_sequence.pos_list_.size() );
@@ -100,7 +100,7 @@ Body_SmartKick::execute( PlayerAgent * agent )
             agent->debugClient().addCircle( *p, 0.05 );
         }
 #endif
-        dlog.addText( rcsc::Logger::KICK,
+        dlog.addText( Logger::KICK,
                       __FILE__": Success! target=(%.2f %.2f)"
                       " speed=%.3f first_speed_thr=%.3f"
                       " max_step=%d -> achieved_speed=%.3f power=%.2f step=%d",
@@ -128,7 +128,7 @@ Body_SmartKick::execute( PlayerAgent * agent )
     // failed to search the kick sequence
 
     agent->debugClient().addMessage( "SmartKick.Hold" );
-    dlog.addText( rcsc::Logger::KICK,
+    dlog.addText( Logger::KICK,
                   __FILE__": Failed! target=(%.2f %.2f)"
                   " speed=%.3f first_speed_thr=%.3f"
                   " max_step=%d -> speed=%.3f power=%.2f step=%d",
