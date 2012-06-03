@@ -845,14 +845,13 @@ Body_HoldBall2008::keepReverse( PlayerAgent * agent )
 
     double keep_dist
         = wm.self().playerType().playerSize()
-        + wm.self().playerType().kickableMargin() * 0.7
+        + wm.self().playerType().kickableMargin() * 0.5
         + ServerParam::i().ballSize();
 
+    const Vector2D unit_vec = Vector2D::polar2vector( 1.0, keep_angle );
     for ( ; keep_dist > min_dist; keep_dist -= 0.05 )
     {
-        Vector2D keep_pos
-            = my_inertia
-            + Vector2D::polar2vector( keep_dist, keep_angle );
+        Vector2D keep_pos = my_inertia + unit_vec * keep_dist;
 
         if ( keep_pos.absX() > max_pitch_x
              || keep_pos.absY() > max_pitch_y )
