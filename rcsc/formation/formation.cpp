@@ -96,8 +96,22 @@ Formation::create( const std::string & name )
 Formation::Ptr
 Formation::create( std::istream & is )
 {
+    std::string line_buf;
     std::string temp, type;
-    is >> temp >> type;
+
+    while ( std::getline( is, line_buf ) )
+    {
+        if ( line_buf.empty()
+             || line_buf[0] == '#'
+             || ! line_buf.compare( 0, 2, "//" ) )
+        {
+            continue;
+        }
+
+        std::istringstream istr( line_buf );
+        istr >> temp >> type;
+        break;
+    }
 
     is.seekg( 0 );
     return create( type );
@@ -109,8 +123,8 @@ Formation::create( std::istream & is )
 
  */
 Formation::Formation()
-    : M_version( 0 )
-    , M_samples( new SampleDataSet() )
+    : M_version( 0 ),
+      M_samples( new SampleDataSet() )
 {
     for ( int i = 0; i < 11; ++i )
     {
@@ -306,16 +320,16 @@ Formation::read( std::istream & is )
     // check symmetry number circuration reference
     for ( int i = 0; i < 11; ++i )
     {
-        int refered_unum = M_symmetry_number[i];
-        if ( refered_unum <= 0 ) continue;
-        if ( M_symmetry_number[refered_unum - 1] > 0 )
+        int referred_unum = M_symmetry_number[i];
+        if ( referred_unum <= 0 ) continue;
+        if ( M_symmetry_number[referred_unum - 1] > 0 )
         {
-            std::cerr << __FILE__ << ":" << __LINE__
-                      << " *** ERROR *** failed to read formation."
-                      << " Bad symmetrying. player "
-                      << i + 1
-                      << " mirro = " << refered_unum
-                      << " is already symmetrying player"
+            std::cerr << __FILE__ << ' ' << __LINE__
+                      << ": *** ERROR *** failed to read formation."
+                      << " Bad symmetry data."
+                      << " player " << i + 1
+                      << " (mirro r= " << referred_unum
+                      << ") is already a symmetry tye player."
                       << std::endl;
             return false;
         }
@@ -342,9 +356,24 @@ Formation::print( std::ostream & os ) const
 /*!
 
  */
+std::ostream &
+Formation::printComment( std::ostream & os,
+                         const std::string & msg ) const
+{
+    if ( os ) os << "# " << msg << '\n';
+
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
 bool
 Formation::readHeader( std::istream & is )
 {
+    std::cerr << __FILE__ << ": (readHeader) start" << std::endl;
+
     std::string line_buf;
 
     while ( std::getline( is, line_buf ) )

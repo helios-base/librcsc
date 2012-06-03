@@ -1,3 +1,9 @@
+2012-06-03  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/formation/formation.cpp:
+	* rcsc/formation/formation.h:
+	- フォーメーション設定ファイルにコメントを書き込むメソッドを追加
+
 2012-06-02  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/player_object.cpp:

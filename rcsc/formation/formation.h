@@ -329,6 +329,15 @@ public:
     */
     std::ostream & print( std::ostream & os ) const;
 
+    /*!
+      \print write the comment message to the output stream
+      \param os reference to the output stream
+      \param msg comment message
+      \return reference to the output stream
+     */
+    std::ostream & printComment( std::ostream & os,
+                                 const std::string & msg ) const;
+
 
 protected:
 
