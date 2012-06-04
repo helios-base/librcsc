@@ -1,5 +1,10 @@
 2012-06-04  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/action/body_kick_to_relative.cpp:
+	* rcsc/action/body_kick_to_relative.h:
+	- 敵の妨害チェック関数を追加．実際にはまだ使用していない
+	- 変数名命名規則の統一
+
 	* rcsc/action/body_hold_ball2008.cpp:
 	- ボールをキープする距離をkickable_margin*0.7から*0.5へ変更
 

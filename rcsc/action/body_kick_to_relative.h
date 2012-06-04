@@ -63,14 +63,14 @@ public:
       \brief construct with all parameters
       \param target_dist target point distance from self
       \param target_angle_relative target point angle relative to body
-      \param stop if true, agent should stop the ball at target point
+      \param stop if this valus is true, agent should stop the ball at target point
     */
     Body_KickToRelative( const double & target_dist,
                          const AngleDeg & target_angle_relative,
                          const bool stop )
-        : M_target_dist( target_dist )
-        , M_target_angle_relative( target_angle_relative )
-        , M_stop_ball( stop )
+        : M_target_dist( target_dist ),
+          M_target_angle_relative( target_angle_relative ),
+          M_stop_ball( stop )
       { }
 
     /*!

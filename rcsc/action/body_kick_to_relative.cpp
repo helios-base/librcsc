@@ -43,10 +43,54 @@
 #include <rcsc/soccer_math.h>
 #include <rcsc/math_util.h>
 
+// #define DEBUG_PRINT
+// #define CHECK_OPPONENT
+
 namespace rcsc {
 
 namespace {
+
 const size_t DEFAULT_KICK_QUEUE_MAX = 5;
+
+bool
+exist_opponent( const WorldModel & wm,
+                const Vector2D & ball_pos )
+{
+#ifdef DEBUG_PRINT
+    dlog.addText( Logger::ACTION,
+                  __FILE__":(exit_opponent) ball_pos=(%.2f %.2f)",
+                  ball_pos.x, ball_pos.y );
+#endif
+    for ( PlayerObject::Cont::const_iterator p = wm.opponentsFromSelf().begin(),
+              end = wm.opponentsFromSelf().end();
+          p != end;
+          ++p )
+    {
+        if ( (*p)->posCount() >= 4 ) continue;
+        if ( (*p)->distFromSelf() > 2.0 ) break;
+
+        const PlayerType * ptype = (*p)->playerTypePtr();
+        const double control_area = ( (*p)->goalie()
+                                      && ball_pos.x > ServerParam::i().theirPenaltyAreaLineX()
+                                      && ball_pos.absY() < ServerParam::i().penaltyAreaHalfWidth()
+                                      ? ptype->maxCatchableDist() + 0.15
+                                      : ptype->kickableArea() + 0.15 );
+        const Vector2D opponent_pos = (*p)->pos() + (*p)->vel();
+
+        if ( opponent_pos.dist2( ball_pos ) < std::pow( control_area, 2 ) )
+        {
+#ifdef DEBUG_PRINT
+            dlog.addText( Logger::ACTION,
+                          __FILE__":(exit_opponent) found opponent[%d](%.2f %.2f)",
+                          (*p)->unum(), (*p)->pos().x, (*p)->pos().y );
+#endif
+            return false;
+        }
+    }
+
+    return true;
+}
+
 }
 
 /*-------------------------------------------------------------------*/
@@ -59,7 +103,7 @@ Body_KickToRelative::execute( PlayerAgent * agent )
     const WorldModel & wm = agent->world();
 
     dlog.addText( Logger::ACTION,
-                  __FILE__": (execute) dist=%.2f  rel_angle=%.1f",
+                  __FILE__":(execute) dist=%.2f  rel_angle=%.1f",
                   M_target_dist, M_target_angle_relative.degree() );
 
     if ( ! wm.self().isKickable() )
@@ -68,22 +112,19 @@ Body_KickToRelative::execute( PlayerAgent * agent )
                   << " not ball kickable!"
                   << std::endl;
         dlog.addText( Logger::ACTION,
-                      __FILE__": (execute)  not kickable" );
+                      __FILE__":(execute)  not kickable" );
         return false;
     }
 
     if ( M_stop_ball )
     {
-        if ( std::fabs( M_target_dist - wm.ball().distFromSelf() )
-             <= 0.1 )
+        if ( std::fabs( M_target_dist - wm.ball().distFromSelf() ) <= 0.1 )
         {
-            AngleDeg ball_rang
-                = wm.ball().angleFromSelf()
-                - wm.self().body();
-            if ( ( M_target_angle_relative - ball_rang ).abs() < 4.0 )
+            AngleDeg ball_angle = wm.ball().angleFromSelf() - wm.self().body();
+            if ( ( M_target_angle_relative - ball_angle ).abs() < 4.0 )
             {
                 dlog.addText( Logger::ACTION,
-                              __FILE__": (execute) already there. stop the ball" );
+                              __FILE__":(execute) already there. stop the ball" );
                 return Body_StopBall().execute( agent );
             }
         }
@@ -96,29 +137,27 @@ Body_KickToRelative::execute( PlayerAgent * agent )
          && ! simulate( wm, true, &required_accel ) ) // simulate far side rotation
     {
         dlog.addText( Logger::ACTION,
-                      __FILE__": (execute) failed. stop the ball" );
+                      __FILE__":(execute) failed. stop the ball" );
         return Body_StopBall().execute( agent );
     }
 
     const double accel_radius = required_accel.r();
     const AngleDeg accel_angle = required_accel.th();
+
+    const double kick_power = std::min( accel_radius / wm.self().kickRate(),
+                                        ServerParam::i().maxPower() );
     dlog.addText( Logger::ACTION,
-                  __FILE__": (execute) accel=(%.2f, %.2f) polar=(%.2f %.1f)"
-                  " ball_dist=%.3f, max_accel=%.3f",
+                  __FILE__": (execute) accel=(%.2f, %.2f) kick_power=%.3f kick_angle=%.1f",
                   required_accel.x, required_accel.y,
-                  accel_radius, accel_angle.degree(),
-                  wm.ball().distFromSelf(),
-                  wm.self().kickRate() * ServerParam::i().maxPower() );
+                  kick_power, accel_angle.degree() );
+
     if ( accel_radius < 0.02 )
     {
         dlog.addText( Logger::ACTION,
-                      __FILE__": (execute) accell is very small. not needed to kick." );
-        agent->doTurn( 0.0 );
-        return false;
+                      __FILE__":(execute) accel is very small. not needed to kick." );
     }
 
-    return agent->doKick( accel_radius / wm.self().kickRate(),
-                          accel_angle - wm.self().body() );
+    return agent->doKick( kick_power, accel_angle - wm.self().body() );
 }
 
 /*-------------------------------------------------------------------*/
@@ -130,17 +169,16 @@ Body_KickToRelative::simulate( const WorldModel & wm,
                                const bool reverse,
                                Vector2D * required_accel )
 {
-    /*----------------------------------------------------------*/
     // now, we do NOT consider about opponent players
     // it may be necessary to check opponents in high level decisions.
 
-    const double ROTATE_DIST
-        = wm.self().playerType().playerSize()
-        + wm.self().playerType().kickableMargin() * 0.5;
+    const PlayerType & ptype = wm.self().playerType();
 
-    /*-------------------------------------------------------------------*/
+    const double ROTATE_DIST = ptype.playerSize()
+        + ptype.kickableMargin() * 0.5
+        + ServerParam::i().ballSize();
+
     std::list< Vector2D > subtarget_rpos;
-
     // subtarget_rpos.front() must be current ball relative pos (angle is global)
     // subtarget_rpos.back()  must be always target relative pos (angle is global)
 
@@ -164,7 +202,9 @@ Body_KickToRelative::simulate( const WorldModel & wm,
         Vector2D ball_vel = wm.ball().vel();
         Vector2D my_pos( 0.0, 0.0 ); // relative to current position
         Vector2D my_vel = wm.self().vel();
-
+#ifdef CHECK_OPPONENT
+        bool first = true;
+#endif
         std::list< Vector2D >::iterator it = subtarget_rpos.begin();
         ++it;
         while ( it != subtarget_rpos.end() )
@@ -173,30 +213,31 @@ Body_KickToRelative::simulate( const WorldModel & wm,
 
             // TODO: opponent check
 
-            Vector2D ball_rel_pos = ball_rpos + my_pos;
+            Vector2D ball_pos = my_pos + ball_rpos;
 
             my_pos += my_vel;
-            my_vel *= wm.self().playerType().playerDecay();
+            my_vel *= ptype.playerDecay();
 
-            Vector2D next_ball_rel_pos = *it + my_pos;
+            Vector2D next_ball_pos = my_pos + *it;
 
-            Vector2D accel = ( next_ball_rel_pos
-                               - ball_rel_pos
-                               - ball_vel );
+            Vector2D new_ball_vel = next_ball_pos - ball_pos;
+            Vector2D accel = new_ball_vel - ball_vel;
             double ball_rel_dir = ( ball_rpos.th() - wm.self().body() ).degree();
-            double krate
-                = kick_rate( ball_rpos.r(),
-                             ball_rel_dir,
-                             wm.self().playerType().kickPowerRate(), //ServerParam::i().kickPowerRate(),
-                             ServerParam::i().ballSize(),
-                             wm.self().playerType().playerSize(),
-                             wm.self().playerType().kickableMargin() );
+            double krate = ptype.kickRate( ball_rpos.r(), ball_rel_dir );
+
             // cannot reach to sub-target
-            if ( accel.r() > ServerParam::i().maxPower() * krate )
+            if ( accel.r2() > std::pow( ServerParam::i().maxPower() * krate, 2 ) )
             {
                 break;
             }
-
+#ifdef CHECK_OPPONENT
+            if ( first
+                 && exist_opponent( wm, wm.self().pos() + next_ball_pos ) )
+            {
+                break;
+            }
+            first = false;
+#endif
             ball_vel += accel;
             ball_vel *= ServerParam::i().ballDecay();
             ball_rpos = *it;
@@ -210,13 +251,8 @@ Body_KickToRelative::simulate( const WorldModel & wm,
             if ( M_stop_ball )
             {
                 // check if I can stop the ball.
-                double krate
-                    = kick_rate( M_target_dist,
-                                 M_target_angle_relative.degree(),
-                                 wm.self().playerType().kickPowerRate(), //ServerParam::i().kickPowerRate(),
-                                 ServerParam::i().ballSize(),
-                                 wm.self().playerType().playerSize(),
-                                 wm.self().playerType().kickableMargin() );
+                double krate = ptype.kickRate( M_target_dist,
+                                               M_target_angle_relative.degree() );
                 double ball_speed = ball_vel.r();
                 if ( ball_speed < ServerParam::i().maxPower() * krate )
                 {
