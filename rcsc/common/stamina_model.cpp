@@ -310,7 +310,8 @@ StaminaModel::simulate( const PlayerType & player_type,
 */
 double
 StaminaModel::getSafetyDashPower( const PlayerType & player_type,
-                                  const double & dash_power ) const
+                                  const double dash_power,
+                                  const double stamina_buffer ) const
 {
     double normalized_power = ServerParam::i().normalizeDashPower( dash_power );
 
@@ -338,7 +339,7 @@ StaminaModel::getSafetyDashPower( const PlayerType & player_type,
 
     double threshold = ( capacityIsEmpty()
                          ? -player_type.extraStamina()
-                         : ServerParam::i().recoverDecThrValue() + 1.0 );
+                         : ServerParam::i().recoverDecThrValue() + std::max( stamina_buffer, 1.0 ) );
     double safety_stamina = stamina() - threshold;
     double available_stamina = std::max( 0.0, safety_stamina );
     double result_power = std::min( required_stamina, available_stamina );

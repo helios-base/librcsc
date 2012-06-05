@@ -74,6 +74,12 @@ Body_StopDash::execute( PlayerAgent * agent )
     double best_dir = -360.0;
     double best_result_speed = 100.0;
     double best_dash_power = 0.0;
+    double best_consumed_stamina = 100000.0;
+
+    dlog.addText( Logger::ACTION,
+                  __FILE__": self_vel=(%.3f %.3f)",
+                  wm.self().vel().x, wm.self().vel().y );
+
 
     for ( double dir = min_dash_angle;
           dir < max_dash_angle;
@@ -82,15 +88,19 @@ Body_StopDash::execute( PlayerAgent * agent )
         const double dash_rate = wm.self().dashRate() * SP.dashDirRate( dir );
         const AngleDeg dash_angle = wm.self().body() + SP.discretizeDashAngle( dir );
         Vector2D rel_vel = wm.self().vel();
-        rel_vel.rotate( - dash_angle );
+        rel_vel.rotate( -dash_angle );
 
-        double dash_power = - rel_vel.x / dash_rate;
+        double dash_power = -rel_vel.x / dash_rate;
         dash_power = SP.normalizeDashPower( dash_power );
 
         if ( M_save_recovery )
         {
             dash_power = wm.self().getSafetyDashPower( dash_power );
         }
+
+        double consumed_stamina = ( dash_power > 0.0
+                                    ? dash_power
+                                    : dash_power * -2.0 );
 
         Vector2D result_vel
             = wm.self().vel()
@@ -99,16 +109,24 @@ Body_StopDash::execute( PlayerAgent * agent )
         double result_speed = result_vel.r();
 
         dlog.addText( Logger::ACTION,
-                      __FILE__": dir=%.1f (angle=%.1f) dash_power=%.2f result_vel=(%.2f %.2f) speed=%.2f",
+                      __FILE__": dir=%.1f (angle=%.1f) self_rel_vel=(%.3f %.3f) dash_rate=%f",
+                      dir, dash_angle.degree(),
+                      rel_vel.x, rel_vel.y,  dash_rate );
+
+        dlog.addText( Logger::ACTION,
+                      __FILE__": dir=%.1f (angle=%.1f) dash_power=%.2f result_vel=(%.3f %.3f) speed=%.3f",
                       dir, dash_angle.degree(),
                       dash_power,
                       result_vel.x, result_vel.y, result_speed );
 
-        if ( result_speed < best_result_speed )
+        if ( ( std::fabs( result_speed - best_result_speed ) < 1.0e-3
+               && best_consumed_stamina > consumed_stamina )
+             || result_speed < best_result_speed - 1.0e-3 )
         {
             best_dir = dir;
             best_result_speed = result_speed;
             best_dash_power = dash_power;
+            best_consumed_stamina = consumed_stamina;
         }
     }
 

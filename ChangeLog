@@ -1,3 +1,15 @@
+2012-06-06  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/action/body_stop_dash.cpp:
+	- ほぼ同じ効果が得られる場合はスタミナ消費が小さいものを選択するように変更
+
+	* rcsc/common/stamina_model.cpp:
+	* rcsc/common/stamina_model.h:
+	- getSafetyDashPower()の第3引数で残すスタミナの値を指定できるように変更
+
+	* rcsc/geom/line_2d.h:
+	- インデント修正
+
 2012-06-04  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/action/body_kick_to_relative.cpp:

@@ -239,10 +239,12 @@ public:
       \brief get dash power to save recovery
       \param player_type heterogeneous player type
       \param dash_power desired dash power
+      \param stamina_buffer try to remain this value of stamina
       \return result dash power
     */
     double getSafetyDashPower( const PlayerType & player_type,
-                               const double & dash_power ) const;
+                               const double dash_power,
+                               const double stamina_buffer = 1.0 ) const;
 };
 
 }

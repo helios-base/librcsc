@@ -103,7 +103,7 @@ public:
       \return const reference to itself
     */
     const Line2D & assign( const Vector2D & p1,
-                     const Vector2D & p2 )
+                           const Vector2D & p2 )
       {
           M_a = -( p2.y - p1.y );
           M_b = p2.x - p1.x;
