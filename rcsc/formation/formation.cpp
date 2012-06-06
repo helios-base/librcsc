@@ -372,8 +372,6 @@ Formation::printComment( std::ostream & os,
 bool
 Formation::readHeader( std::istream & is )
 {
-    std::cerr << __FILE__ << ": (readHeader) start" << std::endl;
-
     std::string line_buf;
 
     while ( std::getline( is, line_buf ) )
