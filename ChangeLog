@@ -1,5 +1,9 @@
 2012-06-06  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/world_model.cpp:
+	- 相対位置の差分による速度更新に失敗した場合に，絶対位置の差分によ
+	る速度更新を行う機能を追加
+
 	* rcsc/formation/formation.cpp:
 	- 不要なコンソール出力を削除
 

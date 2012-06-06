@@ -69,7 +69,7 @@
 // #define DEBUG_PRINT_BALL_UPDATE
 // #define DEBUG_PRINT_PLAYER_UPDATE
 // #define DEBUG_PRINT_PLAYER_UPDATE_DETAIL
-#define DEBUG_PRINT_GOALIE_UPDATE
+// #define DEBUG_PRINT_GOALIE_UPDATE
 
 // #define DEBUG_PRINT_LINES
 
@@ -2371,6 +2371,25 @@ WorldModel::localizeBall( const VisualSensor & see,
                                   gvel, vel_error, vel_count );
     }
 
+    if ( ! gvel.isValid() )
+    {
+        if ( see.balls().front().dist_ < 2.0
+             && prevBall().seenPosCount() == 0
+             && prevBall().rposCount() == 0
+             && prevBall().rpos().r() < 2.0 )
+        {
+            gvel = pos - prevBall().pos();
+            vel_error += pos_error + prevBall().posError() + prevBall().velError();
+            vel_count = 2;
+#ifdef DEBUG_PRINT_BALL_UPDATE
+            dlog.addText( Logger::WORLD,
+                          __FILE__" (localizeBall) estimate velocity by position diff vel(%.3f %.3f)",
+                          gvel.x, gvel.y );
+#endif
+        }
+    }
+
+
     //////////////////////////////////////////////////////////////////
     // set data
 
@@ -2455,7 +2474,7 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
             dlog.addText( Logger::WORLD,
                           "________ rpos(%.3f %.3f) prev_rpos(%.3f %.3f)",
                           rpos.x, rpos.y,
-                          ball().rposPrev().x, ball().rposPrev().y );
+                          prevBall().rpos().x, prevBall().rpos().y );
             dlog.addText( Logger::WORLD,
                           "________ diff(%.3f %.3f) my_move(%.3f %.3f) -> vel(%.2f, %2f)",
                           rpos_diff.x, rpos_diff.y,
