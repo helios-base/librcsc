@@ -1,5 +1,8 @@
 2012-06-07  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* configure.ac:
+	- バージョン文字列をrc12へ更新
+
 	* rcsc/player/world_model.cpp:
 	- lastKickerUnum()を追加．精度は保証されない．自分自身がキックした
 	場合のみ，確実に記録される
