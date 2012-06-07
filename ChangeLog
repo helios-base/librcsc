@@ -1,3 +1,9 @@
+2012-06-07  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/world_model.cpp:
+	- lastKickerUnum()を追加．精度は保証されない．自分自身がキックした
+	場合のみ，確実に記録される
+
 2012-06-06  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/world_model.cpp:

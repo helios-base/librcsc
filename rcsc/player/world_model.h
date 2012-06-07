@@ -156,7 +156,8 @@ private:
     const PlayerObject * M_kickable_opponent; //!< kickable opponent
     const PlayerObject * M_maybe_kickable_opponent; //!< kickable opponent
 
-    SideID M_last_kicker_side; //!< last ball kicked player's side
+    SideID M_last_kicker_side; //!< estimated last ball kicker player's side
+    int M_last_kicker_unum; //!< estimated last ball kicker player's uniform number
 
     //////////////////////////////////////////////////
     // player type management
@@ -1024,6 +1025,12 @@ public:
       \return side id
      */
     SideID lastKickerSide() const { return M_last_kicker_side; }
+
+    /*!
+      \brief get the estimated last kicker's uniform number
+      \return uniform number
+     */
+    int lastKickerUnum() const { return M_last_kicker_unum; }
 
     /*!
       \brief get player type Id of teammate

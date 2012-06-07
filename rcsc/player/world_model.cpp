@@ -395,6 +395,7 @@ WorldModel::WorldModel()
       M_kickable_opponent( static_cast< const PlayerObject * >( 0 ) ),
       M_maybe_kickable_opponent( static_cast< const PlayerObject * >( 0 ) ),
       M_last_kicker_side( NEUTRAL ),
+      M_last_kicker_unum( Unum_Unknown ),
       M_view_area_cont( MAX_RECORD, ViewArea() )
 {
     assert( M_intercept_table );
@@ -4721,14 +4722,21 @@ WorldModel::updateLastKicker()
         if ( gameMode().isOurSetPlay( ourSide() ) )
         {
             M_last_kicker_side = ourSide();
+            M_last_kicker_unum = ( teammatesFromBall().empty()
+                                   ? Unum_Unknown
+                                   : teammatesFromBall().front()->unum() );
         }
         else if ( gameMode().isTheirSetPlay( ourSide() ) )
         {
             M_last_kicker_side = theirSide();
+            M_last_kicker_unum = ( opponentsFromBall().empty()
+                                   ? Unum_Unknown
+                                   : opponentsFromBall().front()->unum() );
         }
         else
         {
             M_last_kicker_side = NEUTRAL;
+            M_last_kicker_unum = Unum_Unknown;
         }
 
         return;
@@ -4737,7 +4745,7 @@ WorldModel::updateLastKicker()
     if ( self().isKicking() )
     {
         M_last_kicker_side = ourSide();
-
+        M_last_kicker_unum = self().unum();
         dlog.addText( Logger::WORLD,
                       __FILE__" (updateLastKicker) self kicked" );
         return;
@@ -4764,8 +4772,7 @@ WorldModel::updateLastKicker()
                                                ? teammatesFromBall()
                                                : opponentsFromBall() );
 
-        for ( PlayerObject::Cont::const_iterator p = players.begin(),
-                  end = players.end();
+        for ( PlayerObject::Cont::const_iterator p = players.begin(), end = players.end();
               p != end;
               ++p )
         {
@@ -4827,6 +4834,7 @@ WorldModel::updateLastKicker()
                 if ( kicker->side() != theirSide() )
                 {
                     M_last_kicker_side = ourSide();
+                    M_last_kicker_unum = kicker->unum();
                     dlog.addText( Logger::WORLD,
                                   __FILE__" (updateLastKicker) set by 1 seen kicker. side=%d unum=%d -> teammate",
                                   ( kicker->side() == LEFT ? 'L' : kicker->side() == RIGHT ? 'R' : 'N' ),
@@ -4835,6 +4843,7 @@ WorldModel::updateLastKicker()
                 else
                 {
                     M_last_kicker_side = theirSide();
+                    M_last_kicker_unum = kicker->unum();
                     dlog.addText( Logger::WORLD,
                                   __FILE__" (updateLastKicker) set by 1 seen kicker. side=%d unum=%d -> opponent",
                                   kicker->side(),
@@ -4845,7 +4854,9 @@ WorldModel::updateLastKicker()
         }
 
         bool exist_teammate_kicker = false;
+        int teammate_kicker_unum = Unum_Unknown;
         bool exist_opponent_kicker = false;
+        int opponent_kicker_unum = Unum_Unknown;
         for ( AbstractPlayerObject::Cont::const_iterator p = kickers.begin();
               p != kickers.end();
               ++p )
@@ -4859,11 +4870,13 @@ WorldModel::updateLastKicker()
             {
                 // teammate
                 exist_teammate_kicker = true;
+                teammate_kicker_unum = (*p)->unum();
             }
             else
             {
                 // opponent
                 exist_opponent_kicker = true;
+                opponent_kicker_unum = (*p)->unum();
             }
         }
 
@@ -4871,6 +4884,7 @@ WorldModel::updateLastKicker()
              && exist_opponent_kicker )
         {
             M_last_kicker_side = NEUTRAL;
+            M_last_kicker_unum = Unum_Unknown;
             dlog.addText( Logger::WORLD,
                           __FILE__" (updateLastKicker) set by seen kicker(s). NEUTRAL"
                           " kicked by teammate and opponent" );
@@ -4878,6 +4892,7 @@ WorldModel::updateLastKicker()
         else if ( ! exist_opponent_kicker )
         {
             M_last_kicker_side = ourSide();
+            M_last_kicker_unum = teammate_kicker_unum;
             dlog.addText( Logger::WORLD,
                           __FILE__" (updateLastKicker) set by seen kicker(s). TEAMMATE"
                           " kicked by teammate or unknown" );
@@ -4885,6 +4900,7 @@ WorldModel::updateLastKicker()
         else if ( ! exist_teammate_kicker )
         {
             M_last_kicker_side = theirSide();
+            M_last_kicker_unum = opponent_kicker_unum;
             dlog.addText( Logger::WORLD,
                           __FILE__" (updateLastKicker) set by seen kicker(s). OPPONENT"
                           " kicked by opponent" );
@@ -4963,6 +4979,7 @@ WorldModel::updateLastKicker()
                 if ( nearest->side() != theirSide() )
                 {
                     M_last_kicker_side = ourSide();
+                    M_last_kicker_unum = nearest->unum();
                     dlog.addText( Logger::WORLD,
                                   __FILE__" (updateLastKicker) set by nearest teammate or unknown."
                                   " side=%c unum=%d",
@@ -4974,6 +4991,7 @@ WorldModel::updateLastKicker()
                 else
                 {
                     M_last_kicker_side = theirSide();
+                    M_last_kicker_unum = nearest->unum();
                     dlog.addText( Logger::WORLD,
                                   __FILE__" (updateLastKicker) set by nearest opponent."
                                   " side=%c unum=%d",
@@ -4991,6 +5009,7 @@ WorldModel::updateLastKicker()
              && exist_opponent_kicker )
         {
             M_last_kicker_side = NEUTRAL;
+            M_last_kicker_unum = Unum_Unknown;
             dlog.addText( Logger::WORLD,
                           __FILE__" (updateLastKicker) set NEUTRAL." );
             return;
@@ -5000,6 +5019,7 @@ WorldModel::updateLastKicker()
     if ( ! kickers.empty() )
     {
         bool exist_teammate_kicker = false;
+        int teammate_kicker_unum = Unum_Unknown;
         for ( AbstractPlayerObject::Cont::const_iterator p = kickers.begin();
               p != kickers.end();
               ++p )
@@ -5007,12 +5027,14 @@ WorldModel::updateLastKicker()
             if ( (*p)->side() == ourSide() )
             {
                 exist_teammate_kicker = true;
+                teammate_kicker_unum = (*p)->unum();
             }
         }
 
         if ( exist_teammate_kicker )
         {
             M_last_kicker_side = ourSide();
+            M_last_kicker_unum = teammate_kicker_unum;
 
             dlog.addText( Logger::WORLD,
                           __FILE__" (updateLastKicker) set by seen teammate kicker." );
