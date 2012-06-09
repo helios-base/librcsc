@@ -493,12 +493,11 @@ BallObject::updateOnlyVel( const Vector2D & vel,
 
  */
 void
-BallObject::setOpponentControlEffect()
+BallObject::setPlayerKickable()
 {
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::WORLD,
-                  __FILE__" (setOpponentControlEffect)"
-                  " velocity is set to Zero." );
+                  __FILE__" (setPlayerKickable) velocity is set to Zero." );
 #endif
     M_vel_error += vel();
     M_vel_count += 1;

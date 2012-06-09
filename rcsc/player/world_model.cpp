@@ -2007,13 +2007,14 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
 #if 1
     // 2008-04-18: akiyama
     // set the effect of opponent kickable state to the ball velocity
-    if ( M_kickable_opponent
+    if ( ( M_kickable_opponent
+           || M_kickable_teammate ) // 2012-06-08 added
          && ! self().isKickable() )
     {
         dlog.addText( Logger::WORLD,
                       __FILE__" (updateJustBeforeDecision) : exist kickable opp. ball vel is set to 0." );
 
-        M_ball.setOpponentControlEffect();
+        M_ball.setPlayerKickable();
     }
 #endif
 

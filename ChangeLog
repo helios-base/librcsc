@@ -1,3 +1,10 @@
+2012-06-09  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/ball_object.cpp:
+	* rcsc/player/ball_object.h:
+	* rcsc/player/world_model.cpp:
+	- 味方がボールキック可能と推定された場合もボール速度を0にするルールを追加
+
 2012-06-07  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* configure.ac:

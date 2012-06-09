@@ -350,9 +350,9 @@ public:
                         const int vel_count );
 
     /*!
-      \brief update by opponent control effect
+      \brief update by other player's kickable effect
      */
-    void setOpponentControlEffect();
+    void setPlayerKickable();
 
     /*!
       \brief update position by see info (not include velocity)
