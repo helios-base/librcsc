@@ -1,3 +1,8 @@
+2012-06-11  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/player_intercept.cpp:
+	- 敵味方共にボーナスステップを信頼性カウント-1に変更
+
 2012-06-10  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/action/body_go_to_point.cpp:

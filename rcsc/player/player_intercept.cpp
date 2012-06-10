@@ -98,8 +98,10 @@ get_bonus_step( const PlayerObject & p,
     return p.side() == our_side
         // ? std::min( 3, std::min( p.heardPosCount(), p.seenPosCount() ) )
         // : std::min( 6, std::min( p.heardPosCount(), p.seenPosCount() ) );
-        ? std::min( 3, std::min( p.heardPosCount(), p.seenPosCount() ) )
-        : std::min( 3, std::min( p.heardPosCount(), p.seenPosCount() ) );
+        // ? std::min( 3, std::min( p.heardPosCount(), p.seenPosCount() ) )
+        // : std::min( 3, std::min( p.heardPosCount(), p.seenPosCount() ) );
+        ? std::min( 3, std::max( 0, std::min( p.heardPosCount(), p.seenPosCount() ) - 1 ) )
+        : std::min( 3, std::max( 0, std::min( p.heardPosCount(), p.seenPosCount() ) - 1 ) );
 }
 
 /*-------------------------------------------------------------------*/
