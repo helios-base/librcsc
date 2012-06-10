@@ -418,8 +418,8 @@ Body_GoToPoint::doOmniDash( PlayerAgent * agent )
     {
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::ACTION,
-                      __FILE__": (doAdjustDash) over adjustable distance. %f",
-                      target_rel.r() );
+                      __FILE__": (doOmniDash) over adjustable distance. %.3f  dist_thr=%.3f omni_thr=%.3f",
+                      target_rel.r(), M_dist_thr, M_omni_dash_dist_thr );
 #endif
         return false;
     }
@@ -430,7 +430,7 @@ Body_GoToPoint::doOmniDash( PlayerAgent * agent )
     {
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::ACTION,
-                      __FILE__": (doAdjustDash) target_y_diff=%.3f, omni dash is not required.",
+                      __FILE__": (doOmniDash) target_y_diff=%.3f, omni dash is not required.",
                       target_rel.y );
 #endif
         return false;
@@ -442,7 +442,7 @@ Body_GoToPoint::doOmniDash( PlayerAgent * agent )
     {
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::ACTION,
-                      __FILE__": (doAdjustDash) target_angle=%.3f dir_thr=%.3f omni dash is not required.",
+                      __FILE__": (doOmniDash) target_angle=%.3f dir_thr=%.3f omni dash is not required.",
                       target_angle.degree(), M_dir_thr );
 #endif
         return false;
@@ -601,7 +601,7 @@ Body_GoToPoint::doOmniDash( PlayerAgent * agent )
 #ifdef DEBUG_PRINT
         agent->debugClient().addMessage( "OmniDash%.0f", best_dir );
         dlog.addText( Logger::ACTION,
-                      __FILE__": (doAdjustDash) power=%.3f dir=%.1f",
+                      __FILE__": (doOmniDash) power=%.3f dir=%.1f",
                       best_dash_power, dash_angle.degree() );
 #endif
         return agent->doDash( best_dash_power, dash_angle );
