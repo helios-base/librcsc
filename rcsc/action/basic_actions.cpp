@@ -40,6 +40,7 @@
 #include "neck_scan_players.h"
 
 #include <rcsc/player/player_agent.h>
+#include <rcsc/player/intercept_table.h>
 #include <rcsc/common/logger.h>
 #include <rcsc/common/server_param.h>
 #include <rcsc/math_util.h>
@@ -317,6 +318,17 @@ Neck_TurnToBall::execute( PlayerAgent * agent )
         return true;
     }
 
+    if ( wm.interceptTable()->opponentReachStep() <= 1 )
+    {
+        AngleDeg neck_moment = ball_rel_angle_next - wm.self().neck();
+        dlog.addText( Logger::ACTION,
+                      __FILE__": (Neck_TurnToBall) opponent intercept. check ball. moment=%.1f",
+                      neck_moment.degree() );
+        agent->debugClient().addMessage( "NeckBall:Opponent" );
+        agent->doTurnNeck( neck_moment );
+        return true;
+    }
+
     double angle_buf = std::max( 0.0, next_view_width * 0.5 - 10.0 ); //[200803] 15.0
 
     const PlayerObject * opp = wm.getOpponentNearestToBall( 10 );
@@ -340,7 +352,7 @@ Neck_TurnToBall::execute( PlayerAgent * agent )
 
     //
     // if possible,
-    // face to the angle that contans the largest number of players.
+    // face to the angle that contains the largest number of players.
     //
     if ( wm.opponentsFromSelf().size() >= 11
          && ( wm.ball().pos().x > 0.0

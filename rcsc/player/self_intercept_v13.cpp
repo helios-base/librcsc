@@ -43,6 +43,7 @@
 #include <rcsc/common/logger.h>
 #include <rcsc/common/server_param.h>
 #include <rcsc/common/player_type.h>
+#include <rcsc/geom/matrix_2d.h>
 #include <rcsc/geom/segment_2d.h>
 #include <rcsc/geom/vector_2d.h>
 #include <rcsc/soccer_math.h>
@@ -123,7 +124,7 @@ SelfInterceptV13::predict( const int max_cycle,
           it != end;
           ++it )
     {
-        Vector2D bpos = M_world.ball().inertiaPoint( it->reachCycle() );
+        //Vector2D bpos = M_world.ball().inertiaPoint( it->reachCycle() );
         dlog.addText( Logger::INTERCEPT,
                       "(SelfIntercept) type=%d cycle=%d (turn=%d dash=%d)"
                       " power=%.2f angle=%.1f"
@@ -1510,13 +1511,14 @@ SelfInterceptV13::predictOmniDashShort( const int cycle,
         //
 
         const Vector2D body_accel_unit = Vector2D::polar2vector( 1.0, body_angle );
+        const Matrix2D body_rotate_matrix = Matrix2D::make_rotation( -body_angle );
 
         for ( int n_dash = n_omni_dash + 1 ; n_dash <= cycle; ++n_dash )
         {
             double first_speed = calc_first_term_geom_series( ( ball_pos - my_pos ).rotatedVector( -body_angle ).x,
                                                               ptype.playerDecay(),
                                                               cycle - n_dash + 1 );
-            Vector2D rel_vel = my_vel.rotatedVector( -body_angle );
+            Vector2D rel_vel = body_rotate_matrix.transform( my_vel );
             double required_accel = first_speed - rel_vel.x;
             double dash_power = required_accel / ( ptype.dashRate( stamina_model.effort() ) );
             if ( back_dash ) dash_power = -dash_power;
@@ -1553,9 +1555,12 @@ SelfInterceptV13::predictOmniDashShort( const int cycle,
         }
 
         const Vector2D my_move = my_pos - self.pos();
+        const Vector2D final_ball_rel = ( ball_pos -self.pos() ).rotatedVector( -my_move.th() );
 
         if ( my_pos.dist2( ball_pos ) < std::pow( control_area - control_area_buf, 2 )
-             || my_move.r() > ( ball_pos - self.pos() ).rotatedVector( - my_move.th() ).absX() )
+            //|| my_move.r() > ( ball_pos - self.pos() ).rotatedVector( - my_move.th() ).absX() )
+             || ( final_ball_rel.absY() < control_area - control_area_buf
+                  && my_move.r2() > std::pow( final_ball_rel.x, 2 ) ) )
         {
             InterceptInfo::Mode mode = ( stamina_model.recovery() < M_world.self().recovery()
                                          && ! stamina_model.capacityIsEmpty()

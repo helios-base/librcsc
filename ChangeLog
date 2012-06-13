@@ -1,3 +1,12 @@
+2012-06-14  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/action/basic_actions.cpp:
+	- Neck_TurnToBallを修正．敵のボール捕捉サイクル数が1以下の場合はボー
+	ル方向へ確実に首を向けるルールを追加
+
+	* rcsc/player/self_intercept_v13.cpp:
+	- 全方位インターセプトを修正．成功判定条件が誤っていた
+
 2012-06-13  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/action/body_go_to_point.cpp:
