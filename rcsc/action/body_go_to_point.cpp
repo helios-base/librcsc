@@ -49,7 +49,7 @@
 
 // #define USE_OMNI_DASH_2012
 
-// #define DEBUG_PRINT
+#define DEBUG_PRINT
 
 namespace rcsc {
 
@@ -190,15 +190,17 @@ Body_GoToPoint::checkGoalPost( const PlayerAgent * agent )
     }
 
     const AngleDeg post_angle = ( nearest_post - wm.self().pos() ).th();
+    const AngleDeg target_angle = ( M_target_point - wm.self().pos() ).th();
+
     Vector2D new_target = nearest_post;
 
-    if ( post_angle.isLeftOf( wm.self().body() ) )
+    if ( post_angle.isLeftOf( target_angle ) )
     {
-        new_target += Vector2D::from_polar( collision_dist + 0.1, post_angle + 90.0 );
+        new_target += Vector2D::from_polar( collision_dist + 5.0, post_angle + 90.0 );
     }
     else
     {
-        new_target += Vector2D::from_polar( collision_dist + 0.1, post_angle - 90.0 );
+        new_target += Vector2D::from_polar( collision_dist + 5.0, post_angle - 90.0 );
     }
 
 #ifdef DEBUG_PRINT
