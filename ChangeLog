@@ -1,3 +1,8 @@
+2012-06-13  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/player_intercept.cpp:
+	- 他のプレイヤへのボーナスステップを修正．ceil(信頼性カウント*0.5)に変更
+
 2012-06-11  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/player_intercept.cpp:
