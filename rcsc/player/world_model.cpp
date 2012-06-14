@@ -5009,10 +5009,20 @@ WorldModel::updateLastKicker()
         if ( exist_teammate_kicker
              && exist_opponent_kicker )
         {
-            M_last_kicker_side = NEUTRAL;
-            M_last_kicker_unum = Unum_Unknown;
-            dlog.addText( Logger::WORLD,
-                          __FILE__" (updateLastKicker) set NEUTRAL." );
+            if ( M_last_kicker_side == ourSide()
+                 && M_last_kicker_unum != Unum_Unknown )
+            {
+                dlog.addText( Logger::WORLD,
+                              __FILE__" (updateLastKicker) keep last kicker. teammate %d",
+                              M_last_kicker_unum );
+            }
+            else
+            {
+                M_last_kicker_side = NEUTRAL;
+                M_last_kicker_unum = Unum_Unknown;
+                dlog.addText( Logger::WORLD,
+                              __FILE__" (updateLastKicker) set NEUTRAL." );
+            }
             return;
         }
     }

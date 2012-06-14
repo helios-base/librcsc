@@ -1,5 +1,10 @@
 2012-06-14  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/world_model.cpp:
+	- 最後のキッカーが味方だった場合に次の更新で不具合が起きることがあっ
+	たので修正．味方プレイヤがキッカブルの場合に速度0とするように変更
+	したことの影響
+
 	* rcsc/action/basic_actions.cpp:
 	- Neck_TurnToBallを修正．敵のボール捕捉サイクル数が1以下の場合はボー
 	ル方向へ確実に首を向けるルールを追加
