@@ -1,3 +1,9 @@
+2012-06-17  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/ball_object.cpp:
+	- コミュニケーションによる情報更新のしきい値を修正．自分が見た情報
+	を優先する
+
 2012-06-16  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/abstract_player_object.cpp:

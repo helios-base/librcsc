@@ -609,14 +609,17 @@ BallObject::updateByHear( const ActionEffector & act,
 
     if ( pass
          && heard_vel.isValid()
-         && seenVelCount() > 0 )
+         && seenVelCount() > 1 )
     {
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::WORLD,
                       __FILE__" (updateByHear) update by pass." );
 #endif
-        M_pos = heard_pos;
-        M_pos_count = 1;
+        if ( seenPosCount() > 1 )
+        {
+            M_pos = heard_pos;
+            M_pos_count = 1;
+        }
         M_vel = heard_vel;
         M_vel_count = 1;
         return;
