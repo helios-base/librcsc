@@ -76,6 +76,7 @@ SelfObject::SelfObject()
       M_tackle_expires( 0 ),
       M_charged_expires( 0 ),
       M_arm_movable( 0 ),
+      M_arm_expires( 0 ),
       M_pointto_pos( Vector2D::INVALIDATED ),
       M_last_pointto_time( 0, 0 ),
       M_attentionto_side( NEUTRAL ),
@@ -339,10 +340,12 @@ SelfObject::update( const ActionEffector & act,
     ++M_seen_vel_count;
     ++M_body_count;
     ++M_face_count;
+    M_pointto_count = std::min( 1000, M_pointto_count + 1 );
 
     // update action effect count
     M_tackle_expires = std::max( 0, M_tackle_expires - 1 );
     M_arm_movable = std::max( 0, M_arm_movable - 1 );
+    M_arm_expires = std::max( 0, M_arm_expires - 1 );
 
     M_charged_expires = std::max( 0, M_charged_expires - 1 );
 
@@ -644,6 +647,7 @@ SelfObject::updateAfterSenseBody( const BodySensor & sense,
         if ( sense.armExpires() == 0 )
         {
             M_pointto_pos.invalidate();
+            M_pointto_count = 1000;
         }
 
         ////////////////////////////////////////////////////
@@ -707,10 +711,15 @@ SelfObject::updateAfterSenseBody( const BodySensor & sense,
 #endif
 
     M_tackle_expires = sense.tackleExpires();
-    M_arm_movable = sense.armMovable();
 
+    // arm
+    M_arm_movable = sense.armMovable();
+    M_arm_expires = sense.armExpires();
+
+    // foul
     M_charged_expires = sense.chargedExpires();
 
+    // card
     M_card = sense.card();
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::WORLD,

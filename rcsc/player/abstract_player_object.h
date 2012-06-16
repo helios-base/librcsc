@@ -87,6 +87,9 @@ protected:
     AngleDeg M_face; //!< global neck angle
     int M_face_count; //!< face angle accuracy
 
+    AngleDeg M_pointto_angle; //!< global pointing angle
+    int M_pointto_count; //!< time count since the last pointto observation
+
     bool M_kicking; //!< kicking state
 
     double M_dist_from_ball; //!< distance from ball
@@ -382,6 +385,24 @@ public:
     int faceCount() const
       {
           return M_face_count;
+      }
+
+    /*!
+      \brief get global pointing angle
+      \return const reference to the angle object
+    */
+    const AngleDeg & pointtoAngle() const
+      {
+          return M_pointto_angle; // global pointing angle
+      }
+
+    /*!
+      \brief get global pointing angle accuracy
+      \return count from last observation
+    */
+    int pointtoCount() const
+      {
+          return M_pointto_count;
       }
 
     /*!

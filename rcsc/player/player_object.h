@@ -74,9 +74,6 @@ private:
 
     int M_ghost_count; //!< count that this object is recognized as a ghost object.
 
-    AngleDeg M_pointto_angle; //!< global pointing angle
-    int M_pointto_count; //!< time count since the last pointto observation
-
     int M_tackle_count; //!< time count since the last tackle observation
 
 public:
@@ -135,24 +132,6 @@ public:
     int ghostCount() const
       {
           return M_ghost_count;
-      }
-
-    /*!
-      \brief get global pointing angle
-      \return const reference to the angle object
-    */
-    const AngleDeg & pointtoAngle() const
-      {
-          return M_pointto_angle; // global pointing angle
-      }
-
-    /*!
-      \brief get global pointing angle accuracy
-      \return count from last observation
-    */
-    int pointtoCount() const
-      {
-          return M_pointto_count;
       }
 
     /*!

@@ -1,3 +1,15 @@
+2012-06-16  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/abstract_player_object.cpp:
+	* rcsc/player/abstract_player_object.h:
+	* rcsc/player/body_sensor.h:
+	* rcsc/player/player_object.cpp:
+	* rcsc/player/player_object.h:
+	* rcsc/player/self_object.cpp:
+	* rcsc/player/self_object.h:
+	- M_pointto_angleとM_pointto_countをAbstractPlayerObjectへ移動
+	- SelfObject::armExpires()を追加
+
 2012-06-14  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/world_model.cpp:

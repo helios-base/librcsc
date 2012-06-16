@@ -85,7 +85,7 @@ public:
     double M_pointto_dist;
 
     /*!
-      the direction of the point the player is pointing to, relative to the
+      the direction of the point where the player is pointing to, relative to the
       player's face angle, accurate to 0.1 deg.
     */
     double M_pointto_dir;

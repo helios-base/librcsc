@@ -58,8 +58,6 @@ int PlayerObject::S_player_count = 0;
 PlayerObject::PlayerObject()
     : AbstractPlayerObject( ++S_player_count ),
       M_ghost_count( 0 ),
-      M_pointto_angle( 0.0 ),
-      M_pointto_count( 1000 ),
       M_tackle_count( 1000 )
 {
 
@@ -73,8 +71,6 @@ PlayerObject::PlayerObject( const SideID side,
                             const Localization::PlayerT & p )
     : AbstractPlayerObject( ++S_player_count, side, p ),
       M_ghost_count( 0 ),
-      M_pointto_angle( 0.0 ),
-      M_pointto_count( 1000 ),
       M_tackle_count( 1000 )
 {
     M_dist_from_self = p.rpos_.r();

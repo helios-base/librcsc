@@ -85,6 +85,7 @@ private:
     int M_charged_expires; //!< foul charged expires. if positive, agent cannot perfome any body action.
 
     int M_arm_movable; //!< cycles till arm movable
+    int M_arm_expires; //!< cycles till arm stops pointing
     Vector2D M_pointto_rpos; //!< estimated pointing position relative to the neck
     Vector2D M_pointto_pos; //!< estimated pointing position
     GameTime M_last_pointto_time; //!< action performed time
@@ -310,12 +311,21 @@ public:
       }
 
     /*!
-      \brief get arm movable count
+      \brief get arm movable count. if this value equals 0, agent can perform pointto command.
       \return cycles till arm is movable
     */
     int armMovable() const
       {
           return M_arm_movable;
+      }
+
+    /*!
+      \brief get am expires count. if this value equals 0, agent is not pointing anywhere.
+      \return cycles till arm stops pointing.
+     */
+    int armExpires() const
+      {
+          return M_arm_expires;
       }
 
     /*!
@@ -663,6 +673,11 @@ public:
       {
           M_pointto_pos = point;
           M_last_pointto_time = done_time;
+          if ( pos().isValid() )
+          {
+              M_pointto_angle = ( point - pos() ).th();
+              M_pointto_count = 0;
+          }
       }
 
     /*!
