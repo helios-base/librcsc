@@ -96,8 +96,10 @@ get_bonus_step( const PlayerObject & p,
                 const SideID our_side )
 {
     return p.side() == our_side
-        ? std::min( 3, static_cast< int >( std::ceil( std::min( p.heardPosCount(), p.seenPosCount() ) * 0.5 ) ) )
-        : std::min( 3, static_cast< int >( std::ceil( std::min( p.heardPosCount(), p.seenPosCount() ) * 0.5 ) ) );
+        // ? std::min( 3, static_cast< int >( std::ceil( std::min( p.heardPosCount(), p.seenPosCount() ) * 0.75 ) ) )
+        // : std::min( 3, static_cast< int >( std::ceil( std::min( p.heardPosCount(), p.seenPosCount() ) * 0.75 ) ) );
+        ? std::min( 3, std::min( p.heardPosCount(), p.seenPosCount() ) )
+        : std::min( 3, std::min( p.heardPosCount(), p.seenPosCount() ) );
 }
 
 /*-------------------------------------------------------------------*/

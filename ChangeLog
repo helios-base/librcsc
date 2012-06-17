@@ -1,5 +1,11 @@
 2012-06-17  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/player_intercept.cpp:
+	- 他のプレイヤに与えるボーナスステップの方針を元に戻した
+
+	* rcsc/player/world_model.cpp:
+	- 味方がキック可能な場合にボール速度0にするルールを無効化
+
 	* rcsc/player/ball_object.cpp:
 	- コミュニケーションによる情報更新のしきい値を修正．自分が見た情報
 	を優先する
