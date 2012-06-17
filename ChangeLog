@@ -3,6 +3,7 @@
 	* rcsc/player/ball_object.cpp:
 	- コミュニケーションによる情報更新のしきい値を修正．自分が見た情報
 	を優先する
+	- 優先するのは位置情報のみとする
 
 2012-06-16  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 

@@ -609,7 +609,7 @@ BallObject::updateByHear( const ActionEffector & act,
 
     if ( pass
          && heard_vel.isValid()
-         && seenVelCount() > 1 )
+         && seenVelCount() > 0 )
     {
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::WORLD,
