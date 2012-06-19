@@ -150,6 +150,9 @@ Neck_ScanPlayers::get_best_angle( const PlayerAgent * agent,
 
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::ACTION,
+                  __FILE__": (get_best_angle) args min_neck_angle=%.1f max_neck_angle=%.1f",
+                  min_neck_angle, max_neck_angle );
+    dlog.addText( Logger::ACTION,
                   __FILE__": (get_best_angle) next_body=%.1f min_neck=%.1f max_neck=%.1f neck_step=%.1f",
                   next_self_body.degree(),
                   neck_min, neck_max,
@@ -157,7 +160,7 @@ Neck_ScanPlayers::get_best_angle( const PlayerAgent * agent,
 #endif
 
     double best_dir = INVALID_ANGLE;
-    double best_score = -std::numeric_limits< double >::max();
+    double best_score = 0.0; //-std::numeric_limits< double >::max();
 
     for ( double dir = neck_min; dir < neck_max + 0.5; dir += neck_step )
     {
@@ -197,7 +200,8 @@ Neck_ScanPlayers::get_best_angle( const PlayerAgent * agent,
 #endif
     }
 
-    if ( best_dir == INVALID_ANGLE )
+    if ( best_dir == INVALID_ANGLE
+         || std::fabs( best_score ) < 1.0e-5 )
     {
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::ACTION,

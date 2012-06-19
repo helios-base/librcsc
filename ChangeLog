@@ -1,5 +1,9 @@
 2012-06-19  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/action/neck_scan_players.cpp:
+	- 指定範囲内で敵を観測できそうにない場合に最初の候補が常に選択され
+	ていたバグを修正
+
 	* rcsc/player/world_model.cpp:
 	- 位置の差分でボール速度情報を更新する条件を修正．衝突が発生して通
 	常の推定が失敗した場合に，絶対一差分で速度情報を更新する範囲を拡大
