@@ -2026,8 +2026,8 @@ WorldModel::updatePlayerByHear()
 void
 WorldModel::updatePlayerStaminaByHear()
 {
-    dlog.addText( Logger::WORLD,
-                  "(updatePlayerStaminaByHear) start" );
+    // dlog.addText( Logger::WORLD,
+    //               "(updatePlayerStaminaByHear) start" );
 
     if ( M_audio_memory->recoveryTime() == this->time() )
     {
