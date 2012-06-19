@@ -202,8 +202,8 @@ BallObject::update( const ActionEffector & act,
         // if setplay playmode, ball does not move until playmode change to playon.
         // if the agent didin't see the ball in this setplay playmode,
         // the agent has to check the ball first.
-        if ( posCount() > 1
-             || ( rposCount() > 0
+        if ( posCount() >= 5
+             || ( rposCount() >= 2
                   && distFromSelf() < ServerParam::i().visibleDistance() )
              )
         {

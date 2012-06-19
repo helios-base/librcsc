@@ -1,5 +1,8 @@
 2012-06-19  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/ball_object.cpp:
+	- セットプレイ時に視界を広くしているとボールを見失ってしまうバグを修正
+
 	* rcsc/player/player_agent.cpp:
 	* rcsc/player/world_model.cpp:
 	* rcsc/player/world_model.h:
