@@ -2482,7 +2482,7 @@ WorldModel::localizeBall( const VisualSensor & see,
         if ( see.balls().front().dist_ < 2.0
              && prevBall().seenPosCount() == 0
              && prevBall().rposCount() == 0
-             && prevBall().rpos().r() < 2.0 )
+             && prevBall().rpos().r() < 5.0 )
         {
             gvel = pos - prevBall().pos();
             vel_error += pos_error + prevBall().posError() + prevBall().velError();
@@ -2545,6 +2545,9 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
                                       Vector2D & vel_error,
                                       int & vel_count )
 {
+
+
+
     if ( self().hasSensedCollision() )
     {
         if ( self().collidesWithPlayer()
