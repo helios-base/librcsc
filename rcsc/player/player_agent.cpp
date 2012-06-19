@@ -1991,12 +1991,11 @@ PlayerAgent::Impl::analyzeServerParam( const char * msg )
     ServerParam::instance().parse( msg, agent_.config().version() );
     PlayerTypeSet::instance().resetDefaultType();
 
-    agent_.M_worldmodel.setOurPlayerType( agent_.world().self().unum(),
-                                          Hetero_Default );
+    agent_.M_worldmodel.setServerParam();
+
     if ( agent_.config().debugFullstate() )
     {
-        agent_.M_fullstate_worldmodel.setOurPlayerType( agent_.fullstateWorld().self().unum(),
-                                                        Hetero_Default );
+        agent_.M_fullstate_worldmodel.setServerParam();
     }
 
     // update alarm interval

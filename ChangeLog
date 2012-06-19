@@ -1,3 +1,10 @@
+2012-06-19  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/player_agent.cpp:
+	* rcsc/player/world_model.cpp:
+	* rcsc/player/world_model.h:
+	- 聴覚情報で得たスタミナ情報を参照できるようにした
+
 2012-06-17  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/player_intercept.cpp:

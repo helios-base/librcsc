@@ -403,6 +403,8 @@ WorldModel::WorldModel()
 
     for ( int i = 0; i < 11; ++i )
     {
+        M_our_recovery[i] = 1.0;
+        M_our_stamina_capacity[i] = ServerParam::i().staminaCapacity();
         M_our_card[i] = NO_CARD;
         M_their_card[i] = NO_CARD;
     }
@@ -551,6 +553,22 @@ WorldModel::setAudioMemory( boost::shared_ptr< AudioMemory > memory )
     M_audio_memory = memory;
 }
 
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+WorldModel::setServerParam()
+{
+    for ( int i = 0; i < 12; ++i )
+    {
+        M_our_stamina_capacity[i] = ServerParam::i().staminaCapacity();
+    }
+
+    setOurPlayerType( self().unum(), Hetero_Default );
+}
+
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -597,6 +615,9 @@ WorldModel::setOurPlayerType( const int unum,
     dlog.addText( Logger::WORLD,
                   __FILE__" (setTeammatePlayerType) teammate %d to player_type %d",
                   unum, id );
+
+    M_our_recovery[unum - 1] = 1.0;
+    M_our_stamina_capacity[unum - 1] = ServerParam::i().staminaCapacity();
 
     M_our_player_type[unum - 1] = id;
     M_our_card[unum - 1] = NO_CARD;
@@ -929,6 +950,9 @@ WorldModel::updateAfterSenseBody( const BodySensor & sense_body,
         M_self.updateAfterSenseBody( sense_body, act, current );
         M_localize->updateBySenseBody( sense_body );
     }
+
+    M_our_recovery[self().unum() - 1] = self().recovery();
+    M_our_stamina_capacity[self().unum() - 1] = self().staminaCapacity();
 
     M_our_card[self().unum() - 1] = sense_body.card();
 
@@ -1492,6 +1516,30 @@ WorldModel::updateGameMode( const GameMode & game_mode,
         }
     }
 
+    if ( game_mode.type() == GameMode::BeforeKickOff )
+    {
+        int normal_time = ( ServerParam::i().halfTime() > 0
+                            && ServerParam::i().nrNormalHalfs() > 0
+                            ? ServerParam::i().actualHalfTime() * ServerParam::i().nrNormalHalfs()
+                            : 0 );
+
+        if ( current.cycle() < normal_time )
+        {
+            for ( int i = 0; i < 11; ++i )
+            {
+                M_our_recovery[i] = 1.0;
+                M_our_stamina_capacity[i] = ServerParam::i().staminaCapacity();
+            }
+        }
+        else
+        {
+            for ( int i = 0; i < 11; ++i )
+            {
+                M_our_stamina_capacity[i] = ServerParam::i().staminaCapacity();
+            }
+        }
+    }
+
     M_game_mode = game_mode;
 
     //
@@ -1976,6 +2024,60 @@ WorldModel::updatePlayerByHear()
 
  */
 void
+WorldModel::updatePlayerStaminaByHear()
+{
+    dlog.addText( Logger::WORLD,
+                  "(updatePlayerStaminaByHear) start" );
+
+    if ( M_audio_memory->recoveryTime() == this->time() )
+    {
+        for ( std::vector< AudioMemory::Recovery >::const_iterator
+                  it = M_audio_memory->recovery().begin();
+              it != M_audio_memory->recovery().end();
+              ++it )
+        {
+            if ( 1 <= it->sender_ && it->sender_ <= 11 )
+            {
+                M_our_recovery[it->sender_ - 1] = it->rate_;
+                dlog.addText( Logger::WORLD,
+                              "(updatePlayerStaminaByHear) unum=%d recovery=%.3f",
+                              it->sender_, it->rate_ );
+            }
+        }
+    }
+
+    if ( M_audio_memory->staminaCapacityTime() == this->time() )
+    {
+        for ( std::vector< AudioMemory::StaminaCapacity >::const_iterator
+                  it = M_audio_memory->staminaCapacity().begin();
+              it != M_audio_memory->staminaCapacity().end();
+              ++it )
+        {
+            if ( 1 <= it->sender_ && it->sender_ <= 11 )
+            {
+                M_our_stamina_capacity[it->sender_ - 1] = it->rate_ * ServerParam::i().staminaCapacity();
+                dlog.addText( Logger::WORLD,
+                              "(updatePlayerStaminaByHear) unum=%d capacity=%.2f (rate=%.3f)",
+                              it->sender_, M_our_stamina_capacity[it->sender_ - 1], it->rate_ );
+            }
+        }
+    }
+
+#if 0
+    for ( int i = 0; i < 11; ++i )
+    {
+        dlog.addText( Logger::WORLD,
+                      __FILE__": teammate[%d] stamina capacity=%.2f",
+                      i+1, M_our_stamina_capacity[i] );
+    }
+#endif
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
 WorldModel::updateJustBeforeDecision( const ActionEffector & act,
                                       const GameTime & current )
 {
@@ -1989,6 +2091,7 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
     updateBallByHear( act );
     updateGoalieByHear();
     updatePlayerByHear();
+    updatePlayerStaminaByHear();
 
     updateBallCollision();
 

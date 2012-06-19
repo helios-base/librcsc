@@ -135,6 +135,9 @@ private:
     AbstractPlayerObject * M_our_player_array[12]; //!< unum known teammates (include self)
     AbstractPlayerObject * M_their_player_array[12]; //!< unum known opponents (exclude unknown player)
 
+    double M_our_recovery[11]; //!< recovery value for each player
+    double M_our_stamina_capacity[11]; //!< stamina capacity for each player
+
     //////////////////////////////////////////////////
     // analyzed result
 
@@ -255,6 +258,11 @@ public:
       a dynamically allocated object.
      */
     void setAudioMemory( boost::shared_ptr< AudioMemory > memory );
+
+    /*!
+      \brief set server param. this method have to be called only once just after server_param message received.
+     */
+    void setServerParam();
 
     /*!
       \brief set our goalie's uniform number using strategic information or coach message.
@@ -521,9 +529,14 @@ private:
     void updateGoalieByHear();
 
     /*!
-      \brief update opponent goalie by heard info
+      \brief update players by heard info
     */
     void updatePlayerByHear();
+
+    /*!
+      \brief update other players' stamina by heard info
+    */
+    void updatePlayerStaminaByHear();
 
     /*!
       \brief update player type id of the recognized players
@@ -795,6 +808,26 @@ public:
       {
           if ( unum <= 0 || 11 < unum ) return M_their_player_array[0];
           return M_their_player_array[unum];
+      }
+
+    /*!
+      \brief get (heard) recovery value of the specified player
+      \return recovery value
+     */
+    double ourRecovery( const int unum ) const
+      {
+          if ( unum <= 0 || 11 < unum ) return 0.0;
+          return M_our_recovery[ unum - 1 ];
+      }
+
+    /*!
+      \brief get (heard) stamina capacity value of the specified player
+      \return recovery value
+     */
+    double ourStaminaCapacity( const int unum ) const
+      {
+          if ( unum <= 0 || 11 < unum ) return 0.0;
+          return M_our_stamina_capacity[ unum - 1 ];
       }
 
 private:
