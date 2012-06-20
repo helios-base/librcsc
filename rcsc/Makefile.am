@@ -36,7 +36,7 @@ librcsc_agent_la_LIBADD = \
 
 ##	action/librcsc_action_obsolete.la
 
-librcsc_agent_la_LDFLAGS = -version-info 7:0:0
+librcsc_agent_la_LDFLAGS = -version-info 8:0:0
 #libXXXX_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 #    1. Start with version information of `0:0:0' for each libtool library.
 #

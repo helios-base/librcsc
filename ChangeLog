@@ -1,5 +1,8 @@
 2012-06-20  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/Makefile.am:
+	- 誤使用回避のために共有ライブラリバージョンを8に変更
+
 	* rcsc/player/ball_object.cpp:
 	- コミュニケーションによる情報更新を修正．パスメッセージによる更新
 	を受け付ける信頼性カウントしきい値を1から0へ変更
