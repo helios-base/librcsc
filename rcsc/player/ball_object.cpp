@@ -615,7 +615,7 @@ BallObject::updateByHear( const ActionEffector & act,
         dlog.addText( Logger::WORLD,
                       __FILE__" (updateByHear) update by pass." );
 #endif
-        if ( seenPosCount() > 1 )
+        if ( seenPosCount() > 0 )
         {
             M_pos = heard_pos;
             M_pos_count = 1;
