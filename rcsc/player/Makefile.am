@@ -56,6 +56,7 @@ librcsc_playerinclude_HEADERS = \
 	player_evaluator.h \
 	player_intercept.h \
 	player_object.h \
+	player_object_updater.h \
 	player_predicate.h \
 	player_state.h \
 	say_message_builder.h \

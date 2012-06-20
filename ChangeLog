@@ -1,5 +1,8 @@
 2012-06-20  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/Makefile.am:
+	- 不足していたヘッダファイルを追加
+
 	* rcsc/player/world_model.cpp:
 	- オフサイドライン更新でプレイヤの移動量をめに見積るように変更
 
