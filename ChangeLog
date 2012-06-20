@@ -1,5 +1,8 @@
 2012-06-20  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/world_model.cpp:
+	- オフサイドライン更新でプレイヤの移動量をめに見積るように変更
+
 	* rcsc/Makefile.am:
 	- 誤使用回避のために共有ライブラリバージョンを8に変更
 

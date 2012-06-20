@@ -4605,21 +4605,25 @@ WorldModel::updateTheirOffenseLine()
 void
 WorldModel::updateTheirDefenseLine()
 {
-    const double speed_rate
-        = ( ball().vel().x < -1.0
-            ? ServerParam::i().defaultPlayerSpeedMax() * 0.8
-            : ServerParam::i().defaultPlayerSpeedMax() * 0.25 );
+    // const double speed_rate
+    //     = ( ball().vel().x < -0.1
+    //         ? ServerParam::i().defaultPlayerSpeedMax() * 0.8
+    //         : ServerParam::i().defaultPlayerSpeedMax() * 0.5 );
 
     //////////////////////////////////////////////////////////////////
     double first = 0.0, second = 0.0;
     int first_count = 1000, second_count = 1000;
+
+    const PlayerObject * first_player = static_cast< const PlayerObject * >( 0 );
+    const PlayerObject * second_player = static_cast< const PlayerObject * >( 0 );
 
     for ( PlayerObject::Cont::const_iterator it = M_opponents_from_self.begin(),
               end = M_opponents_from_self.end();
           it != end;
           ++it )
     {
-        double x = (*it)->pos().x;
+        double x = (*it)->pos().x + (*it)->vel().x;
+#if 0
 #if 1
         // 2008-04-29 akiyama
         if ( (*it)->velCount() <= 1
@@ -4637,21 +4641,48 @@ WorldModel::updateTheirDefenseLine()
         {
             x -= speed_rate * std::min( 10, (*it)->posCount() );
         }
+#endif
 
         if ( x > second )
         {
             second = x;
             second_count = (*it)->posCount();
+            second_player = *it;
             if ( second > first )
             {
                 std::swap( first, second );
                 std::swap( first_count, second_count );
+                std::swap( first_player, second_player );
             }
         }
     }
 
     double new_line = second;
     int count = second_count;
+
+#if 1
+    // 2012-06-20
+    {
+        const double rate = ( ball().vel().x < 0.0
+                              ? 0.8
+                              : 0.5 );
+        if ( second_player )
+        {
+            dlog.addText( Logger::WORLD,
+                          __FILE__" (updateTheirDefenseLine) new_line=%.2f second player[%d](%.2f %.2f) count=%d",
+                          new_line,
+                          second_player->unum(),
+                          second_player->pos().x, second_player->pos().y,
+                          second_player->posCount() );
+            new_line -= ( second_player->playerTypePtr()->realSpeedMax() * rate )
+                * std::min( 5, second_player->posCount() );
+        }
+        else
+        {
+            new_line -= ServerParam::i().defaultPlayerSpeedMax() * rate * std::min( 5, count );
+        }
+    }
+#endif
 
     const AbstractPlayerObject * goalie = getTheirGoalie();
     if ( ! goalie )
