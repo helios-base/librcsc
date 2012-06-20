@@ -142,6 +142,7 @@ private:
     // analyzed result
 
     double M_offside_line_x; //!< offside line x value
+    double M_prev_offside_line_x; //!< offside line x value
     int M_offside_line_count; //!< accuracy count of the offside line
 
     double M_our_offense_line_x; //!< our offense line x value(consider ball x)
@@ -978,7 +979,13 @@ public:
       \brief get estimated offside line x coordinate
       \return offside line
     */
-    const double & offsideLineX() const { return M_offside_line_x; }
+    double offsideLineX() const { return M_offside_line_x; }
+
+    /*!
+      \brief get estimated offside line x coordinate
+      \return offside line
+    */
+    double prevOffsideLineX() const { return M_offside_line_x; }
 
     /*!
       \brief get the accuracy count for the offside line
@@ -990,49 +997,49 @@ public:
       \brief our offense line (consider ball pos)
       \return our offense line x
     */
-    const double & ourOffenseLineX() const { return M_our_offense_line_x; }
+    double ourOffenseLineX() const { return M_our_offense_line_x; }
 
     /*!
       \brief get our defense line (consider ball pos)(offside line for opponent)
       \return our defense line x
     */
-    const double & ourDefenseLineX() const { return M_our_defense_line_x; }
+    double ourDefenseLineX() const { return M_our_defense_line_x; }
 
     /*!
       \brief get their offense line (consider ball pos)
       \return their offense line x
     */
-    const double & theirOffenseLineX() const { return M_their_offense_line_x; }
+    double theirOffenseLineX() const { return M_their_offense_line_x; }
 
     /*!
       \brief get their defense line x value (consider ball pos)
       \return their offense line x
     */
-    const double & theirDefenseLineX() const { return M_their_defense_line_x; }
+    double theirDefenseLineX() const { return M_their_defense_line_x; }
 
     /*!
       \brief get our offense player line (not consder ball pos)
       \return our offense player line x
     */
-    const double & ourOffensePlayerLineX() const { return M_our_offense_player_line_x; }
+    double ourOffensePlayerLineX() const { return M_our_offense_player_line_x; }
 
     /*!
       \brief get our defense player line (not consder ball pos)
       \return our defense player line x
     */
-    const double & ourDefensePlayerLineX() const { return M_our_defense_player_line_x; }
+    double ourDefensePlayerLineX() const { return M_our_defense_player_line_x; }
 
     /*!
       \brief get their offense player line (not consder ball pos)
       \return our defense player line x
     */
-    const double & theirOffensePlayerLineX() const { return M_their_offense_player_line_x; }
+    double theirOffensePlayerLineX() const { return M_their_offense_player_line_x; }
 
     /*!
       \brief get estimated their offense line x value
       \return their offense line x
     */
-    const double & theirDefensePlayerLineX() const { return M_their_defense_player_line_x; }
+    double theirDefensePlayerLineX() const { return M_their_defense_player_line_x; }
 
     /*!
       \brief get the estimated kickable teammate if exist.

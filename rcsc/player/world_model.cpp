@@ -381,6 +381,7 @@ WorldModel::WorldModel()
       M_our_goalie_unum( Unum_Unknown ),
       M_their_goalie_unum( Unum_Unknown ),
       M_offside_line_x( 0.0 ),
+      M_prev_offside_line_x( 0.0 ),
       M_offside_line_count( 0 ),
       M_our_offense_line_x( 0.0 ),
       M_our_defense_line_x( 0.0 ),
@@ -4334,7 +4335,7 @@ WorldModel::updateOffsideLine()
     if ( ! ServerParam::i().useOffside() )
     {
         M_offside_line_count = 0;
-        M_offside_line_x = ServerParam::i().pitchHalfLength();
+        M_offside_line_x = M_prev_offside_line_x = ServerParam::i().pitchHalfLength();
         return;
     }
 
@@ -4345,7 +4346,7 @@ WorldModel::updateOffsideLine()
          )
     {
         M_offside_line_count = 0;
-        M_offside_line_x = ServerParam::i().pitchHalfLength();
+        M_offside_line_x = M_prev_offside_line_x = ServerParam::i().pitchHalfLength();
         return;
     }
 
@@ -4355,7 +4356,7 @@ WorldModel::updateOffsideLine()
          )
     {
         M_offside_line_count = 0;
-        M_offside_line_x = ServerParam::i().theirPenaltyAreaLineX();
+        M_offside_line_x = M_prev_offside_line_x = ServerParam::i().pitchHalfLength();
         return;
     }
 
@@ -4388,13 +4389,14 @@ WorldModel::updateOffsideLine()
         }
     }
 
+    M_prev_offside_line_x = M_offside_line_x;
     M_offside_line_x = new_line;
     M_offside_line_count = count;
 
 #ifdef DEBUG_PRINT_LINES
     dlog.addText( Logger::WORLD,
-                  __FILE__" (updateOffsideLine) x=%.2f count=%d",
-                  new_line, count );
+                  __FILE__" (updateOffsideLine) prev=%.2f x=%.2f count=%d",
+                  M_prev_offside_line_x, new_line, count );
 #endif
 }
 
