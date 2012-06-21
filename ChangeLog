@@ -1,3 +1,9 @@
+2012-06-21  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/world_model.cpp:
+	- ディフェンスライン推定の不具合修正．プレイヤごとに信頼性に基づ
+	く移動見積もりを出していなかった
+
 2012-06-20  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/Makefile.am:
