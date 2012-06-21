@@ -4630,7 +4630,7 @@ WorldModel::updateTheirDefenseLine()
                         : 0.5 );
         x -= ( (*it)->playerTypePtr()->realSpeedMax() * rate ) * std::min( 5, (*it)->posCount() );
         dlog.addText( Logger::WORLD,
-                      __FILE__" (updateTheirDefenseLine) opponent[%d](%.2f %.2f) count=%d x=$.2f",
+                      __FILE__" (updateTheirDefenseLine) opponent[%d](%.2f %.2f) count=%d x=%.2f",
                       (*it)->unum(),
                       (*it)->pos().x, (*it)->pos().y,
                       (*it)->posCount(),
@@ -4725,11 +4725,11 @@ WorldModel::updateTheirDefenseLine()
     M_their_defense_line_x = new_line;
     M_their_defense_line_count = count;
 
-#ifdef DEBUG_PRINT_LINES
+    //#ifdef DEBUG_PRINT_LINES
     dlog.addText( Logger::WORLD,
                   __FILE__" (updateTheirDefenseLine) x=%.2f count=%d",
                   new_line, count );
-#endif
+    //#endif
 }
 
 
