@@ -1,3 +1,8 @@
+2012-07-01  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/ball_object.h:
+	- BallObject::ghostCount()を追加
+
 2012-06-21  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/world_model.cpp:

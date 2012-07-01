@@ -229,6 +229,11 @@ public:
     int heardVelCount() const { return M_heard_vel_count; }
 
     /*!
+      \brief get the number of ghost detection count
+     */
+    int ghostCount() const { return M_ghost_count; }
+
+    /*!
       \brief get count since ball lost
       \return cycle count since last observation
     */
