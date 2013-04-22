@@ -371,7 +371,7 @@ BasicSocket::sendDatagramPacket( const char * data,
 int
 BasicSocket::receiveDatagramPacket( char * buf,
                                     const std::size_t len,
-                                    const bool overwrite_dist_addr )
+                                    const bool overwrite_dest_addr )
 {
     AddrImpl::AddrType from_addr;
     socklen_t from_size = sizeof( AddrImpl::AddrType );
@@ -390,7 +390,7 @@ BasicSocket::receiveDatagramPacket( char * buf,
         return -1;
     }
 
-    if ( overwrite_dist_addr
+    if ( overwrite_dest_addr
          && from_addr.sin_port != 0 )
     {
         //std::cerr << "dest port = " << from.sin_port << std::endl;

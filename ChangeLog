@@ -1,3 +1,9 @@
+2013-04-22  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/net/basic_socket.cpp:
+	* rcsc/net/basic_socket.h:
+	- typoを修正
+
 2012-07-01  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/ball_object.h:

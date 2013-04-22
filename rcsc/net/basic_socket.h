@@ -158,15 +158,14 @@ protected:
       \brief receive datagram data from the connected remote host.
       \param buf buffer to receive data
       \param len maximal length of buffer buf
-      \param overwrite_dist_addr if this value is true,
-      set distination address to sender address of this packet.
+      \param overwrite_dest_addr if this value is true, the sender address of this packet is set as the destination address.
       \retval 0 error occured and errno is EWOULDBLOCK
       \retval -1 error occured
       \return the length of received data.
     */
     int receiveDatagramPacket( char * buf,
                                const std::size_t len,
-                               const bool overwrite_dist_addr = false );
+                               const bool overwrite_dest_addr = false );
 
 public:
 
