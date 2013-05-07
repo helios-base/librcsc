@@ -304,11 +304,43 @@ BasicSocket::close()
 /*!
 
 */
+std::string
+BasicSocket::getPeerName() const
+{
+    if ( fd() != 0
+         && M_dest )
+    {
+        return std::string( ::inet_ntoa( M_dest->addr_.sin_addr ) );
+    }
+
+    return std::string();
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+int
+BasicSocket::getPeerPort() const
+{
+    if ( fd() != 0
+         && M_dest )
+    {
+        return M_dest->addr_.sin_port;
+    }
+
+    return 0;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
 int
 BasicSocket::writeToStream( const char * msg,
                             const std::size_t len )
 {
-    int	n = ::send( fd(), msg, len, 0 );
+    int n = ::send( fd(), msg, len, 0 );
 
     if ( n == -1 )
     {
@@ -391,10 +423,12 @@ BasicSocket::receiveDatagramPacket( char * buf,
     }
 
     if ( overwrite_dest_addr
-         && from_addr.sin_port != 0 )
+         && from_addr.sin_port != 0
+         && from_addr.sin_port != M_dest->addr_.sin_port )
     {
         //std::cerr << "dest port = " << from.sin_port << std::endl;
-        M_dest->addr_.sin_port = from_addr.sin_port;
+        M_dest->addr_ = from_addr;
+        //M_dest->addr_.sin_port = from_addr.sin_port;
     }
 
     return n;

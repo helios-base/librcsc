@@ -1,3 +1,10 @@
+2013-05-07  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/net/basic_socket.cpp:
+	* rcsc/net/basic_socket.h:
+	- getPeerName()とgetPeerPort()を追加
+	- UDPパケット受信時に接続先ポート番号だけでなくアドレスを全て上書きするように変更
+
 2013-04-22  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/net/basic_socket.cpp:

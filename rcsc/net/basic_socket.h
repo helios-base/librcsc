@@ -33,6 +33,7 @@
 #define RCSC_NET_BASIC_SOCKET_H
 
 #include <boost/scoped_ptr.hpp>
+#include <string>
 #include <cstddef>
 
 namespace rcsc {
@@ -83,13 +84,6 @@ protected:
       \brief constructor for server socket
     */
     BasicSocket();
-
-    /*!
-      \brief set distination port
-      \param addr address implementation dependent address
-    */
-    void setDestPort( const void * addr );
-
 
     /*!
       \brief open socket
@@ -184,6 +178,17 @@ public:
     */
     int close();
 
+    /*!
+      \brief get the host name of destination address
+      \return host name string
+     */
+    std::string getPeerName() const;
+
+    /*!
+      \brief get the port number of destination address
+      \return port number
+     */
+    int getPeerPort() const;
 
     /*!
       \brief send stream data to the connected host.
