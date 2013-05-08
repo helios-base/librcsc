@@ -1,3 +1,14 @@
+2013-05-09  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* .gitignore:
+	- 無視するファイルの整理
+
+	* rcsc/net/abstract_socket.cpp:
+	* rcsc/net/abstract_socket.h:
+	* rcsc/net/host_address.cpp:
+	* rcsc/net/host_address.h:
+	- HostAddressクラスでソケットの実装を置き換え
+
 2013-05-08  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/net/host_address.cpp:

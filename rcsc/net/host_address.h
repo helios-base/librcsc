@@ -48,8 +48,10 @@ public:
     typedef struct sockaddr_in AddrType; //!< binary ipv4 host address type
 
 private:
-    class Impl;
 
+    class Impl; //!< pimpl idiom
+
+    //! internal implementation object
     boost::scoped_ptr< Impl > M_impl;
 
 public:
@@ -70,6 +72,11 @@ public:
       \param addr raw address object
      */
     HostAddress( const AddrType & addr );
+
+    /*!
+      \brief we need the destructor definition in order to use pimpl idiom with scoped_ptr
+     */
+    ~HostAddress();
 
     /*!
       \brief copy the host address data
@@ -99,6 +106,12 @@ public:
       \brief checked result.
      */
     bool equals( const HostAddress & addr ) const;
+
+    /*!
+      \brief set new address
+      \param addr raw address object
+     */
+    void setAddress( const AddrType & addr );
 
     /*
       \brief get port number of this address

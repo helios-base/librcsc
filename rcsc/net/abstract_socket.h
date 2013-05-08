@@ -32,6 +32,8 @@
 #ifndef RCSC_NET_ABSTRACT_SOCKET_H
 #define RCSC_NET_ABSTRACT_SOCKET_H
 
+#include <rcsc/net/host_address.h>
+
 #include <boost/scoped_ptr.hpp>
 
 #include <string>
@@ -39,21 +41,11 @@
 
 namespace rcsc {
 
-struct AddrImpl;
-
 /*!
   \class AbstractSocket
   \brief socket class
 */
 class AbstractSocket {
-private:
-    //! socket file descriptor
-    int M_fd;
-
-protected:
-    //! destination address
-    boost::scoped_ptr< AddrImpl > M_dest;
-
 public:
     /*!
       \enum SocketType
@@ -62,7 +54,18 @@ public:
     enum SocketType {
         DATAGRAM_TYPE,
         STREAM_TYPE,
+        UNKNOWN_TYPE,
     };
+
+private:
+    //! socket file descriptor
+    int M_fd;
+    //! socket type
+    int M_socket_type;
+
+protected:
+    //! destination address
+    HostAddress M_dest;
 
 public:
     /*!
@@ -101,7 +104,7 @@ protected:
 
     /*!
       \brief set the address info of the specified remote host.
-      \param hostname the name of remote host.(or IP address)
+      \param hostname the name of remote host (or IP address)
       \param port port number of remote host.
       \return true if generated binary address of remote host.
     */

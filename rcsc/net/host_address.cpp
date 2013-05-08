@@ -50,7 +50,6 @@
 
 namespace rcsc {
 
-
 class HostAddress::Impl {
 public:
     struct sockaddr_in addr_;
@@ -67,7 +66,6 @@ public:
                        sizeof( struct sockaddr_in ) );
       }
 };
-
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -97,6 +95,15 @@ HostAddress::HostAddress( const AddrType & addr )
     : M_impl( new Impl() )
 {
     M_impl->addr_ = addr;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+HostAddress::~HostAddress()
+{
+    M_impl->clear();
 }
 
 /*-------------------------------------------------------------------*/
@@ -153,6 +160,16 @@ bool
 HostAddress::equals( const HostAddress & addr ) const
 {
     return this->toIPV4Address() == addr.toIPV4Address();
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+void
+HostAddress::setAddress( const AddrType & addr )
+{
+    M_impl->addr_ = addr;
 }
 
 /*-------------------------------------------------------------------*/

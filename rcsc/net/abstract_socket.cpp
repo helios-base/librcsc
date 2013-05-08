@@ -68,30 +68,16 @@
 
 namespace rcsc {
 
-/*!
-  \struct AddrImpl
-  \brief Pimpl ideom. addres implementation class
-*/
-struct AddrImpl {
-    typedef struct sockaddr_in AddrType; //!< socket address type
-
-    AddrType addr_; //!< socket address
-    int socket_type_; //!< socket type {SOCK_STREAM|SOCK_DGRAM}
-};
-
-
 /*-------------------------------------------------------------------*/
 /*!
 
  */
 AbstractSocket::AbstractSocket()
     : M_fd( -1 ),
-      M_dest( new AddrImpl() )
+      M_socket_type( UNKNOWN_TYPE ),
+      M_dest()
 {
-    std::memset( reinterpret_cast< char * >( &(M_dest->addr_) ),
-                 0,
-                 sizeof( AddrImpl::AddrType ) );
-    M_dest->socket_type_ = -1;
+
 }
 
 /*-------------------------------------------------------------------*/
@@ -111,22 +97,20 @@ bool
 AbstractSocket::open( const SocketType type )
 {
 #ifdef HAVE_SOCKET
-    // create socket
-
-    switch( type ) {
-    case AbstractSocket::STREAM_TYPE:
-        M_dest->socket_type_ = SOCK_STREAM;
+    switch ( type ) {
+    case STREAM_TYPE:
+        M_socket_type = SOCK_STREAM;
         break;
-    case AbstractSocket::DATAGRAM_TYPE:
-        M_dest->socket_type_ = SOCK_DGRAM;
+    case DATAGRAM_TYPE:
+        M_socket_type = SOCK_DGRAM;
         break;
     default:
         std::cerr << "(AbstractSocket::open) ***ERROR*** unknown socket type."
                   << std::endl;
-        return -1;
+        return false;
     }
 
-    M_fd = ::socket( AF_INET, M_dest->socket_type_, 0 );
+    M_fd = ::socket( AF_INET, M_socket_type, 0 );
 #endif
 
     if ( fd() == -1 )
@@ -154,17 +138,17 @@ AbstractSocket::bind( const int port )
         return false;
     }
 
-    AddrImpl::AddrType my_addr;
+    HostAddress::AddrType my_addr;
     std::memset( reinterpret_cast< char * >( &my_addr ),
                  0,
-                 sizeof( AddrImpl::AddrType ) );
+                 sizeof( HostAddress::AddrType ) );
     my_addr.sin_family = AF_INET; // internet connection
     my_addr.sin_addr.s_addr = htonl( INADDR_ANY );
     my_addr.sin_port = htons( port );
 
     if ( ::bind( fd(),
                  reinterpret_cast< struct sockaddr * >( &my_addr ),
-                 sizeof( AddrImpl::AddrType ) ) < 0 )
+                 sizeof( HostAddress::AddrType ) ) < 0 )
     {
         std::cerr << "(AbstractSocket::bind) ***ERROR*** failed to bind."
                   << std::endl;
@@ -183,11 +167,13 @@ bool
 AbstractSocket::setAddr( const char * hostname,
                          const int port )
 {
+    HostAddress::AddrType dest_addr;
+
 #ifdef HAVE_GETADDRINFO
     struct addrinfo hints;
     std::memset( &hints, 0, sizeof( hints ) );
     hints.ai_family = AF_INET;
-    hints.ai_socktype = M_dest->socket_type_;
+    hints.ai_socktype = M_socket_type;
     hints.ai_protocol = 0;
 
     struct addrinfo * res;
@@ -203,10 +189,11 @@ AbstractSocket::setAddr( const char * hostname,
 
     }
 
-    M_dest->addr_.sin_addr.s_addr
-        = (reinterpret_cast< struct sockaddr_in * >(res->ai_addr))->sin_addr.s_addr;
-    M_dest->addr_.sin_family = AF_INET;
-    M_dest->addr_.sin_port = htons( port );
+    dest_addr.sin_addr.s_addr = (reinterpret_cast< struct sockaddr_in * >(res->ai_addr))->sin_addr.s_addr;
+    dest_addr.sin_family = AF_INET;
+    dest_addr.sin_port = htons( port );
+
+    M_dest.setAddress( dest_addr );
 
     ::freeaddrinfo( res );
     return true;
@@ -215,8 +202,8 @@ AbstractSocket::setAddr( const char * hostname,
 
 #ifdef HAVE_GETHOSTBYNAME
 #ifdef HAVE_INET_ADDR
-    M_dest->addr_.sin_addr.s_addr = ::inet_addr( hostname );
-    if ( M_dest->addr_.sin_addr.s_addr == 0xffffffff )
+    dest_addr.sin_addr.s_addr = ::inet_addr( hostname );
+    if ( dest_addr.sin_addr.s_addr == 0xffffffff )
 #endif
     {
         struct hostent * host_entry = ::gethostbyname( hostname );
@@ -229,13 +216,15 @@ AbstractSocket::setAddr( const char * hostname,
             return false;
         }
 
-        std::memcpy( &(M_dest->addr_.sin_addr.s_addr),
+        std::memcpy( &(dest_addr.sin_addr.s_addr),
                      host_entry->h_addr_list[0],
                      host_entry->h_length );
     }
 
-    M_dest->addr_.sin_family = AF_INET;
-    M_dest->addr_.sin_port = htons( port );
+    dest_addr.sin_family = AF_INET;
+    dest_addr.sin_port = htons( port );
+
+    M_dest.setAddress( dest_addr );
 
     return true;
 #endif
@@ -254,8 +243,8 @@ int
 AbstractSocket::connectToPresetAddr()
 {
     int ret = ::connect( fd(),
-                         reinterpret_cast< const sockaddr * >( &(M_dest->addr_) ),
-                         sizeof( AddrImpl::AddrType ) );
+                         reinterpret_cast< const sockaddr * >( &(M_dest.toAddress()) ),
+                         sizeof( HostAddress::AddrType ) );
     if ( ret == -1 )
     {
         std::perror( "connect" );
@@ -291,9 +280,7 @@ AbstractSocket::close()
     {
         int ret = ::close( fd() );
         M_fd = -1;
-        std::memset( reinterpret_cast< char * >( &(M_dest->addr_) ),
-                     0,
-                     sizeof( AddrImpl::AddrType ) );
+        M_dest.clear();
         return ret;
     }
 
@@ -308,9 +295,9 @@ std::string
 AbstractSocket::getPeerName() const
 {
     if ( fd() != 0
-         && M_dest )
+         && ! M_dest.isNull() )
     {
-        return std::string( ::inet_ntoa( M_dest->addr_.sin_addr ) );
+        return M_dest.toHostName();
     }
 
     return std::string();
@@ -324,9 +311,9 @@ int
 AbstractSocket::getPeerPort() const
 {
     if ( fd() != 0
-         && M_dest )
+         && ! M_dest.isNull() )
     {
-        return M_dest->addr_.sin_port;
+        return M_dest.portNumber();
     }
 
     return 0;
@@ -374,7 +361,6 @@ AbstractSocket::readFromStream( char * buf,
     return n;
 }
 
-
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -384,8 +370,8 @@ AbstractSocket::sendDatagramPacket( const char * data,
                                     const std::size_t len )
 {
     int n = ::sendto( fd(), data, len, 0,
-                      reinterpret_cast< const sockaddr * >( &(M_dest->addr_) ),
-                      sizeof( AddrImpl::AddrType ) );
+                      reinterpret_cast< const sockaddr * >( &(M_dest.toAddress()) ),
+                      sizeof( HostAddress::AddrType ) );
 
     if ( n != static_cast< int >( len ) )
     {
@@ -405,8 +391,8 @@ AbstractSocket::receiveDatagramPacket( char * buf,
                                        const std::size_t len,
                                        const bool overwrite_dest_addr )
 {
-    AddrImpl::AddrType from_addr;
-    socklen_t from_size = sizeof( AddrImpl::AddrType );
+    HostAddress::AddrType from_addr;
+    socklen_t from_size = sizeof( HostAddress::AddrType );
     int n = ::recvfrom( fd(), buf, len, 0,
                         reinterpret_cast< struct sockaddr * >( &from_addr ),
                         &from_size );
@@ -424,10 +410,10 @@ AbstractSocket::receiveDatagramPacket( char * buf,
 
     if ( overwrite_dest_addr
          && from_addr.sin_port != 0
-         && from_addr.sin_port != M_dest->addr_.sin_port )
+         && from_addr.sin_port != M_dest.portNumber() )
     {
         //std::cerr << "dest port = " << from.sin_port << std::endl;
-        M_dest->addr_ = from_addr;
+        M_dest.setAddress( from_addr );
         //M_dest->addr_.sin_port = from_addr.sin_port;
     }
 
