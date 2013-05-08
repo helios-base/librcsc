@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file basic_socket.h
-  \brief socket class Header File.
+  \file abstract_socket.h
+  \brief basic socket class Header File.
 */
 
 /*
@@ -29,10 +29,11 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_NET_BASIC_SOCKET_H
-#define RCSC_NET_BASIC_SOCKET_H
+#ifndef RCSC_NET_ABSTRACT_SOCKET_H
+#define RCSC_NET_ABSTRACT_SOCKET_H
 
 #include <boost/scoped_ptr.hpp>
+
 #include <string>
 #include <cstddef>
 
@@ -41,10 +42,10 @@ namespace rcsc {
 struct AddrImpl;
 
 /*!
-  \class BasicSocket
+  \class AbstractSocket
   \brief socket class
 */
-class BasicSocket {
+class AbstractSocket {
 private:
     //! socket file descriptor
     int M_fd;
@@ -68,7 +69,7 @@ public:
       \brief destructor. close socket automatically
     */
     virtual
-    ~BasicSocket();
+    ~AbstractSocket();
 
     /*!
       \brief returns socket file descriptor
@@ -83,7 +84,7 @@ protected:
     /*!
       \brief constructor for server socket
     */
-    BasicSocket();
+    AbstractSocket();
 
     /*!
       \brief open socket

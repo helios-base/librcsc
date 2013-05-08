@@ -3,7 +3,7 @@
 lib_LTLIBRARIES = librcsc_net.la
 
 librcsc_net_la_SOURCES = \
-	basic_socket.cpp \
+	abstract_socket.cpp \
 	udp_socket.cpp \
 	tcp_socket.cpp
 
@@ -11,7 +11,7 @@ librcsc_netincludedir = $(includedir)/rcsc/net
 
 ##pkginclude_HEADERS
 librcsc_netinclude_HEADERS = \
-	basic_socket.h \
+	abstract_socket.h \
 	udp_socket.h \
 	tcp_socket.h
 

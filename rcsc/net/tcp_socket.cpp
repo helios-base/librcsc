@@ -43,9 +43,9 @@ namespace rcsc {
 */
 TCPSocket::TCPSocket( const char * hostname,
                       const int port )
-    : BasicSocket()
+    : AbstractSocket()
 {
-    if ( open( BasicSocket::STREAM_TYPE )
+    if ( open( AbstractSocket::STREAM_TYPE )
          && bind( 0 )
          && setAddr( hostname, port )
          && connectToPresetAddr() != -1 )
@@ -71,7 +71,7 @@ TCPSocket::~TCPSocket()
 int
 TCPSocket::connect()
 {
-    return BasicSocket::connectToPresetAddr();
+    return AbstractSocket::connectToPresetAddr();
 }
 
 /*-------------------------------------------------------------------*/
@@ -82,7 +82,7 @@ int
 TCPSocket::send( const char * data,
                  const std::size_t len )
 {
-    return BasicSocket::writeToStream( data, len );
+    return AbstractSocket::writeToStream( data, len );
 }
 
 /*-------------------------------------------------------------------*/
@@ -93,7 +93,7 @@ int
 TCPSocket::receive( char * buf,
                     std::size_t len )
 {
-    return BasicSocket::readFromStream( buf, len );
+    return AbstractSocket::readFromStream( buf, len );
 }
 
 } // end namespace

@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file basic_socket.cpp
-  \brief socket class Source File.
+  \file abstract_socket.cpp
+  \brief basic socket class Source File.
 */
 
 /*
@@ -33,7 +33,7 @@
 #include <config.h>
 #endif
 
-#include "basic_socket.h"
+#include "abstract_socket.h"
 
 #include <iostream>
 
@@ -83,10 +83,10 @@ struct AddrImpl {
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
-BasicSocket::BasicSocket()
-    : M_fd( -1 )
-    , M_dest( new AddrImpl )
+ */
+AbstractSocket::AbstractSocket()
+    : M_fd( -1 ),
+      M_dest( new AddrImpl() )
 {
     std::memset( reinterpret_cast< char * >( &(M_dest->addr_) ),
                  0,
@@ -97,8 +97,8 @@ BasicSocket::BasicSocket()
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
-BasicSocket::~BasicSocket()
+ */
+AbstractSocket::~AbstractSocket()
 {
     this->close();
 }
@@ -106,22 +106,22 @@ BasicSocket::~BasicSocket()
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 bool
-BasicSocket::open( const SocketType type )
+AbstractSocket::open( const SocketType type )
 {
 #ifdef HAVE_SOCKET
     // create socket
 
     switch( type ) {
-    case BasicSocket::STREAM_TYPE:
+    case AbstractSocket::STREAM_TYPE:
         M_dest->socket_type_ = SOCK_STREAM;
         break;
-    case BasicSocket::DATAGRAM_TYPE:
+    case AbstractSocket::DATAGRAM_TYPE:
         M_dest->socket_type_ = SOCK_DGRAM;
         break;
     default:
-        std::cerr << "(BasicSocket::open) ***ERROR*** unknown socket type."
+        std::cerr << "(AbstractSocket::open) ***ERROR*** unknown socket type."
                   << std::endl;
         return -1;
     }
@@ -131,7 +131,7 @@ BasicSocket::open( const SocketType type )
 
     if ( fd() == -1 )
     {
-        std::cerr << "(BasicSocket::open) ***ERROR*** failed to open a socket."
+        std::cerr << "(AbstractSocket::open) ***ERROR*** failed to open a socket."
                   << std::endl;
         std::perror( "socket" );
         std::cerr << errno << std::endl;
@@ -145,9 +145,9 @@ BasicSocket::open( const SocketType type )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 bool
-BasicSocket::bind( const int port )
+AbstractSocket::bind( const int port )
 {
     if ( fd() == -1 )
     {
@@ -166,7 +166,7 @@ BasicSocket::bind( const int port )
                  reinterpret_cast< struct sockaddr * >( &my_addr ),
                  sizeof( AddrImpl::AddrType ) ) < 0 )
     {
-        std::cerr << "(BasicSocket::bind) ***ERROR*** failed to bind."
+        std::cerr << "(AbstractSocket::bind) ***ERROR*** failed to bind."
                   << std::endl;
         this->close();
         return false;
@@ -178,10 +178,10 @@ BasicSocket::bind( const int port )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 bool
-BasicSocket::setAddr( const char * hostname,
-                      const int port )
+AbstractSocket::setAddr( const char * hostname,
+                         const int port )
 {
 #ifdef HAVE_GETADDRINFO
     struct addrinfo hints;
@@ -194,9 +194,9 @@ BasicSocket::setAddr( const char * hostname,
     int err = ::getaddrinfo( hostname, NULL, &hints, &res );
     if ( err != 0 )
     {
-        std::cerr << "(BasicSocket::setAddr) ***ERROR*** failed to resolve the host ["
+        std::cerr << "(AbstractSocket::setAddr) ***ERROR*** failed to resolve the host ["
                   << hostname << "]" << std::endl;
-        std::cerr << "(BasicSocket::setAddr) error=" << err << ' '
+        std::cerr << "(AbstractSocket::setAddr) error=" << err << ' '
                   << gai_strerror( err ) << std::endl;
         this->close();
         return false;
@@ -223,7 +223,7 @@ BasicSocket::setAddr( const char * hostname,
         if ( ! host_entry )
         {
             std::cerr << hstrerror( h_errno ) << std::endl;
-            std::cerr << "(BasicSocket::setAddr) host not found ["
+            std::cerr << "(AbstractSocket::setAddr) host not found ["
                       << hostname << "]" << std::endl;
             this->close();
             return false;
@@ -240,7 +240,7 @@ BasicSocket::setAddr( const char * hostname,
     return true;
 #endif
 
-    std::cerr << "(BasicSocket::setAddr) ***ERROR*** no getaddrinfo or gethostbyname."
+    std::cerr << "(AbstractSocket::setAddr) ***ERROR*** no getaddrinfo or gethostbyname."
               << "failed to resolve the host [" << hostname << "]" << std::endl;
     this->close();
     return false;
@@ -249,9 +249,9 @@ BasicSocket::setAddr( const char * hostname,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 int
-BasicSocket::connectToPresetAddr()
+AbstractSocket::connectToPresetAddr()
 {
     int ret = ::connect( fd(),
                          reinterpret_cast< const sockaddr * >( &(M_dest->addr_) ),
@@ -267,9 +267,9 @@ BasicSocket::connectToPresetAddr()
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 int
-BasicSocket::setNonBlocking()
+AbstractSocket::setNonBlocking()
 {
     int flags = ::fcntl( fd(), F_GETFL, 0 );
     if ( flags == -1 )
@@ -283,9 +283,9 @@ BasicSocket::setNonBlocking()
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 int
-BasicSocket::close()
+AbstractSocket::close()
 {
     if ( fd() != -1 )
     {
@@ -303,9 +303,9 @@ BasicSocket::close()
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 std::string
-BasicSocket::getPeerName() const
+AbstractSocket::getPeerName() const
 {
     if ( fd() != 0
          && M_dest )
@@ -319,9 +319,9 @@ BasicSocket::getPeerName() const
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 int
-BasicSocket::getPeerPort() const
+AbstractSocket::getPeerPort() const
 {
     if ( fd() != 0
          && M_dest )
@@ -335,10 +335,10 @@ BasicSocket::getPeerPort() const
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 int
-BasicSocket::writeToStream( const char * msg,
-                            const std::size_t len )
+AbstractSocket::writeToStream( const char * msg,
+                               const std::size_t len )
 {
     int n = ::send( fd(), msg, len, 0 );
 
@@ -353,10 +353,10 @@ BasicSocket::writeToStream( const char * msg,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 int
-BasicSocket::readFromStream( char * buf,
-                             const std::size_t len )
+AbstractSocket::readFromStream( char * buf,
+                                const std::size_t len )
 {
     int n = ::recv( fd(), buf, len, 0 );
     //std::cerr << "receive: " << n << " bytes" << std::endl;
@@ -378,10 +378,10 @@ BasicSocket::readFromStream( char * buf,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 int
-BasicSocket::sendDatagramPacket( const char * data,
-                                 const std::size_t len )
+AbstractSocket::sendDatagramPacket( const char * data,
+                                    const std::size_t len )
 {
     int n = ::sendto( fd(), data, len, 0,
                       reinterpret_cast< const sockaddr * >( &(M_dest->addr_) ),
@@ -399,11 +399,11 @@ BasicSocket::sendDatagramPacket( const char * data,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 int
-BasicSocket::receiveDatagramPacket( char * buf,
-                                    const std::size_t len,
-                                    const bool overwrite_dest_addr )
+AbstractSocket::receiveDatagramPacket( char * buf,
+                                       const std::size_t len,
+                                       const bool overwrite_dest_addr )
 {
     AddrImpl::AddrType from_addr;
     socklen_t from_size = sizeof( AddrImpl::AddrType );

@@ -32,7 +32,7 @@
 #ifndef RCSC_NET_UDP_SOCKET_H
 #define RCSC_NET_UDP_SOCKET_H
 
-#include <rcsc/net/basic_socket.h>
+#include <rcsc/net/abstract_socket.h>
 
 #include <boost/scoped_ptr.hpp>
 
@@ -45,7 +45,7 @@ namespace rcsc {
   \brief UDP/IP connection socket class
 */
 class UDPSocket
-    : public BasicSocket {
+    : public AbstractSocket {
 private:
     //! not used
     UDPSocket();

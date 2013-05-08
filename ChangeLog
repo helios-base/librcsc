@@ -1,3 +1,18 @@
+2013-05-08  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/net/Makefile.am:
+	* rcsc/net/abstract_socket.cpp:
+	* rcsc/net/abstract_socket.h:
+	* rcsc/net/tcp_socket.cpp:
+	* rcsc/net/tcp_socket.h:
+	* rcsc/net/udp_socket.cpp:
+	* rcsc/net/udp_socket.h:
+	* rcsc/net/basic_socket.cpp:
+	* rcsc/net/abstract_socket.cpp:
+	* rcsc/net/basic_socket.h:
+	* rcsc/net/abstract_socket.h:
+	- BasicSocketをAbstractSocketへリネーム
+
 2013-05-07  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/net/basic_socket.cpp:

@@ -32,7 +32,7 @@
 #ifndef RCSC_NET_TCP_SOCKET_H
 #define RCSC_NET_TCP_SOCKET_H
 
-#include <rcsc/net/basic_socket.h>
+#include <rcsc/net/abstract_socket.h>
 
 #include <cstddef>
 
@@ -43,7 +43,7 @@ namespace rcsc {
   \brief TCP/IP connection socket class
 */
 class TCPSocket
-    : public BasicSocket {
+    : public AbstractSocket {
 private:
     //! not used
     TCPSocket();

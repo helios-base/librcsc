@@ -42,9 +42,9 @@ namespace rcsc {
 
 */
 UDPSocket::UDPSocket( const int port )
-    : BasicSocket()
+    : AbstractSocket()
 {
-    if ( open( BasicSocket::DATAGRAM_TYPE )
+    if ( open( AbstractSocket::DATAGRAM_TYPE )
          && bind( port )
          && setNonBlocking() != -1 )
     {
@@ -60,9 +60,9 @@ UDPSocket::UDPSocket( const int port )
 */
 UDPSocket::UDPSocket( const char * hostname,
                       const int port )
-    : BasicSocket()
+    : AbstractSocket()
 {
-    if ( open( BasicSocket::DATAGRAM_TYPE )
+    if ( open( AbstractSocket::DATAGRAM_TYPE )
          && bind()
          && setAddr( hostname, port )
          && setNonBlocking() != -1 )
@@ -89,7 +89,7 @@ int
 UDPSocket::send( const char * data,
                  const std::size_t len )
 {
-    return BasicSocket::sendDatagramPacket( data, len );
+    return AbstractSocket::sendDatagramPacket( data, len );
 }
 
 /*-------------------------------------------------------------------*/
@@ -100,7 +100,7 @@ int
 UDPSocket::receive( char * buf,
                     const std::size_t len )
 {
-    return BasicSocket::receiveDatagramPacket( buf, len, true );
+    return AbstractSocket::receiveDatagramPacket( buf, len, true );
 }
 
 } // end namespace
