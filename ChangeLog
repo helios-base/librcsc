@@ -1,5 +1,10 @@
 2013-05-08  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/net/host_address.cpp:
+	* rcsc/net/host_address.h:
+	* rcsc/net/Makefile.am:
+	- HostAddressクラスを追加．未テスト．
+
 	* rcsc/net/Makefile.am:
 	* rcsc/net/abstract_socket.cpp:
 	* rcsc/net/abstract_socket.h:
