@@ -75,7 +75,8 @@ namespace rcsc {
 AbstractSocket::AbstractSocket()
     : M_fd( -1 ),
       M_socket_type( UNKNOWN_TYPE ),
-      M_dest()
+      M_local_address(),
+      M_peer_address()
 {
 
 }
@@ -131,7 +132,7 @@ AbstractSocket::open( const SocketType type )
 
  */
 bool
-AbstractSocket::bind( const int port )
+AbstractSocket::bind( const HostAddress::PortNumber port )
 {
     if ( fd() == -1 )
     {
@@ -156,6 +157,7 @@ AbstractSocket::bind( const int port )
         return false;
     }
 
+    M_local_address.setAddress( my_addr );
     return true;
 }
 
@@ -164,8 +166,8 @@ AbstractSocket::bind( const int port )
 
  */
 bool
-AbstractSocket::setAddr( const char * hostname,
-                         const int port )
+AbstractSocket::setPeerAddress( const char * hostname,
+                                const HostAddress::PortNumber port )
 {
     HostAddress::AddrType dest_addr;
 
@@ -193,7 +195,7 @@ AbstractSocket::setAddr( const char * hostname,
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = htons( port );
 
-    M_dest.setAddress( dest_addr );
+    M_peer_address.setAddress( dest_addr );
 
     ::freeaddrinfo( res );
     return true;
@@ -224,7 +226,7 @@ AbstractSocket::setAddr( const char * hostname,
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = htons( port );
 
-    M_dest.setAddress( dest_addr );
+    M_peer_address.setAddress( dest_addr );
 
     return true;
 #endif
@@ -243,7 +245,7 @@ int
 AbstractSocket::connectToPresetAddr()
 {
     int ret = ::connect( fd(),
-                         reinterpret_cast< const sockaddr * >( &(M_dest.toAddress()) ),
+                         reinterpret_cast< const sockaddr * >( &(M_peer_address.toAddress()) ),
                          sizeof( HostAddress::AddrType ) );
     if ( ret == -1 )
     {
@@ -280,144 +282,11 @@ AbstractSocket::close()
     {
         int ret = ::close( fd() );
         M_fd = -1;
-        M_dest.clear();
+        M_peer_address.clear();
         return ret;
     }
 
     return 0;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::string
-AbstractSocket::getPeerName() const
-{
-    if ( fd() != 0
-         && ! M_dest.isNull() )
-    {
-        return M_dest.toHostName();
-    }
-
-    return std::string();
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-int
-AbstractSocket::getPeerPort() const
-{
-    if ( fd() != 0
-         && ! M_dest.isNull() )
-    {
-        return M_dest.portNumber();
-    }
-
-    return 0;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-int
-AbstractSocket::writeToStream( const char * msg,
-                               const std::size_t len )
-{
-    int n = ::send( fd(), msg, len, 0 );
-
-    if ( n == -1 )
-    {
-        std::perror( "send" );
-    }
-
-    return n;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-int
-AbstractSocket::readFromStream( char * buf,
-                                const std::size_t len )
-{
-    int n = ::recv( fd(), buf, len, 0 );
-    //std::cerr << "receive: " << n << " bytes" << std::endl;
-    if ( n == -1 )
-    {
-        if ( errno == EWOULDBLOCK )
-        {
-            return 0;
-        }
-
-        std::perror( "recv" );
-        return -1;
-    }
-
-    return n;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-int
-AbstractSocket::sendDatagramPacket( const char * data,
-                                    const std::size_t len )
-{
-    int n = ::sendto( fd(), data, len, 0,
-                      reinterpret_cast< const sockaddr * >( &(M_dest.toAddress()) ),
-                      sizeof( HostAddress::AddrType ) );
-
-    if ( n != static_cast< int >( len ) )
-    {
-        std::perror( "sendto" );
-        return -1;
-    }
-
-    return len;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-int
-AbstractSocket::receiveDatagramPacket( char * buf,
-                                       const std::size_t len,
-                                       const bool overwrite_dest_addr )
-{
-    HostAddress::AddrType from_addr;
-    socklen_t from_size = sizeof( HostAddress::AddrType );
-    int n = ::recvfrom( fd(), buf, len, 0,
-                        reinterpret_cast< struct sockaddr * >( &from_addr ),
-                        &from_size );
-    //std::cerr << "receive: " << n << " bytes" << std::endl;
-    if ( n == -1 )
-    {
-        if ( errno == EWOULDBLOCK )
-        {
-            return 0;
-        }
-
-        std::perror( "recvfrom" );
-        return -1;
-    }
-
-    if ( overwrite_dest_addr
-         && from_addr.sin_port != 0
-         && from_addr.sin_port != M_dest.portNumber() )
-    {
-        //std::cerr << "dest port = " << from.sin_port << std::endl;
-        M_dest.setAddress( from_addr );
-        //M_dest->addr_.sin_port = from_addr.sin_port;
-    }
-
-    return n;
 }
 
 } // end namespace

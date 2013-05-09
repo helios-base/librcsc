@@ -64,8 +64,16 @@ private:
     int M_socket_type;
 
 protected:
+    //! local address
+    HostAddress M_local_address;
     //! destination address
-    HostAddress M_dest;
+    HostAddress M_peer_address;
+
+protected:
+    /*!
+      \brief protected constructor to prevent instantiation
+    */
+    AbstractSocket();
 
 public:
     /*!
@@ -85,11 +93,6 @@ public:
 
 protected:
     /*!
-      \brief constructor for server socket
-    */
-    AbstractSocket();
-
-    /*!
       \brief open socket
       \return value of close(fd) if socket is opened.
     */
@@ -97,10 +100,10 @@ protected:
 
     /*!
       \brief bind the socket to local address
-      \param port port number to be binded.
+      \param port port number
       \return true if successfully binded.
     */
-    bool bind( const int port = 0 );
+    bool bind( const HostAddress::PortNumber port );
 
     /*!
       \brief set the address info of the specified remote host.
@@ -108,8 +111,8 @@ protected:
       \param port port number of remote host.
       \return true if generated binary address of remote host.
     */
-    bool setAddr( const char * hostname,
-                  const int port );
+    bool setPeerAddress( const char * hostname,
+                         const HostAddress::PortNumber port );
 
     /*!
       \brief set non blocking mode.
@@ -122,48 +125,6 @@ protected:
       \return 0 if successful, otherwise -1
     */
     int connectToPresetAddr();
-
-    /*!
-      \brief send stream data to the connected host.
-      \param data the pointer to the data to be sent.
-      \param len the length of data.
-      \return the length of sent data if successfuly sent, otherwise -1.
-    */
-    int writeToStream( const char * data,
-                       const std::size_t len );
-
-    /*!
-      \brief receive stream data from the connected remote host.
-      \param buf buffer to receive data
-      \param len maximam length of receive buffer
-      \retval 0 error occured and errno is EWOULDBLOCK
-      \retval -1 error occured
-      \return the length of received data.
-    */
-    int readFromStream( char * buf,
-                        const std::size_t len );
-
-    /*!
-      \brief send datagram data to the connected host.
-      \param data the pointer to the data to be sent.
-      \param len the length of data.
-      \return the length of sent data if successfuly sent, otherwise -1.
-    */
-    int sendDatagramPacket( const char * data,
-                            const std::size_t len );
-
-    /*!
-      \brief receive datagram data from the connected remote host.
-      \param buf buffer to receive data
-      \param len maximal length of buffer buf
-      \param overwrite_dest_addr if this value is true, the sender address of this packet is set as the destination address.
-      \retval 0 error occured and errno is EWOULDBLOCK
-      \retval -1 error occured
-      \return the length of received data.
-    */
-    int receiveDatagramPacket( char * buf,
-                               const std::size_t len,
-                               const bool overwrite_dest_addr = false );
 
 public:
 
@@ -183,38 +144,50 @@ public:
     int close();
 
     /*!
-      \brief get the host name of destination address
-      \return host name string
+      \brief get the local address object
+      \return address object
      */
-    std::string getPeerName() const;
+    const HostAddress & localAddress() const
+      {
+          return M_local_address;
+      }
 
     /*!
       \brief get the port number of destination address
       \return port number
      */
-    int getPeerPort() const;
+    HostAddress::PortNumber localPort() const
+      {
+          return M_local_address.portNumber();
+      }
 
     /*!
-      \brief send stream data to the connected host.
-      \param data the pointer to the data to be sent.
-      \param len the length of data.
-      \return the length of sent data if successfuly sent, otherwise -1.
+      \brief get the peer address object
+      \return address object
      */
-    virtual
-    int send( const char * data,
-              const std::size_t len ) = 0;
+    const HostAddress & peerAddress() const
+      {
+          return M_peer_address;
+      }
 
     /*!
-      \brief receive stream data from the connected remote host.
-      \param buf buffer to receive data
-      \param len maximal length of buffer buf
-      \retval 0 error occured and errno is EWOULDBLOCK
-      \retval -1 error occured
-      \return the length of received data.
+      \brief get the host name of destination address
+      \return host name string
      */
-    virtual
-    int receive( char * buf,
-                 const std::size_t len ) = 0;
+    std::string peerName() const
+      {
+          return M_peer_address.toHostName();
+      }
+
+    /*!
+      \brief get the port number of destination address
+      \return port number
+     */
+    HostAddress::PortNumber peerPort() const
+      {
+          return M_peer_address.portNumber();
+      }
+
 };
 
 } // end namespace

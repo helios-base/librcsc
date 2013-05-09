@@ -1,5 +1,19 @@
 2013-05-09  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/coach/coach_debug_client.cpp:
+	* rcsc/common/online_client.cpp:
+	* rcsc/net/abstract_socket.cpp:
+	* rcsc/net/abstract_socket.h:
+	* rcsc/net/host_address.cpp:
+	* rcsc/net/host_address.h:
+	* rcsc/net/tcp_socket.cpp:
+	* rcsc/net/tcp_socket.h:
+	* rcsc/net/udp_socket.cpp:
+	* rcsc/net/udp_socket.h:
+	* rcsc/player/debug_client.cpp:
+	- ソケット周りのコード整理．仮想関数のsend,receiveを廃止し，TCPと
+	UDPでそれぞれ別メソッド名として定義する方針に変更
+
 	* .gitignore:
 	- 無視するファイルの整理
 

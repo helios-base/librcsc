@@ -175,8 +175,8 @@ OnlineClient::sendMessage( const char * msg )
 
     if ( ! M_sent_message.empty() )
     {
-        return M_socket->send( M_sent_message.data(),
-                               M_sent_message.length() );
+        return M_socket->writeDatagram( M_sent_message.data(),
+                                        M_sent_message.length() );
     }
 
     return 0;
@@ -201,7 +201,7 @@ OnlineClient::receiveMessage()
         return 0;
     }
 
-    int n = M_socket->receive( msg, MAX_MESG );
+    int n = M_socket->readDatagram( msg, MAX_MESG );
 
     if ( n > 0 )
     {

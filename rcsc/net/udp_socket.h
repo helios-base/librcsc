@@ -72,24 +72,48 @@ public:
 
 public:
      /*!
-      \brief send diagram data to the connected host.
+      \brief send datagram packet to the connected host.
       \param data the pointer to the data to be sent.
       \param len the length of data.
       \return the length of sent data if successfuly sent, otherwise -1.
      */
-    int send( const char * data,
-              const std::size_t len );
+    int writeDatagram( const char * data,
+                       const size_t len );
+
+     /*!
+      \brief send datagram packet to the specified host.
+      \param data the pointer to the data to be sent.
+      \param len the length of data.
+      \param dest the target host address
+      \return the length of sent data if successfuly sent, otherwise -1.
+     */
+    int writeDatagram( const char * data,
+                       const size_t len,
+                       const HostAddress & dest );
 
     /*!
-      \brief receive diagram data from the connected remote host.
+      \brief receive datagram packet from the connected remote host.
       \param buf buffer to receive data
-      \param len maximal length of buffer buf
+      \param len maximum length of the buffer array
       \retval 0 error occured and errno is EWOULDBLOCK
       \retval -1 error occured
       \return the length of received data.
      */
-    int receive( char * buf,
-                 const std::size_t len );
+    int readDatagram( char * buf,
+                      const size_t len );
+
+    /*!
+      \brief receive datagram packet from the connected remote host.
+      \param buf buffer to receive data
+      \param len maximum length of the buffer array
+      \param addr the source host address is set to this variable
+      \retval 0 error occured and errno is EWOULDBLOCK
+      \retval -1 error occured
+      \return the length of received data.
+     */
+    int readDatagram( char * buf,
+                      const size_t len,
+                      HostAddress * from );
 
 };
 

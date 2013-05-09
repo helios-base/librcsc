@@ -74,8 +74,8 @@ public:
       \param len the length of data.
       \return the length of sent data if successfuly sent, otherwise -1.
      */
-    int send( const char * data,
-              const std::size_t len );
+    int writeToStream( const char * data,
+                       const std::size_t len );
 
     /*!
       \brief receive stream data from the connected remote host.
@@ -85,8 +85,8 @@ public:
       \retval -1 error occured
       \return the length of received data.
      */
-    int receive( char * buf,
-                 const std::size_t len );
+    int readFromStream( char * buf,
+                        const std::size_t len );
 
 };
 

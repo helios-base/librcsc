@@ -159,7 +159,19 @@ HostAddress::isNull() const
 bool
 HostAddress::equals( const HostAddress & addr ) const
 {
-    return this->toIPV4Address() == addr.toIPV4Address();
+    return this->toIPV4Address() == addr.toIPV4Address()
+        && this->portNumber() == addr.portNumber();
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+bool
+HostAddress::equals( const AddrType & addr ) const
+{
+    return M_impl->addr_.sin_addr.s_addr == addr.sin_addr.s_addr
+        && M_impl->addr_.sin_port == addr.sin_port;
 }
 
 /*-------------------------------------------------------------------*/

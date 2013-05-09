@@ -108,6 +108,12 @@ public:
     bool equals( const HostAddress & addr ) const;
 
     /*!
+      \brief check if the specified address is same as this object.
+      \brief checked result.
+     */
+    bool equals( const AddrType & addr ) const;
+
+    /*!
       \brief set new address
       \param addr raw address object
      */

@@ -610,8 +610,8 @@ CoachDebugClient::send()
     if ( M_connected
          && M_socket )
     {
-        if ( M_socket->send( M_main_buffer.c_str(),
-                             M_main_buffer.length() + 1 ) == -1 )
+        if ( M_socket->writeDatagram( M_main_buffer.c_str(),
+                                      M_main_buffer.length() + 1 ) == -1 )
         {
             std::cerr << "debug server send error" << std::endl;
         }
