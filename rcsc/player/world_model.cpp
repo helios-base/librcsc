@@ -44,7 +44,6 @@
 #include "intercept_table.h"
 #include "penalty_kick_state.h"
 #include "player_command.h"
-#include "player_object_updater.h"
 #include "player_predicate.h"
 
 #include <rcsc/common/audio_memory.h>
@@ -363,7 +362,6 @@ const double WorldModel::DIR_STEP = 360.0 / static_cast< double >( DIR_CONF_DIVS
  */
 WorldModel::WorldModel()
     : M_localize( new LocalizationDefault() ),
-      M_player_object_updater( new PlayerObjectUpdater() ),
       M_intercept_table( new InterceptTable( *this ) ),
       M_audio_memory( new AudioMemory() ),
       M_penalty_kick_state( new PenaltyKickState() ),
@@ -432,12 +430,6 @@ WorldModel::~WorldModel()
     {
         delete M_localize;
         M_localize = static_cast< Localization * >( 0 );
-    }
-
-    if ( M_player_object_updater )
-    {
-        delete M_player_object_updater;
-        M_player_object_updater = static_cast< PlayerObjectUpdater * >( 0 );
     }
 
     if ( M_intercept_table )
@@ -2771,8 +2763,9 @@ void
 WorldModel::localizePlayers( const VisualSensor & see )
 {
 #if 0
-    if ( ! M_player_object_updater->localizePlayers( M_self, see, M_localize,
-                                                     M_teammates, M_opponents, M_unknown_players ) )
+    PlayerObjectUpdater updater;
+    if ( ! updater.localizePlayers( M_self, see, M_localize,
+                                    M_teammates, M_opponents, M_unknown_players ) )
     {
         return;
     }

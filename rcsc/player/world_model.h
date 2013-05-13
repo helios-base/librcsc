@@ -56,7 +56,6 @@ class FullstateSensor;
 class InterceptTable;
 class Localization;
 class PenaltyKickState;
-class PlayerObjectUpdater;
 class PlayerPredicate;
 class PlayerType;
 class VisualSensor;
@@ -80,7 +79,6 @@ public:
 private:
 
     Localization * M_localize; //!< localization module
-    PlayerObjectUpdater * M_player_object_updater; //!< player object update module
     InterceptTable * M_intercept_table; //!< interception info table
     boost::shared_ptr< AudioMemory > M_audio_memory; //!< heard deqinfo memory
     PenaltyKickState * M_penalty_kick_state; //!< penalty kick mode status

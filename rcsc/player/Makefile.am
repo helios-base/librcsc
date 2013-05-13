@@ -19,7 +19,6 @@ librcsc_player_la_SOURCES = \
 	player_config.cpp \
 	player_intercept.cpp \
 	player_object.cpp \
-	player_object_updater.cpp \
 	player_state.cpp \
 	say_message_builder.cpp \
 	see_state.cpp \
@@ -56,7 +55,6 @@ librcsc_playerinclude_HEADERS = \
 	player_evaluator.h \
 	player_intercept.h \
 	player_object.h \
-	player_object_updater.h \
 	player_predicate.h \
 	player_state.h \
 	say_message_builder.h \

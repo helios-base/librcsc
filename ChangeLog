@@ -1,3 +1,10 @@
+2013-05-13  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/Makefile.am:
+	* rcsc/player/world_model.cpp:
+	* rcsc/player/world_model.h:
+	- PlayerObjectUpdaterをビルドターゲットから削除
+
 2013-05-09  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/coach/coach_debug_client.cpp:
