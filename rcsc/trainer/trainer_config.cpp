@@ -36,6 +36,7 @@
 #include "trainer_config.h"
 
 #include <rcsc/param/param_map.h>
+#include <rcsc/param/param_parser.h>
 
 namespace rcsc {
 
@@ -179,6 +180,34 @@ TrainerConfig::createParamMap()
         ( "debug_analyzer", "", BoolSwitch( &M_debug_analyzer ) )
         ( "debug_action_chain", "", BoolSwitch( &M_debug_action_chain ) )
         ;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+void
+TrainerConfig::parse( ParamParser & parser )
+{
+    if ( M_param_map )
+    {
+        parser.parse( *M_param_map );
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+std::ostream &
+TrainerConfig::printHelp( std::ostream & os ) const
+{
+    if ( M_param_map )
+    {
+        M_param_map->printHelp( os );
+    }
+
+    return os;
 }
 
 }

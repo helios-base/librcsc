@@ -33,10 +33,12 @@
 #define RCSC_COACH_CONFIG_H
 
 #include <string>
+#include <iosfwd>
 
 namespace rcsc {
 
 class ParamMap;
+class ParamParser;
 
 /*!
   \class CoachConfig
@@ -167,13 +169,17 @@ public:
     ~CoachConfig();
 
     /*!
-      \brief create parameter map
-      \return reference to the parameter map instance
+      \brief set parameter values using param parser instance
+      \param parser param parser instance
      */
-    ParamMap & paramMap()
-      {
-          return *M_param_map;
-      }
+    void parse( ParamParser & parser );
+
+    /*!
+      \brief print help message to the output stream
+      \param os output stream
+      \return output stream
+     */
+    std::ostream & printHelp( std::ostream & os ) const;
 
 private:
     /*!

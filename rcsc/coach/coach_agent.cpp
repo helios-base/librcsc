@@ -484,27 +484,25 @@ CoachAgent::initImpl( CmdLineParser & cmd_parser )
         ( "help" , "", BoolSwitch( &help ), "print help message.")
         ( "coach-config", "", &coach_config_file, "specifies coach config file." );
 
-    ParamMap & coach_param_map = M_config.paramMap();
-
     // analyze command line for system options
     cmd_parser.parse( system_param_map );
     if ( help )
     {
         std::cout << copyright() << std::endl;
         system_param_map.printHelp( std::cout );
-        coach_param_map.printHelp( std::cout );
+        config().printHelp( std::cout );
         return false;
     }
 
-    // analyze config file for coach config options
+    // parse config file
     if ( ! coach_config_file.empty() )
     {
         ConfFileParser conf_parser( coach_config_file.c_str() );
-        conf_parser.parse( coach_param_map );
+        M_config.parse( conf_parser );
     }
 
-    // analyze command line for coach options
-    cmd_parser.parse( coach_param_map );
+    // parser command line
+    M_config.parse( cmd_parser );
 
     if ( config().version() < 1.0
          || 16.0 <= config().version() )

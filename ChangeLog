@@ -1,5 +1,17 @@
 2013-05-13  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/coach/coach_agent.cpp:
+	* rcsc/coach/coach_config.cpp:
+	* rcsc/coach/coach_config.h:
+	* rcsc/player/player_agent.cpp:
+	* rcsc/player/player_config.cpp:
+	* rcsc/player/player_config.h:
+	* rcsc/trainer/trainer_agent.cpp:
+	* rcsc/trainer/trainer_config.cpp:
+	* rcsc/trainer/trainer_config.h:
+	- 各Configクラスに値をセットする方法を変更．parse()の引数として
+	ParamParserを与えるようになった
+
 	* rcsc/player/ball_object.cpp:
 	* rcsc/player/ball_object.h:
 	* rcsc/player/player_object.cpp:

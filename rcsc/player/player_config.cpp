@@ -35,9 +35,11 @@
 
 #include "player_config.h"
 
-#include <rcsc/common/logger.h>
 #include <rcsc/param/param_map.h>
+#include <rcsc/param/param_parser.h>
+#include <rcsc/types.h>
 
+#include <iostream>
 #include <cassert>
 
 namespace rcsc {
@@ -140,7 +142,7 @@ PlayerConfig::setDefaultParam()
     M_offline_logging = false;
     M_offline_log_ext = ".ocl";
 
-    M_offline_client_number = -1;
+    M_offline_client_number = Unum_Unknown;
 
     //
     // debug logging
@@ -258,6 +260,40 @@ PlayerConfig::createParamMap()
         ( "debug_analyzer", "", BoolSwitch( &M_debug_analyzer ) )
         ( "debug_action_chain", "", BoolSwitch( &M_debug_action_chain ) )
         ;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+void
+PlayerConfig::parse( ParamParser & parser )
+{
+    if ( M_param_map )
+    {
+        parser.parse( *M_param_map );
+    }
+
+    if ( M_offline_client_number < 1
+         || 11 < M_offline_client_number )
+    {
+        M_offline_client_number = Unum_Unknown;
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+std::ostream &
+PlayerConfig::printHelp( std::ostream & os ) const
+{
+    if ( M_param_map )
+    {
+        M_param_map->printHelp( os );
+    }
+
+    return os;
 }
 
 }

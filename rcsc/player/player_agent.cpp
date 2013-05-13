@@ -772,27 +772,25 @@ PlayerAgent::initImpl( CmdLineParser & cmd_parser )
         ( "help", "", BoolSwitch( &help ), "print help message.")
         ( "player-config", "", &player_config_file, "specifies player config file." );
 
-    ParamMap & player_param_map = M_config.paramMap();
-
     // analyze command line for system options.
     cmd_parser.parse( system_param_map );
     if ( help )
     {
         std::cout << copyright() << std::endl;
         system_param_map.printHelp( std::cout );
-        player_param_map.printHelp( std::cout );
+        config().printHelp( std::cout );
         return false;
     }
 
-    // analyze config file for PlayerConfig
+    // parse config file
     if ( ! player_config_file.empty() )
     {
         ConfFileParser conf_parser( player_config_file.c_str() );
-        conf_parser.parse( player_param_map );
+        M_config.parse( conf_parser );
     }
 
-    // analyze command line for player options.
-    cmd_parser.parse( player_param_map );
+    // parse command line
+    M_config.parse( cmd_parser );
 
     if ( config().version() < 8.0
          || 16.0 <= config().version() )

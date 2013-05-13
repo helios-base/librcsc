@@ -33,10 +33,12 @@
 #define RCSC_PLAYER_PLAYER_CONFIG_H
 
 #include <string>
+#include <iosfwd>
 
 namespace rcsc {
 
 class ParamMap;
+class ParamParser;
 
 /*!
   \class PlayerConfig
@@ -45,7 +47,7 @@ class ParamMap;
 class PlayerConfig {
 private:
 
-    ParamMap * M_param_map; //!< parameter map instance
+    ParamMap * M_param_map;
 
     // basic setting
 
@@ -172,13 +174,17 @@ public:
     ~PlayerConfig();
 
     /*!
-      \brief create parameter map
-      \return reference to the parameter map instance
+      \brief set parameter values using param parser instance
+      \param parser param parser instance
      */
-    ParamMap & paramMap()
-      {
-          return *M_param_map;
-      }
+    void parse( ParamParser & parser );
+
+    /*!
+      \brief print help message to the output stream
+      \param os output stream
+      \return output stream
+     */
+    std::ostream & printHelp( std::ostream & os ) const;
 
 protected:
     /*!

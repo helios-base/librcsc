@@ -501,27 +501,25 @@ TrainerAgent::initImpl( CmdLineParser & cmd_parser )
         ( "help" , "", BoolSwitch( &help ), "print help message.")
         ( "trainer-config", "", &trainer_config_file, "specifies trainer config file." );
 
-    ParamMap & trainer_param_map = M_config.paramMap();
-
     // analyze command line for system options.
     cmd_parser.parse( system_param_map );
     if ( help )
     {
         std::cout << copyright() << std::endl;
         system_param_map.printHelp( std::cout );
-        trainer_param_map.printHelp( std::cout );
+        config().printHelp( std::cout );
         return false;
     }
 
-    // analyze config file for trainer config options
+    // parse config file
     if ( ! trainer_config_file.empty() )
     {
         ConfFileParser conf_parser( trainer_config_file.c_str() );
-        conf_parser.parse( trainer_param_map );
+        M_config.parse( conf_parser );
     }
 
-    // analyze command line for trainer options.
-    cmd_parser.parse( trainer_param_map );
+    // parse command line
+    M_config.parse( cmd_parser );
 
     if ( config().version() < 1.0
          || 16.0 <= config().version() )
