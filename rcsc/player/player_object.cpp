@@ -166,6 +166,12 @@ PlayerObject::isKickable( const double & buf ) const
 void
 PlayerObject::update()
 {
+    M_pos_history.push_front( M_pos );
+    if ( M_pos_history.size() > 100 )
+    {
+        M_pos_history.pop_back();
+    }
+
     if ( velValid() )
     {
         M_pos += M_vel;

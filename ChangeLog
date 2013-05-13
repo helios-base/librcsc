@@ -1,5 +1,13 @@
 2013-05-13  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/ball_object.cpp:
+	* rcsc/player/ball_object.h:
+	* rcsc/player/player_object.cpp:
+	* rcsc/player/player_object.h:
+	* rcsc/player/world_model.cpp:
+	- 使用していなかった引数を削除
+	- BallObjectとPlayerObjectに位置の履歴を保持する変数を追加
+
 	* rcsc/player/Makefile.am:
 	* rcsc/player/world_model.cpp:
 	* rcsc/player/world_model.h:

@@ -38,7 +38,7 @@
 #include <rcsc/soccer_math.h>
 #include <rcsc/math_util.h>
 
-#include <deque>
+#include <list>
 
 namespace rcsc {
 
@@ -99,6 +99,8 @@ private:
     double M_dist_from_self; //!< estimated distance from self
     AngleDeg M_angle_from_self; //!< estimated global angle from self
 
+
+    std::list< Vector2D > M_pos_history;
 
     // not used
     BallObject( const BallObject & ball );
@@ -279,20 +281,25 @@ public:
     const AngleDeg & angleFromSelf() const { return M_angle_from_self; }
 
     /*!
-      \brief clear all confidence values and set ghost time
-      \param current current game time
-    */
-    void setGhost( const GameTime & current );
+      \brief get the history of estimated position.
+      \return position list. the front element is the position at the previous cycle.
+     */
+    const std::list< Vector2D > & posHistory() const
+      {
+          return M_pos_history;
+      }
 
     /*!
-      \brief update status only with intenal info
-      \param act const reference to action effector
-      \param game_mode const reference to referee info
-      \param current current game time
+      \brief clear all confidence values
+    */
+    void setGhost();
+
+    /*!
+      \brief update by intenal memory
+      \param act const reference to the action effector
     */
     void update( const ActionEffector & act,
-                 const GameMode & game_mode,
-                 const GameTime & current );
+                 const GameMode & game_mode );
 
     /*!
       \brief update status with fullstate info

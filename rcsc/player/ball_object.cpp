@@ -103,7 +103,7 @@ BallObject::set_count_thr( const int pos_thr,
 
  */
 void
-BallObject::setGhost( const GameTime & )
+BallObject::setGhost()
 {
     if ( M_ghost_count > 0 )
     {
@@ -126,9 +126,14 @@ BallObject::setGhost( const GameTime & )
  */
 void
 BallObject::update( const ActionEffector & act,
-                    const GameMode & game_mode,
-                    const GameTime & )
+                    const GameMode & game_mode )
 {
+    M_pos_history.push_front( M_pos );
+    if ( M_pos_history.size() > 100 )
+    {
+        M_pos_history.pop_back();
+    }
+
     Vector2D new_vel( 0.0, 0.0 );
 
     ////////////////////////////////////////////////////////////////////////
