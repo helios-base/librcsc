@@ -1,3 +1,10 @@
+2013-05-18  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/action/kick_table.cpp:
+	* rcsc/action/kick_table.h:
+	- キック列探索アルゴリズムを改善．リスキーなノードを省いた探索とリ
+	スキーなノードのみの探索に分けて実行し，安全なキック列が生成されやすくした
+
 2013-05-13  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/coach/coach_agent.cpp:

@@ -103,9 +103,9 @@ public:
           \param kick_rate kick rate at this state
          */
         State( const int index,
-               const double & dist,
+               const double dist,
                const Vector2D & pos,
-               const double & kick_rate )
+               const double kick_rate )
             : index_( index ),
               dist_( dist ),
               pos_( pos ),
@@ -174,7 +174,7 @@ public:
      */
     static
     Vector2D calc_max_velocity( const AngleDeg & target_angle,
-                                const double & krate,
+                                const double krate,
                                 const Vector2D & ball_vel );
 
 private:
@@ -208,6 +208,13 @@ private:
 
     //! result kick sequences
     std::vector< Sequence > M_candidates;
+
+
+    //
+    // other parameters
+    //
+
+    bool M_use_risky_node;
 
     /*!
       \brief private constructor for singleton
@@ -253,7 +260,7 @@ private:
      */
     void checkCollisionAfterRelease( const WorldModel & world,
                                      const Vector2D & target_point,
-                                     const double & first_speed );
+                                     const double first_speed );
 
     /*!
       \brief update interfere level at state
@@ -273,7 +280,7 @@ private:
      */
     void checkInterfereAfterRelease( const WorldModel & world,
                                      const Vector2D & target_point,
-                                     const double & first_speed );
+                                     const double first_speed );
 
     /*!
       \brief update interfere level after release kick for each state
@@ -285,7 +292,7 @@ private:
      */
     void checkInterfereAfterRelease( const WorldModel & world,
                                      const Vector2D & target_point,
-                                     const double & first_speed,
+                                     const double first_speed,
                                      const int cycle,
                                      State & state );
 
@@ -297,7 +304,7 @@ private:
      */
     bool simulateOneStep( const WorldModel & world,
                           const Vector2D & target_point,
-                          const double & first_speed );
+                          const double first_speed );
 
     /*!
       \brief simulate two step kicks
@@ -307,7 +314,7 @@ private:
      */
     bool simulateTwoStep( const WorldModel & world,
                           const Vector2D & target_point,
-                          const double & first_speed );
+                          const double first_speed );
 
     /*!
       \brief simulate three step kicks
@@ -317,15 +324,15 @@ private:
      */
     bool simulateThreeStep( const WorldModel & world,
                             const Vector2D & target_point,
-                            const double & first_speed );
+                            const double first_speed );
 
     /*!
       \brief evaluate candidate kick sequences
       \param first_speed required first speed
       \param allowable_speed required first speed threshold
      */
-    void evaluate( const double & first_speed,
-                   const double & allowable_speed );
+    void evaluate( const double first_speed,
+                   const double allowable_speed );
 
 public:
 
@@ -368,8 +375,8 @@ public:
      */
     bool simulate( const WorldModel & world,
                    const Vector2D & target_point,
-                   const double & first_speed,
-                   const double & allowable_speed,
+                   const double first_speed,
+                   const double allowable_speed,
                    const int max_step,
                    Sequence & sequence );
 

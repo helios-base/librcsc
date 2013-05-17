@@ -197,6 +197,20 @@ calc_far_dist( const PlayerType & player_type,
                   player_type.kickableArea() - 0.2 );
 }
 
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+is_risky_flag( const int flag )
+{
+    return ( flag & KickTable::NEXT_TACKLABLE
+             || flag & KickTable::NEXT_KICKABLE
+             || flag & KickTable::TACKLABLE
+             || flag & KickTable::MAYBE_RELEASE_INTERFERE
+             || flag & KickTable::KICK_MISS_POSSIBILITY );
+}
+
 }
 
 /*-------------------------------------------------------------------*/
@@ -205,7 +219,7 @@ calc_far_dist( const PlayerType & player_type,
  */
 Vector2D
 KickTable::calc_max_velocity( const AngleDeg & target_angle,
-                              const double & krate,
+                              const double krate,
                               const Vector2D & ball_vel )
 {
     const double ball_speed_max2 = std::pow( ServerParam::i().ballSpeedMax(), 2 );
@@ -290,7 +304,8 @@ KickTable::instance()
 KickTable::KickTable()
     : M_player_size( 0.0 ),
       M_kickable_margin( 0.0 ),
-      M_ball_size( 0.0 )
+      M_ball_size( 0.0 ),
+      M_use_risky_node( false )
 {
     for ( int i = 0; i < MAX_DEPTH; ++ i )
     {
@@ -888,7 +903,7 @@ KickTable::createStateCache( const WorldModel & world )
 void
 KickTable::checkCollisionAfterRelease( const WorldModel & world,
                                        const Vector2D & target_point,
-                                       const double & first_speed )
+                                       const double first_speed )
 {
 #ifdef DEBUG
     dlog.addText( Logger::KICK,
@@ -1137,7 +1152,7 @@ KickTable::checkInterfereAt( const WorldModel & world,
 void
 KickTable::checkInterfereAfterRelease( const WorldModel & world,
                                        const Vector2D & target_point,
-                                       const double & first_speed )
+                                       const double first_speed )
 {
     checkInterfereAfterRelease( world, target_point, first_speed, 1, M_current_state );
 
@@ -1163,7 +1178,7 @@ KickTable::checkInterfereAfterRelease( const WorldModel & world,
 void
 KickTable::checkInterfereAfterRelease( const WorldModel & world,
                                        const Vector2D & target_point,
-                                       const double & first_speed,
+                                       const double first_speed,
                                        const int cycle,
                                        State & state )
 {
@@ -1344,7 +1359,7 @@ KickTable::checkInterfereAfterRelease( const WorldModel & world,
 bool
 KickTable::simulateOneStep( const WorldModel & world,
                             const Vector2D & target_point,
-                            const double & first_speed )
+                            const double first_speed )
 {
     if ( M_current_state.flag_ & SELF_COLLISION )
     {
@@ -1418,7 +1433,7 @@ KickTable::simulateOneStep( const WorldModel & world,
 bool
 KickTable::simulateTwoStep( const WorldModel & world,
                             const Vector2D & target_point,
-                            const double & first_speed )
+                            const double first_speed )
 {
     static const double max_power = ServerParam::i().maxPower();
     static const double accel_max = ServerParam::i().ballAccelMax();
@@ -1492,6 +1507,21 @@ KickTable::simulateTwoStep( const WorldModel & world,
             continue;
         }
 
+        if ( M_use_risky_node )
+        {
+            if ( ! is_risky_flag( state.flag_ ) )
+            {
+                continue;
+            }
+        }
+        else
+        {
+            if ( is_risky_flag( state.flag_ ) )
+            {
+                continue;
+            }
+        }
+
         int kick_miss_flag = SAFETY;
         const Vector2D target_vel = ( target_point - state.pos_ ).setLengthVector( first_speed );
 
@@ -1529,6 +1559,10 @@ KickTable::simulateTwoStep( const WorldModel & world,
                               my_noise, ball_noise, max_kick_rand );
 #endif
                 kick_miss_flag |= KICK_MISS_POSSIBILITY;
+                if ( ! M_use_risky_node )
+                {
+                    continue;
+                }
             }
         }
 
@@ -1605,7 +1639,7 @@ KickTable::simulateTwoStep( const WorldModel & world,
 bool
 KickTable::simulateThreeStep( const WorldModel & world,
                               const Vector2D & target_point,
-                              const double & first_speed )
+                              const double first_speed )
 {
     static const double max_power = ServerParam::i().maxPower();
     static const double accel_max = ServerParam::i().ballAccelMax();
@@ -1720,6 +1754,22 @@ KickTable::simulateThreeStep( const WorldModel & world,
             continue;
         }
 
+        if ( M_use_risky_node )
+        {
+            if ( ! is_risky_flag( state_1st.flag_ )
+                 && ! is_risky_flag( state_2nd.flag_ ) )
+            {
+                continue;
+            }
+        }
+        else
+        {
+            if ( is_risky_flag( state_1st.flag_ )
+                 || is_risky_flag( state_2nd.flag_ ) )
+            {
+                continue;
+            }
+        }
 
         const Vector2D target_vel = ( target_point - state_2nd.pos_ ).setLengthVector( first_speed );
 
@@ -1762,6 +1812,10 @@ KickTable::simulateThreeStep( const WorldModel & world,
                               my_noise1, ball_noise, max_kick_rand );
 #endif
                 kick_miss_flag |= KICK_MISS_POSSIBILITY;
+                if ( ! M_use_risky_node )
+                {
+                    continue;
+                }
             }
         }
 #endif
@@ -1875,8 +1929,8 @@ KickTable::simulateThreeStep( const WorldModel & world,
 
  */
 void
-KickTable::evaluate( const double & first_speed,
-                     const double & allowable_speed )
+KickTable::evaluate( const double first_speed,
+                     const double allowable_speed )
 {
     dlog.addText( Logger::KICK,
                   __FILE__": evaluate() candidate size=%d",
@@ -1973,15 +2027,15 @@ KickTable::evaluate( const double & first_speed,
 bool
 KickTable::simulate( const WorldModel & world,
                      const Vector2D & target_point,
-                     const double & first_speed,
-                     const double & allowable_speed,
+                     const double first_speed,
+                     const double allowable_speed,
                      const int max_step,
                      Sequence & sequence )
 {
     if ( M_state_list.empty() )
     {
         dlog.addText( Logger::KICK,
-                      __FILE__": simulate() KickTable is not initialized!." );
+                      "(KickTable::simulate) KickTable is not initialized!." );
         std::cerr << "KickTable has not been initialized! "
                   << "KickTable::instance().createTable() has to be called before using KickTable::simulate()."
                   << std::endl;
@@ -2000,7 +2054,7 @@ KickTable::simulate( const WorldModel & world,
                               target_speed );
 
     dlog.addText( Logger::KICK,
-                  __FILE__": simulate() start. target=(%.2f %.2f) speed=%.2f",
+                  "(KickTable::simulate) start. target=(%.2f %.2f) speed=%.2f",
                   target_point.x, target_point.y,
                   target_speed );
 
@@ -2021,8 +2075,10 @@ KickTable::simulate( const WorldModel & world,
                              target_speed ) )
     {
         dlog.addText( Logger::KICK,
-                      __FILE__": simulate() found 1 step" );
+                      "(KickTable::simulate) found 1 step" );
     }
+
+    M_use_risky_node = false;
 
     if ( max_step >= 2
          && simulateTwoStep( world,
@@ -2030,7 +2086,7 @@ KickTable::simulate( const WorldModel & world,
                              target_speed ) )
     {
         dlog.addText( Logger::KICK,
-                      __FILE__": simulate() found 2 step" );
+                      "(KickTable::simulate) found 2 step" );
     }
 
     if ( max_step >= 3
@@ -2039,8 +2095,32 @@ KickTable::simulate( const WorldModel & world,
                                target_speed ) )
     {
         dlog.addText( Logger::KICK,
-                      __FILE__": simulate() found 3 step" );
+                      "(KickTable::simulate) found 3 step" );
     }
+
+    if ( M_candidates.empty() )
+    {
+        M_use_risky_node = true;
+
+        if ( max_step >= 2
+             && simulateTwoStep( world,
+                                 target_point,
+                                 target_speed ) )
+        {
+            dlog.addText( Logger::KICK,
+                          "(KickTable::simulate) found 2 step with dangrous node" );
+        }
+
+        if ( max_step >= 3
+             && simulateThreeStep( world,
+                                   target_point,
+                                   target_speed ) )
+        {
+            dlog.addText( Logger::KICK,
+                          "(KickTable::simulate) found 3 step with dangerous" );
+        }
+    }
+
 
     // TODO:
     // 4 steps simulation
