@@ -1559,10 +1559,10 @@ KickTable::simulateTwoStep( const WorldModel & world,
                               my_noise, ball_noise, max_kick_rand );
 #endif
                 kick_miss_flag |= KICK_MISS_POSSIBILITY;
-                if ( ! M_use_risky_node )
-                {
-                    continue;
-                }
+                // if ( ! M_use_risky_node )
+                // {
+                //     continue;
+                // }
             }
         }
 
@@ -1812,10 +1812,10 @@ KickTable::simulateThreeStep( const WorldModel & world,
                               my_noise1, ball_noise, max_kick_rand );
 #endif
                 kick_miss_flag |= KICK_MISS_POSSIBILITY;
-                if ( ! M_use_risky_node )
-                {
-                    continue;
-                }
+                // if ( ! M_use_risky_node )
+                // {
+                //     continue;
+                // }
             }
         }
 #endif
@@ -2024,6 +2024,31 @@ KickTable::evaluate( const double first_speed,
 /*!
 
  */
+namespace {
+bool
+check_candidates_max_speed( const std::vector< KickTable::Sequence > & candidates,
+                            const double speed_thr )
+{
+    for ( std::vector< KickTable::Sequence >::const_iterator it = candidates.begin(),
+              end = candidates.end();
+          it != end;
+          ++it )
+    {
+        if ( it->speed_ > speed_thr )
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
 bool
 KickTable::simulate( const WorldModel & world,
                      const Vector2D & target_point,
@@ -2098,7 +2123,7 @@ KickTable::simulate( const WorldModel & world,
                       "(KickTable::simulate) found 3 step" );
     }
 
-    if ( M_candidates.empty() )
+    if ( check_candidates_max_speed( M_candidates, speed_thr ) )
     {
         M_use_risky_node = true;
 
