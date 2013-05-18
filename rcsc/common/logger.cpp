@@ -224,8 +224,8 @@ Logger::addText( const boost::int32_t level,
  */
 void
 Logger::addPoint( const boost::int32_t level,
-                  const double & x,
-                  const double & y,
+                  const double x,
+                  const double y,
                   const char * color )
 {
     if ( M_fout
@@ -253,8 +253,8 @@ Logger::addPoint( const boost::int32_t level,
  */
 void
 Logger::addPoint( const boost::int32_t level,
-                  const double & x,
-                  const double & y,
+                  const double x,
+                  const double y,
                   const int r, const int g, const int b )
 {
     if ( M_fout
@@ -279,10 +279,10 @@ Logger::addPoint( const boost::int32_t level,
  */
 void
 Logger::addLine( const boost::int32_t level,
-                 const double & x1,
-                 const double & y1,
-                 const double & x2,
-                 const double & y2,
+                 const double x1,
+                 const double y1,
+                 const double x2,
+                 const double y2,
                  const char * color )
 {
     if ( M_fout
@@ -310,10 +310,10 @@ Logger::addLine( const boost::int32_t level,
  */
 void
 Logger::addLine( const boost::int32_t level,
-                 const double & x1,
-                 const double & y1,
-                 const double & x2,
-                 const double & y2,
+                 const double x1,
+                 const double y1,
+                 const double x2,
+                 const double y2,
                  const int r, const int g, const int b )
 {
     if ( M_fout
@@ -338,11 +338,11 @@ Logger::addLine( const boost::int32_t level,
  */
 void
 Logger::addArc( const boost::int32_t level,
-                const double & x,
-                const double & y,
-                const double & radius,
+                const double x,
+                const double y,
+                const double radius,
                 const AngleDeg & start_angle,
-                const double & span_angle,
+                const double span_angle,
                 const char * color )
 {
     if ( M_fout
@@ -373,11 +373,11 @@ Logger::addArc( const boost::int32_t level,
  */
 void
 Logger::addArc( const boost::int32_t level,
-                const double & x,
-                const double & y,
-                const double & radius,
+                const double x,
+                const double y,
+                const double radius,
                 const AngleDeg & start_angle,
-                const double & span_angle,
+                const double span_angle,
                 const int r, const int g, const int b )
 {
     if ( M_fout
@@ -402,9 +402,9 @@ Logger::addArc( const boost::int32_t level,
  */
 void
 Logger::addCircle( const boost::int32_t level,
-                   const double & x,
-                   const double & y,
-                   const double & radius,
+                   const double x,
+                   const double y,
+                   const double radius,
                    const char * color,
                    const bool fill )
 {
@@ -434,9 +434,9 @@ Logger::addCircle( const boost::int32_t level,
  */
 void
 Logger::addCircle( const boost::int32_t level,
-                   const double & x,
-                   const double & y,
-                   const double & radius,
+                   const double x,
+                   const double y,
+                   const double radius,
                    const int r, const int g, const int b,
                    const bool fill )
 {
@@ -463,12 +463,12 @@ Logger::addCircle( const boost::int32_t level,
  */
 void
 Logger::addTriangle( const boost::int32_t level,
-                     const double & x1,
-                     const double & y1,
-                     const double & x2,
-                     const double & y2,
-                     const double & x3,
-                     const double & y3,
+                     const double x1,
+                     const double y1,
+                     const double x2,
+                     const double y2,
+                     const double x3,
+                     const double y3,
                      const char * color,
                      const bool fill )
 {
@@ -498,12 +498,12 @@ Logger::addTriangle( const boost::int32_t level,
  */
 void
 Logger::addTriangle( const boost::int32_t level,
-                     const double & x1,
-                     const double & y1,
-                     const double & x2,
-                     const double & y2,
-                     const double & x3,
-                     const double & y3,
+                     const double x1,
+                     const double y1,
+                     const double x2,
+                     const double y2,
+                     const double x3,
+                     const double y3,
                      const int r, const int g, const int b,
                      const bool fill )
 {
@@ -530,10 +530,10 @@ Logger::addTriangle( const boost::int32_t level,
  */
 void
 Logger::addRect( const boost::int32_t level,
-                 const double & left,
-                 const double & top,
-                 const double & length,
-                 const double & width,
+                 const double left,
+                 const double top,
+                 const double length,
+                 const double width,
                  const char * color,
                  const bool fill )
 {
@@ -563,10 +563,10 @@ Logger::addRect( const boost::int32_t level,
  */
 void
 Logger::addRect( const boost::int32_t level,
-                 const double & left,
-                 const double & top,
-                 const double & length,
-                 const double & width,
+                 const double left,
+                 const double top,
+                 const double length,
+                 const double width,
                  const int r, const int g, const int b,
                  const bool fill )
 {
@@ -593,12 +593,12 @@ Logger::addRect( const boost::int32_t level,
  */
 void
 Logger::addSector( const boost::int32_t level,
-                   const double & x,
-                   const double & y,
-                   const double & min_radius,
-                   const double & max_radius,
+                   const double x,
+                   const double y,
+                   const double min_radius,
+                   const double max_radius,
                    const AngleDeg & start_angle,
-                   const double & span_angle,
+                   const double span_angle,
                    const char * color,
                    const bool fill )
 {
@@ -629,12 +629,12 @@ Logger::addSector( const boost::int32_t level,
  */
 void
 Logger::addSector( const boost::int32_t level,
-                   const double & x,
-                   const double & y,
-                   const double & min_radius,
-                   const double & max_radius,
+                   const double x,
+                   const double y,
+                   const double min_radius,
+                   const double max_radius,
                    const AngleDeg & start_angle,
-                   const double & span_angle,
+                   const double span_angle,
                    const int r, const int g, const int b,
                    const bool fill )
 {
@@ -729,8 +729,8 @@ Logger::addSector( const boost::int32_t level,
  */
 void
 Logger::addMessage( const boost::int32_t level,
-                    const double & x,
-                    const double & y,
+                    const double x,
+                    const double y,
                     const char * msg,
                     const char * color )
 {
@@ -764,8 +764,8 @@ Logger::addMessage( const boost::int32_t level,
  */
 void
 Logger::addMessage( const boost::int32_t level,
-                    const double & x,
-                    const double & y,
+                    const double x,
+                    const double y,
                     const char * msg,
                     const int r, const int g, const int b )
 {

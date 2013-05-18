@@ -94,7 +94,7 @@ public:
     Time := integer value
     Level := integer value
     Type :=  M | p | l | a | c | C | t | T | r | R | s | m
-        M : log message
+        M : log message for text viewer
         p : point
         l: line
         a: arc
@@ -105,7 +105,8 @@ public:
         r: rectangle
         R: filled rectangle
         s: sector
-        m: message;
+        S: filled sector
+        m: message painted on the field
     Text := <Str>
     Point := <x:Real> <y:Real>[ <Color>]
     Line := <x1:Real> <y1:Real> <x2:Real> <y2:Real>[ <Color>]
@@ -133,11 +134,12 @@ public:
     static const boost::int32_t MARK      = LEVEL_14; //!< log level definition alias
     static const boost::int32_t POSITIONING = LEVEL_15; //!< log level definition alias
     static const boost::int32_t ROLE      = LEVEL_16; //!< log level definition alias
-    static const boost::int32_t PLAN      = LEVEL_17; //!< log level definition alias
-    static const boost::int32_t TEAM      = LEVEL_18; //!< log level definition alias
-    static const boost::int32_t COMMUNICATION = LEVEL_19; //!< log level definition alias
-    static const boost::int32_t ANALYZER  = LEVEL_20; //!< log level definition alias
-    static const boost::int32_t ACTION_CHAIN = LEVEL_21; //!< log level definition alias
+    static const boost::int32_t TEAM      = LEVEL_17; //!< log level definition alias
+    static const boost::int32_t COMMUNICATION = LEVEL_18; //!< log level definition alias
+    static const boost::int32_t ANALYZER  = LEVEL_19; //!< log level definition alias
+    static const boost::int32_t ACT_SEQ   = LEVEL_20; //!< log level definition alias
+    static const boost::int32_t ACTION_CHAIN = ACT_SEQ; //!< log level definition alias
+    static const boost::int32_t PLAN      = LEVEL_21; //!< log level definition alias
 
     static const boost::int32_t LEVEL_ANY = 0xffffffff; //!< log level definition variable
 
@@ -240,8 +242,8 @@ public:
       \param color color name string
      */
     void addPoint( const boost::int32_t level,
-                   const double & x,
-                   const double & y,
+                   const double x,
+                   const double y,
                    const char * color = NULL );
 
     /*!
@@ -267,8 +269,8 @@ public:
       \param b blue value
      */
     void addPoint( const boost::int32_t level,
-                   const double & x,
-                   const double & y,
+                   const double x,
+                   const double y,
                    const int r, const int g, const int b );
 
     /*!
@@ -296,10 +298,10 @@ public:
       \param color color name string
      */
     void addLine( const boost::int32_t level,
-                  const double & x1,
-                  const double & y1,
-                  const double & x2,
-                  const double & y2,
+                  const double x1,
+                  const double y1,
+                  const double x2,
+                  const double y2,
                   const char * color = NULL );
 
     /*!
@@ -329,10 +331,10 @@ public:
       \param b blue value
      */
     void addLine( const boost::int32_t level,
-                  const double & x1,
-                  const double & y1,
-                  const double & x2,
-                  const double & y2,
+                  const double x1,
+                  const double y1,
+                  const double x2,
+                  const double y2,
                   const int r, const int g, const int b );
 
     /*!
@@ -363,11 +365,11 @@ public:
       \param color color name string
      */
     void addArc( const boost::int32_t level,
-                 const double & x,
-                 const double & y,
-                 const double & radius,
+                 const double x,
+                 const double y,
+                 const double radius,
                  const AngleDeg & start_angle,
-                 const double & span_angle,
+                 const double span_angle,
                  const char * color = NULL );
 
     /*!
@@ -381,9 +383,9 @@ public:
      */
     void addArc( const boost::int32_t level,
                  const Vector2D & center,
-                 const double & radius,
+                 const double radius,
                  const AngleDeg & start_angle,
-                 const double & span_angle,
+                 const double span_angle,
                  const char * color = NULL )
       {
           addArc( level, center.x, center.y, radius, start_angle, span_angle, color );
@@ -402,11 +404,11 @@ public:
       \param b blue value
      */
     void addArc( const boost::int32_t level,
-                 const double & x,
-                 const double & y,
-                 const double & radius,
+                 const double x,
+                 const double y,
+                 const double radius,
                  const AngleDeg & start_angle,
-                 const double & span_angle,
+                 const double span_angle,
                  const int r, const int g, const int b );
 
     /*!
@@ -422,9 +424,9 @@ public:
      */
     void addArc( const boost::int32_t level,
                  const Vector2D & center,
-                 const double & radius,
+                 const double radius,
                  const AngleDeg & start_angle,
-                 const double & span_angle,
+                 const double span_angle,
                  const int r, const int g, const int b )
       {
           addArc( level, center.x, center.y, radius, start_angle, span_angle, r, g, b );
@@ -440,9 +442,9 @@ public:
       \param fill switch to select a circle is filled or not.
      */
     void addCircle( const boost::int32_t level,
-                    const double & x,
-                    const double & y,
-                    const double & radius,
+                    const double x,
+                    const double y,
+                    const double radius,
                     const char * color = NULL,
                     const bool fill = false );
 
@@ -456,7 +458,7 @@ public:
      */
     void addCircle( const boost::int32_t level,
                     const Vector2D & center,
-                    const double & radius,
+                    const double radius,
                     const char * color = NULL,
                     const bool fill = false )
       {
@@ -490,9 +492,9 @@ public:
       \param fill switch to select a circle is filled or not.
      */
     void addCircle( const boost::int32_t level,
-                    const double & x,
-                    const double & y,
-                    const double & radius,
+                    const double x,
+                    const double y,
+                    const double radius,
                     const int r, const int g, const int b,
                     const bool fill = false );
 
@@ -508,7 +510,7 @@ public:
      */
     void addCircle( const boost::int32_t level,
                     const Vector2D & center,
-                    const double & radius,
+                    const double radius,
                     const int r, const int g, const int b,
                     const bool fill = false )
       {
@@ -548,12 +550,12 @@ public:
       \param fill switch to select a circle is filled or not.
      */
     void addTriangle( const boost::int32_t level,
-                      const double & x1,
-                      const double & y1,
-                      const double & x2,
-                      const double & y2,
-                      const double & x3,
-                      const double & y3,
+                      const double x1,
+                      const double y1,
+                      const double x2,
+                      const double y2,
+                      const double x3,
+                      const double y3,
                       const char * color = NULL,
                       const bool fill = false );
 
@@ -616,12 +618,12 @@ public:
       \param fill switch to select a circle is filled or not.
      */
     void addTriangle( const boost::int32_t level,
-                      const double & x1,
-                      const double & y1,
-                      const double & x2,
-                      const double & y2,
-                      const double & x3,
-                      const double & y3,
+                      const double x1,
+                      const double y1,
+                      const double x2,
+                      const double y2,
+                      const double x3,
+                      const double y3,
                       const int r, const int g, const int b,
                       const bool fill = false );
 
@@ -684,10 +686,10 @@ public:
       \param fill switch to select a circle is filled or not.
      */
     void addRect( const boost::int32_t level,
-                  const double & left,
-                  const double & top,
-                  const double & length,
-                  const double & width,
+                  const double left,
+                  const double top,
+                  const double length,
+                  const double width,
                   const char * color = NULL,
                   const bool fill = false );
 
@@ -723,10 +725,10 @@ public:
       \param fill switch to select a circle is filled or not.
      */
     void addRect( const boost::int32_t level,
-                  const double & left,
-                  const double & top,
-                  const double & length,
-                  const double & width,
+                  const double left,
+                  const double top,
+                  const double length,
+                  const double width,
                   const int r, const int g, const int b,
                   const bool fill = false );
 
@@ -764,12 +766,12 @@ public:
       \param fill switch to select a sector is filled or not
      */
     void addSector( const boost::int32_t level,
-                    const double & x,
-                    const double & y,
-                    const double & min_radius,
-                    const double & max_radius,
+                    const double x,
+                    const double y,
+                    const double min_radius,
+                    const double max_radius,
                     const AngleDeg & start_angle,
-                    const double & span_angle,
+                    const double span_angle,
                     const char * color = NULL,
                     const bool fill = false );
 
@@ -786,10 +788,10 @@ public:
      */
     void addSector( const boost::int32_t level,
                     const Vector2D & center,
-                    const double & min_radius,
-                    const double & max_radius,
+                    const double min_radius,
+                    const double max_radius,
                     const AngleDeg & start_angle,
-                    const double & span_angle,
+                    const double span_angle,
                     const char * color = NULL,
                     const bool fill = false )
       {
@@ -815,12 +817,12 @@ public:
       \param fill switch to select a sector is filled or not
      */
     void addSector( const boost::int32_t level,
-                    const double & x,
-                    const double & y,
-                    const double & min_radius,
-                    const double & max_radius,
+                    const double x,
+                    const double y,
+                    const double min_radius,
+                    const double max_radius,
                     const AngleDeg & start_angle,
-                    const double & span_angle,
+                    const double span_angle,
                     const int r, const int g, const int b,
                     const bool fill = false );
 
@@ -839,10 +841,10 @@ public:
      */
     void addSector( const boost::int32_t level,
                     const Vector2D & center,
-                    const double & min_radius,
-                    const double & max_radius,
+                    const double min_radius,
+                    const double max_radius,
                     const AngleDeg & start_angle,
-                    const double & span_angle,
+                    const double span_angle,
                     const int r, const int g, const int b,
                     const bool fill = false )
       {
@@ -888,8 +890,8 @@ public:
       \param color color name string
      */
     void addMessage( const boost::int32_t level,
-                     const double & x,
-                     const double & y,
+                     const double x,
+                     const double y,
                      const char * msg,
                      const char * color = NULL );
 
@@ -921,8 +923,8 @@ public:
       \param b blue value
      */
     void addMessage( const boost::int32_t level,
-                     const double & x,
-                     const double & y,
+                     const double x,
+                     const double y,
                      const char * msg,
                      const int r, const int g, const int b );
 

@@ -1,3 +1,9 @@
+2013-05-19  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/common/logger.cpp:
+	* rcsc/common/logger.h:
+	- Logger::PLANを末尾へ移動
+
 2013-05-18  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/geom/voronoi_diagram.h:
