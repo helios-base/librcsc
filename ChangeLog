@@ -1,5 +1,8 @@
 2013-05-18  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/geom/voronoi_diagram.h:
+	- 内部の三角形分割を参照するメソッドを追加
+
 	* rcsc/action/kick_table.cpp:
 	- ボールをこぼすかもしれないノードはリスキーノードとして扱わないよ
 	うに変更

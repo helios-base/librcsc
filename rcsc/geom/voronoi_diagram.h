@@ -123,6 +123,15 @@ public:
     void compute();
 
     /*!
+      \brief get the triangulation, the dual of this voronoi diagram
+      \return delaunay triangulation
+     */
+    const DelaunayTriangulation & triangulation() const
+      {
+          return M_triangulation;
+      }
+
+    /*!
       \brief get result set of points
       \return const reference to point list
     */
