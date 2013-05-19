@@ -101,13 +101,12 @@ Body_SmartKick::execute( PlayerAgent * agent )
         }
 #endif
         dlog.addText( Logger::KICK,
-                      __FILE__": Success! target=(%.2f %.2f)"
-                      " speed=%.3f first_speed_thr=%.3f"
-                      " max_step=%d -> achieved_speed=%.3f power=%.2f step=%d",
+                      "(Body_SmartKick) Success! target=(%.2f %.2f) speed=%.3f speed_thr=%.3f max_step=%d",
                       M_target_point.x, M_target_point.y,
-                      first_speed,
-                      first_speed_thr,
-                      max_step,
+                      first_speed, first_speed_thr, max_step );
+
+        dlog.addText( Logger::KICK,
+                      "(Body_SmartKick) -> achieved_speed=%.3f power=%.2f actual_step=%d",
                       M_sequence.speed_,
                       M_sequence.power_,
                       (int)M_sequence.pos_list_.size() );
@@ -129,13 +128,12 @@ Body_SmartKick::execute( PlayerAgent * agent )
 
     agent->debugClient().addMessage( "SmartKick.Hold" );
     dlog.addText( Logger::KICK,
-                  __FILE__": Failed! target=(%.2f %.2f)"
-                  " speed=%.3f first_speed_thr=%.3f"
-                  " max_step=%d -> speed=%.3f power=%.2f step=%d",
+                  "(Body_SmartKick) Failure! target=(%.2f %.2f) speed=%.3f speed_thr=%.3f max_step=%d",
                   M_target_point.x, M_target_point.y,
                   first_speed,
-                  first_speed_thr,
-                  max_step,
+                  first_speed_thr, max_step );
+    dlog.addText( Logger::KICK,
+                  "(Body_SmartKick) -> speed=%.3f power=%.2f step=%d",
                   M_sequence.speed_,
                   M_sequence.power_,
                   (int)M_sequence.pos_list_.size() );

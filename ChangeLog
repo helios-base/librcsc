@@ -1,5 +1,8 @@
 2013-05-20  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/action/body_smart_kick.cpp:
+	- デバッグメッセージ修正
+
 	* rcsc/action/kick_table.cpp:
 	- デバッグメッセージ修正
 
