@@ -1,5 +1,8 @@
 2013-05-19  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/action/kick_table.cpp:
+	- risky modeに入る条件を誤っていたバグを修正
+
 	* rcsc/common/logger.cpp:
 	* rcsc/common/logger.h:
 	- Logger::PLANを末尾へ移動

@@ -1933,7 +1933,7 @@ KickTable::evaluate( const double first_speed,
                      const double allowable_speed )
 {
     dlog.addText( Logger::KICK,
-                  __FILE__": evaluate() candidate size=%d",
+                  "(KickTable::evaluate) candidate size=%d",
                   (int)M_candidates.size() );
 
     const double power_thr1 = ServerParam::i().maxPower() * 0.94;
@@ -2036,10 +2036,18 @@ check_candidates_max_speed( const std::vector< KickTable::Sequence > & candidate
     {
         if ( it->speed_ > speed_thr )
         {
+            // dlog.addText( Logger::KICK,
+            //               "(KickTable::check_candidate) OK %d speed=%.3f  thr=%.3f",
+            //               it->index_, it->speed_, speed_thr );
             return true;
         }
+        // dlog.addText( Logger::KICK,
+        //               "(KickTable::check_candidate) NG %d speed=%.3f  thr=%.3f",
+        //               it->index_, it->speed_, speed_thr );
     }
 
+    dlog.addText( Logger::KICK,
+                  "(KickTable::check_candidate) XXX" );
     return false;
 }
 
@@ -2123,9 +2131,15 @@ KickTable::simulate( const WorldModel & world,
                       "(KickTable::simulate) found 3 step" );
     }
 
-    if ( check_candidates_max_speed( M_candidates, speed_thr ) )
+    // dlog.addText( Logger::KICK,
+    //               "(KickTable::simulate) candidate size = %zd", M_candidates.size() );
+
+    if ( ! check_candidates_max_speed( M_candidates, speed_thr ) )
     {
         M_use_risky_node = true;
+
+        // dlog.addText( Logger::KICK,
+        //               "(KickTable::simulate) try risky mode" );
 
         if ( max_step >= 2
              && simulateTwoStep( world,
@@ -2133,7 +2147,7 @@ KickTable::simulate( const WorldModel & world,
                                  target_speed ) )
         {
             dlog.addText( Logger::KICK,
-                          "(KickTable::simulate) found 2 step with dangrous node" );
+                          "(KickTable::simulate) found 2 step with risky node" );
         }
 
         if ( max_step >= 3
@@ -2142,7 +2156,7 @@ KickTable::simulate( const WorldModel & world,
                                    target_speed ) )
         {
             dlog.addText( Logger::KICK,
-                          "(KickTable::simulate) found 3 step with dangerous" );
+                          "(KickTable::simulate) found 3 step with risky node" );
         }
     }
 
