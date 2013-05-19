@@ -1,3 +1,8 @@
+2013-05-20  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/action/kick_table.cpp:
+	- デバッグメッセージ修正
+
 2013-05-19  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/action/kick_table.cpp:

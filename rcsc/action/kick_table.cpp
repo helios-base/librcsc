@@ -348,7 +348,7 @@ KickTable::createTables()
     }
 
     dlog.addText( Logger::KICK,
-                  __FILE__": createTables() elapsed %f [ms]",
+                  "(KickTable::createTables) elapsed %f [ms]",
                   timer.elapsedReal() );
 
 #if 0
@@ -740,7 +740,7 @@ KickTable::updateState( const WorldModel & world )
 
 #ifdef DEBUG_PROFILE
     dlog.addText( Logger::KICK,
-                  __FILE__": (KickTable::updateState) KickTable_elapsed %f [ms]",
+                  "(KickTable::updateState) KickTable_elapsed %f [ms]",
                   timer.elapsedReal() );
 #endif
 }
@@ -754,7 +754,7 @@ KickTable::createStateCache( const WorldModel & world )
 {
 #ifdef DEBUG
     dlog.addText( Logger::KICK,
-                  __FILE__": createStateCache()" );
+                  "(KickTable::createStateCache)" );
 #endif
 
     const ServerParam & param = ServerParam::i();
@@ -907,7 +907,7 @@ KickTable::checkCollisionAfterRelease( const WorldModel & world,
 {
 #ifdef DEBUG
     dlog.addText( Logger::KICK,
-                  __FILE__": checkCollisionAfterRelease()" );
+                  "(KickTable::checkCollisionAfterRelease)" );
 #endif
 
     const PlayerType & self_type = world.self().playerType();
@@ -1675,7 +1675,7 @@ KickTable::simulateThreeStep( const WorldModel & world,
 
 #ifdef DEBUG
     dlog.addText( Logger::KICK,
-                  __FILE__": simulateThreeStep() target angle index = %d ",
+                  "(KickTable::simulateThreeStep) target angle index = %d ",
                   target_angle_index );
 #endif
 
@@ -2039,6 +2039,8 @@ check_candidates_max_speed( const std::vector< KickTable::Sequence > & candidate
             // dlog.addText( Logger::KICK,
             //               "(KickTable::check_candidate) OK %d speed=%.3f  thr=%.3f",
             //               it->index_, it->speed_, speed_thr );
+            dlog.addText( Logger::KICK,
+                          "(KickTable::check_candidate) OK found" );
             return true;
         }
         // dlog.addText( Logger::KICK,
@@ -2047,7 +2049,7 @@ check_candidates_max_speed( const std::vector< KickTable::Sequence > & candidate
     }
 
     dlog.addText( Logger::KICK,
-                  "(KickTable::check_candidate) XXX" );
+                  "(KickTable::check_candidate) NG not found" );
     return false;
 }
 
@@ -2160,25 +2162,26 @@ KickTable::simulate( const WorldModel & world,
         }
     }
 
-
     // TODO:
     // 4 steps simulation
+
+    if ( M_candidates.empty() )
+    {
+        dlog.addText( Logger::KICK,
+                      "(KickTable::simulate) No candidate" );
+        return false;
+    }
 
     // TODO:
     // dynamic evaluator
     evaluate( target_speed, speed_thr );
-
-    if ( M_candidates.empty() )
-    {
-        return false;
-    }
 
     sequence = *std::max_element( M_candidates.begin(),
                                   M_candidates.end(),
                                   SequenceCmp() );
 
     dlog.addText( Logger::KICK,
-                  __FILE__": (KickTable::simulate) result next_pos=(%.2f %.2f) flag=%x n_kick=%d speed=%.2f power=%.2f score=%.2f",
+                  "(KickTable::simulate) result next_pos=(%.2f %.2f) flag=%x n_kick=%d speed=%.2f power=%.2f score=%.2f",
                   sequence.pos_list_.front().x,
                   sequence.pos_list_.front().y,
                   sequence.flag_,
@@ -2189,7 +2192,7 @@ KickTable::simulate( const WorldModel & world,
 
 #ifdef DEBUG_PROFILE
     dlog.addText( Logger::KICK,
-                  __FILE__": (KickTable::simulate) KickTable_elapsed=%f [ms].",
+                  "(KickTable::simulate) KickTable_elapsed=%f [ms].",
                   timer.elapsedReal() );
 #endif
     return sequence.speed_ >= target_speed - rcsc::EPS;
