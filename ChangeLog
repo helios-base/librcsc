@@ -1,3 +1,8 @@
+2013-05-27  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/self_intercept_v13.cpp:
+	- 不要な関数呼び出し削除，デバッグメッセージ修正
+
 2013-05-20  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/action/body_smart_kick.cpp:

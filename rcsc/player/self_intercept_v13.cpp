@@ -337,7 +337,7 @@ SelfInterceptV13::predictOneDash( std::vector< InterceptInfo > & self_cache ) co
           dir < max_dash_angle;
           dir += dash_angle_step )
     {
-        const AngleDeg dash_angle = self.body() + SP.discretizeDashAngle( SP.normalizeDashAngle( dir ) );
+        const AngleDeg dash_angle = self.body() + SP.discretizeDashAngle( dir );
         const double dash_rate = self.dashRate() * SP.dashDirRate( dir );
 
 #ifdef DEBUG_PRINT_ONE_STEP
@@ -927,7 +927,7 @@ SelfInterceptV13::predictShortStep( const int max_cycle,
 #ifdef DEBUG_PRINT_SHORT_STEP
         dlog.addText( Logger::INTERCEPT,
                       ">>>>>>>> turn dash forward, turn_margin_dist=%f",
-                      control_area - 0.1 );
+                      std::max( 0.1, control_area - constrol_area_buf ) );
 #endif
         predictTurnDashShort( cycle, ball_pos, control_area, save_recovery, false, // forward dash
                               std::max( 0.1, control_area - control_area_buf ),
