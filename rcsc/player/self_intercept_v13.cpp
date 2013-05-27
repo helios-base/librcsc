@@ -341,9 +341,9 @@ SelfInterceptV13::predictOneDash( std::vector< InterceptInfo > & self_cache ) co
         const double dash_rate = self.dashRate() * SP.dashDirRate( dir );
 
 #ifdef DEBUG_PRINT_ONE_STEP
-    dlog.addText( Logger::INTERCEPT,
-                  "(predictOneDash) dir=%.1f angle=%.1f dash_rate=%f",
-                  dir, dash_angle.degree(), dash_rate );
+        dlog.addText( Logger::INTERCEPT,
+                      "(predictOneDash) dir=%.1f angle=%.1f dash_rate=%f",
+                      dir, dash_angle.degree(), dash_rate );
 #endif
 
         //
@@ -695,8 +695,9 @@ SelfInterceptV13::getOneStepDashPower( const Vector2D & next_ball_rel,
                                        const double & max_forward_accel_x,
                                        const double & max_back_accel_x ) const
 {
-
-    const double dash_rate = M_world.self().dashRate() * ServerParam::i().dashDirRate( dash_angle.degree() );
+    const double dash_dir = ( dash_angle - M_world.self().body() ).degree();
+    const double dash_rate = ( M_world.self().dashRate()
+                               * ServerParam::i().dashDirRate( dash_dir ) );
 
     const PlayerType & ptype = M_world.self().playerType();
     const double best_ctrl_dist_forward
