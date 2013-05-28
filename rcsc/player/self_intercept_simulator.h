@@ -91,14 +91,12 @@ private:
     InterceptInfo getTurnDash( const WorldModel & wm,
                                const Vector2D & ball_pos,
                                const double control_area,
+                               const double ball_noise,
                                const int step,
                                const bool back_dash );
 
     void simulateOmniDash( const WorldModel & wm,
-                           const Vector2D & ball_pos,
-                           const double control_area,
-                           const int step,
-                           const bool back_dash,
+                           const int max_step,
                            std::vector< InterceptInfo > & self_cache );
 };
 
