@@ -98,6 +98,10 @@ private:
     void simulateOmniDash( const WorldModel & wm,
                            const int max_step,
                            std::vector< InterceptInfo > & self_cache );
+
+    void simulateFinal( const WorldModel & wm,
+                        const int max_step,
+                        std::vector< InterceptInfo > & self_cache );
 };
 
 }

@@ -54,17 +54,97 @@
 #include <sstream>
 
 // #define DEBUG_PROFILE
-// #define DEBUG_PRINT_RESULTS
+#define DEBUG_PRINT_RESULTS
 
 // #define DEBUG_PRINT_ONE_STEP
 // #define DEBUG_PRINT_TURN_DASH
 // #define DEBUG_PRINT_OMNI_DASH
 
+namespace rcsc {
+
 namespace {
 const int CONTROL_BUF = 0.15;
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+debug_print_results( const std::vector< InterceptInfo > & self_cache )
+{
+    dlog.addText( Logger::INTERCEPT,
+                        "(SelfIntercept) solution size = %zd",
+                        self_cache.size() );
+    for ( std::vector< InterceptInfo >::const_iterator it = self_cache.begin(),
+              end = self_cache.end();
+          it != end;
+          ++it )
+    {
+        dlog.addText( Logger::INTERCEPT,
+                      "(SelfIntercept) type=%d step=%d (t:%d d:%d)"
+                      " power=%.2f angle=%.1f"
+                      " self_pos=(%.2f %.2f) bdist=%.3f stamina=%.1f",
+                      it->mode(),
+                      it->reachCycle(),
+                      it->turnCycle(),
+                      it->dashCycle(),
+                      it->dashPower(),
+                      it->dashDir(),
+                      it->selfPos().x, it->selfPos().y,
+                      it->ballDist(),
+                      it->stamina() );
+    }
 }
 
-namespace rcsc {
+struct InterceptSorter {
+    bool operator()( const InterceptInfo & lhs,
+                     const InterceptInfo & rhs ) const
+      {
+          if ( lhs.reachCycle() < rhs.reachCycle() )
+          {
+              return true;
+          }
+
+          if ( lhs.reachCycle() > rhs.reachCycle() )
+          {
+              return false;
+          }
+
+          // reach steps are same
+
+          if ( lhs.turnCycle() < rhs.turnCycle() )
+          {
+              return true;
+          }
+
+          if ( lhs.turnCycle() > rhs.turnCycle() )
+          {
+              return false;
+          }
+
+          // turn steps are same
+
+          if ( std::fabs( lhs.stamina() - rhs.stamina() ) < 200.0 )
+          {
+              return lhs.ballDist() < rhs.ballDist();
+          }
+
+          return lhs.stamina() < rhs.stamina();
+      }
+};
+
+struct InterceptEqual {
+    bool operator()( const InterceptInfo & lhs,
+                     const InterceptInfo & rhs ) const
+      {
+          return lhs.mode() == rhs.mode()
+              && lhs.turnCycle() == rhs.turnCycle()
+              && lhs.dashCycle() == rhs.dashCycle()
+              && lhs.dashDir() == rhs.dashDir()
+              && ( lhs.dashPower() * rhs.dashPower() > 0.0 );
+      }
+};
+}
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -84,9 +164,17 @@ SelfInterceptSimulator::simulate( const WorldModel & wm,
     simulateTurnDash( wm, max_step, true, self_cache ); // back dash
     simulateOmniDash( wm, max_step, self_cache ); // omni dash
 
-    std::sort( self_cache.begin(), self_cache.end(), InterceptInfo::Cmp() );
+    if ( self_cache.empty() )
+    {
+        simulateFinal( wm, max_step, self_cache );
+    }
+
+    std::sort( self_cache.begin(), self_cache.end(), InterceptSorter() );
+#ifdef DEBUG_PRINT_RESULTS
+    debug_print_results( self_cache );
+#endif
     self_cache.erase( std::unique( self_cache.begin(), self_cache.end(),
-                                   InterceptInfo::Equal() ),
+                                   InterceptEqual() ),
                       self_cache.end() );
 
 #ifdef DEBUG_PROFILE
@@ -95,28 +183,7 @@ SelfInterceptSimulator::simulate( const WorldModel & wm,
                   timer.elapsedReal() );
 #endif
 #ifdef DEBUG_PRINT_RESULTS
-    dlog.addText( Logger::INTERCEPT,
-                  "(SelfIntercept) solution size = %zd",
-                  self_cache.size() );
-    for ( std::vector< InterceptInfo >::iterator it = self_cache.begin(),
-              end = self_cache.end();
-          it != end;
-          ++it )
-    {
-        dlog.addText( Logger::INTERCEPT,
-                      "(SelfIntercept) type=%d step=%d (t:%d d:%d)"
-                      " power=%.2f angle=%.1f"
-                      " self_pos=(%.2f %.2f) bdist=%.3f stamina=%.1f",
-                      it->mode(),
-                      it->reachCycle(),
-                      it->turnCycle(),
-                      it->dashCycle(),
-                      it->dashPower(),
-                      it->dashAngle().degree(),
-                      it->selfPos().x, it->selfPos().y,
-                      it->ballDist(),
-                      it->stamina() );
-    }
+    debug_print_results( self_cache );
 #endif
 }
 
@@ -434,7 +501,7 @@ SelfInterceptSimulator::getOneAdjustDash( const WorldModel & wm,
 
     const double control_buf = control_area - 0.075;
 
-    const Vector2D self_next = wm.self().pos() + wm.self().vel();
+    const Vector2D self_next = wm.self().pos() + wm.self().vel( );
     const Vector2D ball_next = wm.ball().pos() + wm.ball().vel();
     const AngleDeg dash_dir = dash_angle - wm.self().body();
 
@@ -562,7 +629,7 @@ SelfInterceptSimulator::getOneAdjustDash( const WorldModel & wm,
         mode = InterceptInfo::EXHAUST;
     }
 
-    InterceptInfo info( mode, 0, 1, dash_power, dash_dir,
+    InterceptInfo info( mode, 0, 1, dash_power, dash_dir.degree(),
                         self_next_after_dash,
                         self_next_after_dash.dist( ball_next ),
                         stamina_model.stamina() );
@@ -941,7 +1008,6 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
     return InterceptInfo();
 }
 
-
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -1195,6 +1261,52 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
             break;
         }
     }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+SelfInterceptSimulator::simulateFinal( const WorldModel & wm,
+                                       const int max_step,
+                                       std::vector< InterceptInfo > & self_cache )
+{
+    const PlayerType & ptype = wm.self().playerType();
+
+    const Vector2D self_pos = wm.self().inertiaFinalPoint();
+    const Vector2D ball_pos = wm.ball().inertiaFinalPoint();
+    const bool goalie_mode =
+        ( wm.self().goalie()
+          && wm.lastKickerSide() != wm.ourSide()
+          && ball_pos.x < ServerParam::i().ourPenaltyAreaLineX()
+          && ball_pos.absY() < ServerParam::i().penaltyAreaHalfWidth()
+          );
+    const double control_area = ( goalie_mode
+                                  ? ServerParam::i().catchableArea() - 0.15
+                                  : ptype.kickableArea() );
+
+    AngleDeg dash_angle = wm.self().body();
+    int n_turn = simulate_turn_step( wm, ball_pos, control_area, 100, false, &dash_angle );
+    double move_dist = self_pos.dist( ball_pos ) - control_area - 0.15;
+    int n_dash = ptype.cyclesToReachDistance( move_dist );
+
+    if ( max_step > n_turn + n_dash )
+    {
+        n_dash = max_step - n_turn;
+    }
+
+    StaminaModel stamina_model = wm.self().staminaModel();
+
+    stamina_model.simulateWaits( ptype, n_turn );
+    stamina_model.simulateDashes( ptype, n_dash, ServerParam::i().maxDashPower() );
+
+    self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
+                                         n_turn, n_dash,
+                                         ServerParam::i().maxDashPower(), 0.0,
+                                         ball_pos,
+                                         0.0,
+                                         stamina_model.stamina() ) );
 }
 
 }

@@ -100,7 +100,7 @@ Body_Intercept2009::execute( PlayerAgent * agent )
                   table->selfCache().size(),
                   best_intercept.reachCycle(),
                   best_intercept.turnCycle(), best_intercept.dashCycle(),
-                  best_intercept.dashPower(), best_intercept.dashAngle().degree() );
+                  best_intercept.dashPower(), best_intercept.dashDir() );
 
     Vector2D target_point = wm.ball().inertiaPoint( best_intercept.reachCycle() );
     agent->debugClient().setTarget( target_point );
@@ -939,8 +939,8 @@ Body_Intercept2009::doInertiaDash( PlayerAgent * agent,
     if ( info.reachCycle() == 1 )
     {
         agent->debugClient().addMessage( "Intercept1Dash%.0f|%.0f",
-                                         info.dashPower(), info.dashAngle().degree() );
-        agent->doDash( info.dashPower(), info.dashAngle() );
+                                         info.dashPower(), info.dashDir() );
+        agent->doDash( info.dashPower(), info.dashDir() );
 #ifdef DEBUG_PRINT
         if ( info.dashAngle().abs() > 1.0 )
         {
@@ -1011,7 +1011,7 @@ Body_Intercept2009::doInertiaDash( PlayerAgent * agent,
 
     if ( wm.ball().seenPosCount() <= 2
          && wm.ball().vel().r() * std::pow( ServerParam::i().ballDecay(), info.reachCycle() ) < ptype.kickableArea() * 1.5
-         && info.dashAngle().abs() < 5.0
+         && std::fabs( info.dashDir() ) < 5.0
          && target_rel.absX() < ( ptype.kickableArea()
                                   + ptype.dashRate( wm.self().effort() )
                                   * ServerParam::i().maxDashPower()
@@ -1028,7 +1028,7 @@ Body_Intercept2009::doInertiaDash( PlayerAgent * agent,
         Vector2D rel_vel = wm.self().vel().rotatedVector( - wm.self().body() );
         double required_accel = first_speed - rel_vel.x;
         used_power = required_accel / wm.self().dashRate();
-        used_power /= ServerParam::i().dashDirRate( info.dashAngle().degree() );
+        used_power /= ServerParam::i().dashDirRate( info.dashDir() );
 
         //if ( info.dashPower() < 0.0 ) used_power = -used_power;
 
@@ -1039,7 +1039,7 @@ Body_Intercept2009::doInertiaDash( PlayerAgent * agent,
         }
 
         agent->debugClient().addMessage( "InterceptInertiaDash%d:%.0f|%.0f",
-                                         info.reachCycle(), used_power, info.dashAngle().degree() );
+                                         info.reachCycle(), used_power, info.dashDir() );
         dlog.addText( Logger::INTERCEPT,
                       __FILE__": doInertiaDash. x_diff=%.2f first_speed=%.2f"
                       " accel=%.2f power=%.1f",
@@ -1049,7 +1049,7 @@ Body_Intercept2009::doInertiaDash( PlayerAgent * agent,
     else
     {
         agent->debugClient().addMessage( "InterceptDash%d:%.0f|%.0f",
-                                         info.reachCycle(), used_power, info.dashAngle().degree() );
+                                         info.reachCycle(), used_power, info.dashDir() );
         dlog.addText( Logger::INTERCEPT,
                       __FILE__": doInertiaDash. normal dash. x_diff=%.2f ",
                       target_rel.x );
@@ -1101,7 +1101,7 @@ Body_Intercept2009::doInertiaDash( PlayerAgent * agent,
         return true;
     }
 
-    agent->doDash( used_power, info.dashAngle() );
+    agent->doDash( used_power, info.dashDir() );
 #ifdef DEBUG_PRINT
         if ( info.dashAngle().abs() > 1.0 )
         {

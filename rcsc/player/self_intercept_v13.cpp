@@ -69,12 +69,23 @@ namespace {
 //const double control_area_buf = 0.1;
 const double control_area_buf = 0.15; // 2009-07-03
 //const double control_area_buf = 0.2; // 2009-07-04
+
+struct InterceptSorter {
+    bool operator()( const InterceptInfo & lhs,
+                     const InterceptInfo & rhs ) const
+      {
+          return ( lhs.reachCycle() < rhs.reachCycle()
+                   ? true
+                   : lhs.reachCycle() == rhs.reachCycle()
+                   ? lhs.turnCycle() < rhs.turnCycle()
+                   : false );
+      }
+};
 }
 
 
 const int SelfInterceptV13::MAX_SHORT_STEP = 5;
-const double SelfInterceptV13::MIN_TURN_THR = 12.5;
-//const double SelfInterceptV13::MIN_TURN_THR = 15.0;
+const double SelfInterceptV13::MIN_TURN_THR = 12.5; // 15.0
 const double SelfInterceptV13::BACK_DASH_THR_ANGLE = 100.0;
 
 /*-------------------------------------------------------------------*/
@@ -106,7 +117,7 @@ SelfInterceptV13::predict( const int max_cycle,
     predictLongStep( max_cycle, false, self_cache );
 #endif
 
-    std::sort( self_cache.begin(), self_cache.end(), InterceptInfo::Cmp() );
+    std::sort( self_cache.begin(), self_cache.end(), InterceptSorter() );
 
 #ifdef DEBUG_PROFILE
     dlog.addText( Logger::INTERCEPT,
@@ -666,7 +677,7 @@ SelfInterceptV13::predictOneDashAdjust( const AngleDeg & dash_angle,
         mode = InterceptInfo::EXHAUST;
     }
 
-    *info = InterceptInfo( mode, 0, 1, dash_power, dash_dir,
+    *info = InterceptInfo( mode, 0, 1, dash_power, dash_dir.degree(),
                            my_pos,
                            my_pos.dist( ball_next ),
                            stamina_model.stamina() );

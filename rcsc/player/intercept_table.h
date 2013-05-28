@@ -66,7 +66,7 @@ private:
     int M_turn_cycle; //!< estimated turn cycles
     int M_dash_cycle; //!< estimated dash cycles
     double M_dash_power; //!< dash power
-    AngleDeg M_dash_angle; //!< first dash angle
+    double M_dash_dir; //!< first dash direction (relative to body)
     Vector2D M_self_pos; //!< final self position
     double M_ball_dist; //!< final squared ball distance
     double M_stamina; //!< final stamina value
@@ -82,7 +82,7 @@ public:
           M_turn_cycle( 10000 ),
           M_dash_cycle( 10000 ),
           M_dash_power( 100000.0 ),
-          M_dash_angle( 0.0 ),
+          M_dash_dir( 0.0 ),
           M_self_pos( -10000.0, 0.0 ),
           M_ball_dist( 10000000.0 ),
           M_stamina( 0.0 )
@@ -94,17 +94,17 @@ public:
     InterceptInfo( const Mode mode,
                    const int turn_cycle,
                    const int dash_cycle,
-                   const double & dash_power,
-                   const AngleDeg & dash_angle,
+                   const double dash_power,
+                   const double dash_dir,
                    const Vector2D & self_pos,
-                   const double & ball_dist,
-                   const double & stamina )
+                   const double ball_dist,
+                   const double stamina )
         : M_valid( true ),
           M_mode( mode ),
           M_turn_cycle( turn_cycle ),
           M_dash_cycle( dash_cycle ),
           M_dash_power( dash_power ),
-          M_dash_angle( dash_angle ),
+          M_dash_dir( dash_dir ),
           M_self_pos( self_pos ),
           M_ball_dist( ball_dist ),
           M_stamina( stamina )
@@ -174,12 +174,12 @@ public:
       }
 
     /*!
-      \brief ger first dash angle
-      \return first dash angle
+      \brief ger first dash direction
+      \return first dash direction
      */
-    const AngleDeg & dashAngle() const
+    double dashDir() const
       {
-          return M_dash_angle;
+          return M_dash_dir;
       }
 
     /*!
@@ -230,28 +230,6 @@ public:
                        : false );
           }
     };
-
-    /*!
-      \class Equal
-      \brief interception info compare function object
-    */
-    struct Equal {
-        /*!
-          \brief operator function
-          \param lhs left hand side variable
-          \param rhs right hand side variable
-          \return compared result
-        */
-        bool operator()( const InterceptInfo & lhs,
-                         const InterceptInfo & rhs ) const
-          {
-              return ( lhs.mode() == rhs.mode()
-                       && lhs.turnCycle() == rhs.turnCycle()
-                       && lhs.dashCycle() == rhs.dashCycle()
-                       && lhs.dashAngle() == rhs.dashAngle() );
-          }
-    };
-
 };
 
 /*-------------------------------------------------------------------*/

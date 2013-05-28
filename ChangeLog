@@ -1,5 +1,13 @@
 2013-05-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/action/body_intercept2009.cpp:
+	* rcsc/player/intercept_table.h:
+	* rcsc/player/self_intercept_simulator.cpp:
+	* rcsc/player/self_intercept_simulator.h:
+	* rcsc/player/self_intercept_v13.cpp:
+	- 誤用を避けるためにInterceptInfo::dashAngle()をdashDir()へリネー
+	ムし，型をAngleDegからdoubleへ変更
+
 	* rcsc/player/self_intercept_simulator.cpp:
 	- OmniDashインターセプトを実装．未テスト
 	- ソート後に重複した候補を削除する処理を追加
