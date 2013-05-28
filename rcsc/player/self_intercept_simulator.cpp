@@ -1044,7 +1044,7 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
         self_vel.x += accel_x;
         self_pos += self_vel;
         self_vel *= ptype.playerDecay();
-        stamina_model.simulateDash( ptype, ( back_dash ? -dash_power : dash_power ) );
+        stamina_model.simulateDash( ptype, dash_power );
 #ifdef DEBUG_PRINT_TURN_DASH
         dlog.addText( Logger::INTERCEPT,
                       "%d: (getTurnDash) dash:%d power=%.1f req_acc_x=%.3f self_pos.x=%.2f ball_rel.x=%.2f dist=%.2f",

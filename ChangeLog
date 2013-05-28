@@ -1,3 +1,8 @@
+2013-05-29  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/self_intercept_simulator.cpp:
+	- スタミナ計算で不要なバックダッシュフラグが残っていたバグを修正
+
 2013-05-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/self_intercept_simulator.cpp:
