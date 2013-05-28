@@ -349,7 +349,7 @@ InterceptTable::createBallCache()
     {
         M_ball_cache.push_back( bpos );
 
-        if ( bspeed < 0.005 )
+        if ( bspeed < 0.005 && i >= 10 )
         {
             break;
         }

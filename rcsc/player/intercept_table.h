@@ -208,28 +208,6 @@ public:
       {
           return M_stamina;
       }
-
-    /*!
-      \class Cmp
-      \brief interception info compare function object
-    */
-    struct Cmp {
-        /*!
-          \brief operator function
-          \param lhs left hand side variable
-          \param rhs right hand side variable
-          \return compared result
-        */
-        bool operator()( const InterceptInfo & lhs,
-                         const InterceptInfo & rhs ) const
-          {
-              return ( lhs.reachCycle() < rhs.reachCycle()
-                       ? true
-                       : lhs.reachCycle() == rhs.reachCycle()
-                       ? lhs.turnCycle() < rhs.turnCycle()
-                       : false );
-          }
-    };
 };
 
 /*-------------------------------------------------------------------*/

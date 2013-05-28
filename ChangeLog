@@ -1,5 +1,10 @@
 2013-05-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/intercept_table.cpp:
+	* rcsc/player/intercept_table.h:
+	- 予測最大ステップ数として10以上を必ず確保するように変更
+	- InterceptInfo::Cmpを削除
+
 	* rcsc/action/body_intercept2009.cpp:
 	* rcsc/player/intercept_table.h:
 	* rcsc/player/self_intercept_simulator.cpp:
