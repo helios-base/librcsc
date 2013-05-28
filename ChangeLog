@@ -1,5 +1,13 @@
 2013-05-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/self_intercept_simulator.cpp:
+	- CONTROL_BUFがint型になっていたバグを修正
+	- ボールノイズ率のパラメータを変数化
+	- OmniDashのヒューリスティック距離計算で横方向のずれを大きく扱うよ
+	うに変更
+	- OmniDashのシミュレーション途中でキッカブル状態になっても予定ステッ
+	プ数まですべてシミュレーションするように変更
+
 	* rcsc/player/intercept_table.cpp:
 	* rcsc/player/self_intercept_simulator.cpp:
 	- バックダッシュ回数を制限
