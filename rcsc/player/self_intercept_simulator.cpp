@@ -54,7 +54,7 @@
 #include <sstream>
 
 // #define DEBUG_PROFILE
-#define DEBUG_PRINT_RESULTS
+// #define DEBUG_PRINT_RESULTS
 
 // #define DEBUG_PRINT_ONE_STEP
 // #define DEBUG_PRINT_TURN_DASH
@@ -64,6 +64,7 @@ namespace rcsc {
 
 namespace {
 const int CONTROL_BUF = 0.15;
+const int BACK_DASH_COUNT_THR = 5;
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -813,6 +814,7 @@ int
 simulate_turn_step( const WorldModel & wm,
                     const Vector2D & ball_pos,
                     const double control_area,
+                    const double ball_noise,
                     const int move_step,
                     const bool back_dash,
                     AngleDeg * result_dash_angle )
@@ -823,7 +825,7 @@ simulate_turn_step( const WorldModel & wm,
 
     int n_turn = 0;
 
-    if ( control_area < inertia_dist )
+    if ( control_area - CONTROL_BUF - ball_noise < inertia_dist )
     {
         const ServerParam & SP = ServerParam::i();
         const PlayerType & ptype = wm.self().playerType();
@@ -908,6 +910,13 @@ SelfInterceptSimulator::simulateTurnDash( const WorldModel & wm,
                 && ball_pos.x < SP.ourPenaltyAreaLineX() - 0.5
                 && ball_pos.absY() < SP.penaltyAreaHalfWidth() - 0.5 );
 
+        if ( back_dash
+             && ! goalie_mode
+             && step >= BACK_DASH_COUNT_THR )
+        {
+            break;
+        }
+
         double control_area = ( goalie_mode
                                 ? ptype.reliableCatchableDist()
                                 : ptype.kickableArea() );
@@ -963,7 +972,7 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
     const PlayerType & ptype = wm.self().playerType();
 
     AngleDeg dash_angle;
-    const int n_turn = simulate_turn_step( wm, ball_pos, control_area, step, back_dash,
+    const int n_turn = simulate_turn_step( wm, ball_pos, control_area, ball_noise, step, back_dash,
                                            &dash_angle );
 
     if ( n_turn >= step )
@@ -1190,6 +1199,7 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
         StaminaModel stamina_model = wm.self().staminaModel();
 
         bool found = false;
+        int back_dash_count = 0;
 #ifdef DEBUG_PRINT_OMNI_DASH
         std::vector< std::pair< double, double > > dash_list;
         dlog.addText( Logger::INTERCEPT,
@@ -1291,6 +1301,16 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
                 ++success_count;
                 break;
             }
+
+            if ( best_dash_power < 0.0 )
+            {
+                ++back_dash_count;
+                if ( ! goalie_mode
+                     && back_dash_count >= BACK_DASH_COUNT_THR )
+                {
+                    break;
+                }
+            }
         }
 
         if ( ! found )
@@ -1347,7 +1367,7 @@ SelfInterceptSimulator::simulateFinal( const WorldModel & wm,
                                   : ptype.kickableArea() );
 
     AngleDeg dash_angle = wm.self().body();
-    int n_turn = simulate_turn_step( wm, ball_pos, control_area, 100, false, &dash_angle );
+    int n_turn = simulate_turn_step( wm, ball_pos, control_area, 0.0, 100, false, &dash_angle );
     double move_dist = self_pos.dist( ball_pos ) - control_area - 0.15;
     int n_dash = ptype.cyclesToReachDistance( move_dist );
 

@@ -35,6 +35,7 @@
 
 #include "intercept_table.h"
 #include "self_intercept_v13.h"
+#include "self_intercept_simulator.h"
 #include "player_intercept.h"
 #include "world_model.h"
 #include "player_object.h"
@@ -389,10 +390,13 @@ InterceptTable::predictSelf()
     }
 
     int max_cycle = std::min( MAX_CYCLE, static_cast< int >( M_ball_cache.size() ) );
-
+#if 0
     SelfInterceptV13 predictor( M_world );
     predictor.predict( max_cycle, M_self_cache );
-
+#else
+    SelfInterceptSimulator sim;
+    sim.simulate( M_world, max_cycle, M_self_cache );
+#endif
     if ( M_self_cache.empty() )
     {
         std::cerr << M_world.self().unum() << ' '
