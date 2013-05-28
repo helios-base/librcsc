@@ -1,3 +1,9 @@
+2013-05-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/self_intercept_simulator.cpp:
+	- OmniDashインターセプトを実装．未テスト
+	- ソート後に重複した候補を削除する処理を追加
+
 2013-05-27  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/self_intercept_simulator.cpp:

@@ -51,12 +51,18 @@
 #include <rcsc/math_util.h>
 #include <rcsc/timer.h>
 
-#define DEBUG_PROFILE
+#include <sstream>
+
+// #define DEBUG_PROFILE
 // #define DEBUG_PRINT_RESULTS
 
 // #define DEBUG_PRINT_ONE_STEP
 // #define DEBUG_PRINT_TURN_DASH
-#define DEBUG_PRINT_OMNI_DASH
+// #define DEBUG_PRINT_OMNI_DASH
+
+namespace {
+const int CONTROL_BUF = 0.15;
+}
 
 namespace rcsc {
 
@@ -79,6 +85,9 @@ SelfInterceptSimulator::simulate( const WorldModel & wm,
     simulateOmniDash( wm, max_step, self_cache ); // omni dash
 
     std::sort( self_cache.begin(), self_cache.end(), InterceptInfo::Cmp() );
+    self_cache.erase( std::unique( self_cache.begin(), self_cache.end(),
+                                   InterceptInfo::Equal() ),
+                      self_cache.end() );
 
 #ifdef DEBUG_PROFILE
     dlog.addText( Logger::INTERCEPT,
@@ -176,15 +185,15 @@ SelfInterceptSimulator::simulateNoDash( const WorldModel & wm,
                                   ? ptype.reliableCatchableDist()
                                   : ptype.kickableArea() );
 
-    const double ball_noise = wm.ball().vel().r() * ServerParam::i().ballRand();
+    const double ball_noise = wm.ball().vel().r() * ServerParam::i().ballRand() * 0.5;
     const double ball_next_dist = self_next.dist( ball_next );
 
-    if ( ball_next_dist > control_area - 0.15 - ball_noise )
+    if ( ball_next_dist > control_area - CONTROL_BUF - ball_noise )
     {
 #ifdef DEBUG_PRINT_ONE_STEP
         dlog.addText( Logger::INTERCEPT,
                       "xx 0 dash: next_dist=%.3f catch=%.3f (catchable=%.3f noise=%.3f)",
-                      ball_next_dist, control_area - 0.15 - ball_noise,
+                      ball_next_dist, control_area - CONTROL_BUF - ball_noise,
                       control_area, ball_noise );
 #endif
         return false;
@@ -765,7 +774,7 @@ SelfInterceptSimulator::simulateTurnDash( const WorldModel & wm,
 
     for ( int step = min_step; step <= max_step; ++step )
     {
-        const double ball_noise = ball_speed * SP.ballRand();
+        const double ball_noise = ball_speed * SP.ballRand() * 0.5;
 #ifdef DEBUG_PRINT_TURN_DASH
         dlog.addText( Logger::INTERCEPT,
                       "==== %d: (simulateTurnDash) ball=(%.2f %.2f) speed=%.3f noise=%.3f back_dash=[%s]",
@@ -873,7 +882,7 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
 
     const Vector2D ball_rel = rotate_matrix.transform( ball_pos - wm.self().pos() );
 
-    if ( self_pos.dist2( ball_rel ) < std::pow( control_area - 0.15 - ball_noise, 2 ) )
+    if ( self_pos.dist2( ball_rel ) < std::pow( control_area - CONTROL_BUF - ball_noise, 2 ) )
     {
         InterceptInfo info( InterceptInfo::NORMAL, n_turn, step - n_turn,
                             0.0, 0.0,
@@ -915,7 +924,7 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
         if ( std::fabs( required_accel_x ) < 1.0e-5
              || self_pos.absX() > ball_rel.absX() - 1.0e-5
              || self_pos.r2() > ball_rel.r2()
-             || self_pos.dist2( ball_rel ) < std::pow( control_area - 0.15 - ball_noise, 2 ) )
+             || self_pos.dist2( ball_rel ) < std::pow( control_area - CONTROL_BUF - ball_noise, 2 ) )
         {
             InterceptInfo::Mode mode = ( stamina_model.recovery() < SP.recoverInit()
                                          && ! stamina_model.capacityIsEmpty()
@@ -967,13 +976,6 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
     for ( size_t d = 0; d < dash_angle_divs; ++d )
     {
         double dir = SP.discretizeDashAngle( SP.minDashAngle() + dash_angle_step * d );
-        if ( std::fabs( dir ) < 0.001
-             || std::fabs( dir - 180.0 ) < 0.001
-             || std::fabs( dir + 180.0 ) < 0.001 )
-        {
-            continue;
-        }
-
         AngleDeg accel_angle = wm.self().body() + dir;
         double forward_dash_rate = SP.dashDirRate( dir );
         double back_dash_rate = SP.dashDirRate( AngleDeg::normalize_angle( dir + 180.0 ) );
@@ -996,11 +998,17 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
     //
     // simulation loop
     //
-    const int min_step = static_cast< int >( std::ceil( wm.ball().distFromSelf() / ptype.realSpeedMax() ) );
     const double first_ball_speed = wm.ball().vel().r();
 
+#ifdef DEBUG_PRINT_OMNI_DASH
+    dlog.addText( Logger::INTERCEPT,
+                  "===== (simulateOmniDash) max_step=%d", max_step );
+#endif
+
     int success_count = 0;
-    for ( int reach_step = std::max( 1, min_step ); reach_step <= max_step; ++reach_step )
+    int failed_count_after_success = 0;
+    double last_y_diff = 100000.0;
+    for ( int reach_step = 1; reach_step <= max_step; ++reach_step )
     {
         const Vector2D ball_pos = wm.ball().inertiaPoint( reach_step );
         const bool goalie_mode
@@ -1015,12 +1023,40 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
             const Vector2D ball_rel = rotate_matrix.transform( ball_pos - wm.self().pos() );
             if ( ball_rel.absY() - control_area > max_side_speed * reach_step )
             {
+#ifdef DEBUG_PRINT_OMNI_DASH
+                dlog.addText( Logger::INTERCEPT,
+                              "xx %d: ball_rel=(%.2f %.2f) max_side_move=%.2f (max_side_speed=%.2f)",
+                              reach_step, ball_rel.x, ball_rel.y,
+                              max_side_speed * reach_step, max_side_speed );
+#endif
+                if ( success_count > 0 )
+                {
+#ifdef DEBUG_PRINT_OMNI_DASH
+                    dlog.addText( Logger::INTERCEPT,
+                                  "<<<<< (simulateOmniDash) exist success result. finish." );
+#endif
+                    break;
+                }
+
+                if ( last_y_diff < ball_rel.absY() )
+                {
+#ifdef DEBUG_PRINT_OMNI_DASH
+                    dlog.addText( Logger::INTERCEPT,
+                                  "<<<<< (simulateOmniDash) y diff will become larger. finish." );
+#endif
+                    break;
+                }
+                last_y_diff = ball_rel.absY();
+
                 continue;
             }
+
+            last_y_diff = ball_rel.absY();
         }
 
         const double ball_noise = ( first_ball_speed * std::pow( SP.ballDecay(), reach_step - 1 )
-                                    * SP.ballRand() );
+                                    * SP.ballRand()
+                                    * 0.5 );
 
         double first_dash_power = 0.0;
         double first_dash_dir = 0.0;
@@ -1030,6 +1066,12 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
         StaminaModel stamina_model = wm.self().staminaModel();
 
         bool found = false;
+#ifdef DEBUG_PRINT_OMNI_DASH
+        std::vector< std::pair< double, double > > dash_list;
+        dlog.addText( Logger::INTERCEPT,
+                      "%d: ball_pos=(%.2f %.2f) ball_noise=%.3f",
+                      reach_step, ball_pos.x, ball_pos.y, ball_noise );
+#endif
         for ( int step = 1; step <= reach_step; ++step )
         {
             const Vector2D required_vel = ( ball_pos - self_pos )
@@ -1081,28 +1123,40 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
             self_vel *= ptype.playerDecay();
             stamina_model.simulateDash( ptype, best_dash_power );
 
+#ifdef DEBUG_PRINT_OMNI_DASH
+            dash_list.push_back( std::make_pair( best_dash_power, best_dash_dir ) );
+#endif
             if ( step == 1 )
             {
                 first_dash_power = best_dash_power;
                 first_dash_dir = best_dash_dir;
             }
 
-            if ( self_pos.dist2( ball_pos ) < std::pow( control_area - 0.15 - ball_noise, 2 )
+            if ( self_pos.dist2( ball_pos ) < std::pow( control_area - CONTROL_BUF - ball_noise, 2 )
                  || ( wm.self().pos().dist2( self_pos ) > wm.self().pos().dist2( ball_pos )
                       && Line2D( wm.self().pos(), self_pos ).dist2( ball_pos ) < std::pow( control_area, 2 ) ) )
             {
+#ifdef DEBUG_PRINT_OMNI_DASH
                 dlog.addText( Logger::INTERCEPT,
-                              "OK %d(%d): (simulateOmniDash) power=%.1f dir=%.1f self=(%.2f %.2f)"
+                              "OK %d: (simulateOmniDash) n_dash=%d power=%.1f dir=%.1f self=(%.2f %.2f)"
                               " ball=(%.2f %.2f) dist=%.2f",
                               reach_step, step, first_dash_power, first_dash_dir,
                               self_pos.x, self_pos.y,
                               ball_pos.x, ball_pos.y,
                               self_pos.dist( ball_pos ) );
+                std::ostringstream ostr;
+                for ( size_t i = 0; i < dash_list.size(); ++i )
+                {
+                    ostr << '(' << dash_list[i].first << ' ' << dash_list[i].second << ')';
+                }
+                dlog.addText( Logger::INTERCEPT,
+                              ">>> dash %s", ostr.str().c_str() );
+#endif
                 InterceptInfo::Mode mode = ( stamina_model.recovery() < SP.recoverInit()
                                              && ! stamina_model.capacityIsEmpty()
                                              ? InterceptInfo::EXHAUST
                                              : InterceptInfo::NORMAL );
-                self_cache.push_back( InterceptInfo( mode, 0, step,
+                self_cache.push_back( InterceptInfo( mode, 0, reach_step,
                                                      first_dash_power, first_dash_dir,
                                                      self_pos,
                                                      self_pos.dist( ball_pos ),
@@ -1115,13 +1169,29 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
 
         if ( ! found )
         {
+#ifdef DEBUG_PRINT_OMNI_DASH
             dlog.addText( Logger::INTERCEPT,
                           "xx %d: (simulateOmniDash) not found",
                           reach_step );
+#endif
+            if ( success_count > 0 )
+            {
+                if ( ++failed_count_after_success >= 2 )
+                {
+#ifdef DEBUG_PRINT_OMNI_DASH
+                    dlog.addText( Logger::INTERCEPT,
+                                  "<<<<< (simulateOmniDash) over failed count" );
+#endif
+                }
+            }
         }
 
-        if ( success_count >= 10 )
+        if ( success_count >= 4 )
         {
+#ifdef DEBUG_PRINT_OMNI_DASH
+            dlog.addText( Logger::INTERCEPT,
+                          "<<<<< (simulateOmniDash) over success count" );
+#endif
             break;
         }
     }
