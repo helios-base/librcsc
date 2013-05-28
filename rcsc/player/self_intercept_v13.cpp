@@ -245,6 +245,7 @@ SelfInterceptV13::predictNoDash( std::vector< InterceptInfo > & self_cache ) con
         stamina_model.simulateWait( self.playerType() );
 
         self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
+                                             InterceptInfo::TURN_FORWARD_DASH,
                                              1, 0,
                                              0.0, 0.0,
                                              my_next,
@@ -291,6 +292,7 @@ SelfInterceptV13::predictNoDash( std::vector< InterceptInfo > & self_cache ) con
     stamina_model.simulateWait( self.playerType() );
 
     self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
+                                         InterceptInfo::TURN_FORWARD_DASH,
                                          1, 0, // 1 turn
                                          0.0, 0.0,
                                          my_next,
@@ -677,7 +679,11 @@ SelfInterceptV13::predictOneDashAdjust( const AngleDeg & dash_angle,
         mode = InterceptInfo::EXHAUST;
     }
 
-    *info = InterceptInfo( mode, 0, 1, dash_power, dash_dir.degree(),
+    *info = InterceptInfo( mode,
+                           ( dash_power > 0.0
+                             ? InterceptInfo::TURN_FORWARD_DASH
+                             : InterceptInfo::TURN_BACK_DASH ),
+                           0, 1, dash_power, dash_dir.degree(),
                            my_pos,
                            my_pos.dist( ball_next ),
                            stamina_model.stamina() );
@@ -1234,6 +1240,7 @@ SelfInterceptV13::predictDashCycleShort( const int cycle,
                       tmp_stamina.stamina() );
 #endif
         self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
+                                             InterceptInfo::TURN_FORWARD_DASH,
                                              n_turn, cycle - n_turn,
                                              0.0, 0.0,
                                              my_final_pos,
@@ -1344,7 +1351,11 @@ SelfInterceptV13::predictDashCycleShort( const int cycle,
                       cycle,
                       first_dash_power, stamina_model.stamina() );
 #endif
-        self_cache.push_back( InterceptInfo( mode, n_turn, cycle - n_turn,
+        self_cache.push_back( InterceptInfo( mode,
+                                             ( back_dash
+                                               ? InterceptInfo::TURN_BACK_DASH
+                                               : InterceptInfo::TURN_FORWARD_DASH ),
+                                             n_turn, cycle - n_turn,
                                              first_dash_power, 0.0,
                                              my_pos,
                                              my_pos.dist( ball_pos ),
@@ -1601,6 +1612,7 @@ SelfInterceptV13::predictOmniDashShort( const int cycle,
                           first_dash_power, stamina_model.stamina() );
 #endif
             self_cache.push_back( InterceptInfo( mode,
+                                                 InterceptInfo::OMNI_DASH,
                                                  0, cycle,
                                                  first_dash_power, dir,
                                                  my_pos,
@@ -1979,6 +1991,7 @@ SelfInterceptV13::predictFinal( const int max_cycle,
     stamina_model.simulateDashes( ptype, n_dash, ServerParam::i().maxDashPower() );
 
     self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
+                                         InterceptInfo::TURN_FORWARD_DASH,
                                          n_turn, n_dash,
                                          ServerParam::i().maxDashPower(), 0.0,
                                          ball_final_pos,
@@ -2430,6 +2443,9 @@ SelfInterceptV13::canReachAfterDash( const int n_turn,
                                          ? InterceptInfo::EXHAUST
                                          : InterceptInfo::NORMAL );
             self_cache.push_back( InterceptInfo( mode,
+                                                 ( back_dash
+                                                   ? InterceptInfo::TURN_BACK_DASH
+                                                   : InterceptInfo::TURN_FORWARD_DASH ),
                                                  n_turn, n_dash,
                                                  first_dash_power, 0.0,
                                                  my_final_pos,
@@ -2492,6 +2508,9 @@ SelfInterceptV13::canReachAfterDash( const int n_turn,
                                          ? InterceptInfo::EXHAUST
                                          : InterceptInfo::NORMAL );
             self_cache.push_back( InterceptInfo( mode,
+                                                 ( back_dash
+                                                   ? InterceptInfo::TURN_BACK_DASH
+                                                   : InterceptInfo::TURN_FORWARD_DASH ),
                                                  n_turn, n_dash,
                                                  first_dash_power, 0.0,
                                                  my_final_pos,
@@ -2693,6 +2712,9 @@ SelfInterceptV13::predictDashCycleLong( const int cycle,
                       tmp_stamina.stamina() );
 #endif
         self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
+                                             ( back_dash
+                                               ? InterceptInfo::TURN_BACK_DASH
+                                               : InterceptInfo::TURN_FORWARD_DASH ),
                                              n_turn, cycle - n_turn,
                                              0.0, 0.0,
                                              my_final_pos,
@@ -2776,7 +2798,11 @@ SelfInterceptV13::predictDashCycleLong( const int cycle,
                           my_final_pos.dist( ball_pos ),
                           first_dash_power, stamina_model.stamina() );
 #endif
-            self_cache.push_back( InterceptInfo( mode, n_turn, cycle - n_turn,
+            self_cache.push_back( InterceptInfo( mode,
+                                                 ( back_dash
+                                                   ? InterceptInfo::TURN_BACK_DASH
+                                                   : InterceptInfo::TURN_FORWARD_DASH ),
+                                                 n_turn, cycle - n_turn,
                                                  first_dash_power, 0.0,
                                                  my_final_pos,
                                                  my_final_pos.dist( ball_pos ),
@@ -2802,7 +2828,11 @@ SelfInterceptV13::predictDashCycleLong( const int cycle,
                       my_pos.dist( ball_pos ),
                       first_dash_power, stamina_model.stamina() );
 #endif
-        self_cache.push_back( InterceptInfo( mode, n_turn, cycle - n_turn,
+        self_cache.push_back( InterceptInfo( mode,
+                                             ( back_dash
+                                               ? InterceptInfo::TURN_BACK_DASH
+                                               : InterceptInfo::TURN_FORWARD_DASH ),
+                                             n_turn, cycle - n_turn,
                                              first_dash_power, 0.0,
                                              my_pos,
                                              my_pos.dist( ball_pos ),

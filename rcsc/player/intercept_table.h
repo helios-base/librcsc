@@ -60,9 +60,16 @@ public:
         EXHAUST = 100, //!< fastest ball gettable, but recovery may be consumed.
     };
 
+    enum Type {
+        OMNI_DASH = 0,
+        TURN_FORWARD_DASH = 1,
+        TURN_BACK_DASH = 2,
+        UNKNOWN_TYPE = 100,
+    };
+
 private:
-    bool M_valid;
     Mode M_mode; //!< interception mode, NORMAL or EXHAUST
+    Type M_type; //!< behavior type
     int M_turn_cycle; //!< estimated turn cycles
     int M_dash_cycle; //!< estimated dash cycles
     double M_dash_power; //!< dash power
@@ -77,8 +84,8 @@ public:
       \brief create invalid info
      */
     InterceptInfo()
-        : M_valid( false ),
-          M_mode( EXHAUST ),
+        : M_mode( EXHAUST ),
+          M_type( UNKNOWN_TYPE ),
           M_turn_cycle( 10000 ),
           M_dash_cycle( 10000 ),
           M_dash_power( 100000.0 ),
@@ -92,6 +99,7 @@ public:
       \brief construct with all variables
     */
     InterceptInfo( const Mode mode,
+                   const Type type,
                    const int turn_cycle,
                    const int dash_cycle,
                    const double dash_power,
@@ -99,8 +107,8 @@ public:
                    const Vector2D & self_pos,
                    const double ball_dist,
                    const double stamina )
-        : M_valid( true ),
-          M_mode( mode ),
+        : M_mode( mode ),
+          M_type( type ),
           M_turn_cycle( turn_cycle ),
           M_dash_cycle( dash_cycle ),
           M_dash_power( dash_power ),
@@ -116,16 +124,7 @@ public:
      */
     bool isValid() const
       {
-          return M_valid;
-      }
-
-    /*!
-      \brief set valie property.
-      \param valid new value.
-     */
-    void setValid( const bool valid )
-      {
-          M_valid = valid;
+          return M_type != UNKNOWN_TYPE;
       }
 
     /*!
@@ -135,6 +134,11 @@ public:
     Mode mode() const
       {
           return M_mode;
+      }
+
+    Type type() const
+      {
+          return M_type;
       }
 
     /*!
