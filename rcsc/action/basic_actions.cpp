@@ -362,7 +362,8 @@ Neck_TurnToBall::execute( PlayerAgent * agent )
     {
         double best_angle = Neck_ScanPlayers::INVALID_ANGLE;
 
-        if ( ball_dist > ServerParam::i().visibleDistance() - 0.3 )
+        if ( ball_dist > ServerParam::i().visibleDistance() - 0.3
+             || wm.ball().seenPosCount() > 0 )
         {
             double min_neck_angle = ball_rel_angle_next.degree() - angle_buf;
             double max_neck_angle = ball_rel_angle_next.degree() + angle_buf;
