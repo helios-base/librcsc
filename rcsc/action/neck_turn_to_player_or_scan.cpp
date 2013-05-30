@@ -66,7 +66,10 @@ Neck_TurnToPlayerOrScan::execute( PlayerAgent * agent )
     {
         dlog.addText( Logger::ACTION,
                       __FILE__": target player is ghost" );
-        return Neck_TurnToBallOrScan( 0 ).execute( agent );
+        int count_thr = ( agent->world().kickableOpponent()
+                          ? -1
+                          : 0 );
+        return Neck_TurnToBallOrScan( count_thr ).execute( agent );
     }
 
     const Vector2D my_next = agent->effector().queuedNextSelfPos();
@@ -90,8 +93,10 @@ Neck_TurnToPlayerOrScan::execute( PlayerAgent * agent )
                       __FILE__": never face to player %d (%.1f %.1f)",
                       M_target_player->unum(),
                       player_next.x, player_next.y );
-
-        return Neck_TurnToBallOrScan( 0 ).execute( agent );
+        int count_thr = ( agent->world().kickableOpponent()
+                          ? -1
+                          : 0 );
+        return Neck_TurnToBallOrScan( count_thr ).execute( agent );
     }
 
     dlog.addText( Logger::ACTION,

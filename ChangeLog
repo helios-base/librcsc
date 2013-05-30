@@ -1,5 +1,9 @@
 2013-05-31  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/action/neck_turn_to_player_or_scan.cpp:
+	- 代替のNeck_TurnToBallOrScanを実行する場合に，敵がボールキッカブ
+	ルブルであればしきい値を-1に設定するように変更
+
 	* rcsc/player/world_model.cpp:
 	- ボールが十分近い場合は位置の差分でボール速度情報を更新するように変更
 
