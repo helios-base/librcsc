@@ -2381,10 +2381,11 @@ PlayerAgent::action()
     // ------------------------------------------------------------------------
     // update last decision time
     M_impl->last_decision_time_ = M_impl->current_time_;
+    double elapsed = timer.elapsedReal();
 
     dlog.addText( Logger::SYSTEM,
-                  __FILE__" (action) elapsed %lf [ms]",
-                  timer.elapsedReal() );
+                  __FILE__" (action) elapsed %lf [ms]", elapsed );
+    M_debug_client.addMessage( "%.0fms", elapsed );
 
     //
     // handle action end event

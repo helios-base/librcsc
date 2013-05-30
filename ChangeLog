@@ -1,3 +1,8 @@
+2013-05-30  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/player_agent.cpp:
+	- 意思決定に要した時間をデバッグサーバへ送信するコードを追加
+
 2013-05-29  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/self_intercept_simulator.cpp:
