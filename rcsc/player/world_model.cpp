@@ -2482,10 +2482,48 @@ WorldModel::localizeBall( const VisualSensor & see,
             vel_count = 2;
 #ifdef DEBUG_PRINT_BALL_UPDATE
             dlog.addText( Logger::WORLD,
-                          __FILE__" (localizeBall) estimate velocity by position diff vel(%.3f %.3f)",
+                          __FILE__" (localizeBall) estimate velocity by position diff(1) vel(%.3f %.3f)",
                           gvel.x, gvel.y );
 #endif
         }
+#if 1
+        // add 2013-05-30
+        else if ( see.balls().front().dist_ < 2.0 )
+        {
+
+            if ( M_ball.seenPosCount() < 100
+                 || M_ball.heardPosCount() < 100 )
+            {
+                const Vector2D prev_pos = ( M_ball.seenPosCount() < M_ball.heardPosCount()
+                                            ? M_ball.seenPos()
+                                            : M_ball.heardPos() );
+                const int move_step = ( M_ball.seenPosCount() < M_ball.heardPosCount()
+                                        ? M_ball.seenPosCount()
+                                        : M_ball.heardPosCount() );
+                Vector2D ball_move = pos - prev_pos;
+                double dist = ball_move.r();
+                double speed = ServerParam::i().firstBallSpeed( dist, move_step );
+                if ( speed > ServerParam::i().ballSpeedMax() )
+                {
+                    speed = ServerParam::i().ballSpeedMax();
+                }
+                speed *= std::pow( ServerParam::i().ballDecay(), move_step );
+
+                gvel = ball_move.setLengthVector( speed );
+                vel_count = move_step;
+
+#ifdef DEBUG_PRINT_BALL_UPDATE
+                dlog.addText( Logger::WORLD,
+                              __FILE__" (localizeBall) estimate vel by pos diff(2) prev=(%.2f %2f) move=(%.2f %.2f) dist=%.3f",
+                              prev_pos.x, prev_pos.y, ball_move.x, ball_move.y, ball_move.r() );
+                dlog.addText( Logger::WORLD,
+                              __FILE__" (localizeBall) estimate vel by pos diff(2) vel=(%.3f %.3f) count=%d",
+                              gvel.x, gvel.y, vel_count );
+#endif
+
+            }
+        }
+#endif
     }
 
 

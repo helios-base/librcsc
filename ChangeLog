@@ -1,5 +1,8 @@
 2013-05-31  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/world_model.cpp:
+	- ボールが十分近い場合は位置の差分でボール速度情報を更新するように変更
+
 	* rcsc/action/basic_actions.cpp:
 	- 現在のボール位置が直接観測できていない場合は，次ステップで
 	visibleDistanceに入りそうでもボールを直接観ることを優先するように
