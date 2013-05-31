@@ -1,5 +1,8 @@
 2013-05-31  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/self_intercept_simulator.cpp:
+	- ターンダッシュのシミュレーションを最後まで実行するように変更
+
 	* rcsc/action/neck_turn_to_player_or_scan.cpp:
 	- 代替のNeck_TurnToBallOrScanを実行する場合に，敵がボールキッカブ
 	ルブルであればしきい値を-1に設定するように変更

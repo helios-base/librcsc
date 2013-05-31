@@ -1015,6 +1015,7 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
 
     if ( self_pos.dist2( ball_rel ) < std::pow( control_area - CONTROL_BUF - ball_noise, 2 ) )
     {
+        stamina_model.simulateWaits( ptype, step - n_turn );
         InterceptInfo info( InterceptInfo::NORMAL,
                             ( back_dash
                               ? InterceptInfo::TURN_BACK_DASH
@@ -1055,26 +1056,26 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
         {
             first_dash_power = dash_power;
         }
+    }
 
-        if ( std::fabs( required_accel_x ) < 1.0e-5
-             || self_pos.absX() > ball_rel.absX() - 1.0e-5
-             || self_pos.r2() > ball_rel.r2()
-             || self_pos.dist2( ball_rel ) < std::pow( control_area - CONTROL_BUF - ball_noise, 2 ) )
-        {
-            InterceptInfo::Mode mode = ( stamina_model.recovery() < SP.recoverInit()
-                                         && ! stamina_model.capacityIsEmpty()
-                                         ? InterceptInfo::EXHAUST
-                                         : InterceptInfo::NORMAL );
-            return InterceptInfo( mode,
-                                  ( back_dash
-                                    ? InterceptInfo::TURN_BACK_DASH
-                                    : InterceptInfo::TURN_FORWARD_DASH ),
-                                  n_turn, max_dash_step,
-                                  first_dash_power, 0.0,
-                                  wm.self().pos() + self_pos.rotatedVector( body_angle ),
-                                  self_pos.dist( ball_rel ),
-                                  stamina_model.stamina() );
-        }
+
+    if ( self_pos.absX() > ball_rel.absX() - 1.0e-5
+         || self_pos.r2() > ball_rel.r2()
+         || self_pos.dist2( ball_rel ) < std::pow( control_area - CONTROL_BUF - ball_noise, 2 ) )
+    {
+        InterceptInfo::Mode mode = ( stamina_model.recovery() < SP.recoverInit()
+                                     && ! stamina_model.capacityIsEmpty()
+                                     ? InterceptInfo::EXHAUST
+                                     : InterceptInfo::NORMAL );
+        return InterceptInfo( mode,
+                              ( back_dash
+                                ? InterceptInfo::TURN_BACK_DASH
+                                : InterceptInfo::TURN_FORWARD_DASH ),
+                              n_turn, max_dash_step,
+                              first_dash_power, 0.0,
+                              wm.self().pos() + self_pos.rotatedVector( body_angle ),
+                              self_pos.dist( ball_rel ),
+                              stamina_model.stamina() );
     }
 
     return InterceptInfo();
