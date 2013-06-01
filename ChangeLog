@@ -1,3 +1,12 @@
+2013-06-02  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/ball_object.cpp:
+	* rcsc/player/intercept_table.cpp:
+	* rcsc/player/world_model.cpp:
+	- キッカブルなプレイヤが存在してもすべてのプレイヤに対してインター
+	セプト予測計算を実行するように変更
+	- デバッグメッセージ出力抑制
+
 2013-06-01  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/self_intercept_simulator.cpp:

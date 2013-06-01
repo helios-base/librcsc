@@ -45,7 +45,7 @@
 
 #include <iostream>
 
-#define DEBUG_PRINT
+// #define DEBUG_PRINT
 
 namespace rcsc {
 

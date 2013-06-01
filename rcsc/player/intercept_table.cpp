@@ -463,22 +463,22 @@ InterceptTable::predictSelf()
 void
 InterceptTable::predictTeammate()
 {
+    int min_step = 1000;
+    int second_min_step = 1000;
+
     if ( M_world.kickableTeammate() )
     {
         M_teammate_reach_cycle = 0;
+        min_step = 0;
         M_fastest_teammate = M_world.kickableTeammate();
 
         dlog.addText( Logger::INTERCEPT,
-                      "Intercept Teammate. exist kickable teammate. no estimation loop!" );
+                      "Intercept Teammate. exist kickable teammate" );
         dlog.addText( Logger::INTERCEPT,
                       "---> set fastest teammate %d (%.1f %.1f)",
                       M_fastest_teammate->unum(),
                       M_fastest_teammate->pos().x, M_fastest_teammate->pos().y );
-        return;
     }
-
-    int min_step = 1000;
-    int second_min_step = 1000;
 
     PlayerIntercept predictor( M_world, M_ball_cache );
 
@@ -487,6 +487,12 @@ InterceptTable::predictTeammate()
           it != end;
           ++it )
     {
+        if ( *it == M_world.kickableTeammate() )
+        {
+            M_player_map[ *it ] = 0;
+            continue;
+        }
+
         if ( (*it)->posCount() >= 10 )
         {
             dlog.addText( Logger::INTERCEPT,
@@ -552,22 +558,22 @@ InterceptTable::predictTeammate()
 void
 InterceptTable::predictOpponent()
 {
+    int min_step = 1000;
+    int second_min_step = 1000;
+
     if ( M_world.kickableOpponent() )
     {
         M_opponent_reach_cycle = 0;
+        min_step = 0;
         M_fastest_opponent = M_world.kickableOpponent();
 
         dlog.addText( Logger::INTERCEPT,
-                      "Intercept Opponent. exist kickable opponent. no estimation loop!" );
+                      "Intercept Opponent. exist kickable opponent" );
         dlog.addText( Logger::INTERCEPT,
                       "---> set fastest opponent %d (%.1f %.1f)",
                       M_fastest_opponent->unum(),
                       M_fastest_opponent->pos().x, M_fastest_opponent->pos().y );
-        return;
     }
-
-    int min_step = 1000;
-    int second_min_step = 1000;
 
     PlayerIntercept predictor( M_world, M_ball_cache );
 
@@ -576,6 +582,12 @@ InterceptTable::predictOpponent()
           it != end;
           ++it )
     {
+        if ( *it == M_world.kickableOpponent() )
+        {
+            M_player_map[ *it ] = 0;
+            continue;
+        }
+
         if ( (*it)->posCount() >= 15 )
         {
             dlog.addText( Logger::INTERCEPT,

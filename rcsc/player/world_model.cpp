@@ -71,6 +71,7 @@
 // #define DEBUG_PRINT_GOALIE_UPDATE
 
 // #define DEBUG_PRINT_LINES
+// #define DEBUG_PRINT_LAST_KICKER
 
 
 // #defin USE_VIEW_GRID_MAP
@@ -2109,7 +2110,7 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
          && ! self().isKickable() )
     {
         dlog.addText( Logger::WORLD,
-                      __FILE__" (updateJustBeforeDecision) : exist kickable opp. ball vel is set to 0." );
+                      __FILE__" (updateJustBeforeDecision) : exist kickable opponent. ball vel is set to 0." );
 
         M_ball.setPlayerKickable();
     }
@@ -2126,6 +2127,7 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
     updateLastKicker();
 
     updateInterceptTable();
+
 
     M_self.updateKickableState( M_ball,
                                 M_intercept_table->selfReachCycle(),
@@ -4660,12 +4662,12 @@ WorldModel::updateTheirDefenseLine()
                         ? 0.8
                         : 0.5 );
         x -= ( (*it)->playerTypePtr()->realSpeedMax() * rate ) * std::min( 5, (*it)->posCount() );
-        dlog.addText( Logger::WORLD,
-                      __FILE__" (updateTheirDefenseLine) opponent[%d](%.2f %.2f) count=%d x=%.2f",
-                      (*it)->unum(),
-                      (*it)->pos().x, (*it)->pos().y,
-                      (*it)->posCount(),
-                      x );
+        // dlog.addText( Logger::WORLD,
+        //               __FILE__" (updateTheirDefenseLine) opponent[%d](%.2f %.2f) count=%d x=%.2f",
+        //               (*it)->unum(),
+        //               (*it)->pos().x, (*it)->pos().y,
+        //               (*it)->posCount(),
+        //               x );
 #else
 #if 1
         // 2008-04-29 akiyama
@@ -4906,15 +4908,19 @@ WorldModel::updateLastKicker()
     {
         M_last_kicker_side = ourSide();
         M_last_kicker_unum = self().unum();
+#ifdef DEBUG_PRINT_LAST_KICKER
         dlog.addText( Logger::WORLD,
                       __FILE__" (updateLastKicker) self kicked" );
+#endif
         return;
     }
 
     if ( ! prevBall().vel().isValid() )
     {
+#ifdef DEBUG_PRINT_LAST_KICKER
         dlog.addText( Logger::WORLD,
                       __FILE__" (updateLastKicker) no previous ball data" );
+#endif
         return;
     }
 
@@ -4940,19 +4946,23 @@ WorldModel::updateLastKicker()
                  && (*p)->distFromBall() < SP.ballSpeedMax() * 2.0 )
             {
                 kickers.push_back( *p );
+#ifdef DEBUG_PRINT_LAST_KICKER
                 dlog.addText( Logger::WORLD,
                               __FILE__" (updateLastKicker) see kicking side=%c unum=%d",
                               ( (*p)->side() == LEFT ? 'L' : (*p)->side() == RIGHT ? 'R' : 'N' ),
                               (*p)->unum() );
+#endif
             }
             else if ( (*p)->tackleCount() == 0
                       && (*p)->distFromBall() < SP.ballSpeedMax() * 2.0 )
             {
                 kickers.push_back( *p );
+#ifdef DEBUG_PRINT_LAST_KICKER
                 dlog.addText( Logger::WORLD,
                               __FILE__" (updateLastKicker) see tackling side=%c unum=%d",
                               ( (*p)->side() == LEFT ? 'L' : (*p)->side() == RIGHT ? 'R' : 'N' ),
                               (*p)->unum() );
+#endif
             }
         }
     }
@@ -4972,11 +4982,13 @@ WorldModel::updateLastKicker()
               && angle_diff > 20.0 ) ) // Magic Number
     {
         ball_vel_changed = true;
+#ifdef DEBUG_PRINT_LAST_KICKER
         dlog.addText( Logger::WORLD,
                       __FILE__" (updateLastKicker) ball vel changed." );
         dlog.addText( Logger::WORLD,
-                      "__ curSpeed=%.3f prevSpeed=%.3f angleDiff=%.1f",
+                      __FILE__" (updateLastKicker) curSpeed=%.3f prevSpeed=%.3f angleDiff=%.1f",
                       cur_speed, prev_speed, angle_diff );
+#endif
     }
 
     //
@@ -4995,19 +5007,23 @@ WorldModel::updateLastKicker()
                 {
                     M_last_kicker_side = ourSide();
                     M_last_kicker_unum = kicker->unum();
+#ifdef DEBUG_PRINT_LAST_KICKER
                     dlog.addText( Logger::WORLD,
                                   __FILE__" (updateLastKicker) set by 1 seen kicker. side=%d unum=%d -> teammate",
                                   ( kicker->side() == LEFT ? 'L' : kicker->side() == RIGHT ? 'R' : 'N' ),
                                   kicker->unum() );
+#endif
                 }
                 else
                 {
                     M_last_kicker_side = theirSide();
                     M_last_kicker_unum = kicker->unum();
+#ifdef DEBUG_PRINT_LAST_KICKER
                     dlog.addText( Logger::WORLD,
                                   __FILE__" (updateLastKicker) set by 1 seen kicker. side=%d unum=%d -> opponent",
                                   kicker->side(),
                                   kicker->unum() );
+#endif
                 }
                 return;
             }
@@ -5045,25 +5061,31 @@ WorldModel::updateLastKicker()
         {
             M_last_kicker_side = NEUTRAL;
             M_last_kicker_unum = Unum_Unknown;
+#ifdef DEBUG_PRINT_LAST_KICKER
             dlog.addText( Logger::WORLD,
                           __FILE__" (updateLastKicker) set by seen kicker(s). NEUTRAL"
                           " kicked by teammate and opponent" );
+#endif
         }
         else if ( ! exist_opponent_kicker )
         {
             M_last_kicker_side = ourSide();
             M_last_kicker_unum = teammate_kicker_unum;
+#ifdef DEBUG_PRINT_LAST_KICKER
             dlog.addText( Logger::WORLD,
                           __FILE__" (updateLastKicker) set by seen kicker(s). TEAMMATE"
                           " kicked by teammate or unknown" );
+#endif
         }
         else if ( ! exist_teammate_kicker )
         {
             M_last_kicker_side = theirSide();
             M_last_kicker_unum = opponent_kicker_unum;
+#ifdef DEBUG_PRINT_LAST_KICKER
             dlog.addText( Logger::WORLD,
                           __FILE__" (updateLastKicker) set by seen kicker(s). OPPONENT"
                           " kicked by opponent" );
+#endif
         }
 
         return;
@@ -5140,6 +5162,7 @@ WorldModel::updateLastKicker()
                 {
                     M_last_kicker_side = ourSide();
                     M_last_kicker_unum = nearest->unum();
+#ifdef DEBUG_PRINT_LAST_KICKER
                     dlog.addText( Logger::WORLD,
                                   __FILE__" (updateLastKicker) set by nearest teammate or unknown."
                                   " side=%c unum=%d",
@@ -5147,11 +5170,13 @@ WorldModel::updateLastKicker()
                                     : nearest->side() == RIGHT ? 'R'
                                     : 'N' ),
                                   nearest->unum() );
+#endif
                 }
                 else
                 {
                     M_last_kicker_side = theirSide();
                     M_last_kicker_unum = nearest->unum();
+#ifdef DEBUG_PRINT_LAST_KICKER
                     dlog.addText( Logger::WORLD,
                                   __FILE__" (updateLastKicker) set by nearest opponent."
                                   " side=%c unum=%d",
@@ -5159,6 +5184,7 @@ WorldModel::updateLastKicker()
                                     : nearest->side() == RIGHT ? 'R'
                                     : 'N' ),
                                   nearest->unum() );
+#endif
                 }
 
                 return;
@@ -5171,16 +5197,20 @@ WorldModel::updateLastKicker()
             if ( M_last_kicker_side == ourSide()
                  && M_last_kicker_unum != Unum_Unknown )
             {
+#ifdef DEBUG_PRINT_LAST_KICKER
                 dlog.addText( Logger::WORLD,
                               __FILE__" (updateLastKicker) keep last kicker. teammate %d",
                               M_last_kicker_unum );
+#endif
             }
             else
             {
                 M_last_kicker_side = NEUTRAL;
                 M_last_kicker_unum = Unum_Unknown;
+#ifdef DEBUG_PRINT_LAST_KICKER
                 dlog.addText( Logger::WORLD,
                               __FILE__" (updateLastKicker) set NEUTRAL." );
+#endif
             }
             return;
         }
@@ -5205,18 +5235,20 @@ WorldModel::updateLastKicker()
         {
             M_last_kicker_side = ourSide();
             M_last_kicker_unum = teammate_kicker_unum;
-
+#ifdef DEBUG_PRINT_LAST_KICKER
             dlog.addText( Logger::WORLD,
                           __FILE__" (updateLastKicker) set by seen teammate kicker." );
+#endif
             return;
         }
     }
-
+#ifdef DEBUG_PRINT_LAST_KICKER
     dlog.addText( Logger::WORLD,
                   __FILE__" (updateLastKicker) no updated. last_kicker_side=%c",
                   ( M_last_kicker_side == LEFT  ? 'L'
                     : M_last_kicker_side == RIGHT ? 'R'
                     : 'N' ) );
+#endif
 }
 
 /*-------------------------------------------------------------------*/
@@ -5256,16 +5288,8 @@ WorldModel::updateInterceptTable()
         }
     }
 
-    // dlog.addText( Logger::WORLD,
-    //               "WORLD update ball reach step" );
-
     M_self.setBallReachStep( std::min( M_intercept_table->selfReachCycle(),
                                        M_intercept_table->selfReachCycle() ) );
-
-    // dlog.addText( Logger::WORLD,
-    //               "---> self %d step=%d",
-    //               M_self.unum(),
-    //               M_self.ballReachStep() );
 
     const std::map< const AbstractPlayerObject *, int > & m = M_intercept_table->playerMap();
 
@@ -5277,11 +5301,6 @@ WorldModel::updateInterceptTable()
         if ( it != m.end() )
         {
             p->setBallReachStep( it->second );
-            // dlog.addText( Logger::WORLD,
-            //               "---> teammate %d.(%.1f %.1f) step=%d",
-            //               (*p)->unum(),
-            //               (*p)->pos().x, (*p)->pos().y,
-            //               (*p)->ballReachStep() );
         }
     }
 
@@ -5293,11 +5312,6 @@ WorldModel::updateInterceptTable()
         if ( it != m.end() )
         {
             p->setBallReachStep( it->second );
-            // dlog.addText( Logger::WORLD,
-            //               "---> opponent %d.(%.1f %.1f) step=%d",
-            //               (*p)->unum(),
-            //               (*p)->pos().x, (*p)->pos().y,
-            //               (*p)->ballReachStep() );
         }
     }
 }
