@@ -96,10 +96,11 @@ debug_print_results( const WorldModel & wm,
                      const std::vector< InterceptInfo > & self_cache )
 {
     dlog.addText( Logger::INTERCEPT,
-                        "(SelfIntercept) solution size = %zd kickable=%.3f catchable=%.3f",
+                        "(SelfIntercept) solution size = %zd kickable=%.3f catchable=%.3f:%.3f",
                   self_cache.size(),
                   wm.self().playerType().kickableArea(),
-                  wm.self().playerType().reliableCatchableDist() );
+                  wm.self().playerType().reliableCatchableDist(),
+                  wm.self().playerType().maxCatchableDist() );
     for ( size_t i = 0; i < self_cache.size(); ++i )
     {
         dlog.addText( Logger::INTERCEPT,
@@ -252,7 +253,7 @@ SelfInterceptSimulator::simulateOneStep( const WorldModel & wm,
             && ball_next.x < ServerParam::i().ourPenaltyAreaLineX() - 0.5
             && ball_next.absY() < ServerParam::i().penaltyAreaHalfWidth() - 0.5 );
     const double control_area = ( goalie_mode
-                                  ? wm.self().playerType().reliableCatchableDist()
+                                  ? wm.self().playerType().maxCatchableDist()
                                   : wm.self().playerType().kickableArea() );
 
 #ifdef DEBUG_PRINT_ONE_STEP
@@ -299,7 +300,7 @@ SelfInterceptSimulator::simulateNoDash( const WorldModel & wm,
             && ball_next.absY() < ServerParam::i().penaltyAreaHalfWidth() - 0.5
             );
     const double control_area = ( goalie_mode
-                                  ? ptype.reliableCatchableDist()
+                                  ? ptype.maxCatchableDist()
                                   : ptype.kickableArea() );
 
     const double ball_noise = wm.ball().vel().r() * ServerParam::i().ballRand() * BALL_NOISE_RATE;
@@ -396,7 +397,7 @@ SelfInterceptSimulator::simulateOneDash( const WorldModel & wm,
             && ball_next.absY() < SP.penaltyAreaHalfWidth()
             );
     const double control_area = ( goalie_mode
-                                  ? ptype.reliableCatchableDist()
+                                  ? ptype.maxCatchableDist()
                                   : ptype.kickableArea() );
 
     const double dash_angle_step = std::max( 5.0, SP.dashAngleStep() );
@@ -909,11 +910,10 @@ SelfInterceptSimulator::simulateTurnDash( const WorldModel & wm,
         ball_vel *= SP.ballDecay();
         ball_speed *= SP.ballDecay();
 
-        bool goalie_mode
-            = ( wm.self().goalie()
-                && wm.lastKickerSide() != wm.ourSide()
-                && ball_pos.x < SP.ourPenaltyAreaLineX() - 0.5
-                && ball_pos.absY() < SP.penaltyAreaHalfWidth() - 0.5 );
+        const bool goalie_mode = ( wm.self().goalie()
+                                   && wm.lastKickerSide() != wm.ourSide()
+                                   && ball_pos.x < SP.ourPenaltyAreaLineX() - 0.5
+                                   && ball_pos.absY() < SP.penaltyAreaHalfWidth() - 0.5 );
 
         if ( back_dash
              && ! goalie_mode
@@ -922,9 +922,9 @@ SelfInterceptSimulator::simulateTurnDash( const WorldModel & wm,
             break;
         }
 
-        double control_area = ( goalie_mode
-                                ? ptype.reliableCatchableDist()
-                                : ptype.kickableArea() );
+        const double control_area = ( goalie_mode
+                                      ? ptype.maxCatchableDist()
+                                      : ptype.kickableArea() );
 
         if ( wm.self().pos().dist2( ball_pos ) > std::pow( ptype.realSpeedMax() * step + control_area, 2 ) )
         {
@@ -975,6 +975,13 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
 {
     const ServerParam & SP = ServerParam::i();
     const PlayerType & ptype = wm.self().playerType();
+    const bool goalie_mode = ( wm.self().goalie()
+                               && wm.lastKickerSide() != wm.ourSide()
+                               && ball_pos.x < ServerParam::i().ourPenaltyAreaLineX() - 0.5
+                               && ball_pos.absY() < ServerParam::i().penaltyAreaHalfWidth() - 0.5 );
+    const double control_buf = ( goalie_mode
+                                 ? 0.0
+                                 : CONTROL_BUF + ball_noise );
 
     AngleDeg dash_angle;
     const int n_turn = simulate_turn_step( wm, ball_pos, control_area, ball_noise, step, back_dash,
@@ -1013,20 +1020,20 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
 
     const Vector2D ball_rel = rotate_matrix.transform( ball_pos - wm.self().pos() );
 
-    if ( self_pos.dist2( ball_rel ) < std::pow( control_area - CONTROL_BUF - ball_noise, 2 ) )
-    {
-        stamina_model.simulateWaits( ptype, step - n_turn );
-        InterceptInfo info( InterceptInfo::NORMAL,
-                            ( back_dash
-                              ? InterceptInfo::TURN_BACK_DASH
-                              : InterceptInfo::TURN_FORWARD_DASH ),
-                            n_turn, step - n_turn,
-                            0.0, 0.0,
-                            wm.self().inertiaPoint( n_turn ),
-                            self_pos.dist( ball_rel ),
-                            stamina_model.stamina() );
-        return info;
-    }
+    // if ( self_pos.dist2( ball_rel ) < std::pow( control_area - control_buf, 2 ) )
+    // {
+    //     stamina_model.simulateWaits( ptype, step - n_turn );
+    //     InterceptInfo info( InterceptInfo::NORMAL,
+    //                         ( back_dash
+    //                           ? InterceptInfo::TURN_BACK_DASH
+    //                           : InterceptInfo::TURN_FORWARD_DASH ),
+    //                         n_turn, step - n_turn,
+    //                         0.0, 0.0,
+    //                         wm.self().inertiaPoint( n_turn ),
+    //                         self_pos.dist( ball_rel ),
+    //                         stamina_model.stamina() );
+    //     return info;
+    // }
 
     const int max_dash_step = step - n_turn;
     double first_dash_power = 0.0;
@@ -1061,7 +1068,7 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
 
     if ( self_pos.absX() > ball_rel.absX() - 1.0e-5
          || self_pos.r2() > ball_rel.r2()
-         || self_pos.dist2( ball_rel ) < std::pow( control_area - CONTROL_BUF - ball_noise, 2 ) )
+         || self_pos.dist2( ball_rel ) < std::pow( control_area - control_buf, 2 ) )
     {
         InterceptInfo::Mode mode = ( stamina_model.recovery() < SP.recoverInit()
                                      && ! stamina_model.capacityIsEmpty()
@@ -1156,7 +1163,7 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
                 && ball_pos.x < SP.ourPenaltyAreaLineX() - 0.5
                 && ball_pos.absY() < SP.penaltyAreaHalfWidth() - 0.5 );
         const double control_area = ( goalie_mode
-                                      ? ptype.reliableCatchableDist()
+                                      ? ptype.maxCatchableDist()
                                       : ptype.kickableArea() );
         {
             const Vector2D ball_rel = rotate_matrix.transform( ball_pos - wm.self().pos() );
@@ -1196,6 +1203,9 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
         const double ball_noise = ( first_ball_speed * std::pow( SP.ballDecay(), reach_step - 1 )
                                     * SP.ballRand()
                                     * BALL_NOISE_RATE );
+        const double control_buf = ( goalie_mode
+                                     ? 0.0
+                                     : CONTROL_BUF + ball_noise );
 
         double first_dash_power = 0.0;
         double first_dash_dir = 0.0;
@@ -1281,7 +1291,7 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
 
             if ( ! found )
             {
-                if ( self_pos.dist2( ball_pos ) < std::pow( control_area - CONTROL_BUF - ball_noise, 2 )
+                if ( self_pos.dist2( ball_pos ) < std::pow( control_area - control_buf, 2 )
                      || ( wm.self().pos().dist2( self_pos ) > wm.self().pos().dist2( ball_pos )
                           && Line2D( wm.self().pos(), self_pos ).dist2( ball_pos ) < std::pow( control_area, 2 ) ) )
                 {
@@ -1311,7 +1321,7 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
                           self_pos.x, self_pos.y,
                           ball_pos.x, ball_pos.y,
                           self_pos.dist( ball_pos ),
-                          control_area - CONTROL_BUF - ball_noise,
+                          control_area - control_buf,
                           control_area, CONTROL_BUF, ball_noise );
             std::ostringstream ostr;
             for ( size_t i = 0; i < dash_list.size(); ++i )
@@ -1377,14 +1387,12 @@ SelfInterceptSimulator::simulateFinal( const WorldModel & wm,
 
     const Vector2D self_pos = wm.self().inertiaFinalPoint();
     const Vector2D ball_pos = wm.ball().inertiaFinalPoint();
-    const bool goalie_mode =
-        ( wm.self().goalie()
-          && wm.lastKickerSide() != wm.ourSide()
-          && ball_pos.x < ServerParam::i().ourPenaltyAreaLineX()
-          && ball_pos.absY() < ServerParam::i().penaltyAreaHalfWidth()
-          );
+    const bool goalie_mode = ( wm.self().goalie()
+                               && wm.lastKickerSide() != wm.ourSide()
+                               && ball_pos.x < ServerParam::i().ourPenaltyAreaLineX() - 0.5
+                               && ball_pos.absY() < ServerParam::i().penaltyAreaHalfWidth() - 0.5 );
     const double control_area = ( goalie_mode
-                                  ? ServerParam::i().catchableArea() - 0.15
+                                  ? ptype.reliableCatchableDist()
                                   : ptype.kickableArea() );
 
     AngleDeg dash_angle = wm.self().body();
