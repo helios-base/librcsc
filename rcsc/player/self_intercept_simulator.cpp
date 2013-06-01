@@ -163,7 +163,7 @@ struct InterceptSorter {
               return lhs.ballDist() < rhs.ballDist();
           }
 
-          return lhs.stamina() < rhs.stamina();
+          return lhs.stamina() > rhs.stamina();
       }
 };
 
