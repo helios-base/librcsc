@@ -1001,11 +1001,26 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
                   "%d: (getTurnDash) n_turn=%d dash_angle=%.1f back_dash=[%s]",
                   step, n_turn, dash_angle.degree(), ( back_dash ? "true" : "false" ) );
 #endif
-    const AngleDeg body_angle = ( back_dash
-                                  ? dash_angle + 180.0
-                                  : dash_angle );
+    const AngleDeg body_angle = ( n_turn == 0 || ! back_dash
+                                  ? dash_angle
+                                  : dash_angle + 180.0 );
 
     const Matrix2D rotate_matrix = Matrix2D::make_rotation( -body_angle );
+
+    {
+        Vector2D self_inertia = wm.self().inertiaPoint( step );
+        Vector2D ball_rel_to_inertia = rotate_matrix.transform( ball_pos - self_inertia );
+#ifdef DEBUG_PRINT_TURN_DASH
+        dlog.addText( Logger::INTERCEPT,
+                      "%d: (getTurnDash) ball_rel after waits (%.2f %.2f)",
+                      step, ball_rel_to_inertia.x, ball_rel_to_inertia.y );
+#endif
+        if ( ( back_dash && ball_rel_to_inertia.x > 0.0 )
+             || ( ! back_dash && ball_rel_to_inertia.x < 0.0 ) )
+        {
+            return InterceptInfo();
+        }
+    }
 
     Vector2D self_pos( 0.0, 0.0 );
     Vector2D self_vel = rotate_matrix.transform( wm.self().vel() );
@@ -1019,21 +1034,6 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
     }
 
     const Vector2D ball_rel = rotate_matrix.transform( ball_pos - wm.self().pos() );
-
-    // if ( self_pos.dist2( ball_rel ) < std::pow( control_area - control_buf, 2 ) )
-    // {
-    //     stamina_model.simulateWaits( ptype, step - n_turn );
-    //     InterceptInfo info( InterceptInfo::NORMAL,
-    //                         ( back_dash
-    //                           ? InterceptInfo::TURN_BACK_DASH
-    //                           : InterceptInfo::TURN_FORWARD_DASH ),
-    //                         n_turn, step - n_turn,
-    //                         0.0, 0.0,
-    //                         wm.self().inertiaPoint( n_turn ),
-    //                         self_pos.dist( ball_rel ),
-    //                         stamina_model.stamina() );
-    //     return info;
-    // }
 
     const int max_dash_step = step - n_turn;
     double first_dash_power = 0.0;

@@ -1,5 +1,9 @@
 2013-06-02  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/self_intercept_simulator.cpp:
+	- ターン回数0の場合にダッシュパワーが逆方向にセットされることがあっ
+	たバグを修正
+
 	* rcsc/player/ball_object.cpp:
 	* rcsc/player/intercept_table.cpp:
 	* rcsc/player/world_model.cpp:
