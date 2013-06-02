@@ -53,7 +53,7 @@
 namespace rcsc {
 
 namespace {
-const int MAX_CYCLE = 50;
+const int MAX_STEP = 50;
 }
 
 /*-------------------------------------------------------------------*/
@@ -64,8 +64,8 @@ InterceptTable::InterceptTable( const WorldModel & world )
     : M_world( world ),
       M_update_time( 0, 0 )
 {
-    M_ball_cache.reserve( MAX_CYCLE );
-    M_self_cache.reserve( ( MAX_CYCLE + 1 ) * 2 );
+    M_ball_cache.reserve( MAX_STEP );
+    M_self_cache.reserve( ( MAX_STEP + 1 ) * 2 );
 
     clear();
 }
@@ -79,13 +79,13 @@ InterceptTable::clear()
 {
     M_ball_cache.clear();
 
-    M_self_reach_cycle = 1000;
-    M_self_exhaust_reach_cycle = 1000;
-    M_teammate_reach_cycle = 1000;
-    M_second_teammate_reach_cycle = 1000;
-    M_goalie_reach_cycle = 1000;
-    M_opponent_reach_cycle = 1000;
-    M_second_opponent_reach_cycle = 1000;
+    M_self_reach_step = 1000;
+    M_self_exhaust_reach_step = 1000;
+    M_teammate_reach_step = 1000;
+    M_second_teammate_reach_step = 1000;
+    M_goalie_reach_step = 1000;
+    M_opponent_reach_step = 1000;
+    M_second_opponent_reach_step = 1000;
 
     M_fastest_teammate = static_cast< PlayerObject * >( 0 );
     M_second_teammate = static_cast< PlayerObject * >( 0 );
@@ -167,15 +167,15 @@ InterceptTable::update()
     predictTeammate();
 
     dlog.addText( Logger::INTERCEPT,
-                  "<-----Intercept Self reach cycle = %d. exhaust reach step = %d ",
-                  M_self_reach_cycle,
-                  M_self_exhaust_reach_cycle );
+                  "<-----Intercept Self reach step = %d. exhaust reach step = %d ",
+                  M_self_reach_step,
+                  M_self_exhaust_reach_step );
     if ( M_fastest_teammate )
     {
         dlog.addText( Logger::INTERCEPT,
                       "<-----Intercept Teammate  fastest reach step = %d."
                       " teammate %d (%.1f %.1f)",
-                      M_teammate_reach_cycle,
+                      M_teammate_reach_step,
                       M_fastest_teammate->unum(),
                       M_fastest_teammate->pos().x,
                       M_fastest_teammate->pos().y );
@@ -187,7 +187,7 @@ InterceptTable::update()
         dlog.addText( Logger::INTERCEPT,
                       "<-----Intercept Teammate  2nd     reach step = %d."
                       " teammate %d (%.1f %.1f)",
-                      M_second_teammate_reach_cycle,
+                      M_second_teammate_reach_step,
                       M_second_teammate->unum(),
                       M_second_teammate->pos().x,
                       M_second_teammate->pos().y );
@@ -198,7 +198,7 @@ InterceptTable::update()
         dlog.addText( Logger::INTERCEPT,
                       "<-----Intercept Opponent  fastest reach step = %d."
                       " opponent %d (%.1f %.1f)",
-                      M_opponent_reach_cycle,
+                      M_opponent_reach_step,
                       M_fastest_opponent->unum(),
                       M_fastest_opponent->pos().x,
                       M_fastest_opponent->pos().y );
@@ -209,7 +209,7 @@ InterceptTable::update()
         dlog.addText( Logger::INTERCEPT,
                       "<-----Intercept Opponent  2nd     reach step = %d."
                       " opponent %d (%.1f %.1f)",
-                      M_second_opponent_reach_cycle,
+                      M_second_opponent_reach_step,
                       M_second_opponent->unum(),
                       M_second_opponent->pos().x,
                       M_second_opponent->pos().y );
@@ -225,10 +225,10 @@ InterceptTable::update()
 */
 void
 InterceptTable::hearTeammate( const int unum,
-                              const int cycle )
+                              const int step )
 {
     if ( M_fastest_teammate
-         && cycle >= M_teammate_reach_cycle )
+         && step >= M_teammate_reach_step )
     {
         return;
     }
@@ -249,14 +249,14 @@ InterceptTable::hearTeammate( const int unum,
     if ( p )
     {
         M_fastest_teammate = p;
-        M_teammate_reach_cycle = cycle;
+        M_teammate_reach_step = step;
 
-        M_player_map[ p ] = cycle;
+        M_player_map[ p ] = step;
 
         dlog.addText( Logger::INTERCEPT,
                       "<----- Hear Intercept Teammate  fastest reach step = %d."
                       " teammate %d (%.1f %.1f)",
-                      M_teammate_reach_cycle,
+                      M_teammate_reach_step,
                       M_fastest_teammate->unum(),
                       M_fastest_teammate->pos().x,
                       M_fastest_teammate->pos().y );
@@ -269,16 +269,16 @@ InterceptTable::hearTeammate( const int unum,
 */
 void
 InterceptTable::hearOpponent( const int unum,
-                              const int cycle )
+                              const int step )
 {
     if ( M_fastest_opponent )
     {
-        if ( cycle >= M_opponent_reach_cycle )
+        if ( step >= M_opponent_reach_step )
         {
             dlog.addText( Logger::INTERCEPT,
                           "<----- Hear Intercept Opponent. no update."
-                          " exist faster reach cycle %d >= %d",
-                          cycle, M_opponent_reach_cycle );
+                          " exist faster reach step %d >= %d",
+                          step, M_opponent_reach_step );
             return;
         }
 
@@ -312,14 +312,14 @@ InterceptTable::hearOpponent( const int unum,
     if ( p )
     {
         M_fastest_opponent = p;
-        M_opponent_reach_cycle = cycle;
+        M_opponent_reach_step = step;
 
-        M_player_map[ p ] = cycle;
+        M_player_map[ p ] = step;
 
         dlog.addText( Logger::INTERCEPT,
                       "<----- Hear Intercept Opponent  fastest reach step = %d."
                       " opponent %d (%.1f %.1f)",
-                      M_opponent_reach_cycle,
+                      M_opponent_reach_step,
                       M_fastest_opponent->unum(),
                       M_fastest_opponent->pos().x,
                       M_fastest_opponent->pos().y );
@@ -346,7 +346,7 @@ InterceptTable::createBallCache()
     Vector2D bvel = M_world.ball().vel();
     double bspeed = bvel.r();
 
-    for ( int i = 0; i < MAX_CYCLE; ++i )
+    for ( int i = 0; i < MAX_STEP; ++i )
     {
         M_ball_cache.push_back( bpos );
 
@@ -385,17 +385,17 @@ InterceptTable::predictSelf()
     {
         dlog.addText( Logger::INTERCEPT,
                       "Intercept Self. already kickable. no estimation loop!" );
-        M_self_reach_cycle = 0;
+        M_self_reach_step = 0;
         return;
     }
 
-    int max_cycle = std::min( MAX_CYCLE, static_cast< int >( M_ball_cache.size() ) );
+    int max_step = std::min( MAX_STEP, static_cast< int >( M_ball_cache.size() ) );
 #if 0
     SelfInterceptV13 predictor( M_world );
-    predictor.predict( max_cycle, M_self_cache );
+    predictor.predict( max_step, M_self_cache );
 #else
     SelfInterceptSimulator sim;
-    sim.simulate( M_world, max_cycle, M_self_cache );
+    sim.simulate( M_world, max_step, M_self_cache );
 #endif
     if ( M_self_cache.empty() )
     {
@@ -420,27 +420,27 @@ InterceptTable::predictSelf()
 //                         M_self_cache.end() );
 // #endif
 
-    int min_cycle = M_self_reach_cycle;
-    int exhaust_min_cycle = M_self_exhaust_reach_cycle;
+    int min_step = M_self_reach_step;
+    int exhaust_min_step = M_self_exhaust_reach_step;
 
     for ( std::vector< InterceptInfo >::iterator it = M_self_cache.begin(),
               end = M_self_cache.end();
           it != end;
           ++it )
     {
-        if ( it->mode() == InterceptInfo::NORMAL )
+        if ( it->staminaType() == InterceptInfo::NORMAL )
         {
-            if ( it->reachCycle() < min_cycle )
+            if ( it->reachStep() < min_step )
             {
-                min_cycle = it->reachCycle();
+                min_step = it->reachStep();
                 break;
             }
         }
-        else if ( it->mode() == InterceptInfo::EXHAUST )
+        else if ( it->staminaType() == InterceptInfo::EXHAUST )
         {
-            if ( it->reachCycle() < exhaust_min_cycle )
+            if ( it->reachStep() < exhaust_min_step )
             {
-                exhaust_min_cycle = it->reachCycle();
+                exhaust_min_step = it->reachStep();
                 break;
             }
         }
@@ -450,10 +450,10 @@ InterceptTable::predictSelf()
                   "Intercept Self. solution size = %d",
                   M_self_cache.size() );
 
-    M_self_reach_cycle = min_cycle;
-    M_self_exhaust_reach_cycle = exhaust_min_cycle;
+    M_self_reach_step = min_step;
+    M_self_exhaust_reach_step = exhaust_min_step;
 
-    //M_player_map.insert( std::pair< const AbstractPlayerObject *, int >( &(M_world.self()), min_cycle ) );
+    //M_player_map.insert( std::pair< const AbstractPlayerObject *, int >( &(M_world.self()), min_step ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -468,7 +468,7 @@ InterceptTable::predictTeammate()
 
     if ( M_world.kickableTeammate() )
     {
-        M_teammate_reach_cycle = 0;
+        M_teammate_reach_step = 0;
         min_step = 0;
         M_fastest_teammate = M_world.kickableTeammate();
 
@@ -515,14 +515,14 @@ InterceptTable::predictTeammate()
         }
 
         dlog.addText( Logger::INTERCEPT,
-                      "---> Teammate %d.(%.1f %.1f) cycle=%d",
+                      "---> Teammate %d.(%.1f %.1f) step=%d",
                       (*it)->unum(),
                       (*it)->pos().x, (*it)->pos().y,
                       step );
 
         if ( (*it)->goalie() )
         {
-            M_goalie_reach_cycle = goalie_step;
+            M_goalie_reach_step = goalie_step;
         }
 
         if ( step < second_min_step )
@@ -542,12 +542,12 @@ InterceptTable::predictTeammate()
 
     if ( M_second_teammate && second_min_step < 1000 )
     {
-        M_second_teammate_reach_cycle = second_min_step;
+        M_second_teammate_reach_step = second_min_step;
     }
 
     if ( M_fastest_teammate && min_step < 1000 )
     {
-        M_teammate_reach_cycle = min_step;
+        M_teammate_reach_step = min_step;
     }
 }
 
@@ -563,7 +563,7 @@ InterceptTable::predictOpponent()
 
     if ( M_world.kickableOpponent() )
     {
-        M_opponent_reach_cycle = 0;
+        M_opponent_reach_step = 0;
         min_step = 0;
         M_fastest_opponent = M_world.kickableOpponent();
 
@@ -610,7 +610,7 @@ InterceptTable::predictOpponent()
         }
 
         dlog.addText( Logger::INTERCEPT,
-                      "---> Opponent.%d (%.1f %.1f) cycle=%d",
+                      "---> Opponent.%d (%.1f %.1f) step=%d",
                       (*it)->unum(),
                       (*it)->pos().x, (*it)->pos().y,
                       step );
@@ -632,12 +632,12 @@ InterceptTable::predictOpponent()
 
     if ( M_second_opponent && second_min_step < 1000 )
     {
-        M_second_opponent_reach_cycle = second_min_step;
+        M_second_opponent_reach_step = second_min_step;
     }
 
     if ( M_fastest_opponent && min_step < 1000 )
     {
-        M_opponent_reach_cycle = min_step;
+        M_opponent_reach_step = min_step;
     }
 }
 

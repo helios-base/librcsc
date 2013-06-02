@@ -72,7 +72,7 @@ const int BACK_DASH_COUNT_THR = 5;
 
  */
 char
-type_char( const InterceptInfo::Type t )
+type_char( const InterceptInfo::ActionType t )
 {
     switch ( t ) {
     case InterceptInfo::OMNI_DASH:
@@ -108,8 +108,8 @@ debug_print_results( const WorldModel & wm,
                       " power=%.2f angle=%.1f"
                       " self_pos=(%.2f %.2f) bdist=%.3f stamina=%.1f",
                       i,
-                      self_cache[i].mode(),
-                      type_char( self_cache[i].type() ),
+                      self_cache[i].staminaType(),
+                      type_char( self_cache[i].actionType() ),
                       self_cache[i].reachCycle(),
                       self_cache[i].turnCycle(),
                       self_cache[i].dashCycle(),
@@ -175,8 +175,8 @@ struct InterceptEqual {
     bool operator()( const InterceptInfo & lhs,
                      const InterceptInfo & rhs ) const
       {
-          return lhs.mode() == rhs.mode()
-              && lhs.type() == rhs.type()
+          return lhs.staminaType() == rhs.staminaType()
+              && lhs.actionType() == rhs.actionType()
               && lhs.turnCycle() == rhs.turnCycle()
               && lhs.dashCycle() == rhs.dashCycle()
               && lhs.dashDir() == rhs.dashDir();
@@ -365,7 +365,7 @@ SelfInterceptSimulator::simulateNoDash( const WorldModel & wm,
 
     self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
                                          InterceptInfo::TURN_FORWARD_DASH,
-                                         1, 0, // 1 turn, 0 dash
+                                         0, 1, // 0 turn, 1 dash
                                          0.0, 0.0, // power=0, dir=0
                                          self_next,
                                          ball_next_dist,
@@ -668,7 +668,7 @@ SelfInterceptSimulator::getOneAdjustDash( const WorldModel & wm,
     //
     // register
     //
-    InterceptInfo::Mode mode = InterceptInfo::NORMAL;
+    InterceptInfo::StaminaType stamina_type = InterceptInfo::NORMAL;
 
     const Vector2D accel = Vector2D::polar2vector( dash_power * dash_rate, dash_angle );
     const Vector2D self_next_after_dash = wm.self().pos() + wm.self().vel() + accel;
@@ -679,10 +679,10 @@ SelfInterceptSimulator::getOneAdjustDash( const WorldModel & wm,
     if ( stamina_model.stamina() < SP.recoverDecThrValue()
          && ! stamina_model.capacityIsEmpty() )
     {
-        mode = InterceptInfo::EXHAUST;
+        stamina_type = InterceptInfo::EXHAUST;
     }
 
-    InterceptInfo info( mode,
+    InterceptInfo info( stamina_type,
                         ( dash_power > 0.0
                           ? InterceptInfo::TURN_FORWARD_DASH
                           : InterceptInfo::TURN_BACK_DASH ),
@@ -1070,11 +1070,11 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
          || self_pos.r2() > ball_rel.r2()
          || self_pos.dist2( ball_rel ) < std::pow( control_area - control_buf, 2 ) )
     {
-        InterceptInfo::Mode mode = ( stamina_model.recovery() < SP.recoverInit()
-                                     && ! stamina_model.capacityIsEmpty()
-                                     ? InterceptInfo::EXHAUST
-                                     : InterceptInfo::NORMAL );
-        return InterceptInfo( mode,
+        InterceptInfo::StaminaType stamina_type = ( stamina_model.recovery() < SP.recoverInit()
+                                                    && ! stamina_model.capacityIsEmpty()
+                                                    ? InterceptInfo::EXHAUST
+                                                    : InterceptInfo::NORMAL );
+        return InterceptInfo( stamina_type,
                               ( back_dash
                                 ? InterceptInfo::TURN_BACK_DASH
                                 : InterceptInfo::TURN_FORWARD_DASH ),
@@ -1331,11 +1331,11 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
             dlog.addText( Logger::INTERCEPT,
                           ">>> dash %s", ostr.str().c_str() );
 #endif
-            InterceptInfo::Mode mode = ( stamina_model.recovery() < SP.recoverInit()
-                                         && ! stamina_model.capacityIsEmpty()
-                                         ? InterceptInfo::EXHAUST
-                                         : InterceptInfo::NORMAL );
-            self_cache.push_back( InterceptInfo( mode,
+            InterceptInfo::StaminaType stamina_type = ( stamina_model.recovery() < SP.recoverInit()
+                                                        && ! stamina_model.capacityIsEmpty()
+                                                        ? InterceptInfo::EXHAUST
+                                                        : InterceptInfo::NORMAL );
+            self_cache.push_back( InterceptInfo( stamina_type,
                                                  InterceptInfo::OMNI_DASH,
                                                  0, reach_step,
                                                  first_dash_power, first_dash_dir,

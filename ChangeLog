@@ -1,5 +1,15 @@
 2013-06-02  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/action/body_intercept2009.cpp:
+	* rcsc/player/intercept_table.cpp:
+	* rcsc/player/intercept_table.h:
+	* rcsc/player/self_intercept_simulator.cpp:
+	* rcsc/player/self_intercept_v13.cpp:
+	- InterceptInfo::ModeをInterceptInfo::StaminaTypeへリネーム
+	- InterceptInfo::TypeをInterceptInfo::ActionTypeへリネーム
+	- InterceptInfoのステップ数取得関数としてreachStep(), turnStep(),
+	dashStep()を追加．既存のxxxCycle()も利用可能
+
 	* rcsc/player/self_intercept_simulator.cpp:
 	- ターン回数0の場合にダッシュパワーが逆方向にセットされることがあっ
 	たバグを修正

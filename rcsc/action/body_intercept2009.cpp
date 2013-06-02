@@ -277,7 +277,7 @@ Body_Intercept2009::getBestIntercept( const WorldModel & wm,
     for ( std::size_t i = 0; i < MAX; ++i )
     {
         if ( M_save_recovery
-             && cache[i].mode() != InterceptInfo::NORMAL )
+             && cache[i].staminaType() != InterceptInfo::NORMAL )
         {
             continue;
         }

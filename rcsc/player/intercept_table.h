@@ -47,20 +47,25 @@ class WorldModel;
 
 /*!
   \class InterceptInfo
-  \brief interception data that contains required action count
+  \brief interception data
 */
 class InterceptInfo {
 public:
+
     /*!
-      \enum Mode
-      \brief stamina consumption mode
+      \enum StaminaType
+      \brief stamina type
      */
-    enum Mode {
+    enum StaminaType {
         NORMAL = 0, //!< ball gettable without stamina exhaust
         EXHAUST = 100, //!< fastest ball gettable, but recovery may be consumed.
     };
 
-    enum Type {
+    /*!
+      \enum ActionType
+      \brief action type
+     */
+    enum ActionType {
         OMNI_DASH = 0,
         TURN_FORWARD_DASH = 1,
         TURN_BACK_DASH = 2,
@@ -68,15 +73,15 @@ public:
     };
 
 private:
-    Mode M_mode; //!< interception mode, NORMAL or EXHAUST
-    Type M_type; //!< behavior type
-    int M_turn_cycle; //!< estimated turn cycles
-    int M_dash_cycle; //!< estimated dash cycles
-    double M_dash_power; //!< dash power
+    StaminaType M_stamina_type; //!< stamina type
+    ActionType M_action_type; //!< action type
+    int M_turn_step; //!< estimated turn step
+    int M_dash_step; //!< estimated dash step
+    double M_dash_power; //!< first dash power
     double M_dash_dir; //!< first dash direction (relative to body)
-    Vector2D M_self_pos; //!< final self position
-    double M_ball_dist; //!< final squared ball distance
-    double M_stamina; //!< final stamina value
+    Vector2D M_self_pos; //!< estimated final self position
+    double M_ball_dist; //!< estimated final ball distance
+    double M_stamina; //!< estimated final stamina value
 
 public:
 
@@ -84,10 +89,10 @@ public:
       \brief create invalid info
      */
     InterceptInfo()
-        : M_mode( EXHAUST ),
-          M_type( UNKNOWN_TYPE ),
-          M_turn_cycle( 10000 ),
-          M_dash_cycle( 10000 ),
+        : M_stamina_type( EXHAUST ),
+          M_action_type( UNKNOWN_TYPE ),
+          M_turn_step( 10000 ),
+          M_dash_step( 10000 ),
           M_dash_power( 100000.0 ),
           M_dash_dir( 0.0 ),
           M_self_pos( -10000.0, 0.0 ),
@@ -98,19 +103,19 @@ public:
     /*!
       \brief construct with all variables
     */
-    InterceptInfo( const Mode mode,
-                   const Type type,
-                   const int turn_cycle,
-                   const int dash_cycle,
+    InterceptInfo( const StaminaType stamina_type,
+                   const ActionType action_type,
+                   const int turn_step,
+                   const int dash_step,
                    const double dash_power,
                    const double dash_dir,
                    const Vector2D & self_pos,
                    const double ball_dist,
                    const double stamina )
-        : M_mode( mode ),
-          M_type( type ),
-          M_turn_cycle( turn_cycle ),
-          M_dash_cycle( dash_cycle ),
+        : M_stamina_type( stamina_type ),
+          M_action_type( action_type ),
+          M_turn_step( turn_step ),
+          M_dash_step( dash_step ),
           M_dash_power( dash_power ),
           M_dash_dir( dash_dir ),
           M_self_pos( self_pos ),
@@ -124,53 +129,51 @@ public:
      */
     bool isValid() const
       {
-          return M_type != UNKNOWN_TYPE;
+          return M_action_type != UNKNOWN_TYPE;
       }
 
     /*!
-      \brief get interception mode Id
-      \return mode Id
+      \brief get stamina type id
+      \return stamina type id
     */
-    Mode mode() const
+    StaminaType staminaType() const
       {
-          return M_mode;
-      }
-
-    Type type() const
-      {
-          return M_type;
+          return M_stamina_type;
       }
 
     /*!
-      \brief get estimated total turn cycles
-      \return the number of turn cycles
-    */
-    int turnCycle() const
+      \brief get interception action type
+      \return type id
+     */
+    ActionType actionType() const
       {
-          return M_turn_cycle;
+          return M_action_type;
       }
+
+    /*!
+      \brief get estimated total turn steps
+      \return the number of turn steps
+    */
+    int turnCycle() const { return M_turn_step; }
+    int turnStep() const { return M_turn_step; }
 
     /*!
       \brief get estimated total dash cycles
-      \return the number of dash cycles
+      \return the number of dash steps
     */
-    int dashCycle() const
-      {
-          return M_dash_cycle;
-      }
+    int dashCycle() const { return M_dash_step; }
+    int dashStep() const { return M_dash_step; }
 
     /*!
-      \brief get esitimated total cycle to reach
-      \return the number of total cycles
+      \brief get esitimated total step to reach
+      \return the number of total steps
     */
-    int reachCycle() const
-      {
-          return turnCycle() + dashCycle();
-      }
+    int reachCycle() const { return turnStep() + dashStep(); }
+    int reachStep() const { return turnStep() + dashStep(); }
 
     /*!
-      \brief get dash power to be used
-      \return dash power to be used
+      \brief get dash power for the first dash
+      \return dash power value
     */
     double dashPower() const
       {
@@ -178,8 +181,8 @@ public:
       }
 
     /*!
-      \brief ger first dash direction
-      \return first dash direction
+      \brief ger dash direction for the first dash
+      \return dash direction value (relative to body)
      */
     double dashDir() const
       {
@@ -187,7 +190,7 @@ public:
       }
 
     /*!
-      \brief get the final self position
+      \brief get the estimated final self position
       \return final self position
      */
     const Vector2D & selfPos() const
@@ -196,8 +199,8 @@ public:
       }
 
     /*!
-      \brief get the final squared ball distance
-      \return final squared ball distance
+      \brief get the estimated final ball distance
+      \return final ball distance
      */
     double ballDist() const
       {
@@ -205,7 +208,7 @@ public:
       }
 
     /*!
-      \brief get the final self stamina value
+      \brief get the estimated self stamina value
       \return final self stamina value
      */
     double stamina() const
@@ -232,20 +235,20 @@ private:
     //! ball inertia movement position cache
     std::vector< Vector2D > M_ball_cache;
 
-    //! predicted min reach cycle for self without stamina exhaust
-    int M_self_reach_cycle;
-    //! predicted min reach cycle for self with stamina exhaust
-    int M_self_exhaust_reach_cycle;
-    //! predicted min reach cycle for teammate
-    int M_teammate_reach_cycle;
-    //! predicted reach cycle for second fastest teammate
-    int M_second_teammate_reach_cycle;
-    //! predicted min reach cycle for teammate goalie
-    int M_goalie_reach_cycle;
-    //! predicted min reach cycle for opponent
-    int M_opponent_reach_cycle;
-    //! predicted reach cycle for second fastest opponent
-    int M_second_opponent_reach_cycle;
+    //! predicted min reach step for self without stamina exhaust
+    int M_self_reach_step;
+    //! predicted min reach step for self with stamina exhaust
+    int M_self_exhaust_reach_step;
+    //! predicted min reach step for teammate
+    int M_teammate_reach_step;
+    //! predicted reach step for second fastest teammate
+    int M_second_teammate_reach_step;
+    //! predicted min reach step for teammate goalie
+    int M_goalie_reach_step;
+    //! predicted min reach step for opponent
+    int M_opponent_reach_step;
+    //! predicted reach step for second fastest opponent
+    int M_second_opponent_reach_step;
 
     //! const pointer to the fastest ball gettable teammate player object
     const PlayerObject * M_fastest_teammate;
@@ -289,67 +292,67 @@ public:
     /*!
       \brief set teammate intercept info mainly by heard info
       \param unum uniform number
-      \param cycle interception cycle
+      \param step interception step
      */
     void hearTeammate( const int unum,
-                       const int cycle );
+                       const int step );
 
     /*!
       \brief set opponent intercept info mainly by heard info
       \param unum uniform number
-      \param cycle interception cycle
+      \param step interception step
      */
     void hearOpponent( const int unum,
-                       const int cycle );
+                       const int step );
 
     /*!
-      \brief get minimal ball gettable cycle for self without stamina exhaust
-      \return cycle value to get the ball
+      \brief get minimal ball gettable step for self without stamina exhaust
+      \return step value to get the ball
     */
-    int selfReachCycle() const { return M_self_reach_cycle; }
-    int selfReachStep() const { return M_self_reach_cycle; }
+    int selfReachCycle() const { return M_self_reach_step; }
+    int selfReachStep() const { return M_self_reach_step; }
 
     /*!
-      \brief get minimal ball gettable cycle for self with stamina exhaust
-      \return cycle value to get the ball
+      \brief get minimal ball gettable step for self with stamina exhaust
+      \return step value to get the ball
     */
-    int selfExhaustReachCycle() const { return M_self_exhaust_reach_cycle; }
-    int selfExhaustReachStep() const { return M_self_exhaust_reach_cycle; }
+    int selfExhaustReachCycle() const { return M_self_exhaust_reach_step; }
+    int selfExhaustReachStep() const { return M_self_exhaust_reach_step; }
 
     /*!
-      \brief get minimal ball gettable cycle for teammate
-      \return cycle value to get the ball
+      \brief get minimal ball gettable step for teammate
+      \return step value to get the ball
     */
-    int teammateReachCycle() const { return M_teammate_reach_cycle; }
-    int teammateReachStep() const { return M_teammate_reach_cycle; }
+    int teammateReachCycle() const { return M_teammate_reach_step; }
+    int teammateReachStep() const { return M_teammate_reach_step; }
 
     /*!
-      \brief get the ball access cycle for the second teammate
-      \return cycle value to get the ball
+      \brief get the ball access step for the second teammate
+      \return step value to get the ball
     */
-    int secondTeammateReachCycle() const { return M_second_teammate_reach_cycle; }
-    int secondTeammateReachStep() const { return M_second_teammate_reach_cycle; }
+    int secondTeammateReachCycle() const { return M_second_teammate_reach_step; }
+    int secondTeammateReachStep() const { return M_second_teammate_reach_step; }
 
     /*!
-      \brief get the ball access cycle for the teammate goalie
-      \return cycle value to get the ball
+      \brief get the ball access step for the teammate goalie
+      \return step value to get the ball
     */
-    int goalieReachCycle() const { return M_goalie_reach_cycle; }
-    int goalieReachStep() const { return M_goalie_reach_cycle; }
+    int goalieReachCycle() const { return M_goalie_reach_step; }
+    int goalieReachStep() const { return M_goalie_reach_step; }
 
     /*!
-      \brief get minimal ball gettable cycle for opponent
-      \return cycle value to get the ball
+      \brief get minimal ball gettable step for opponent
+      \return step value to get the ball
     */
-    int opponentReachCycle() const { return M_opponent_reach_cycle; }
-    int opponentReachStep() const { return M_opponent_reach_cycle; }
+    int opponentReachCycle() const { return M_opponent_reach_step; }
+    int opponentReachStep() const { return M_opponent_reach_step; }
 
     /*!
-      \brief get the ball access cycle for the second opponent
-      \return cycle value to get the ball
+      \brief get the ball access step for the second opponent
+      \return step value to get the ball
     */
-    int secondOpponentReachCycle() const { return M_second_opponent_reach_cycle; }
-    int secondOpponentReachStep() const { return M_second_opponent_reach_cycle; }
+    int secondOpponentReachCycle() const { return M_second_opponent_reach_step; }
+    int secondOpponentReachStep() const { return M_second_opponent_reach_step; }
 
     /*!
       \brief get the teammate object fastest to the ball
