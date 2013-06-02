@@ -1,5 +1,9 @@
 2013-06-02  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/world_model.cpp:
+	- 自分がボールを蹴っている場合は位置差分による強制ボール速度更新を
+	適用しないように条件を追加
+
 	* rcsc/action/body_intercept2009.cpp:
 	* rcsc/player/intercept_table.cpp:
 	* rcsc/player/intercept_table.h:

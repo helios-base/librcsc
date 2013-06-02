@@ -2490,9 +2490,9 @@ WorldModel::localizeBall( const VisualSensor & see,
         }
 #if 1
         // add 2013-05-30
-        else if ( see.balls().front().dist_ < 2.0 )
+        else if ( see.balls().front().dist_ < 2.0
+                  && ! self().isKicking() )
         {
-
             if ( M_ball.seenPosCount() < 100
                  || M_ball.heardPosCount() < 100 )
             {
@@ -2729,9 +2729,10 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
     }
     else if ( ball().rposCount() == 3 )
     {
+#ifdef DEBUG_PRINT_BALL_UPDATE
         dlog.addText( Logger::WORLD,
                       __FILE__" (estimateBallVelByPosDiff) vel update by rpos diff(3) " );
-
+#endif
         if ( see.balls().front().dist_ < 3.15
              && act.lastBodyCommandType( 0 ) != PlayerCommand::KICK
              && act.lastBodyCommandType( 1 ) != PlayerCommand::KICK
