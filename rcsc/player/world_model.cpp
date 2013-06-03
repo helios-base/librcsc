@@ -2774,7 +2774,7 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
             {
                 vel_error = ( rpos_error * 3.0 ) + self().velError();
                 vel_error *= ServerParam::i().ballDecay();
-                vel_count = 2;
+                vel_count = 3;
 
 #ifdef DEBUG_PRINT_BALL_UPDATE
                 dlog.addText( Logger::WORLD,
