@@ -1,5 +1,8 @@
 2013-06-04  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/self_intercept_simulator.cpp:
+	- 体の向きの計算誤りを修正
+
 	* rcsc/player/world_model.cpp:
 	- 3ステップの位置差分によるボール速度の信頼性を2から3に変更
 

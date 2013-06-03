@@ -983,7 +983,9 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
                                  ? 0.0
                                  : CONTROL_BUF + ball_noise );
 
-    AngleDeg dash_angle;
+    AngleDeg dash_angle = ( back_dash
+                            ? wm.self().body() + 180.0
+                            : wm.self().body() );
     const int n_turn = simulate_turn_step( wm, ball_pos, control_area, ball_noise, step, back_dash,
                                            &dash_angle );
 
@@ -996,14 +998,17 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
 #endif
         return InterceptInfo();
     }
+    const AngleDeg body_angle = ( n_turn == 0
+                                  ? wm.self().body()
+                                  : back_dash
+                                  ? dash_angle + 180.0
+                                  : dash_angle );
 #ifdef DEBUG_PRINT_TURN_DASH
     dlog.addText( Logger::INTERCEPT,
-                  "%d: (getTurnDash) n_turn=%d dash_angle=%.1f back_dash=[%s]",
-                  step, n_turn, dash_angle.degree(), ( back_dash ? "true" : "false" ) );
+                  "%d: (getTurnDash) n_turn=%d dash_angle=%.1f body=%.1f back_dash=[%s]",
+                  step, n_turn, dash_angle.degree(), body_angle.degree(),
+                  ( back_dash ? "true" : "false" ) );
 #endif
-    const AngleDeg body_angle = ( n_turn == 0 || ! back_dash
-                                  ? dash_angle
-                                  : dash_angle + 180.0 );
 
     const Matrix2D rotate_matrix = Matrix2D::make_rotation( -body_angle );
 
