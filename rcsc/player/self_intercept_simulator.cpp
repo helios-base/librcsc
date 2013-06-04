@@ -191,7 +191,8 @@ struct InterceptEqualSimple {
     bool operator()( const InterceptInfo & lhs,
                      const InterceptInfo & rhs ) const
       {
-          return lhs.turnCycle() == rhs.turnCycle()
+          return lhs.actionType() == rhs.actionType()
+              && lhs.turnCycle() == rhs.turnCycle()
               && lhs.dashCycle() == rhs.dashCycle();
       }
 };

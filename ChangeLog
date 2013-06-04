@@ -1,6 +1,9 @@
 2013-06-04  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/self_intercept_simulator.cpp:
+	- 同一タイプか比較する関数にActionTypeの一致を判定する条件を追加
+
+	* rcsc/player/self_intercept_simulator.cpp:
 	- 体の向きの計算誤りを修正
 
 	* rcsc/player/world_model.cpp:
