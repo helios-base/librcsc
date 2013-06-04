@@ -110,10 +110,11 @@ InterceptTable::update()
     }
     M_update_time = M_world.time();
 
+#ifdef DEBUG_PRINT
     dlog.addText( Logger::INTERCEPT,
                   __FILE__" (update)" );
-
     MSecTimer timer;
+#endif
 
     // clear all data
     this->clear();
@@ -215,8 +216,10 @@ InterceptTable::update()
                       M_second_opponent->pos().y );
     }
 
+#ifdef DEBUG_PRINT
     dlog.addText( Logger::INTERCEPT,
                   __FILE__":(update) elapsed %.3f [ms]", timer.elapsedReal() );
+#endif
 }
 
 /*-------------------------------------------------------------------*/
