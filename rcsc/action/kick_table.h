@@ -265,11 +265,11 @@ private:
     /*!
       \brief update interfere level at state
       \param world const reference to the WorldModel
-      \param cycle the cycle delay for state
+      \param step state represents the state after this step value
       \param state reference to the State variable to be updated
      */
     void checkInterfereAt( const WorldModel & world,
-                           const int cycle,
+                           const int step,
                            State & state );
 
     /*!
@@ -328,11 +328,26 @@ private:
 
     /*!
       \brief evaluate candidate kick sequences
+      \param wm const reference to the WorldModel
       \param first_speed required first speed
       \param allowable_speed required first speed threshold
      */
-    void evaluate( const double first_speed,
+    void evaluate( const WorldModel & wm,
+                   const double first_speed,
                    const double allowable_speed );
+
+    /*!
+      \brief output debugging information to Logger
+     */
+    void debugPrintStateCache();
+
+    /*!
+      \brief output debugging information to Logger
+      \param wm world model instance
+      \param seq kick sequence instance
+     */
+    void debugPrintSequence( const WorldModel & wm,
+                             const Sequence & seq );
 
 public:
 
