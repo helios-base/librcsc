@@ -2491,7 +2491,10 @@ WorldModel::localizeBall( const VisualSensor & see,
 #if 1
         // add 2013-05-30
         else if ( see.balls().front().dist_ < 2.0
-                  && ! self().isKicking() )
+                  && ! self().isKicking()
+                  && M_ball.seenPosCount() >= 2 // ball is not seen at least 2 or more cycles
+                  && self().lastMove( 0 ).isValid() // no collision in this cycle
+                  && self().lastMove( 1 ).isValid() ) // no collision in previous cycle
         {
             if ( M_ball.seenPosCount() < 100
                  || M_ball.heardPosCount() < 100 )
