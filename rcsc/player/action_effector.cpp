@@ -1464,7 +1464,8 @@ ActionEffector::makeSayCommand()
     {
         if ( ! (*it)->appendTo( M_say_message ) )
         {
-            std::cerr << M_agent.world().self().unum() << " : "
+            std::cerr << M_agent.world().teamName() << ' '
+                      << M_agent.world().self().unum() << " : "
                       << M_agent.world().time() << " Error say message builder. type=["
                       << (*it)->header() << ']'
                       << std::endl;
