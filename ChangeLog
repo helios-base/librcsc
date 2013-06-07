@@ -1,3 +1,10 @@
+2013-06-07  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/ball_object.cpp:
+	* rcsc/player/world_model.cpp:
+	- セットプレイ時のボール情報更新処理をBallObject内に統一
+	- キックイン・コーナーキック時にボールに充分近い場合は自分が観た情報を優先するように変更
+
 2013-06-06  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/world_model.cpp:

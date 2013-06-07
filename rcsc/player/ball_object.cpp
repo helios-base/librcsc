@@ -398,7 +398,8 @@ BallObject::updateByGameMode( const GameMode & mode )
 
     if ( type == GameMode::CornerKick_ )
     {
-        if ( posCount() <= 1 )
+        if ( posCount() <= 1
+             && M_rpos.r2() > std::pow( 3.0, 2 ) )
         {
             M_pos.x = ( M_pos.x > 0.0
                         ? +ServerParam::i().pitchHalfLength() - ServerParam::i().cornerKickMargin()
@@ -416,7 +417,8 @@ BallObject::updateByGameMode( const GameMode & mode )
 
     if ( type == GameMode::KickIn_ )
     {
-        if ( posCount() <= 1 )
+        if ( posCount() <= 1
+             && M_rpos.r2() > std::pow( 3.0, 2 ) )
         {
             M_pos.y = ( M_pos.y > 0.0
                         ? +ServerParam::i().pitchHalfWidth()
@@ -524,7 +526,7 @@ BallObject::updatePos( const Vector2D & pos,
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::WORLD,
                   __FILE__" (updatePos)"
-                  " pos(%.2f %.2f) count=%d",
+                  " pos(%.1f %.1f) count=%d",
                   pos.x, pos.y, pos_count );
 #endif
 

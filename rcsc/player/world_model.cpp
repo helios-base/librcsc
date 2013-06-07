@@ -2423,47 +2423,6 @@ WorldModel::localizeBall( const VisualSensor & see,
     }
 
     //////////////////////////////////////////////////////////////////
-    // set static values according to the current playmode
-
-    if ( gameMode().type() == GameMode::PlayOn
-         || gameMode().type() == GameMode::GoalKick_
-         || gameMode().type() == GameMode::PenaltyTaken_ )
-    {
-        // do nothing
-    }
-    else if ( gameMode().type() == GameMode::KickIn_ )
-    {
-        if ( pos.y > 0.0 ) pos.y = + ServerParam::i().pitchHalfWidth();
-        if ( pos.y < 0.0 ) pos.y = - ServerParam::i().pitchHalfWidth();
-
-        gvel.assign( 0.0, 0.0 );
-        vel_count = 0;
-    }
-    else if ( gameMode().type() == GameMode::GoalKick_ )
-    {
-        if ( pos.y > 0.0 ) pos.y = + ServerParam::i().pitchHalfWidth() - ServerParam::i().cornerKickMargin();
-        if ( pos.y < 0.0 ) pos.y = - ServerParam::i().pitchHalfWidth() + ServerParam::i().cornerKickMargin();
-
-        if ( pos.x > 0.0 ) pos.x = + ServerParam::i().pitchHalfLength() - ServerParam::i().cornerKickMargin();
-        if ( pos.x < 0.0 ) pos.x = - ServerParam::i().pitchHalfLength() + ServerParam::i().cornerKickMargin();
-
-        gvel.assign( 0.0, 0.0 );
-        vel_count = 0;
-    }
-    else if ( gameMode().type() == GameMode::KickOff_ )
-    {
-        pos.assign( 0.0, 0.0 );
-        gvel.assign( 0.0, 0.0 );
-        vel_count = 0;
-    }
-    else
-    {
-        gvel.assign( 0.0, 0.0 );
-        vel_count = 0;
-    }
-
-
-    //////////////////////////////////////////////////////////////////
     // calc global velocity using rpos diff (if ball is out of view cone and within vis_dist)
 
     if ( ! gvel.isValid() )
