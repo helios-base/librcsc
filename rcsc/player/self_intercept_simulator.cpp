@@ -572,7 +572,7 @@ SelfInterceptSimulator::getOneAdjustDash( const WorldModel & wm,
     {
 #ifdef DEBUG_PRINT_ONE_STEP
         dlog.addText( Logger::INTERCEPT,
-                      "__(predictOneDashAdjust) out of control area=%.3f"
+                      "__(getOneAdjustDash) out of control area=%.3f"
                       " ball_absY=%.3f forward_dist=%.3f back_dist=%.3f",
                       control_buf, ball_rel.absY(),
                       ball_rel.dist( forward_accel_rel ),
@@ -597,7 +597,7 @@ SelfInterceptSimulator::getOneAdjustDash( const WorldModel & wm,
                                           back_accel_rel.x );
 #ifdef DEBUG_PRINT_ONE_STEP
         dlog.addText( Logger::INTERCEPT,
-                      "__(predictOneDashAdjust) (1). dash power=%.1f",
+                      "__(getOneAdjustDash) (1). dash power=%.1f",
                       dash_power );
 #endif
     }
@@ -615,7 +615,7 @@ SelfInterceptSimulator::getOneAdjustDash( const WorldModel & wm,
             dash_power = forward_accel_rel.x / dash_rate;
 #ifdef DEBUG_PRINT_ONE_STEP
             dlog.addText( Logger::INTERCEPT,
-                          "__(predictOneDashAdjust) (2). Not Best. next_ball_dist=%.3f power=%.1f",
+                          "__(getOneAdjustDash) (2). Not Best. next_ball_dist=%.3f power=%.1f",
                           enable_ball_dist, dash_power );
 #endif
         }
@@ -633,7 +633,7 @@ SelfInterceptSimulator::getOneAdjustDash( const WorldModel & wm,
             dash_power = back_accel_rel.x / dash_rate;
 #ifdef DEBUG_PRINT_ONE_STEP
             dlog.addText( Logger::INTERCEPT,
-                          "__(predictOneDashAdjust) (3). Not Best next_ball_dist=%.3f power=%.1f",
+                          "__(getOneAdjustDash) (3). Not Best next_ball_dist=%.3f power=%.1f",
                           enable_ball_dist, dash_power );
 #endif
         }
@@ -649,7 +649,7 @@ SelfInterceptSimulator::getOneAdjustDash( const WorldModel & wm,
         dash_power = ball_rel.x / dash_rate;
 #ifdef DEBUG_PRINT_ONE_STEP
         dlog.addText( Logger::INTERCEPT,
-                      "__(predictOneDashAdjust) (4). Not Best. just adjust X. power=%.1f",
+                      "__(getOneAdjustDash) (4). Not Best. just adjust X. power=%.1f",
                       dash_power );
 #endif
     }
@@ -661,7 +661,7 @@ SelfInterceptSimulator::getOneAdjustDash( const WorldModel & wm,
     {
 #ifdef DEBUG_PRINT_ONE_STEP
         dlog.addText( Logger::INTERCEPT,
-                      "__(predictOneDashAdjust) XXX Failed" );
+                      "__(getOneAdjustDash) XXX Failed" );
 #endif
         return InterceptInfo();
     }
