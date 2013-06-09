@@ -1,3 +1,8 @@
+2013-06-09  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/intercept_table.cpp:
+	- 自分の最短インターセプトステップ数更新処理のバグを修正
+
 2013-06-07  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/ball_object.cpp:

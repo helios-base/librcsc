@@ -436,7 +436,6 @@ InterceptTable::predictSelf()
             if ( it->reachStep() < min_step )
             {
                 min_step = it->reachStep();
-                break;
             }
         }
         else if ( it->staminaType() == InterceptInfo::EXHAUST )
@@ -444,7 +443,6 @@ InterceptTable::predictSelf()
             if ( it->reachStep() < exhaust_min_step )
             {
                 exhaust_min_step = it->reachStep();
-                break;
             }
         }
     }
