@@ -1,3 +1,10 @@
+2013-06-11  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/action/basic_actions.cpp:
+	* rcsc/action/neck_scan_players.cpp:
+	- 首角度の範囲制限のバグを修正．[min_neck_angle,max_neck_angle]に
+	確実に収まるように範囲チェックを追加
+
 2013-06-09  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/intercept_table.cpp:

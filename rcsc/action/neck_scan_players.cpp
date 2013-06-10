@@ -141,10 +141,14 @@ Neck_ScanPlayers::get_best_angle( const PlayerAgent * agent,
     const double view_half_width = view_width * 0.5;
     const double neck_min = ( min_neck_angle == INVALID_ANGLE
                               ? SP.minNeckAngle()
-                              : std::max( SP.minNeckAngle(), min_neck_angle ) );
+                              : bound( SP.minNeckAngle(),
+                                       min_neck_angle,
+                                       SP.maxNeckAngle() ) );
     const double neck_max = ( max_neck_angle == INVALID_ANGLE
                               ? SP.maxNeckAngle()
-                              : std::min( SP.maxNeckAngle(), max_neck_angle ) );
+                              : bound( SP.minNeckAngle(),
+                                       max_neck_angle,
+                                       SP.maxNeckAngle() ) );
     const double neck_step = std::max( 1.0, ( neck_max - neck_min ) / 36.0 );
 
 

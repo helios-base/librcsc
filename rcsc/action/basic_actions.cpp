@@ -329,7 +329,7 @@ Neck_TurnToBall::execute( PlayerAgent * agent )
         return true;
     }
 
-    double angle_buf = std::max( 0.0, next_view_width * 0.5 - 10.0 ); //[200803] 15.0
+    double view_half = std::max( 0.0, next_view_width * 0.5 - 10.0 ); //[200803] 15.0
 
     const PlayerObject * opp = wm.getOpponentNearestToBall( 10 );
     const PlayerObject * mate = wm.getTeammateNearestToBall( 10 );
@@ -347,7 +347,7 @@ Neck_TurnToBall::execute( PlayerAgent * agent )
     {
         dlog.addText( Logger::ACTION,
                       __FILE__": (Neck_TurnToBall) ball is near." );
-        angle_buf = std::max( 0.0, next_view_width * 0.5 - 20.0 ); // 2008-07-11
+        view_half = std::max( 0.0, next_view_width * 0.5 - 20.0 ); // 2008-07-11
     }
 
     //
@@ -365,12 +365,17 @@ Neck_TurnToBall::execute( PlayerAgent * agent )
         if ( ball_dist > ServerParam::i().visibleDistance() - 0.3
              || wm.ball().seenPosCount() > 0 )
         {
-            double min_neck_angle = ball_rel_angle_next.degree() - angle_buf;
-            double max_neck_angle = ball_rel_angle_next.degree() + angle_buf;
+            double min_neck_angle = bound( ServerParam::i().minNeckAngle(),
+                                           ball_rel_angle_next.degree() - view_half,
+                                           ServerParam::i().maxNeckAngle() );
+
+            double max_neck_angle = bound( ServerParam::i().minNeckAngle(),
+                                           ball_rel_angle_next.degree() + view_half,
+                                           ServerParam::i().maxNeckAngle() );
+
             dlog.addText( Logger::ACTION,
-                          __FILE__": (Neck_TurnToBall) angle_buf=%.1f min_neck=%.1f max_neck=%.1f",
-                          angle_buf,
-                          min_neck_angle, max_neck_angle );
+                          __FILE__": (Neck_TurnToBall) view_half=%.1f min_neck=%.1f max_neck=%.1f",
+                          view_half, min_neck_angle, max_neck_angle );
             best_angle = Neck_ScanPlayers::get_best_angle( agent,
                                                            min_neck_angle,
                                                            max_neck_angle );
@@ -402,48 +407,43 @@ Neck_TurnToBall::execute( PlayerAgent * agent )
     // find the lowest accuracy angle
     //
 
-    AngleDeg left_rel_angle = ball_rel_angle_next - angle_buf;
-    AngleDeg right_rel_angle = ball_rel_angle_next + angle_buf;
+    double left_rel_angle = ball_rel_angle_next.degree() - view_half;
+    double right_rel_angle = ball_rel_angle_next.degree() + view_half;
 
     dlog.addText( Logger::ACTION,
-                  __FILE__": (Neck_TurnToBall) ball_rel=%.0f angle_buf=%.1f left_rel=%.0f right_rel=%.0f",
+                  __FILE__": (Neck_TurnToBall) ball_rel=%.0f view_half=%.0f left_rel=%.0f right_rel=%.0f",
                   ball_rel_angle_next.degree(),
-                  angle_buf,
-                  left_rel_angle.degree(), right_rel_angle.degree() );
+                  view_half, left_rel_angle, right_rel_angle );
 
-    if ( left_rel_angle.degree() < ServerParam::i().minNeckAngle() )
+    if ( left_rel_angle < ServerParam::i().minNeckAngle() )
     {
         dlog.addText( Logger::ACTION,
                       __FILE__": __ left_rel=%.0f < minNeck=%.0f",
-                      left_rel_angle.degree(),
-                      ServerParam::i().minNeckAngle() );
+                      left_rel_angle, ServerParam::i().minNeckAngle() );
         left_rel_angle = ServerParam::i().minNeckAngle();
     }
 
-    if ( left_rel_angle.degree() > ServerParam::i().maxNeckAngle() )
+    if ( left_rel_angle > ServerParam::i().maxNeckAngle() )
     {
         dlog.addText( Logger::ACTION,
                       __FILE__": __ left_rel=%.0f > maxNeck=%.0f",
-                      left_rel_angle.degree(),
-                      ServerParam::i().maxNeckAngle() );
+                      left_rel_angle, ServerParam::i().maxNeckAngle() );
         left_rel_angle = ServerParam::i().maxNeckAngle();
     }
 
-    if ( right_rel_angle.degree() < ServerParam::i().minNeckAngle() )
+    if ( right_rel_angle < ServerParam::i().minNeckAngle() )
     {
         dlog.addText( Logger::ACTION,
                       __FILE__": __ right_rel%.0f < minNeck=%.0f",
-                      right_rel_angle.degree(),
-                      ServerParam::i().minNeckAngle() );
+                      right_rel_angle, ServerParam::i().minNeckAngle() );
         right_rel_angle = ServerParam::i().minNeckAngle();
     }
 
-    if ( right_rel_angle.degree() > ServerParam::i().maxNeckAngle() )
+    if ( right_rel_angle > ServerParam::i().maxNeckAngle() )
     {
         dlog.addText( Logger::ACTION,
                       __FILE__": __ right_rel%.0f > maxNeck=%.0f",
-                      right_rel_angle.degree(),
-                      ServerParam::i().maxNeckAngle() );
+                      right_rel_angle, ServerParam::i().maxNeckAngle() );
         right_rel_angle = ServerParam::i().maxNeckAngle();
     }
 
@@ -460,8 +460,7 @@ Neck_TurnToBall::execute( PlayerAgent * agent )
     dlog.addText( Logger::ACTION,
                   __FILE__": (Neck_TurnToBall) angle_buf=%.0f  left_rel=%.0f right_rel=%.0f"
                   " left_sum=%d  right_sum=%d",
-                  angle_buf,
-                  left_rel_angle.degree(), right_rel_angle.degree(),
+                  view_half, left_rel_angle, right_rel_angle,
                   left_sum_count, right_sum_count );
 
 
