@@ -1,3 +1,9 @@
+2013-06-12  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* src/player/rcsc/action/neck_scan_field.cpp:
+	- ゴーストプレイヤが存在する場合はプレイヤを無視して全方位で首の向
+	きの候補を探すように変更
+
 2013-06-11  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/action/basic_actions.cpp:

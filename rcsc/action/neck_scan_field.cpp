@@ -104,20 +104,36 @@ Neck_ScanField::execute( PlayerAgent * agent )
     //
     // try to maximize player accuracy
     //
-    angle = Neck_ScanPlayers::get_best_angle( agent );
-
-    if ( angle != INVALID_ANGLE )
+    bool exist_ghost = false;
+    for ( AbstractPlayerObject::Cont::const_iterator p = wm.allPlayers().begin(),
+              end = wm.allPlayers().end();
+          p != end;
+          ++p )
     {
-        s_cached_target_angle = angle;
+        if ( (*p)->isGhost() )
+        {
+            exist_ghost = true;
+            break;
+        }
+    }
 
-        dlog.addText( Logger::ACTION,
-                      __FILE__": (execute) scan players" );
-        agent->debugClient().addMessage( "NeckScan:Pl" );
+    if ( ! exist_ghost )
+    {
+        angle = Neck_ScanPlayers::get_best_angle( agent );
 
-        agent->doTurnNeck( s_cached_target_angle
-                           - agent->effector().queuedNextSelfBody()
-                           - agent->world().self().neck() );
-        return true;
+        if ( angle != INVALID_ANGLE )
+        {
+            s_cached_target_angle = angle;
+
+            dlog.addText( Logger::ACTION,
+                          __FILE__": (execute) scan players" );
+            agent->debugClient().addMessage( "NeckScan:Pl" );
+
+            agent->doTurnNeck( s_cached_target_angle
+                               - agent->effector().queuedNextSelfBody()
+                               - agent->world().self().neck() );
+            return true;
+        }
     }
 
     //
