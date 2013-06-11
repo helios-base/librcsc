@@ -110,8 +110,12 @@ Neck_ScanField::execute( PlayerAgent * agent )
           p != end;
           ++p )
     {
-        if ( (*p)->isGhost() )
+        if ( (*p)->isGhost()
+             && (*p)->distFromSelf() < 30.0 )
         {
+            dlog.addText( Logger::ACTION,
+                          __FILE__": (execute) detect ghost player %c %d",
+                          side_char( (*p)->side() ), (*p)->unum() );
             exist_ghost = true;
             break;
         }
@@ -126,7 +130,7 @@ Neck_ScanField::execute( PlayerAgent * agent )
             s_cached_target_angle = angle;
 
             dlog.addText( Logger::ACTION,
-                          __FILE__": (execute) scan players" );
+                          __FILE__": (execute) scan players. target_angle=%.1f", angle );
             agent->debugClient().addMessage( "NeckScan:Pl" );
 
             agent->doTurnNeck( s_cached_target_angle
