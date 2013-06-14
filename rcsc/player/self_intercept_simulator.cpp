@@ -411,7 +411,7 @@ SelfInterceptSimulator::simulateOneDash( const WorldModel & wm,
 
     for ( size_t d = 0 ; d < dash_angle_divs; ++d )
     {
-        const double dir = SP.minDashAngle() + ( dash_angle_step * d );
+        const double dir = AngleDeg::normalize_angle( SP.minDashAngle() + ( dash_angle_step * d ) );
         const AngleDeg dash_angle = wm.self().body() + SP.discretizeDashAngle( dir );
         const double dash_rate = wm.self().dashRate() * SP.dashDirRate( dir );
         const Matrix2D rotate = Matrix2D::make_rotation( dash_angle );

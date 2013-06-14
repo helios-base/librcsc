@@ -49,6 +49,8 @@
 
 //#define DEBUG
 //#define DEBUG1
+// #define DEBUG_EVAL
+// #define DEBUG_PRINT_RESULTS
 
 namespace rcsc {
 
@@ -486,18 +488,21 @@ void
 Body_HoldBall2008::evaluateKeepPoints( const WorldModel & wm,
                                        std::vector< KeepPoint > & keep_points )
 {
+#ifdef DEBUG_EVAL
+    int count = 0;
+#endif
     const std::vector< KeepPoint >::iterator end = keep_points.end();
     for ( std::vector< KeepPoint >::iterator it = keep_points.begin();
           it != end;
           ++it )
     {
-#ifdef DEBUG
+#ifdef DEBUG_EVAL
         dlog.addText( Logger::ACTION,
-                      "evaluate (%.2f %.2f)",
-                      it->pos_.x, it->pos_.y );
+                      "Hold: %d: (evaluate) (%.2f %.2f)",
+                      ++count, it->pos_.x, it->pos_.y );
 #endif
         it->score_ = evaluateKeepPoint( wm, it->pos_ );
-        if ( it->score_ < DEFAULT_SCORE )
+        if ( it->score_ < DEFAULT_SCORE - 1.0e-5 )
         {
             it->score_ += it->pos_.dist( wm.ball().pos() );
         }
@@ -507,15 +512,22 @@ Body_HoldBall2008::evaluateKeepPoints( const WorldModel & wm,
         }
     }
 
-#ifdef DEBUG
+#ifdef DEBUG_EVAL
+    count = 0;
     for ( std::vector< KeepPoint >::iterator it = keep_points.begin();
           it != end;
           ++it )
     {
+        ++count;
+        char score[16];
+        snprintf( score, 16, "%d:%.3f", count, it->score_ );
         dlog.addText( Logger::ACTION,
-                      "(%.2f %.2f) score=%f",
-                      it->pos_.x, it->pos_.y,
-                      it->score_ );
+                      "Hold: %d: (evaluate) (%.2f %.2f) score=%f",
+                      it->pos_.x, it->pos_.y, it->score_ );
+        dlog.addRect( Logger::ACTION,
+                      it->pos_.x - 0.03, it->pos_.y - 0.03, 0.06, 0.06, "#0F0" );
+        dlog.addMessage( Logger::ACTION,
+                         it->pos_, score );
     }
 #endif
 }
@@ -563,7 +575,7 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
 
         if ( opp_dist < control_area * 0.5 )
         {
-#ifdef DEBUG
+#ifdef DEBUG_EVAL
             dlog.addText( Logger::ACTION,
                           "____ opp %d(%.1f %.1f) can control(1).",
                           (*o)->unum(),
@@ -574,7 +586,7 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
         }
         else if ( opp_dist < control_area + 0.1 )
         {
-#ifdef DEBUG
+#ifdef DEBUG_EVAL
             dlog.addText( Logger::ACTION,
                           "____ opp %d(%.1f %.1f) can control(2).",
                           (*o)->unum(),
@@ -585,7 +597,7 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
         }
         else if ( opp_dist < SP.tackleDist() - 0.2 )
         {
-#ifdef DEBUG
+#ifdef DEBUG_EVAL
             dlog.addText( Logger::ACTION,
                           "____ opp %d(%.1f %.1f) within tackle.",
                           (*o)->unum(),
@@ -613,32 +625,28 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
         //
         // check opponent body line
         //
+
+        const Vector2D player_2_pos = ( keep_point - opp_next ).rotatedVector( -opp_body );
+
+        if ( player_2_pos.absY() < control_area )
         {
-            Line2D opp_line( opp_next, opp_body );
-            double line_dist = opp_line.dist( keep_point );
-            if ( line_dist < control_area )
-            {
-#ifdef DEBUG
-                dlog.addText( Logger::ACTION,
-                              "____ opp %d(%.1f %.1f) on body line. body=%.1f.",
-                              (*o)->unum(),
-                              (*o)->pos().x, (*o)->pos().y,
-                              opp_body.degree() );
+#ifdef DEBUG_EVAL
+            dlog.addText( Logger::ACTION,
+                          "____ opp %d(%.1f %.1f) on body line. body=%.1f.",
+                          (*o)->unum(),
+                          (*o)->pos().x, (*o)->pos().y,
+                          opp_body.degree() );
 
 #endif
-                if ( line_dist < control_area * 0.8 )
-                {
-                    score -= 20.0;
-                }
-                else
-                {
-                    score -= 10.0;
-                }
+            if ( player_2_pos.absY() < control_area * 0.8 )
+            {
+                score -= 20.0;
+            }
+            else
+            {
+                score -= 10.0;
             }
         }
-
-        Vector2D player_2_pos = keep_point - opp_next;
-        player_2_pos.rotate( - opp_body );
 
         //
         // check tackle probability
@@ -650,13 +658,13 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
             if ( tackle_dist > 1.0e-5 )
             {
                 double tackle_prob = ( std::pow( player_2_pos.absX() / tackle_dist,
-                                                 SP.tackleExponent() )
+                                                 SP.foulExponent() )
                                        + std::pow( player_2_pos.absY() / SP.tackleWidth(),
-                                                   SP.tackleExponent() ) );
+                                                   SP.foulExponent() ) );
                 if ( tackle_prob < 1.0
                      && 1.0 - tackle_prob > 0.7 ) // success probability
                 {
-#ifdef DEBUG
+#ifdef DEBUG_EVAL
                     dlog.addText( Logger::ACTION,
                                   "____ tackle_prob=%.3f %d(%.1f %.1f) body=%.1f",
                                   1.0 - tackle_prob,
@@ -672,41 +680,49 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
         //
         // check kick or tackle possibility after dash
         //
+        const double dash_angle_step = std::max( 15.0, SP.dashAngleStep() );
+        const int dash_angle_divs
+            = static_cast< int >( std::floor( ( SP.maxDashAngle() - SP.minDashAngle() )
+                                              / dash_angle_step ) );
+
+        double next_kick_penalty = 0.0;
+        double next_tackle_penalty = 0.0;
+        for ( int d = 0; d < dash_angle_divs; ++d )
         {
+            const double dir = AngleDeg::normalize_angle( SP.minDashAngle() + ( dash_angle_step * d ) );
+            const AngleDeg dash_angle = SP.discretizeDashAngle( dir );
             const double max_accel = ( SP.maxDashPower()
                                        * player_type->dashPowerRate()
-                                       * player_type->effortMax() );
+                                       * player_type->effortMax()
+                                       * SP.dashDirRate( dir ) );
+            const Vector2D max_move = Vector2D::from_polar( max_accel, dash_angle );
 
-            if ( player_2_pos.absY() < control_area
-                 && player_2_pos.x > 0.0
-                 && ( player_2_pos.absX() < max_accel
-                      || ( player_2_pos - Vector2D( max_accel, 0.0 ) ).r() < control_area + 0.1 )
-                 )
+            const Vector2D new_player_2_pos = player_2_pos - max_move;
+
+            if ( new_player_2_pos.r2() < std::pow( control_area + 0.1, 2 ) )
             {
-                // next kickable
-#ifdef DEBUG
+#ifdef DEBUG_EVAL
                 dlog.addText( Logger::ACTION,
-                              "____ next kickable %d(%.1f %.1f) opp_body=%.1f max_accel=%.3f",
-                              (*o)->unum(),
-                              (*o)->pos().x, (*o)->pos().y,
-                              opp_body.degree(),
-                              max_accel );
+                              "____ next kickable %d opponent_body=%.1f dash_dir=%.0f max_accel=%.3f",
+                              (*o)->unum(), opp_body.degree(), dir, max_accel );
 #endif
-                score -= 20.0;
+                next_kick_penalty = -20.0;
             }
-            else if ( player_2_pos.absY() < SP.tackleWidth() * 0.7
-                      && player_2_pos.x > 0.0
-                      && player_2_pos.x - max_accel < SP.tackleDist() - 0.25 )
+            else if ( new_player_2_pos.absY() < SP.tackleWidth() + 0.1
+                      && new_player_2_pos.x > 0.0
+                      && new_player_2_pos.x < SP.tackleDist() + 0.1 )
             {
-#ifdef DEBUG
+#ifdef DEBUG_EVAL
                 dlog.addText( Logger::ACTION,
-                              "____ next tackle %d(%.1f %.1f)",
-                              (*o)->unum(),
-                              (*o)->pos().x, (*o)->pos().y );
+                              "____ next tackle %d opponent_body=%.1f dash_dir=%.0f max_accel=%.3f",
+                              (*o)->unum(), opp_body.degree(), dir, max_accel );
 #endif
-                score -= 10.0;
+                next_tackle_penalty = -10.0;
             }
         }
+
+        score += next_kick_penalty;
+        score += next_tackle_penalty;
     }
 
 #if 1
@@ -718,9 +734,9 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
         double rate = 1.0 - 0.5 * std::max( 0.0, ( next_ball_dist - threshold ) / 0.4 );
         score *= rate;
 
-#ifdef DEBUG
+#ifdef DEBUG_EVAL
         dlog.addText( Logger::ACTION,
-                      "__ applied keep distance threshold. ball_dist=%.3f thr=%.3f rate=%f"
+                      "__ applied keep distance threshold. ball_dist=%.3f thr=%.3f rate=%f",
                       next_ball_dist, threshold, rate );
 #endif
     }
@@ -778,16 +794,16 @@ Body_HoldBall2008::keepFront( PlayerAgent * agent )
 
     double score = evaluateKeepPoint( wm, front_pos );
 
-    if ( score < DEFAULT_SCORE )
+    if ( score < DEFAULT_SCORE - 1.0e-5 )
     {
         dlog.addText( Logger::ACTION,
-                      __FILE__": keepFront() failed. front point (%.2f %.2f) is not safety.",
+                      __FILE__":(keepFront) failed. front point (%.2f %.2f) is not safety.",
                       front_pos.x, front_pos.y );
         return false;
     }
 
     dlog.addText( Logger::ACTION,
-                  __FILE__": keepFront() ok. front point (%.2f %.2f) dist=%.2f score=%f",
+                  __FILE__":(keepFront) ok. front point (%.2f %.2f) dist=%.2f score=%f",
                   front_pos.x, front_pos.y,
                   front_keep_dist,
                   score );
@@ -887,7 +903,7 @@ Body_HoldBall2008::keepReverse( PlayerAgent * agent )
         }
 
         double score = evaluateKeepPoint( wm, keep_pos );
-        if ( score >= DEFAULT_SCORE )
+        if ( score > DEFAULT_SCORE + 1.0e-5 )
         {
             dlog.addText( Logger::ACTION,
                           __FILE__": keepReverse() kick_target=(%.1f %.1f) reverse_point=(%.2f %.2f) angle=%.0f dist=%.2f score=%f",
@@ -980,7 +996,7 @@ Body_HoldBall2008::turnToPoint( PlayerAgent * agent )
     }
 
     double score = evaluateKeepPoint( wm, ball_next );
-    if ( score < DEFAULT_SCORE )
+    if ( score < DEFAULT_SCORE - 1.0e-5 )
     {
         dlog.addText( Logger::ACTION,
                       __FILE__": turnToPoint. next_ball_pos(%.1f %.1f) is not safety",
