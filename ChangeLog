@@ -1,3 +1,9 @@
+2013-06-15  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/intercept_table.cpp:
+	* rcsc/player/self_intercept_simulator.cpp:
+	- recoveryが減少している状態でインターセプト予測ができていなかったバグを修正
+
 2013-06-14  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/action/body_hold_ball2008.cpp:

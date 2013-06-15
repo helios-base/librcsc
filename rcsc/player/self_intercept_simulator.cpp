@@ -677,7 +677,7 @@ SelfInterceptSimulator::getOneAdjustDash( const WorldModel & wm,
     StaminaModel stamina_model = wm.self().staminaModel();
     stamina_model.simulateDash( wm.self().playerType(), dash_power );
 
-    if ( stamina_model.stamina() < SP.recoverDecThrValue()
+    if ( stamina_model.recovery() < wm.self().staminaModel().recovery() - 1.0e-5
          && ! stamina_model.capacityIsEmpty() )
     {
         stamina_type = InterceptInfo::EXHAUST;
@@ -1076,7 +1076,7 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
          || self_pos.r2() > ball_rel.r2()
          || self_pos.dist2( ball_rel ) < std::pow( control_area - control_buf, 2 ) )
     {
-        InterceptInfo::StaminaType stamina_type = ( stamina_model.recovery() < SP.recoverInit()
+        InterceptInfo::StaminaType stamina_type = ( stamina_model.recovery() < wm.self().staminaModel().recovery() - 1.0e-5
                                                     && ! stamina_model.capacityIsEmpty()
                                                     ? InterceptInfo::EXHAUST
                                                     : InterceptInfo::NORMAL );
@@ -1337,7 +1337,7 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
             dlog.addText( Logger::INTERCEPT,
                           ">>> dash %s", ostr.str().c_str() );
 #endif
-            InterceptInfo::StaminaType stamina_type = ( stamina_model.recovery() < SP.recoverInit()
+            InterceptInfo::StaminaType stamina_type = ( stamina_model.recovery() < wm.self().staminaModel().recovery() - 1.0e-5
                                                         && ! stamina_model.capacityIsEmpty()
                                                         ? InterceptInfo::EXHAUST
                                                         : InterceptInfo::NORMAL );

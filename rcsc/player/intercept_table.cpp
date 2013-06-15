@@ -389,6 +389,7 @@ InterceptTable::predictSelf()
         dlog.addText( Logger::INTERCEPT,
                       "Intercept Self. already kickable. no estimation loop!" );
         M_self_reach_step = 0;
+        M_self_exhaust_reach_step = 0;
         return;
     }
 
