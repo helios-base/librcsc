@@ -394,6 +394,10 @@ WorldModel::WorldModel()
       M_kickable_teammate( static_cast< const PlayerObject * >( 0 ) ),
       M_kickable_opponent( static_cast< const PlayerObject * >( 0 ) ),
       M_maybe_kickable_opponent( static_cast< const PlayerObject * >( 0 ) ),
+      M_previous_kickable_teammate( false ),
+      M_previous_kickable_teammate_unum( Unum_Unknown ),
+      M_previous_kickable_opponent( false ),
+      M_previous_kickable_opponent_unum( Unum_Unknown ),
       M_last_kicker_side( NEUTRAL ),
       M_last_kicker_unum( Unum_Unknown ),
       M_view_area_cont( MAX_RECORD, ViewArea() )
@@ -841,6 +845,22 @@ WorldModel::update( const ActionEffector & act,
                       M_ball.vel().x, M_ball.vel().y );
     }
 #endif
+
+    M_previous_kickable_teammate = false;
+    M_previous_kickable_teammate = Unum_Unknown;
+    if ( M_kickable_teammate )
+    {
+        M_previous_kickable_teammate = true;
+        M_previous_kickable_teammate_unum = M_kickable_teammate->unum();
+    }
+
+    M_previous_kickable_opponent = false;
+    M_previous_kickable_opponent_unum = Unum_Unknown;
+    if ( M_kickable_opponent )
+    {
+        M_previous_kickable_opponent = true;
+        M_previous_kickable_opponent_unum = M_kickable_opponent->unum();
+    }
 
     M_kickable_teammate = static_cast< const PlayerObject * >( 0 );
     M_kickable_opponent = static_cast< const PlayerObject * >( 0 );
@@ -4962,7 +4982,7 @@ WorldModel::updateLastKicker()
         dlog.addText( Logger::WORLD,
                       __FILE__" (updateLastKicker) ball vel changed." );
         dlog.addText( Logger::WORLD,
-                      __FILE__" (updateLastKicker) curSpeed=%.3f prevSpeed=%.3f angleDiff=%.1f",
+                      __FILE__" (updateLastKicker) speed=%.3f prev_seed=%.3f angle_diff=%.1f",
                       cur_speed, prev_speed, angle_diff );
 #endif
     }
@@ -5065,6 +5085,45 @@ WorldModel::updateLastKicker()
         }
 
         return;
+    }
+
+    if ( ball_vel_changed )
+    {
+        if ( M_previous_kickable_teammate
+             && ! M_previous_kickable_opponent )
+        {
+            M_last_kicker_side = ourSide();
+            M_last_kicker_unum = M_previous_kickable_teammate_unum;
+#ifdef DEBUG_PRINT_LAST_KICKER
+            dlog.addText( Logger::WORLD,
+                          __FILE__" (updateLastKicker) set by prev teammate kicker %d",
+                          M_previous_kickable_teammate_unum );
+#endif
+            return;
+        }
+        else if ( ! M_previous_kickable_teammate
+                  && M_previous_kickable_opponent )
+        {
+            M_last_kicker_side = ourSide();
+            M_last_kicker_unum = M_previous_kickable_opponent_unum;
+#ifdef DEBUG_PRINT_LAST_KICKER
+            dlog.addText( Logger::WORLD,
+                          __FILE__" (updateLastKicker) set by prev opponent kicker %d",
+                          M_previous_kickable_opponent_unum );
+#endif
+            return;
+        }
+        else if ( M_previous_kickable_teammate
+                  && M_previous_kickable_opponent )
+        {
+            M_last_kicker_side = NEUTRAL;
+            M_last_kicker_unum = Unum_Unknown;
+#ifdef DEBUG_PRINT_LAST_KICKER
+            dlog.addText( Logger::WORLD,
+                          __FILE__" (updateLastKicker) both side kickable in previous cycle. NEUTRAL" );
+#endif
+            return;
+        }
     }
 
     //

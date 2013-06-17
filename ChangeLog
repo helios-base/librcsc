@@ -1,6 +1,12 @@
 2013-06-18  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/world_model.cpp:
+	* rcsc/player/world_model.h:
+	- キッカー判定の改善．現在サイクルでキック行動を観測できていないが
+	ボール速度の変化が観測できた場合，前サイクルでキッカブル状態のプレ
+	イヤを観測できていればその情報に基づいてキッカーを推定するように修正
+
+	* rcsc/player/world_model.cpp:
 	- オフサイドラインの更新で次にボールトラップされると予測される位置
 	を用いるように変更
 

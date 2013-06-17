@@ -158,6 +158,11 @@ private:
     const PlayerObject * M_kickable_opponent; //!< kickable opponent
     const PlayerObject * M_maybe_kickable_opponent; //!< kickable opponent
 
+    bool M_previous_kickable_teammate; //! flag for kickable teammate in previous cycle
+    int M_previous_kickable_teammate_unum; //! uniform number kickable teammate in previous cycle
+    bool M_previous_kickable_opponent; //! flag for kickable opponents in previous cycle
+    int M_previous_kickable_opponent_unum; //! uniform number kickable opponent in previous cycle
+
     SideID M_last_kicker_side; //!< estimated last ball kicker player's side
     int M_last_kicker_unum; //!< estimated last ball kicker player's uniform number
 
