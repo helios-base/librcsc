@@ -1,3 +1,9 @@
+2013-06-18  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/world_model.cpp:
+	- オフサイドラインの更新で次にボールトラップされると予測される位置
+	を用いるように変更
+
 2013-06-15  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/intercept_table.cpp:

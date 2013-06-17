@@ -2120,7 +2120,6 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
     updateOurDefenseLine();
     updateTheirOffenseLine();
     updateTheirDefenseLine();
-    updateOffsideLine();
 
     updatePlayerLines();
 
@@ -2128,6 +2127,7 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
 
     updateInterceptTable();
 
+    updateOffsideLine();
 
     M_self.updateKickableState( M_ball,
                                 M_intercept_table->selfReachCycle(),
@@ -4358,6 +4358,19 @@ WorldModel::updateOffsideLine()
 
     double new_line = M_their_defense_line_x;
     int count = M_their_defense_line_count;
+
+#if 1
+    // add 2013-06-18
+    Vector2D ball_pos = ball().inertiaPoint( std::min( interceptTable()->selfReachStep(),
+                                                       std::min( interceptTable()->teammateReachStep(),
+                                                                 interceptTable()->opponentReachStep() ) ) );
+    if ( ball_pos.x > new_line )
+    {
+        new_line = ball_pos.x;
+        count = ball().posCount();
+    }
+
+#endif
 
     if ( M_audio_memory->offsideLineTime() == this->time()
          && ! M_audio_memory->offsideLine().empty() )
