@@ -48,8 +48,8 @@
 #include <rcsc/geom/line_2d.h>
 
 // #define DEBUG_CREATE
-// #define DEBUG_EVAL
-// #define DEBUG_PRINT_RESULTS
+#define DEBUG_EVAL
+#define DEBUG_PRINT_RESULTS
 
 namespace rcsc {
 
@@ -515,9 +515,9 @@ Body_HoldBall2008::evaluateKeepPoints( const WorldModel & wm,
     Vector2D self_next = wm.self().pos() + wm.self().vel();
     double k = wm.self().playerType().kickableArea();
     dlog.addCircle( Logger::HOLD,
-                    self_next.x - 0.3, self_next.y - 0.3, 0.6, 0.6, "#F00", true );
+                    self_next, 0.3, "#F00", true );
     dlog.addCircle( Logger::HOLD,
-                    self_next.x - k*0.5, self_next.y - k*0.5, k, k, "#F00" );
+                    self_next, k, "#F00" );
 
     count = 0;
     for ( std::vector< KeepPoint >::iterator it = keep_points.begin();
