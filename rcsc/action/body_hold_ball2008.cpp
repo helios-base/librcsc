@@ -115,7 +115,7 @@ Body_HoldBall2008::execute( PlayerAgent * agent )
     }
 
     dlog.addText( Logger::HOLD,
-                  __FILE__": execute() only stop the ball" );
+                  __FILE__":(execute) only stop the ball" );
     return Body_StopBall().execute( agent );
 }
 
@@ -133,7 +133,7 @@ Body_HoldBall2008::avoidOpponent( PlayerAgent * agent )
     if ( ! point.isValid() )
     {
         dlog.addText( Logger::HOLD,
-                      __FILE__": avoidOpponent() no candidate point" );
+                      __FILE__":(avoidOpponent) no candidate point" );
         return false;
     }
 
@@ -145,7 +145,7 @@ Body_HoldBall2008::avoidOpponent( PlayerAgent * agent )
     agent->debugClient().addCircle( point, 0.05 );
 
     dlog.addText( Logger::HOLD,
-                  __FILE__": avoidOpponent() pos=(%.2f %.2f) accel=(%.2f %.2f)%f",
+                  __FILE__":(avoidOpponent) pos=(%.2f %.2f) accel=(%.2f %.2f)%f",
                   point.x, point.y,
                   kick_accel.x, kick_accel.y,
                   kick_accel_r);
@@ -512,6 +512,13 @@ Body_HoldBall2008::evaluateKeepPoints( const WorldModel & wm,
     }
 
 #ifdef DEBUG_EVAL
+    Vector2D self_next = wm.self().pos() + wm.self().vel();
+    double k = wm.self().playerType().kickableArea();
+    dlog.addCircle( Logger::HOLD,
+                    self_next.x - 0.3, self_next.y - 0.3, 0.6, 0.6, "#F00", true );
+    dlog.addCircle( Logger::HOLD,
+                    self_next.x - k*0.5, self_next.y - k*0.5, k, k, "#F00" );
+
     count = 0;
     for ( std::vector< KeepPoint >::iterator it = keep_points.begin();
           it != end;
@@ -524,7 +531,7 @@ Body_HoldBall2008::evaluateKeepPoints( const WorldModel & wm,
                       "Hold: %d: (evaluate) (%.2f %.2f) score=%f",
                       it->pos_.x, it->pos_.y, it->score_ );
         dlog.addRect( Logger::HOLD,
-                      it->pos_.x - 0.03, it->pos_.y - 0.03, 0.06, 0.06, "#0F0" );
+                      it->pos_.x - 0.02, it->pos_.y - 0.02, 0.04, 0.04, "#0F0" );
         dlog.addMessage( Logger::HOLD,
                          it->pos_, score );
     }
@@ -779,7 +786,7 @@ Body_HoldBall2008::keepFront( PlayerAgent * agent )
          || front_pos.absY() > max_pitch_y )
     {
         dlog.addText( Logger::HOLD,
-                      __FILE__": keepFront() failed. out of pitch. point=(%.2f %.2f)",
+                      __FILE__":(keepFront) failed. out of pitch. point=(%.2f %.2f)",
                       front_pos.x, front_pos.y );
         return false;
     }
@@ -792,7 +799,7 @@ Body_HoldBall2008::keepFront( PlayerAgent * agent )
     if ( kick_power > SP.maxPower() )
     {
         dlog.addText( Logger::HOLD,
-                      __FILE__": keepFront() failed. cannot kick to front point (%.2f %.2f) by 1 step",
+                      __FILE__":(keepFront) failed. cannot kick to front point (%.2f %.2f) by 1 step",
                       front_pos.x, front_pos.y );
         return false;
     }
@@ -911,7 +918,7 @@ Body_HoldBall2008::keepReverse( PlayerAgent * agent )
         if ( score > DEFAULT_SCORE + 1.0e-5 )
         {
             dlog.addText( Logger::HOLD,
-                          __FILE__": keepReverse() kick_target=(%.1f %.1f) reverse_point=(%.2f %.2f) angle=%.0f dist=%.2f score=%f",
+                          __FILE__":(keepReverse) kick_target=(%.1f %.1f) reverse_point=(%.2f %.2f) angle=%.0f dist=%.2f score=%f",
                           M_kick_target_point.x, M_kick_target_point.y,
                           keep_pos.x, keep_pos.y,
                           keep_angle.degree(), keep_dist,
@@ -926,7 +933,7 @@ Body_HoldBall2008::keepReverse( PlayerAgent * agent )
     }
 
     dlog.addText( Logger::HOLD,
-                  __FILE__": keepReverse() failed" );
+                  __FILE__":(keepReverse) failed" );
 
     return false;
 }
@@ -954,7 +961,7 @@ Body_HoldBall2008::turnToPoint( PlayerAgent * agent )
          || ball_next.absY() > max_pitch_y )
     {
         dlog.addText( Logger::HOLD,
-                      __FILE__": turnToPoint() failed. out of pitch. ball_next=(%.2f %.2f)",
+                      __FILE__":(turnToPoint) failed. out of pitch. ball_next=(%.2f %.2f)",
                       ball_next.x, ball_next.y );
         return false;
     }
@@ -969,7 +976,7 @@ Body_HoldBall2008::turnToPoint( PlayerAgent * agent )
                             - 0.15 ) )
     {
         dlog.addText( Logger::HOLD,
-                      __FILE__": turnToPoint. no kickable at next cycle. ball_dist=%.3f",
+                      __FILE__":(turnToPoint) no kickable at next cycle. ball_dist=%.3f",
                       next_ball_dist );
         return false;
     }
@@ -985,7 +992,7 @@ Body_HoldBall2008::turnToPoint( PlayerAgent * agent )
         face_point = M_turn_target_point;
 
         dlog.addText( Logger::HOLD,
-                      __FILE__": turnToPoint. face target=(%.1f, %.1f)",
+                      __FILE__":(turnToPoint) face target=(%.1f, %.1f)",
                       face_point.x, face_point.y );
     }
 
@@ -995,7 +1002,7 @@ Body_HoldBall2008::turnToPoint( PlayerAgent * agent )
     if ( ( wm.self().body() - target_angle ).abs() < 5.0 )
     {
         dlog.addText( Logger::HOLD,
-                      __FILE__": turnToPoint. already face to (%.1f %.1f).",
+                      __FILE__":(turnToPoint) already face to (%.1f %.1f).",
                       face_point.x, face_point.y );
         return false;
     }
@@ -1004,13 +1011,13 @@ Body_HoldBall2008::turnToPoint( PlayerAgent * agent )
     if ( score < DEFAULT_SCORE - 1.0e-5 )
     {
         dlog.addText( Logger::HOLD,
-                      __FILE__": turnToPoint. next_ball_pos(%.1f %.1f) is not safety",
+                      __FILE__":(turnToPoint) next_ball_pos(%.1f %.1f) is not safety",
                       ball_next.x, ball_next.y );
         return false;
     }
 
     dlog.addText( Logger::HOLD,
-                  __FILE__": turnToPoint. next_ball_dist=%.2f turn to (%.1f, %.1f) score=%f",
+                  __FILE__":(turnToPoint) next_ball_dist=%.2f turn to (%.1f, %.1f) score=%f",
                   next_ball_dist,
                   face_point.x, face_point.y,
                   score );
