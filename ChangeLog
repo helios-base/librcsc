@@ -3,6 +3,7 @@
 	* rcsc/action/body_hold_ball2008.cpp:
 	- ホールドボールの評価関数を修正．敵がキッカブルになる状態に対して
 	は大きめのペナルティを与えるように変更
+	- ログレベルをHOLDへ変更．デバッグ用マクロの整理
 
 2013-06-18  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 

@@ -47,8 +47,7 @@
 #include <rcsc/geom/rect_2d.h>
 #include <rcsc/geom/line_2d.h>
 
-//#define DEBUG
-//#define DEBUG1
+// #define DEBUG_CREATE
 // #define DEBUG_EVAL
 // #define DEBUG_PRINT_RESULTS
 
@@ -56,7 +55,7 @@ namespace rcsc {
 
 namespace {
 
-struct KeepPointCmp {
+struct KeepPointSorter {
     bool operator()( const Body_HoldBall2008::KeepPoint & lhs,
                      const Body_HoldBall2008::KeepPoint & rhs ) const
       {
@@ -115,7 +114,7 @@ Body_HoldBall2008::execute( PlayerAgent * agent )
         return true;
     }
 
-    dlog.addText( Logger::ACTION,
+    dlog.addText( Logger::HOLD,
                   __FILE__": execute() only stop the ball" );
     return Body_StopBall().execute( agent );
 }
@@ -133,7 +132,7 @@ Body_HoldBall2008::avoidOpponent( PlayerAgent * agent )
 
     if ( ! point.isValid() )
     {
-        dlog.addText( Logger::ACTION,
+        dlog.addText( Logger::HOLD,
                       __FILE__": avoidOpponent() no candidate point" );
         return false;
     }
@@ -145,7 +144,7 @@ Body_HoldBall2008::avoidOpponent( PlayerAgent * agent )
     agent->debugClient().addMessage( "HoldAvoidOpp" );
     agent->debugClient().addCircle( point, 0.05 );
 
-    dlog.addText( Logger::ACTION,
+    dlog.addText( Logger::HOLD,
                   __FILE__": avoidOpponent() pos=(%.2f %.2f) accel=(%.2f %.2f)%f",
                   point.x, point.y,
                   kick_accel.x, kick_accel.y,
@@ -178,7 +177,7 @@ Body_HoldBall2008::searchKeepPoint( const WorldModel & wm )
         {
             s_best_keep_point = *std::max_element( s_keep_points.begin(),
                                                    s_keep_points.end(),
-                                                   KeepPointCmp() );
+                                                   KeepPointSorter() );
         }
     }
 
@@ -218,8 +217,8 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
     candidates.clear();
     candidates.reserve( dir_divs * 2 );
 
-#ifdef DEBUG
-    dlog.addText( Logger::ACTION,
+#ifdef DEBUG_CREATE
+    dlog.addText( Logger::HOLD,
                   __FILE__": createCandidatePoints() dir_divs=%d",
                   dir_divs );
 #endif
@@ -263,8 +262,8 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
                 // can stop the ball by 1 step kick
                 if ( ball_move.r() * SP.ballDecay() < SP.maxPower() * near_krate )
                 {
-#ifdef DEBUG
-                    dlog.addText( Logger::ACTION,
+#ifdef DEBUG_CREATE
+                    dlog.addText( Logger::HOLD,
                                   "__add near point (%.2f %.2f) angle=%.0f dist=%.2f",
                                   near_pos.x, near_pos.y,
                                   d, near_dist );
@@ -273,10 +272,10 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
                                                      near_krate,
                                                      DEFAULT_SCORE ) );
                 }
-#ifdef DEBUG1
+#ifdef DEBUG_CREATE
                 else
                 {
-                    dlog.addText( Logger::ACTION,
+                    dlog.addText( Logger::HOLD,
                                   "__cancel near point (%.2f %.2f) angle=%.0f dist=%.2f"
                                   " cannot stop ball"
                                   " ball_move=(%.3f %.3f)%.3f krate=%f",
@@ -287,10 +286,10 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
                 }
 #endif
             }
-#ifdef DEBUG1
+#ifdef DEBUG_CREATE
             else
             {
-                dlog.addText( Logger::ACTION,
+                dlog.addText( Logger::HOLD,
                               "__cancel near point (%.2f %.2f) angle=%.0f dist=%.2f"
                               " cannot kick"
                               " required_accel=(%.3f %.3f)%.3f cur_krate=%f",
@@ -333,8 +332,8 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
                     if ( move_dist * SP.ballDecay()
                          < SP.maxPower() * mid_krate )
                     {
-#ifdef DEBUG
-                        dlog.addText( Logger::ACTION,
+#ifdef DEBUG_CREATE
+                        dlog.addText( Logger::HOLD,
                                       "__add mid point (%.2f %.2f) angle=%.0f dist=%.2f",
                                       mid_pos.x, mid_pos.y,
                                       d, mid_dist );
@@ -343,10 +342,10 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
                                                          mid_krate,
                                                          DEFAULT_SCORE ) );
                     }
-#ifdef DEBUG1
+#ifdef DEBUG_CREATE
                     else
                     {
-                        dlog.addText( Logger::ACTION,
+                        dlog.addText( Logger::HOLD,
                                       "__cancel mid point (%.2f %.2f) angle=%.0f dist=%.2f"
                                       " cannot stop ball"
                                       " ball_move=(%.3f %.3f)%.3f krate=%f",
@@ -357,10 +356,10 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
                     }
 #endif
                 }
-#ifdef DEBUG1
+#ifdef DEBUG_CREATE
                 else
                 {
-                    dlog.addText( Logger::ACTION,
+                    dlog.addText( Logger::HOLD,
                                   "__cancel mid point (%.2f %.2f) angle=%.0f dist=%.2f"
                                   " big noise"
                                   " my=%.3f ball=%.3f kick=%.3f. total=%f > kickable_buf=%f",
@@ -372,10 +371,10 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
                 }
 #endif
             }
-#ifdef DEBUG1
+#ifdef DEBUG_CREATE
             else
             {
-                dlog.addText( Logger::ACTION,
+                dlog.addText( Logger::HOLD,
                               "__cancel mid point (%.2f %.2f) angle=%.0f dist=%.2f"
                               " cannot kick"
                               " required_accel=(%.3f %.3f)%.3f cur_krate=%f",
@@ -418,8 +417,8 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
                     if ( move_dist * SP.ballDecay()
                          < SP.maxPower() * far_krate )
                     {
-#ifdef DEBUG
-                        dlog.addText( Logger::ACTION,
+#ifdef DEBUG_CREATE
+                        dlog.addText( Logger::HOLD,
                                       "__add far point (%.2f %.2f) angle=%.0f dist=%.2f",
                                       far_pos.x, far_pos.y,
                                       d, far_dist );
@@ -428,10 +427,10 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
                                                          far_krate,
                                                          DEFAULT_SCORE ) );
                     }
-#ifdef DEBUG1
+#ifdef DEBUG_CREATE
                     else
                     {
-                        dlog.addText( Logger::ACTION,
+                        dlog.addText( Logger::HOLD,
                                   "__cancel far point (%.2f %.2f) angle=%.0f dist=%.2f"
                                   " cannot stop ball"
                                   " ball_move=(%.3f %.3f)%.3f krate=%f",
@@ -442,10 +441,10 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
                     }
 #endif
                 }
-#ifdef DEBUG1
+#ifdef DEBUG_CREATE
                 else
                 {
-                    dlog.addText( Logger::ACTION,
+                    dlog.addText( Logger::HOLD,
                                   "__cancel far point (%.2f %.2f) angle=%.0f dist=%.2f"
                                   " big noise"
                                   " my=%.3f ball=%.3f kick=%.3f. total=%f > kickable_buf=%f",
@@ -457,10 +456,10 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
                 }
 #endif
             }
-#ifdef DEBUG1
+#ifdef DEBUG_CREATE
             else
             {
-                dlog.addText( Logger::ACTION,
+                dlog.addText( Logger::HOLD,
                               "__cancel far point (%.2f %.2f) angle=%.0f dist=%.2f"
                               " cannot kick"
                               " required_accel=(%.3f %.3f)%.3f cur_krate=%f",
@@ -475,7 +474,7 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
         }
     }
 
-    dlog.addText( Logger::ACTION,
+    dlog.addText( Logger::HOLD,
                   __FILE__": createCandidatePoints() size=%d",
                   (int)candidates.size() );
 }
@@ -497,7 +496,7 @@ Body_HoldBall2008::evaluateKeepPoints( const WorldModel & wm,
           ++it )
     {
 #ifdef DEBUG_EVAL
-        dlog.addText( Logger::ACTION,
+        dlog.addText( Logger::HOLD,
                       "Hold: %d: (evaluate) (%.2f %.2f)",
                       ++count, it->pos_.x, it->pos_.y );
 #endif
@@ -521,12 +520,12 @@ Body_HoldBall2008::evaluateKeepPoints( const WorldModel & wm,
         ++count;
         char score[16];
         snprintf( score, 16, "%d:%.3f", count, it->score_ );
-        dlog.addText( Logger::ACTION,
+        dlog.addText( Logger::HOLD,
                       "Hold: %d: (evaluate) (%.2f %.2f) score=%f",
                       it->pos_.x, it->pos_.y, it->score_ );
-        dlog.addRect( Logger::ACTION,
+        dlog.addRect( Logger::HOLD,
                       it->pos_.x - 0.03, it->pos_.y - 0.03, 0.06, 0.06, "#0F0" );
-        dlog.addMessage( Logger::ACTION,
+        dlog.addMessage( Logger::HOLD,
                          it->pos_, score );
     }
 #endif
@@ -577,7 +576,7 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
         {
             score -= 200.0;
 #ifdef DEBUG_EVAL
-            dlog.addText( Logger::ACTION,
+            dlog.addText( Logger::HOLD,
                           "____ opp %d(%.1f %.1f) can control(1). score=%.3f",
                           (*o)->unum(),
                           (*o)->pos().x, (*o)->pos().y, score );
@@ -588,7 +587,7 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
         {
             score -= 150.0;
 #ifdef DEBUG_EVAL
-            dlog.addText( Logger::ACTION,
+            dlog.addText( Logger::HOLD,
                           "____ opp %d(%.1f %.1f) can control(2). score=%.3f",
                           (*o)->unum(),
                           (*o)->pos().x, (*o)->pos().y, score );
@@ -599,7 +598,7 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
         {
             score -= 25.0;
 #ifdef DEBUG_EVAL
-            dlog.addText( Logger::ACTION,
+            dlog.addText( Logger::HOLD,
                           "____ opp %d(%.1f %.1f) within tackle. score=%.3f",
                           (*o)->unum(),
                           (*o)->pos().x, (*o)->pos().y, score );
@@ -639,7 +638,7 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
                 score -= 10.0;
             }
 #ifdef DEBUG_EVAL
-            dlog.addText( Logger::ACTION,
+            dlog.addText( Logger::HOLD,
                           "____ opp %d(%.1f %.1f) on body line. body=%.1f score=%.3f",
                           (*o)->unum(),
                           (*o)->pos().x, (*o)->pos().y,
@@ -666,7 +665,7 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
                 {
                     score -= 30.0;
 #ifdef DEBUG_EVAL
-                    dlog.addText( Logger::ACTION,
+                    dlog.addText( Logger::HOLD,
                                   "____ tackle_prob=%.3f %d(%.1f %.1f) body=%.1f score=%.3f",
                                   1.0 - tackle_prob,
                                   (*o)->unum(),
@@ -702,7 +701,7 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
             if ( new_player_2_pos.r2() < std::pow( control_area + 0.1, 2 ) )
             {
 #ifdef DEBUG_EVAL
-                dlog.addText( Logger::ACTION,
+                dlog.addText( Logger::HOLD,
                               "____ next kickable %d opponent_body=%.1f dash_dir=%.0f max_accel=%.3f",
                               (*o)->unum(), opp_body.degree(), dir, max_accel );
 #endif
@@ -713,7 +712,7 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
                       && new_player_2_pos.x < SP.tackleDist() + 0.1 )
             {
 #ifdef DEBUG_EVAL
-                dlog.addText( Logger::ACTION,
+                dlog.addText( Logger::HOLD,
                               "____ next tackle %d opponent_body=%.1f dash_dir=%.0f max_accel=%.3f",
                               (*o)->unum(), opp_body.degree(), dir, max_accel );
 #endif
@@ -724,7 +723,7 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
         score += next_kick_penalty;
         score += next_tackle_penalty;
 #ifdef DEBUG_EVAL
-        dlog.addText( Logger::ACTION,
+        dlog.addText( Logger::HOLD,
                       "____ %d kick_penalty=%.1f tackle_penalty=%.1f score=%.3f",
                       (*o)->unum(), next_kick_penalty, next_tackle_penalty, score );
 #endif
@@ -741,7 +740,7 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
         score *= rate;
 
 #ifdef DEBUG_EVAL
-        dlog.addText( Logger::ACTION,
+        dlog.addText( Logger::HOLD,
                       "__ applied keep distance threshold. ball_dist=%.3f thr=%.3f rate=%f",
                       next_ball_dist, threshold, rate );
 #endif
@@ -779,7 +778,7 @@ Body_HoldBall2008::keepFront( PlayerAgent * agent )
     if ( front_pos.absX() > max_pitch_x
          || front_pos.absY() > max_pitch_y )
     {
-        dlog.addText( Logger::ACTION,
+        dlog.addText( Logger::HOLD,
                       __FILE__": keepFront() failed. out of pitch. point=(%.2f %.2f)",
                       front_pos.x, front_pos.y );
         return false;
@@ -792,7 +791,7 @@ Body_HoldBall2008::keepFront( PlayerAgent * agent )
     // can kick to the point by 1 step kick
     if ( kick_power > SP.maxPower() )
     {
-        dlog.addText( Logger::ACTION,
+        dlog.addText( Logger::HOLD,
                       __FILE__": keepFront() failed. cannot kick to front point (%.2f %.2f) by 1 step",
                       front_pos.x, front_pos.y );
         return false;
@@ -802,13 +801,13 @@ Body_HoldBall2008::keepFront( PlayerAgent * agent )
 
     if ( score < DEFAULT_SCORE - 1.0e-5 )
     {
-        dlog.addText( Logger::ACTION,
+        dlog.addText( Logger::HOLD,
                       __FILE__":(keepFront) failed. front point (%.2f %.2f) is not safety.",
                       front_pos.x, front_pos.y );
         return false;
     }
 
-    dlog.addText( Logger::ACTION,
+    dlog.addText( Logger::HOLD,
                   __FILE__":(keepFront) ok. front point (%.2f %.2f) dist=%.2f score=%f",
                   front_pos.x, front_pos.y,
                   front_keep_dist,
@@ -911,7 +910,7 @@ Body_HoldBall2008::keepReverse( PlayerAgent * agent )
         double score = evaluateKeepPoint( wm, keep_pos );
         if ( score > DEFAULT_SCORE + 1.0e-5 )
         {
-            dlog.addText( Logger::ACTION,
+            dlog.addText( Logger::HOLD,
                           __FILE__": keepReverse() kick_target=(%.1f %.1f) reverse_point=(%.2f %.2f) angle=%.0f dist=%.2f score=%f",
                           M_kick_target_point.x, M_kick_target_point.y,
                           keep_pos.x, keep_pos.y,
@@ -926,7 +925,7 @@ Body_HoldBall2008::keepReverse( PlayerAgent * agent )
         }
     }
 
-    dlog.addText( Logger::ACTION,
+    dlog.addText( Logger::HOLD,
                   __FILE__": keepReverse() failed" );
 
     return false;
@@ -954,7 +953,7 @@ Body_HoldBall2008::turnToPoint( PlayerAgent * agent )
     if ( ball_next.absX() > max_pitch_x
          || ball_next.absY() > max_pitch_y )
     {
-        dlog.addText( Logger::ACTION,
+        dlog.addText( Logger::HOLD,
                       __FILE__": turnToPoint() failed. out of pitch. ball_next=(%.2f %.2f)",
                       ball_next.x, ball_next.y );
         return false;
@@ -969,7 +968,7 @@ Body_HoldBall2008::turnToPoint( PlayerAgent * agent )
                             - ball_noise
                             - 0.15 ) )
     {
-        dlog.addText( Logger::ACTION,
+        dlog.addText( Logger::HOLD,
                       __FILE__": turnToPoint. no kickable at next cycle. ball_dist=%.3f",
                       next_ball_dist );
         return false;
@@ -985,7 +984,7 @@ Body_HoldBall2008::turnToPoint( PlayerAgent * agent )
     {
         face_point = M_turn_target_point;
 
-        dlog.addText( Logger::ACTION,
+        dlog.addText( Logger::HOLD,
                       __FILE__": turnToPoint. face target=(%.1f, %.1f)",
                       face_point.x, face_point.y );
     }
@@ -995,7 +994,7 @@ Body_HoldBall2008::turnToPoint( PlayerAgent * agent )
 
     if ( ( wm.self().body() - target_angle ).abs() < 5.0 )
     {
-        dlog.addText( Logger::ACTION,
+        dlog.addText( Logger::HOLD,
                       __FILE__": turnToPoint. already face to (%.1f %.1f).",
                       face_point.x, face_point.y );
         return false;
@@ -1004,13 +1003,13 @@ Body_HoldBall2008::turnToPoint( PlayerAgent * agent )
     double score = evaluateKeepPoint( wm, ball_next );
     if ( score < DEFAULT_SCORE - 1.0e-5 )
     {
-        dlog.addText( Logger::ACTION,
+        dlog.addText( Logger::HOLD,
                       __FILE__": turnToPoint. next_ball_pos(%.1f %.1f) is not safety",
                       ball_next.x, ball_next.y );
         return false;
     }
 
-    dlog.addText( Logger::ACTION,
+    dlog.addText( Logger::HOLD,
                   __FILE__": turnToPoint. next_ball_dist=%.2f turn to (%.1f, %.1f) score=%f",
                   next_ball_dist,
                   face_point.x, face_point.y,
