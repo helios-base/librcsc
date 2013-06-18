@@ -575,36 +575,36 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
 
         if ( opp_dist < control_area * 0.5 )
         {
+            score -= 200.0;
 #ifdef DEBUG_EVAL
             dlog.addText( Logger::ACTION,
-                          "____ opp %d(%.1f %.1f) can control(1).",
+                          "____ opp %d(%.1f %.1f) can control(1). score=%.3f",
                           (*o)->unum(),
-                          (*o)->pos().x, (*o)->pos().y );
+                          (*o)->pos().x, (*o)->pos().y, score );
 
 #endif
-            score -= 100.0;
         }
         else if ( opp_dist < control_area + 0.1 )
         {
+            score -= 150.0;
 #ifdef DEBUG_EVAL
             dlog.addText( Logger::ACTION,
-                          "____ opp %d(%.1f %.1f) can control(2).",
+                          "____ opp %d(%.1f %.1f) can control(2). score=%.3f",
                           (*o)->unum(),
-                          (*o)->pos().x, (*o)->pos().y );
+                          (*o)->pos().x, (*o)->pos().y, score );
 
 #endif
-            score -= 50.0;
         }
         else if ( opp_dist < SP.tackleDist() - 0.2 )
         {
+            score -= 25.0;
 #ifdef DEBUG_EVAL
             dlog.addText( Logger::ACTION,
-                          "____ opp %d(%.1f %.1f) within tackle.",
+                          "____ opp %d(%.1f %.1f) within tackle. score=%.3f",
                           (*o)->unum(),
-                          (*o)->pos().x, (*o)->pos().y );
+                          (*o)->pos().x, (*o)->pos().y, score );
 
 #endif
-            score -= 25.0;
         }
 
         AngleDeg opp_body;
@@ -630,14 +630,6 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
 
         if ( player_2_pos.absY() < control_area )
         {
-#ifdef DEBUG_EVAL
-            dlog.addText( Logger::ACTION,
-                          "____ opp %d(%.1f %.1f) on body line. body=%.1f.",
-                          (*o)->unum(),
-                          (*o)->pos().x, (*o)->pos().y,
-                          opp_body.degree() );
-
-#endif
             if ( player_2_pos.absY() < control_area * 0.8 )
             {
                 score -= 20.0;
@@ -646,6 +638,14 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
             {
                 score -= 10.0;
             }
+#ifdef DEBUG_EVAL
+            dlog.addText( Logger::ACTION,
+                          "____ opp %d(%.1f %.1f) on body line. body=%.1f score=%.3f",
+                          (*o)->unum(),
+                          (*o)->pos().x, (*o)->pos().y,
+                          opp_body.degree(), score );
+
+#endif
         }
 
         //
@@ -664,15 +664,15 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
                 if ( tackle_prob < 1.0
                      && 1.0 - tackle_prob > 0.7 ) // success probability
                 {
+                    score -= 30.0;
 #ifdef DEBUG_EVAL
                     dlog.addText( Logger::ACTION,
-                                  "____ tackle_prob=%.3f %d(%.1f %.1f) body=%.1f",
+                                  "____ tackle_prob=%.3f %d(%.1f %.1f) body=%.1f score=%.3f",
                                   1.0 - tackle_prob,
                                   (*o)->unum(),
                                   (*o)->pos().x, (*o)->pos().y,
-                                  opp_body.degree() );
+                                  opp_body.degree(), score );
 #endif
-                    score -= 30.0;
                 }
             }
         }
@@ -723,6 +723,12 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
 
         score += next_kick_penalty;
         score += next_tackle_penalty;
+#ifdef DEBUG_EVAL
+        dlog.addText( Logger::ACTION,
+                      "____ %d kick_penalty=%.1f tackle_penalty=%.1f score=%.3f",
+                      (*o)->unum(), next_kick_penalty, next_tackle_penalty, score );
+#endif
+
     }
 
 #if 1
