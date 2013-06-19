@@ -48,8 +48,8 @@
 #include <rcsc/geom/line_2d.h>
 
 // #define DEBUG_CREATE
-#define DEBUG_EVAL
-#define DEBUG_PRINT_RESULTS
+// #define DEBUG_EVAL
+// #define DEBUG_PRINT_RESULTS
 
 namespace rcsc {
 
@@ -489,23 +489,25 @@ Body_HoldBall2008::evaluateKeepPoints( const WorldModel & wm,
 {
 #ifdef DEBUG_EVAL
     int count = 0;
+    dlog.addText( Logger::HOLD,
+                  __FILE__"(evaluate) =========" );
 #endif
-    const std::vector< KeepPoint >::iterator end = keep_points.end();
-    for ( std::vector< KeepPoint >::iterator it = keep_points.begin();
+    for ( std::vector< KeepPoint >::iterator it = keep_points.begin(),
+              end = keep_points.end();
           it != end;
           ++it )
     {
 #ifdef DEBUG_EVAL
         dlog.addText( Logger::HOLD,
-                      "Hold: %d: (evaluate) (%.2f %.2f)",
+                      "%d: (evaluate) (%.2f %.2f)",
                       ++count, it->pos_.x, it->pos_.y );
 #endif
         it->score_ = evaluateKeepPoint( wm, it->pos_ );
-        if ( it->score_ < DEFAULT_SCORE - 1.0e-5 )
-        {
-            it->score_ += it->pos_.dist( wm.ball().pos() );
-        }
-        else
+        // if ( it->score_ < DEFAULT_SCORE - 1.0e-5 )
+        // {
+        //     it->score_ += it->pos_.dist( wm.ball().pos() ) * 0.001;
+        // }
+        // else
         {
             it->score_ += it->kick_rate_ * 1000.0;
         }
@@ -519,8 +521,11 @@ Body_HoldBall2008::evaluateKeepPoints( const WorldModel & wm,
     dlog.addCircle( Logger::HOLD,
                     self_next, k, "#F00" );
 
+    dlog.addText( Logger::HOLD,
+                  __FILE__"(results) =========" );
     count = 0;
-    for ( std::vector< KeepPoint >::iterator it = keep_points.begin();
+    for ( std::vector< KeepPoint >::iterator it = keep_points.begin(),
+              end = keep_points.end();
           it != end;
           ++it )
     {
@@ -528,13 +533,15 @@ Body_HoldBall2008::evaluateKeepPoints( const WorldModel & wm,
         char score[16];
         snprintf( score, 16, "%d:%.3f", count, it->score_ );
         dlog.addText( Logger::HOLD,
-                      "Hold: %d: (evaluate) (%.2f %.2f) score=%f",
-                      it->pos_.x, it->pos_.y, it->score_ );
+                      "%d: (evaluate) (%.2f %.2f) score=%f",
+                      count, it->pos_.x, it->pos_.y, it->score_ );
         dlog.addRect( Logger::HOLD,
                       it->pos_.x - 0.02, it->pos_.y - 0.02, 0.04, 0.04, "#0F0" );
         dlog.addMessage( Logger::HOLD,
                          it->pos_, score );
     }
+    dlog.addText( Logger::HOLD,
+                  __FILE__"(results) =========" );
 #endif
 }
 
@@ -636,20 +643,24 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
 
         if ( player_2_pos.absY() < control_area )
         {
-            if ( player_2_pos.absY() < control_area * 0.8 )
-            {
-                score -= 20.0;
-            }
-            else
-            {
-                score -= 10.0;
-            }
+            // if ( player_2_pos.absY() < control_area * 0.8 )
+            // {
+            //     score -= 20.0;
+            // }
+            // else
+            // {
+            //     score -= 10.0;
+            // }
+
+            score -= ( control_area - player_2_pos.absY() ) * 50.0;
+
 #ifdef DEBUG_EVAL
             dlog.addText( Logger::HOLD,
-                          "____ opp %d(%.1f %.1f) on body line. body=%.1f score=%.3f",
+                          "____ opp %d(%.1f %.1f) on body line. body=%.1f y=%.3f score=%.3f",
                           (*o)->unum(),
-                          (*o)->pos().x, (*o)->pos().y,
-                          opp_body.degree(), score );
+                          (*o)->pos().x, (*o)->pos().y, opp_body.degree(),
+                          player_2_pos.absY(),
+                          score );
 
 #endif
         }
@@ -663,18 +674,19 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
                                    : SP.tackleBackDist() );
             if ( tackle_dist > 1.0e-5 )
             {
-                double tackle_prob = ( std::pow( player_2_pos.absX() / tackle_dist,
-                                                 SP.foulExponent() )
-                                       + std::pow( player_2_pos.absY() / SP.tackleWidth(),
-                                                   SP.foulExponent() ) );
-                if ( tackle_prob < 1.0
-                     && 1.0 - tackle_prob > 0.7 ) // success probability
+                double tackle_fail_prob = ( std::pow( player_2_pos.absX() / tackle_dist,
+                                                      SP.foulExponent() )
+                                            + std::pow( player_2_pos.absY() / SP.tackleWidth(),
+                                                        SP.foulExponent() ) );
+                if ( tackle_fail_prob < 1.0 )
+                    //&& 1.0 - tackle_fail_prob > 0.7 ) // success probability
                 {
-                    score -= 30.0;
+                    //score -= 30.0;
+                    score -= ( 1.0 - tackle_fail_prob ) * 50.0;
 #ifdef DEBUG_EVAL
                     dlog.addText( Logger::HOLD,
                                   "____ tackle_prob=%.3f %d(%.1f %.1f) body=%.1f score=%.3f",
-                                  1.0 - tackle_prob,
+                                  1.0 - tackle_fail_prob,
                                   (*o)->unum(),
                                   (*o)->pos().x, (*o)->pos().y,
                                   opp_body.degree(), score );
@@ -703,27 +715,29 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
                                        * SP.dashDirRate( dir ) );
             const Vector2D max_move = Vector2D::from_polar( max_accel, dash_angle );
 
-            const Vector2D new_player_2_pos = player_2_pos - max_move;
+            const Vector2D next_player_2_pos = player_2_pos - max_move;
 
-            if ( new_player_2_pos.r2() < std::pow( control_area + 0.1, 2 ) )
+            if ( next_player_2_pos.r2() < std::pow( control_area + 0.1, 2 ) )
             {
 #ifdef DEBUG_EVAL
                 dlog.addText( Logger::HOLD,
                               "____ next kickable %d opponent_body=%.1f dash_dir=%.0f max_accel=%.3f",
                               (*o)->unum(), opp_body.degree(), dir, max_accel );
 #endif
-                next_kick_penalty = -20.0;
+                //next_kick_penalty = -20.0;
+                next_kick_penalty -= 20.0;
             }
-            else if ( new_player_2_pos.absY() < SP.tackleWidth() + 0.1
-                      && new_player_2_pos.x > 0.0
-                      && new_player_2_pos.x < SP.tackleDist() + 0.1 )
+            else if ( next_player_2_pos.absY() < SP.tackleWidth() + 0.1
+                      && next_player_2_pos.x > 0.0
+                      && next_player_2_pos.x < SP.tackleDist() + 0.1 )
             {
 #ifdef DEBUG_EVAL
                 dlog.addText( Logger::HOLD,
                               "____ next tackle %d opponent_body=%.1f dash_dir=%.0f max_accel=%.3f",
                               (*o)->unum(), opp_body.degree(), dir, max_accel );
 #endif
-                next_tackle_penalty = -10.0;
+                //next_tackle_penalty = -10.0;
+                next_tackle_penalty -= 10.0;
             }
         }
 
@@ -809,7 +823,7 @@ Body_HoldBall2008::keepFront( PlayerAgent * agent )
     if ( score < DEFAULT_SCORE - 1.0e-5 )
     {
         dlog.addText( Logger::HOLD,
-                      __FILE__":(keepFront) failed. front point (%.2f %.2f) is not safety.",
+                      __FILE__":(keepFront) failed. front point (%.2f %.2f) is not safe.",
                       front_pos.x, front_pos.y );
         return false;
     }

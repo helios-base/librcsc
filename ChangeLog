@@ -1,5 +1,9 @@
 2013-06-19  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/action/body_hold_ball2008.cpp:
+	- ホールドボールの評価関数を修正．敵の体の向きとなるべくずれる位置
+	を優先するように変更
+
 	* rcsc/player/ball_object.cpp:
 	- visible_distance近くの距離の場合に認識できたとみなしてしまう問題に対応
 
