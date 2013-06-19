@@ -209,7 +209,7 @@ BallObject::update( const ActionEffector & act,
         // the agent has to check the ball first.
         if ( posCount() >= 5
              || ( rposCount() >= 2
-                  && distFromSelf() < ServerParam::i().visibleDistance() )
+                  && distFromSelf() * 1.05 < ServerParam::i().visibleDistance() )
              )
         {
             // NOT seen at last cycle, but internal info means ball visible.
