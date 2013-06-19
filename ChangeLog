@@ -1,5 +1,9 @@
 2013-06-19  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/world_model.cpp:
+	- 位置差分によるボール速度更新を修正．hearによる共有情報よりもsee
+	による観測情報を優先して用いるように変更
+
 	* rcsc/action/body_hold_ball2008.cpp:
 	- ホールドボールの評価関数を修正．敵の体の向きとなるべくずれる位置
 	を優先するように変更

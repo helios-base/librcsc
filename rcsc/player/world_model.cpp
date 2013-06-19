@@ -65,7 +65,7 @@
 // #define DEBUG_PRINT
 
 // #define DEBUG_PRINT_SELF_UPDATE
-// #define DEBUG_PRINT_BALL_UPDATE
+#define DEBUG_PRINT_BALL_UPDATE
 // #define DEBUG_PRINT_PLAYER_UPDATE
 // #define DEBUG_PRINT_PLAYER_UPDATE_DETAIL
 // #define DEBUG_PRINT_GOALIE_UPDATE
@@ -2478,10 +2478,10 @@ WorldModel::localizeBall( const VisualSensor & see,
             if ( M_ball.seenPosCount() < 100
                  || M_ball.heardPosCount() < 100 )
             {
-                const Vector2D prev_pos = ( M_ball.seenPosCount() < M_ball.heardPosCount()
+                const Vector2D prev_pos = ( M_ball.seenPosCount() < M_ball.heardPosCount() + 2
                                             ? M_ball.seenPos()
                                             : M_ball.heardPos() );
-                const int move_step = ( M_ball.seenPosCount() < M_ball.heardPosCount()
+                const int move_step = ( M_ball.seenPosCount() < M_ball.heardPosCount() + 2
                                         ? M_ball.seenPosCount()
                                         : M_ball.heardPosCount() );
                 Vector2D ball_move = pos - prev_pos;
@@ -2498,7 +2498,7 @@ WorldModel::localizeBall( const VisualSensor & see,
 
 #ifdef DEBUG_PRINT_BALL_UPDATE
                 dlog.addText( Logger::WORLD,
-                              __FILE__" (localizeBall) estimate vel by pos diff(2) prev=(%.2f %2f) move=(%.2f %.2f) dist=%.3f",
+                              __FILE__" (localizeBall) estimate vel by pos diff(2) prev=(%.2f %.2f) move=(%.2f %.2f) dist=%.3f",
                               prev_pos.x, prev_pos.y, ball_move.x, ball_move.y, ball_move.r() );
                 dlog.addText( Logger::WORLD,
                               __FILE__" (localizeBall) estimate vel by pos diff(2) vel=(%.3f %.3f) count=%d",
