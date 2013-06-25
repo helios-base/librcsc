@@ -447,7 +447,7 @@ DelaunayTriangulation::compute()
     //std::cout << "compute() start " << std::endl;
     if ( M_vertices.size() < 3 )
     {
-        std::cout << __FILE__ << ": compute() too few vertices" << std::endl;
+        //std::cout << __FILE__ << ": compute() too few vertices" << std::endl;
         removeInitialVertices();
         return;
     }

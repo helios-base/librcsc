@@ -1,3 +1,8 @@
+2013-06-26  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/geom/delaunay_triangulation.cpp:
+	- 頂点数が不足している場合のエラーメッセージ出力を削除
+
 2013-06-25  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* configure.ac:
