@@ -1,3 +1,8 @@
+2013-06-25  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* configure.ac:
+	- バージョン文字列をRoboCup2013用に更新
+
 2013-06-19  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/world_model.cpp:
