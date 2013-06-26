@@ -1,3 +1,8 @@
+2013-06-27  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* configure.ac:
+	- バージョン文字列を更新
+
 2013-06-26  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/geom/delaunay_triangulation.cpp:
