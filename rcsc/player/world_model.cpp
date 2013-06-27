@@ -2471,41 +2471,33 @@ WorldModel::localizeBall( const VisualSensor & see,
         // add 2013-05-30
         else if ( see.balls().front().dist_ < 2.0
                   && ! self().isKicking()
+                  && M_ball.seenPosCount() <= 6
                   && M_ball.seenPosCount() >= 2 // ball is not seen at least 2 or more cycles
                   && self().lastMove( 0 ).isValid() // no collision in this cycle
                   && self().lastMove( 1 ).isValid() ) // no collision in previous cycle
         {
-            if ( M_ball.seenPosCount() < 100
-                 || M_ball.heardPosCount() < 100 )
+            const Vector2D prev_pos = M_ball.seenPos();
+            const int move_step = M_ball.seenPosCount();
+            Vector2D ball_move = pos - prev_pos;
+            double dist = ball_move.r();
+            double speed = ServerParam::i().firstBallSpeed( dist, move_step );
+            if ( speed > ServerParam::i().ballSpeedMax() )
             {
-                const Vector2D prev_pos = ( M_ball.seenPosCount() < M_ball.heardPosCount() + 2
-                                            ? M_ball.seenPos()
-                                            : M_ball.heardPos() );
-                const int move_step = ( M_ball.seenPosCount() < M_ball.heardPosCount() + 2
-                                        ? M_ball.seenPosCount()
-                                        : M_ball.heardPosCount() );
-                Vector2D ball_move = pos - prev_pos;
-                double dist = ball_move.r();
-                double speed = ServerParam::i().firstBallSpeed( dist, move_step );
-                if ( speed > ServerParam::i().ballSpeedMax() )
-                {
-                    speed = ServerParam::i().ballSpeedMax();
-                }
-                speed *= std::pow( ServerParam::i().ballDecay(), move_step );
+                speed = ServerParam::i().ballSpeedMax();
+            }
+            speed *= std::pow( ServerParam::i().ballDecay(), move_step );
 
-                gvel = ball_move.setLengthVector( speed );
-                vel_count = move_step;
+            gvel = ball_move.setLengthVector( speed );
+            vel_count = move_step;
 
 #ifdef DEBUG_PRINT_BALL_UPDATE
-                dlog.addText( Logger::WORLD,
-                              __FILE__" (localizeBall) estimate vel by pos diff(2) prev=(%.2f %.2f) move=(%.2f %.2f) dist=%.3f",
-                              prev_pos.x, prev_pos.y, ball_move.x, ball_move.y, ball_move.r() );
-                dlog.addText( Logger::WORLD,
-                              __FILE__" (localizeBall) estimate vel by pos diff(2) vel=(%.3f %.3f) count=%d",
-                              gvel.x, gvel.y, vel_count );
+            dlog.addText( Logger::WORLD,
+                          __FILE__" (localizeBall) estimate vel by pos diff(2) prev=(%.2f %.2f) move=(%.2f %.2f) dist=%.3f",
+                          prev_pos.x, prev_pos.y, ball_move.x, ball_move.y, ball_move.r() );
+            dlog.addText( Logger::WORLD,
+                          __FILE__" (localizeBall) estimate vel by pos diff(2) vel=(%.3f %.3f) count=%d",
+                          gvel.x, gvel.y, vel_count );
 #endif
-
-            }
         }
 #endif
     }

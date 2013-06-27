@@ -1,5 +1,8 @@
 2013-06-27  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/world_model.cpp:
+	- 位置差分によるボール速度更新を視覚情報のみに限定
+
 	* configure.ac:
 	- バージョン文字列を更新
 
