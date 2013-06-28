@@ -1,10 +1,15 @@
+2013-06-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* configure.ac:
+	- バージョン文字列を更新．RoboCup2013 Round1
+
 2013-06-27  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/world_model.cpp:
 	- 位置差分によるボール速度更新を視覚情報のみに限定
 
 	* configure.ac:
-	- バージョン文字列を更新
+	- バージョン文字列を更新．RoboCup2013 Round0
 
 2013-06-26  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
