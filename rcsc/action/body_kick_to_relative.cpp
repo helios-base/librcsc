@@ -52,6 +52,7 @@ namespace {
 
 const size_t DEFAULT_KICK_QUEUE_MAX = 5;
 
+#ifdef CHECK_OPPONENT
 bool
 exist_opponent( const WorldModel & wm,
                 const Vector2D & ball_pos )
@@ -90,6 +91,7 @@ exist_opponent( const WorldModel & wm,
 
     return true;
 }
+#endif
 
 }
 

@@ -49,7 +49,7 @@ class AudioMemory;
 class CoachVisualSensor;
 
 namespace rcg {
-class DispInfoT;
+struct DispInfoT;
 }
 
 /*!

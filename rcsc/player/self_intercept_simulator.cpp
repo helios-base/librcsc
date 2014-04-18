@@ -67,6 +67,7 @@ const double CONTROL_BUF = 0.15;
 const double BALL_NOISE_RATE = 0.25;
 const int BACK_DASH_COUNT_THR = 5;
 
+#ifdef DEBUG_PRINT_RESULTS
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -120,6 +121,7 @@ debug_print_results( const WorldModel & wm,
                       self_cache[i].stamina() );
     }
 }
+#endif
 
 /*-------------------------------------------------------------------*/
 /*!

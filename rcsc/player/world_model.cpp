@@ -109,6 +109,7 @@ create_player_set( PlayerObject::List & players,
     }
 }
 
+#if 0
 /*!
   \brief check if player is ball kickable or not
   \param first first element in player container
@@ -152,6 +153,7 @@ get_kickable_player( PlayerObject::Cont::iterator first,
 
     return static_cast< const PlayerObject * >( 0 );
 }
+#endif
 
 /*!
 
@@ -186,6 +188,7 @@ is_reverse_side( const WorldModel & wm,
     return ( wm.ourSide() == RIGHT );
 }
 
+#if 0
 /*!
 
  */
@@ -232,6 +235,7 @@ get_self_face_angle( const WorldModel & wm,
              ? seen_face_angle
              : AngleDeg::normalize_angle( seen_face_angle + 180.0 ) );
 }
+#endif
 
 const
 AbstractPlayerObject *

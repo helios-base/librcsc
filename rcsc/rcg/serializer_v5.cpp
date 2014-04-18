@@ -47,17 +47,6 @@
 #include <cstring>
 #include <cmath>
 
-namespace {
-inline
-double
-quantize( const double & val,
-          const double & prec = 0.0001 )
-{
-    return rint( val / prec ) * prec;
-}
-
-}
-
 namespace rcsc {
 namespace rcg {
 

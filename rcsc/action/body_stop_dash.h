@@ -30,7 +30,7 @@
 /////////////////////////////////////////////////////////////////////
 
 #ifndef RCSC_ACTION_BODY_STOP_DASH_H
-#define RCSC_ACTION_BODy_STOP_DASH_H
+#define RCSC_ACTION_BODY_STOP_DASH_H
 
 #include <rcsc/player/soccer_action.h>
 

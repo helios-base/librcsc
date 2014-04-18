@@ -1258,8 +1258,7 @@ ActionEffector::setChangeView( const ViewWidth & width )
     }
 
     M_command_change_view = new PlayerChangeViewCommand( width,
-                                                         ViewQuality::HIGH,
-                                                         M_agent.config().version() );
+                                                         ViewQuality::HIGH );
 }
 
 /*-------------------------------------------------------------------*/

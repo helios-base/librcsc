@@ -854,20 +854,16 @@ class PlayerChangeViewCommand
 private:
     ViewWidth M_width; //!< view width
     ViewQuality M_quality; //!< view quality
-    double M_version; //!< client version
 public:
     /*!
       \brief construct with view mode objects
       \param w view width object
       \param q view quality object
-      \param version client version
     */
     PlayerChangeViewCommand( const ViewWidth & w,
-                             const ViewQuality & q,
-                             const double & version = 8.0 )
+                             const ViewQuality & q )
         : M_width( w )
         , M_quality( q )
-        , M_version( version )
       { }
 
     /*!

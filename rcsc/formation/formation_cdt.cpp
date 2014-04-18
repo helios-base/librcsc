@@ -48,17 +48,6 @@ using namespace formation;
 
 const std::string FormationCDT::NAME( "ConstrainedDelaunayTriangulation" );
 
-namespace {
-
-inline
-double
-round_coord( const double & val )
-{
-    return rint( val / SampleData::PRECISION ) * SampleData::PRECISION;
-}
-
-}
-
 /*-------------------------------------------------------------------*/
 /*!
 

@@ -1,3 +1,17 @@
+2014-04-18  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/action/body_kick_to_relative.cpp:
+	* rcsc/action/body_stop_dash.h:
+	* rcsc/coach/coach_world_state.h:
+	* rcsc/formation/formation_cdt.cpp:
+	* rcsc/player/action_effector.cpp:
+	* rcsc/player/player_command.h:
+	* rcsc/player/self_intercept_simulator.cpp:
+	* rcsc/player/view_grid_map.cpp:
+	* rcsc/player/world_model.cpp:
+	* rcsc/rcg/serializer_v5.cpp:
+	- コンパイラの警告に対応
+
 2013-06-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* configure.ac:

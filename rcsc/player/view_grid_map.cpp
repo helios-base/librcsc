@@ -109,6 +109,7 @@ grid_y_index( const double & y )
     return bound( 0, iy, ViewGridMap::GRID_Y_SIZE );
 }
 
+#if 0
 inline
 int
 grid_index( const Vector2D & pos )
@@ -133,6 +134,7 @@ grid_center( const int idx )
     return Vector2D( ix * ViewGridMap::GRID_LENGTH + ViewGridMap::PITCH_MIN_X,
                      iy * ViewGridMap::GRID_LENGTH + ViewGridMap::PITCH_MIN_Y );
 }
+#endif
 
 inline
 Vector2D
