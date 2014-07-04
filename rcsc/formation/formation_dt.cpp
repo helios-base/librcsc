@@ -50,11 +50,28 @@ const std::string FormationDT::NAME( "DelaunayTriangulation" );
 
 namespace {
 
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
 inline
 double
 round_coord( const double & val )
 {
     return rint( val / SampleData::PRECISION ) * SampleData::PRECISION;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+inline
+bool
+is_comment_line( const std::string & line )
+{
+    return ( line.empty()
+             || line[0] == '#'
+             || ! line.compare( 0, 2, "//" ) );
 }
 
 }
@@ -66,7 +83,7 @@ round_coord( const double & val )
 FormationDT::FormationDT()
     : Formation()
 {
-    M_version = 2;
+    M_version = 3;
 
     for ( int i = 0; i < 11; ++i )
     {
@@ -463,7 +480,11 @@ bool
 FormationDT::readConf( std::istream & is )
 {
     bool result = false;
-    if ( version() >= 2 )
+    if ( version() >= 3 )
+    {
+        result = readV3( is );
+    }
+    else if ( version() == 2 )
     {
         result = readV2( is );
     }
@@ -472,9 +493,12 @@ FormationDT::readConf( std::istream & is )
         result = readV1( is );
     }
 
-    if ( version() == 0 )
+    //
+    // overwrite format version
+    //
+    if ( version() <= 2 )
     {
-        M_version = 2;
+        M_version = 3;
     }
 
     ////////////////////////////////////////////////////////
@@ -494,6 +518,140 @@ bool
 FormationDT::readSamples( std::istream & )
 {
     return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationDT::readEndTag( std::istream & is )
+{
+    std::string line_buf;
+    while ( std::getline( is, line_buf ) )
+    {
+        if ( is_comment_line( line_buf ) )
+        {
+            continue;
+        }
+
+        if ( line_buf != "End" )
+        {
+            std::cerr << __FILE__ << ':' << __LINE__ << ':'
+                      << " *** ERROR *** (readEndTag) unexpected string ["
+                      << line_buf << ']' << std::endl;
+            return false;
+        }
+
+        // found
+        return true;
+    }
+
+    std::cerr << __FILE__ << ':' << __LINE__ << ':'
+              << " *** ERROR *** (readEndTag) 'End' not found"
+              << std::endl;
+    if ( is.eof() )
+    {
+        std::cerr << "Input stream reaches EOF"
+                  << std::endl;
+    }
+
+    return false;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationDT::readBeginRolesTag( std::istream & is )
+{
+    std::string line_buf;
+    while ( std::getline( is, line_buf ) )
+    {
+        if ( is_comment_line( line_buf ) )
+        {
+            continue;
+        }
+
+        if ( line_buf != "Begin Roles" )
+        {
+            std::cerr << __FILE__ << ':' << __LINE__ << ':'
+                      << " *** ERROR *** (readBeginRolesTag) unexpected string ["
+                      << line_buf << ']' << std::endl;
+            return false;
+        }
+
+        return true;
+    }
+
+    std::cerr << __FILE__ << ':' << __LINE__ << ':'
+              << " *** ERROR *** (readEndRolesTag) 'End Roles' not found"
+              << std::endl;
+
+    return false;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationDT::readEndRolesTag( std::istream & is )
+{
+    std::string line_buf;
+    while ( std::getline( is, line_buf ) )
+    {
+        if ( is_comment_line( line_buf ) )
+        {
+            continue;
+        }
+
+        if ( line_buf != "End Roles" )
+        {
+            std::cerr << __FILE__ << ':' << __LINE__ << ':'
+                      << " *** ERROR *** (readEndRolesTag) unexpected string ["
+                      << line_buf << ']' << std::endl;
+            return false;
+        }
+
+        // found
+        return true;
+    }
+
+    std::cerr << __FILE__ << ':' << __LINE__ << ':'
+              << " *** ERROR *** (readEndRolesTag) 'End Roles' not found"
+              << std::endl;
+
+    return false;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+FormationDT::createRoleOrSetSymmetry( const int unum,
+                                      const std::string & role_name,
+                                      const int symmetry_number )
+{
+    const Formation::SideType type = ( symmetry_number == 0
+                                       ? Formation::CENTER
+                                       : symmetry_number < 0
+                                       ? Formation::SIDE
+                                       : Formation::SYMMETRY );
+    if ( type == Formation::CENTER )
+    {
+        createNewRole( unum, role_name, type );
+    }
+    else if ( type == Formation::SIDE )
+    {
+        createNewRole( unum, role_name, type );
+    }
+    else
+    {
+        setSymmetryType( unum, symmetry_number, role_name );
+    }
 }
 
 /*-------------------------------------------------------------------*/
@@ -571,23 +729,7 @@ FormationDT::readRoles( std::istream & is )
         }
         msg += n_read;
 
-        const Formation::SideType type = ( symmetry_number == 0
-                                           ? Formation::CENTER
-                                           : symmetry_number < 0
-                                           ? Formation::SIDE
-                                           : Formation::SYMMETRY );
-        if ( type == Formation::CENTER )
-        {
-            createNewRole( unum, role_name, type );
-        }
-        else if ( type == Formation::SIDE )
-        {
-            createNewRole( unum, role_name, type );
-        }
-        else
-        {
-            setSymmetryType( unum, symmetry_number, role_name );
-        }
+        createRoleOrSetSymmetry( unum, role_name, symmetry_number );
     }
 
     return true;
@@ -655,7 +797,6 @@ FormationDT::readVertices( std::istream & is )
     return false;
 }
 
-
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -673,35 +814,9 @@ FormationDT::readV2( std::istream & is )
         return false;
     }
 
-    //
-    // read End tag
-    //
-
-    std::string line_buf;
-    while ( std::getline( is, line_buf ) )
+    if ( ! readEndTag( is ) )
     {
-        if ( line_buf.empty()
-             || line_buf[0] == '#'
-             || ! line_buf.compare( 0, 2, "//" ) )
-        {
-            continue;
-        }
-
-        if ( line_buf != "End" )
-        {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " *** ERROR *** readV2(). No end tag "
-                      << std::endl;
-            return false;
-        }
-
-        break;
-    }
-
-    if ( is.eof() )
-    {
-        std::cerr << "Input stream reaches EOF"
-                  << std::endl;
+        return false;
     }
 
     return true;
@@ -715,31 +830,13 @@ FormationDT::readV2( std::istream & is )
 bool
 FormationDT::readRolesV2( std::istream & is )
 {
-    std::string line_buf;
-
     //
     // read Begin tag
     //
 
-    while ( std::getline( is, line_buf ) )
+    if ( ! readBeginRolesTag( is ) )
     {
-        if ( line_buf.empty()
-             || line_buf[0] == '#'
-             || ! line_buf.compare( 0, 2, "//" ) )
-        {
-            continue;
-        }
-
-        if ( line_buf != "Begin Roles" )
-        {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " *** ERROR *** readRolesV2(). Illegal header ["
-                      << line_buf << ']'
-                      << std::endl;
-            return false;
-        }
-
-        break;
+        return false;
     }
 
     //
@@ -748,11 +845,10 @@ FormationDT::readRolesV2( std::istream & is )
 
     for ( int unum = 1; unum <= 11; ++unum )
     {
+        std::string line_buf;
         while ( std::getline( is, line_buf ) )
         {
-            if ( line_buf.empty()
-                 || line_buf[0] == '#'
-                 || ! line_buf.compare( 0, 2, "//" ) )
+            if ( is_comment_line( line_buf ) )
             {
                 continue;
             }
@@ -776,50 +872,15 @@ FormationDT::readRolesV2( std::istream & is )
             return false;
         }
 
-        //
-        // create role or set symmetry.
-        //
-        const Formation::SideType type = ( symmetry_number == 0
-                                           ? Formation::CENTER
-                                           : symmetry_number < 0
-                                           ? Formation::SIDE
-                                           : Formation::SYMMETRY );
-        if ( type == Formation::CENTER )
-        {
-            createNewRole( unum, role_name, type );
-        }
-        else if ( type == Formation::SIDE )
-        {
-            createNewRole( unum, role_name, type );
-        }
-        else
-        {
-            setSymmetryType( unum, symmetry_number, role_name );
-        }
+        createRoleOrSetSymmetry( unum, role_name, symmetry_number );
     }
 
     //
     // read End tag
     //
-
-    while ( std::getline( is, line_buf ) )
+    if ( ! readEndRolesTag( is ) )
     {
-        if ( line_buf.empty()
-             || line_buf[0] == '#'
-             || ! line_buf.compare( 0, 2, "//" ) )
-        {
-            continue;
-        }
-
-        if ( line_buf != "End Roles" )
-        {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " *** ERROR *** readRolesV2(). Failed getline "
-                      << std::endl;
-            return false;
-        }
-
-        break;
+        return false;
     }
 
     return true;
@@ -847,10 +908,100 @@ FormationDT::readVerticesV2( std::istream & is )
 /*!
 
  */
+bool
+FormationDT::readV3( std::istream & is )
+{
+    if ( ! readRolesV3( is ) )
+    {
+        return false;
+    }
+
+    if ( ! readVerticesV2( is ) ) // same as v2 format
+    {
+        return false;
+    }
+
+    if ( ! readEndTag( is ) )
+    {
+        return false;
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationDT::readRolesV3( std::istream & is )
+{
+    //
+    // read Begin tag
+    //
+
+    if ( ! readBeginRolesTag( is ) )
+    {
+        return false;
+    }
+
+
+    //
+    // read role data
+    //
+
+    for ( int unum = 1; unum <= 11; ++unum )
+    {
+        std::string line_buf;
+        while ( std::getline( is, line_buf ) )
+        {
+            if ( is_comment_line( line_buf ) )
+            {
+                continue;
+            }
+            break;
+        }
+
+        int read_unum = 0;
+        char role_name[128];
+        int symmetry_number = 0;
+        char marker[32];
+        char smarker[32];
+
+        if ( std::sscanf( line_buf.c_str(),
+                          " %d %127s %d %31s %31s ",
+                          &read_unum, role_name, &symmetry_number, marker, smarker ) != 5
+             || read_unum != unum )
+        {
+            std::cerr << __FILE__ << ':' << __LINE__ << ':'
+                      << " *** ERROR *** (readRolesV3). Illegal role data "
+                      << " [" << line_buf << "]" << std::endl;
+            return false;
+        }
+
+        createRoleOrSetSymmetry( unum, role_name, symmetry_number );
+        setMarker( unum, marker, smarker );
+    }
+
+    //
+    // read End tag
+    //
+    if ( ! readEndRolesTag( is ) )
+    {
+        return false;
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
 std::ostream &
 FormationDT::printConf( std::ostream & os ) const
 {
-    return printV2( os );
+    return printV3( os );
 }
 
 /*-------------------------------------------------------------------*/
@@ -942,6 +1093,44 @@ std::ostream &
 FormationDT::printDataV2( std::ostream & os ) const
 {
     M_samples->print( os );
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationDT::printV3( std::ostream & os ) const
+{
+    printRolesV3( os );
+    printDataV2( os ); // same as v2
+
+    os << "End" << std::endl;
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationDT::printRolesV3( std::ostream & os ) const
+{
+    os << "Begin Roles\n";
+
+    for ( int unum = 1; unum <= 11; ++unum )
+    {
+        os << unum << ' '
+           << M_role_name[unum - 1] << ' '
+           << M_symmetry_number[unum - 1] << ' '
+           << ( M_marker[unum-1] ? "marker" : "no_marker" ) << ' '
+           << ( M_setplay_marker[unum-1] ? "setplay_marker" : "no_setplay_marker" )
+           << '\n';
+    }
+
+    os << "End Roles\n";
+
     return os;
 }
 

@@ -1,3 +1,13 @@
+2014-07-04  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/formation/formation.cpp:
+	* rcsc/formation/formation.h:
+	* rcsc/formation/formation_dt.cpp:
+	* rcsc/formation/formation_dt.h:
+	- フォーメーション設定ファイルのフォーマットバージョンを更新．バー
+	ジョン３以降は各プレイヤがマーク行動を取るかどうかを指定する情報を
+	追加．現在はFormationDTのみ対応．
+
 2014-04-18  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/action/body_kick_to_relative.cpp:

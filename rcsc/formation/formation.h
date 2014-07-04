@@ -108,6 +108,9 @@ protected:
     */
     int M_symmetry_number[11];
 
+    bool M_marker[11]; //!< switch that indicates marker player or not
+    bool M_setplay_marker[11]; //!< switch that indicates setplay marker player or not
+
     /*!
       \brief training data holder.
      */
@@ -222,7 +225,30 @@ public:
           return M_symmetry_number[unum - 1];
       }
 
+    /*!
+      \brief check whether the target player is marker type or not
+      \param unum target player's uniform number
+      \return true if the player is marker type
+     */
+    bool isMarker( const int unum ) const
+      {
+          if ( unum < 1 || 11 < unum ) return false;
+          return M_marker[unum - 1];
+      }
+
+    /*!
+      \brief check whether the target player is marker type or not
+      \param unum target player's uniform number
+      \return true if the player is marker type
+     */
+    bool isSetPlayMarker( const int unum ) const
+      {
+          if ( unum < 1 || 11 < unum ) return false;
+          return M_setplay_marker[unum - 1];
+      }
+
     //--------------------------------------------------------------
+    // APIs for formation editor
 
     /*!
       \brief set player's role data. if necessary, new parameter is created.
@@ -235,6 +261,16 @@ public:
     bool updateRole( const int unum,
                      const int symmetry_unum,
                      const std::string & role_name );
+
+    /*!
+      \brief set marker switch for each player
+      \param unum target player's uniform number
+      \param marker swtich for play_on period
+      \param setplay_marker swtich for set_play period
+     */
+    bool updateMarker( const int unum,
+                       const bool marker,
+                       const bool setplay_marker );
 
 protected:
 
@@ -280,6 +316,15 @@ protected:
                           const int symmetry_unum,
                           const std::string & role_name );
 
+    /*!
+      \brief set marker type
+      \param unum player's number
+      \param marker "marker" if the target player is marker type
+      \param marker "setplay_marker" if the target player is marker type
+     */
+    void setMarker( const int unum,
+                    const std::string & marker,
+                    const std::string & smarker );
 public:
 
     /*!

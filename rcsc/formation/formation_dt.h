@@ -216,6 +216,37 @@ protected:
 private:
 
     /*!
+      \brief read lines until 'End' tag found.
+      \param is input stream
+      \return parsing result
+     */
+    bool readEndTag( std::istream & is );
+
+    /*!
+      \brief read lines until 'Begin Roles' tag found.
+      \param is input stream
+      \return parsing result
+     */
+    bool readBeginRolesTag( std::istream & is );
+
+    /*!
+      \brief read lines until 'End Roles' tag found.
+      \param is input stream
+      \return parsing result
+     */
+    bool readEndRolesTag( std::istream & is );
+
+    /*!
+      \brief create role or set symmetry
+      \param unum player's uniform number
+      \param role_name role name
+      \param symmetry_number {0,1,-1}
+    */
+    void createRoleOrSetSymmetry( const int unum,
+                                  const std::string & role_name,
+                                  const int symmetry_number );
+
+    /*!
       \brief read v1 format data.
       \param is reference to the input stream
       \return parsing result.
@@ -236,16 +267,15 @@ private:
     */
     bool readVertices( std::istream & is );
 
-
     /*!
-      \brief read v1 format data.
+      \brief read v2 format data.
       \param is reference to the input stream
       \return parsing result.
     */
     bool readV2( std::istream & is );
 
     /*!
-      \brief (v2 format) restore role assignment from the input stream
+      \brief (v2 format) role assignment from the input stream
       \param is reference to the input stream
       \return parsing result
     */
@@ -259,13 +289,18 @@ private:
     bool readVerticesV2( std::istream & is );
 
     /*!
-      \brief (v2 format) restore one vertex data from the input stream.
-      \param is reference to the input stream.
-      \param data_index index number of this data.
+      \brief read v3 format data.
+      \param is reference to the input stream
+      \return parsing result.
+     */
+    bool readV3( std::istream & is );
+
+    /*!
+      \brief (v3 format) role assignment from the input stream
+      \param is reference to the input stream
       \return parsing result
     */
-    bool readOneDataV2( std::istream & is,
-                        const int data_index );
+    bool readRolesV3( std::istream & is );
 
     /*!
       \brief (v1 format) print all data to the output stream
@@ -294,6 +329,20 @@ private:
       \return reference to the output stream
      */
     std::ostream & printDataV2( std::ostream & os ) const;
+
+    /*!
+      \brief (v3 format) print all data to the output stream
+      \param os output stream
+      \return output stream
+     */
+    std::ostream & printV3( std::ostream & os ) const;
+
+    /*!
+      \brief (v3 format) print role data to the output stream
+      \param os output stream
+      \return output stream
+     */
+    std::ostream & printRolesV3( std::ostream & os ) const;
 };
 
 }

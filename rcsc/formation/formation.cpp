@@ -129,6 +129,8 @@ Formation::Formation()
     for ( int i = 0; i < 11; ++i )
     {
         M_symmetry_number[i] = -1;
+        M_marker[i] = false;
+        M_setplay_marker[i] = false;
     }
 }
 
@@ -249,6 +251,27 @@ Formation::setSymmetryType( const int unum,
 /*!
 
  */
+void
+Formation::setMarker( const int unum,
+                      const std::string & marker,
+                      const std::string & smarker )
+{
+    if ( unum < 1 || 11 < unum )
+    {
+        std::cerr << __FILE__ << ":" << __LINE__
+                  << " *** ERROR *** (setMarker) illegal unum " << unum
+                  << std::endl;
+        return;
+    }
+
+    M_marker[unum - 1] = ( marker == "marker" );
+    M_setplay_marker[unum - 1] = ( smarker == "setplay_marker" );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
 bool
 Formation::updateRole( const int unum,
                        const int symmetry_unum,
@@ -300,6 +323,31 @@ Formation::updateRole( const int unum,
          && getRoleName( unum ) != role_name )
     {
         setRoleName( unum, role_name );
+        return true;
+    }
+
+    return false;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+Formation::updateMarker( const int unum,
+                         const bool marker,
+                         const bool setplay_marker )
+{
+    if ( unum < 1 || 11 < unum )
+    {
+        return false;
+    }
+
+    if ( M_marker[unum-1] != marker
+         || M_setplay_marker[unum-1] != setplay_marker )
+    {
+        M_marker[unum-1] = marker;
+        M_setplay_marker[unum-1] = setplay_marker;
         return true;
     }
 
