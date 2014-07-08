@@ -1,3 +1,11 @@
+2014-07-08  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/formation/formation.cpp:
+	* rcsc/formation/formation.h:
+	* rcsc/formation/formation_dt.cpp:
+	- フォーメーション設定ファイルのフォーマットを変更．バー
+	ジョン３以降に役割タイプ情報を追加．現在はFormationDTのみ対応．
+
 2014-07-04  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/formation/formation.cpp:

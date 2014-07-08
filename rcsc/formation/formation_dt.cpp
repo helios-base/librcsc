@@ -705,7 +705,7 @@ FormationDT::readRoles( std::istream & is )
     if ( ! std::getline( is, line_buf ) )
     {
         std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                  << " *** ERROR *** readRoles(). Failed getline "
+                  << " *** ERROR *** (readRoles) Failed getline "
                   << std::endl;
         return false;
     }
@@ -722,7 +722,7 @@ FormationDT::readRoles( std::istream & is )
                           role_name, &symmetry_number, &n_read ) != 2 )
         {
             std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " *** ERROR *** readRoles(). Failed to read player "
+                      << " *** ERROR *** (readRoles) Failed to read player "
                       << unum
                       << std::endl;
             return false;
@@ -865,7 +865,7 @@ FormationDT::readRolesV2( std::istream & is )
              || read_unum != unum )
         {
             std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " *** ERROR *** readRolesV2(). Illegal role data. num="
+                      << " *** ERROR *** (readRolesV2) Illegal role data. num="
                       << unum
                       << " [" << line_buf << "]"
                       << std::endl;
@@ -965,12 +965,13 @@ FormationDT::readRolesV3( std::istream & is )
         int read_unum = 0;
         char role_name[128];
         int symmetry_number = 0;
+        char role_type[4];
         char marker[32];
         char smarker[32];
 
         if ( std::sscanf( line_buf.c_str(),
-                          " %d %127s %d %31s %31s ",
-                          &read_unum, role_name, &symmetry_number, marker, smarker ) != 5
+                          " %d %3s %127s %d %31s %31s ",
+                          &read_unum, role_type, role_name, &symmetry_number, marker, smarker ) != 6
              || read_unum != unum )
         {
             std::cerr << __FILE__ << ':' << __LINE__ << ':'
@@ -980,6 +981,7 @@ FormationDT::readRolesV3( std::istream & is )
         }
 
         createRoleOrSetSymmetry( unum, role_name, symmetry_number );
+        setRoleType( unum, role_type );
         setMarker( unum, marker, smarker );
     }
 
@@ -1119,13 +1121,20 @@ FormationDT::printRolesV3( std::ostream & os ) const
 {
     os << "Begin Roles\n";
 
+    os << "# unum  type  name  reference_unum  marker setplay_marker\n";
+
     for ( int unum = 1; unum <= 11; ++unum )
     {
         os << unum << ' '
+           << ( M_role_type[unum - 1] == Goalie ? "G  "
+                : M_role_type[unum - 1] == Defender ? "DF "
+                : M_role_type[unum - 1] == MidFielder ? "MF "
+                : M_role_type[unum - 1] == Forward ? "FW "
+                : "U  " )
            << M_role_name[unum - 1] << ' '
            << M_symmetry_number[unum - 1] << ' '
-           << ( M_marker[unum-1] ? "marker" : "no_marker" ) << ' '
-           << ( M_setplay_marker[unum-1] ? "setplay_marker" : "no_setplay_marker" )
+           << ( M_marker[unum-1] ? "marker" : "x" ) << ' '
+           << ( M_setplay_marker[unum-1] ? "setplay_marker" : "x" )
            << '\n';
     }
 

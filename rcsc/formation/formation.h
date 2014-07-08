@@ -57,6 +57,17 @@ public:
     typedef Ptr (*Creator)(); //!< creator function
     typedef rcss::Factory< Creator, std::string > Creators; //!< creator function holder
 
+    /*!
+      \enum RoleType
+      \brief role types
+     */
+    enum RoleType {
+        Goalie,
+        Defender,
+        MidFielder,
+        Forward,
+        Unknown_Role,
+    };
 
     /*!
       \enum SideType
@@ -98,6 +109,8 @@ protected:
       \brief data format version.
      */
     int M_version;
+
+    RoleType M_role_type[11];
 
     /*!
       \brief symmetry number holder.
@@ -180,6 +193,21 @@ public:
           M_samples = samples;
       }
 
+    //
+    //
+    //
+
+    /*!
+      \brief get role type value
+      \param unum target player's uniform number
+      return role type
+     */
+    RoleType roleType( const int unum ) const
+      {
+          if ( unum < 1 || 11 < unum ) return Unknown_Role;
+          return M_role_type[unum-1];
+      }
+
     /*!
       \brief check if player is SIDE type or not
       \param unum player's number
@@ -256,17 +284,27 @@ public:
       \param symmetry_unum 0 means type is CENTER, <0 means type is SIDE,
       >0 means type is SYMMETRY
       \param role_name new role name string
-      \return result of the registration
+      \return true if successfully updated
     */
     bool updateRole( const int unum,
                      const int symmetry_unum,
                      const std::string & role_name );
 
     /*!
+      \brief set player's role type
+      \param unum player's uniform number
+      \param type role type
+      \return true if successfully updated
+    */
+    bool updateRoleType( const int unum,
+                         const RoleType type );
+
+    /*!
       \brief set marker switch for each player
       \param unum target player's uniform number
       \param marker swtich for play_on period
       \param setplay_marker swtich for set_play period
+      \return true if successfully updated
      */
     bool updateMarker( const int unum,
                        const bool marker,
@@ -294,6 +332,13 @@ protected:
     void setRoleName( const int unum,
                       const std::string & name ) = 0;
 
+    /*!
+      \brief set role type to the target player
+      \param unum player's uniform number
+      \param type role type string: "G", "DF", "MF" or "FW"
+    */
+    void setRoleType( const int unum,
+                      const std::string & role_type );
 
     /*!
       \brief set the specified player to the CENTER type

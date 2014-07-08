@@ -128,12 +128,40 @@ Formation::Formation()
 {
     for ( int i = 0; i < 11; ++i )
     {
+        M_role_type[i] = Unknown_Role;
         M_symmetry_number[i] = -1;
         M_marker[i] = false;
         M_setplay_marker[i] = false;
     }
 }
 
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+Formation::setRoleType( const int unum,
+                        const std::string & role_type )
+{
+    if ( unum < 1 || 11 < unum )
+    {
+        std::cerr << __FILE__ << ":" << __LINE__
+                  << " *** ERROR *** invalid unum " << unum
+                  << std::endl;
+        return;
+    }
+
+    if ( role_type == "G" ) M_role_type[unum - 1] = Goalie;
+    else if ( role_type == "DF" ) M_role_type[unum - 1] = Defender;
+    else if ( role_type == "MF" ) M_role_type[unum - 1] = MidFielder;
+    else if ( role_type == "FW" ) M_role_type[unum - 1] = Forward;
+    else
+    {
+        std::cerr << __FILE__ << " (setRoleType)"
+                  << " *** ERROR *** unknown role type [" << role_type << "]"
+                  << std::endl;
+    }
+}
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -323,6 +351,28 @@ Formation::updateRole( const int unum,
          && getRoleName( unum ) != role_name )
     {
         setRoleName( unum, role_name );
+        return true;
+    }
+
+    return false;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+Formation::updateRoleType( const int unum,
+                           const RoleType type )
+{
+    if ( unum < 1 || 11 < unum )
+    {
+        return false;
+    }
+
+    if ( M_role_type[unum-1] != type )
+    {
+        M_role_type[unum-1] = type;
         return true;
     }
 
