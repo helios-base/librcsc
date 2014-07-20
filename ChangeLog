@@ -1,3 +1,8 @@
+2014-07-20  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* configure.ac:
+	- バージョン番号を更新(rc2014)
+
 2014-07-08  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/formation/formation.cpp:
