@@ -78,6 +78,9 @@ private:
     std::string M_our_team_name; //!< our team name
     std::string M_their_team_name; //!< opponent teamname string
 
+    GameTime M_last_set_play_start_time; //!< SetPlay started time
+    int M_setplay_count; //!< setplay counter
+
     //! last updated playmode
     GameMode M_game_mode;
 
@@ -418,6 +421,18 @@ public:
       {
           return M_see_time;
       }
+
+    /*!
+      \brief get last setplay type playmode start time
+      \return const reference to the game time object
+    */
+    const GameTime & lastSetPlayStartTime() const { return M_last_set_play_start_time; }
+
+    /*!
+      \brief get cycle count that setplay type playmode is keeped
+      \return counted long integer
+    */
+    int getSetPlayCount() const { return M_setplay_count; }
 
     /*!
       \brief get latest playmode info

@@ -63,6 +63,9 @@ CoachWorldModel::CoachWorldModel()
       M_time( -1, 0 ),
       M_see_time( -1, 0 ),
       M_our_side( NEUTRAL ),
+      M_last_set_play_start_time( 0, 0 ),
+      M_setplay_count( 0 ),
+      M_game_mode(),
       M_training_time( -1, 0 ),
       M_audio_memory( new AudioMemory() ),
       M_current_state( new CoachWorldState() ),
@@ -356,7 +359,27 @@ void
 CoachWorldModel::updateGameMode( const GameMode & game_mode,
                                  const GameTime & current )
 {
-    if ( M_game_mode.type() != GameMode::PlayOn
+    bool pk_mode = game_mode.isPenaltyKickMode();
+
+    if ( ! pk_mode
+         && game_mode.type() != GameMode::PlayOn )
+    {
+        if ( gameMode().type() != game_mode.type() )
+        {
+            M_last_set_play_start_time = current;
+            M_setplay_count = 0;
+        }
+
+        // check human referee's interaction
+        if ( gameMode().type() == game_mode.type()
+             && game_mode.type() == GameMode::FreeKick_ )
+        {
+            M_last_set_play_start_time = current;
+            M_setplay_count = 0;
+        }
+    }
+
+    if ( gameMode().type() != GameMode::PlayOn
          && game_mode.type() == GameMode::PlayOn )
     {
         M_last_playon_start = current.cycle();
@@ -423,6 +446,8 @@ void
 CoachWorldModel::updateJustBeforeDecision( const GameTime & current )
 {
     M_time = current;
+
+    ++M_setplay_count;
 
     updateCLangCapacity();
 
