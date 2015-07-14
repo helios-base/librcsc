@@ -4630,12 +4630,6 @@ WorldModel::updateTheirOffenseLine()
 void
 WorldModel::updateTheirDefenseLine()
 {
-    // const double speed_rate
-    //     = ( ball().vel().x < -0.1
-    //         ? ServerParam::i().defaultPlayerSpeedMax() * 0.8
-    //         : ServerParam::i().defaultPlayerSpeedMax() * 0.5 );
-
-    //////////////////////////////////////////////////////////////////
     double first = 0.0, second = 0.0;
     int first_count = 1000, second_count = 1000;
 
@@ -4647,38 +4641,23 @@ WorldModel::updateTheirDefenseLine()
           it != end;
           ++it )
     {
-        double x = (*it)->pos().x + (*it)->vel().x;
-#if 1
-        // 2012-06-21
-        double rate = ( ball().vel().x < 0.0
-                        ? 0.8
-                        : 0.5 );
-        x -= ( (*it)->playerTypePtr()->realSpeedMax() * rate ) * std::min( 5, (*it)->posCount() );
+        // 2015-07-14
+        const PlayerType * ptype = (*it)->playerTypePtr();
+        double x = (*it)->pos().x;
+        if ( (*it)->vel().r() > ptype->realSpeedMax() * ptype->playerDecay() * 0.8 )
+        {
+            x += ( (*it)->vel().x / ptype->playerDecay() ) * std::min( 3, (*it)->posCount() + 1 );
+        }
+        else
+        {
+            x += (*it)->vel().x;
+        }
         // dlog.addText( Logger::WORLD,
         //               __FILE__" (updateTheirDefenseLine) opponent[%d](%.2f %.2f) count=%d x=%.2f",
         //               (*it)->unum(),
         //               (*it)->pos().x, (*it)->pos().y,
         //               (*it)->posCount(),
         //               x );
-#else
-#if 1
-        // 2008-04-29 akiyama
-        if ( (*it)->velCount() <= 1
-             && (*it)->vel().x > 0.0 )
-        {
-            x += std::min( 0.8, (*it)->vel().x / (*it)->playerTypePtr()->playerDecay() );
-        }
-        else if ( (*it)->bodyCount() <= 3
-                  && (*it)->body().abs() < 100.0 )
-        {
-            x -= speed_rate * std::min( 10.0, (*it)->posCount() - 1.5 );
-        }
-        else
-#endif
-        {
-            x -= speed_rate * std::min( 10, (*it)->posCount() );
-        }
-#endif
 
         if ( x > second )
         {
