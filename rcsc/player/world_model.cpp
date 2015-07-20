@@ -4644,20 +4644,20 @@ WorldModel::updateTheirDefenseLine()
         // 2015-07-14
         const PlayerType * ptype = (*it)->playerTypePtr();
         double x = (*it)->pos().x;
-        if ( (*it)->vel().r() > ptype->realSpeedMax() * ptype->playerDecay() * 0.8 )
+        double adjust = 0.0;
+        if ( x > ball().pos().x + 3.0 )
         {
-            x += ( (*it)->vel().x / ptype->playerDecay() ) * std::min( 3, (*it)->posCount() + 1 );
+            double rate = 0.4;
+            if ( (*it)->vel().x < -ptype->realSpeedMax()*ptype->playerDecay() * 0.8 )
+            {
+                rate = 0.8;
+            }
+            adjust = rate * ptype->realSpeedMax() * std::min( 5, (*it)->posCount() );
         }
-        else
-        {
-            x += (*it)->vel().x;
-        }
-        // dlog.addText( Logger::WORLD,
-        //               __FILE__" (updateTheirDefenseLine) opponent[%d](%.2f %.2f) count=%d x=%.2f",
-        //               (*it)->unum(),
-        //               (*it)->pos().x, (*it)->pos().y,
-        //               (*it)->posCount(),
-        //               x );
+        dlog.addText( Logger::WORLD,
+                      "(updateTheirDefenseLine) %d x=%.1f adjust=%.1f",
+                      (*it)->unum(), x, adjust );
+        x -= adjust;
 
         if ( x > second )
         {
@@ -4676,6 +4676,9 @@ WorldModel::updateTheirDefenseLine()
     double new_line = second;
     int count = second_count;
 
+    // dlog.addText( Logger::WORLD,
+    //               "(updateTheirDefenseLine) new_line=%.1f", new_line );
+
     const AbstractPlayerObject * goalie = getTheirGoalie();
     if ( ! goalie )
     {
@@ -4684,11 +4687,9 @@ WorldModel::updateTheirDefenseLine()
         {
             if ( first < ServerParam::i().theirPenaltyAreaLineX() )
             {
-#ifdef DEBUG_PRINT
-                dlog.addText( Logger::WORLD,
-                              __FILE__" (updateTheirDefenseLine) no goalie. %.1f -> %.1f",
-                              second, first );
-#endif
+                // dlog.addText( Logger::WORLD,
+                //               "(updateTheirDefenseLine) no goalie. %.1f -> %.1f",
+                //               second, first );
                 new_line = first;
                 count = 30;
             }

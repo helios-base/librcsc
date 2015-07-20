@@ -1,3 +1,8 @@
+2015-07-20  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/world_model.cpp:
+	- 敵ディフェンスライン（＝オフサイドライン）の推定方法を調整
+
 2015-07-14  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/world_model.cpp:
