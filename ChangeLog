@@ -1,3 +1,9 @@
+2015-07-21  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/world_model.cpp:
+	- 敵ディフェンスライン（＝オフサイドライン）の推定方法を調整．スピー
+	ドにかける割合を0.4から0.1へ，最大ステップ数を5から3に変更
+
 2015-07-20  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/world_model.cpp:

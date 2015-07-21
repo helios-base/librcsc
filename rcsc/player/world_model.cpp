@@ -4647,16 +4647,19 @@ WorldModel::updateTheirDefenseLine()
         double adjust = 0.0;
         if ( x > ball().pos().x + 3.0 )
         {
-            double rate = 0.4;
+            double rate = 0.1;
             if ( (*it)->vel().x < -ptype->realSpeedMax()*ptype->playerDecay() * 0.8 )
             {
                 rate = 0.8;
             }
-            adjust = rate * ptype->realSpeedMax() * std::min( 5, (*it)->posCount() );
+            // dlog.addText( Logger::WORLD,
+            //               "(updateTheirDefenseLine) %d rate=%.1f",
+            //               (*it)->unum(), rate );
+            adjust = rate * ptype->realSpeedMax() * std::min( 3, (*it)->posCount() );
         }
-        dlog.addText( Logger::WORLD,
-                      "(updateTheirDefenseLine) %d x=%.1f adjust=%.1f",
-                      (*it)->unum(), x, adjust );
+        // dlog.addText( Logger::WORLD,
+        //               "(updateTheirDefenseLine) %d x=%.1f adjust=%.1f",
+        //               (*it)->unum(), x, adjust );
         x -= adjust;
 
         if ( x > second )
