@@ -34,7 +34,6 @@
 #endif
 
 #include "intercept_table.h"
-#include "self_intercept_v13.h"
 #include "self_intercept_simulator.h"
 #include "player_intercept.h"
 #include "world_model.h"
@@ -394,13 +393,12 @@ InterceptTable::predictSelf()
     }
 
     int max_step = std::min( MAX_STEP, static_cast< int >( M_ball_cache.size() ) );
-#if 0
-    SelfInterceptV13 predictor( M_world );
-    predictor.predict( max_step, M_self_cache );
-#else
+
+    // SelfInterceptV13 predictor( M_world );
+    // predictor.predict( max_step, M_self_cache );
     SelfInterceptSimulator sim;
     sim.simulate( M_world, max_step, M_self_cache );
-#endif
+
     if ( M_self_cache.empty() )
     {
         std::cerr << M_world.self().unum() << ' '

@@ -75,13 +75,19 @@ public:
 private:
     StaminaType M_stamina_type; //!< stamina type
     ActionType M_action_type; //!< action type
+
     int M_turn_step; //!< estimated turn step
+    double M_turn_angle; //!< angle difference between current body angle and dash angle
+
     int M_dash_step; //!< estimated dash step
     double M_dash_power; //!< first dash power
     double M_dash_dir; //!< first dash direction (relative to body)
+
     Vector2D M_self_pos; //!< estimated final self position
     double M_ball_dist; //!< estimated final ball distance
     double M_stamina; //!< estimated final stamina value
+
+    double M_value; //!< evaluation value
 
 public:
 
@@ -92,12 +98,14 @@ public:
         : M_stamina_type( EXHAUST ),
           M_action_type( UNKNOWN_TYPE ),
           M_turn_step( 10000 ),
+          M_turn_angle( 0.0 ),
           M_dash_step( 10000 ),
           M_dash_power( 100000.0 ),
           M_dash_dir( 0.0 ),
           M_self_pos( -10000.0, 0.0 ),
           M_ball_dist( 10000000.0 ),
-          M_stamina( 0.0 )
+          M_stamina( 0.0 ),
+          M_value( 0.0 )
       { }
 
     /*!
@@ -106,6 +114,7 @@ public:
     InterceptInfo( const StaminaType stamina_type,
                    const ActionType action_type,
                    const int turn_step,
+                   const double turn_angle,
                    const int dash_step,
                    const double dash_power,
                    const double dash_dir,
@@ -115,12 +124,14 @@ public:
         : M_stamina_type( stamina_type ),
           M_action_type( action_type ),
           M_turn_step( turn_step ),
+          M_turn_angle( turn_angle ),
           M_dash_step( dash_step ),
           M_dash_power( dash_power ),
           M_dash_dir( dash_dir ),
           M_self_pos( self_pos ),
           M_ball_dist( ball_dist ),
-          M_stamina( stamina )
+          M_stamina( stamina ),
+          M_value( 0.0 )
       { }
 
     /*!

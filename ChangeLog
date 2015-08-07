@@ -1,5 +1,10 @@
 2015-08-07  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* rcsc/player/intercept_table.cpp:
+	* rcsc/player/intercept_table.h:
+	* rcsc/player/self_intercept_simulator.cpp:
+	- InterceptInfoの要素として回転角と評価値を追加
+
 	* rcsc/player/Makefile.am:
 	- self_intercept_v13.{h,cpp}をビルドターゲットから削除
 
