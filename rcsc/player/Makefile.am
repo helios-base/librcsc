@@ -22,7 +22,6 @@ librcsc_player_la_SOURCES = \
 	player_state.cpp \
 	say_message_builder.cpp \
 	see_state.cpp \
-	self_intercept_v13.cpp \
 	self_intercept_simulator.cpp \
 	self_object.cpp \
 	soccer_action.cpp \
@@ -60,7 +59,6 @@ librcsc_playerinclude_HEADERS = \
 	player_state.h \
 	say_message_builder.h \
 	see_state.h \
-	self_intercept_v13.h \
 	self_intercept_simulator.h \
 	self_object.h \
 	soccer_action.h \
