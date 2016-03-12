@@ -169,6 +169,12 @@ public:
     int turnStep() const { return M_turn_step; }
 
     /*!
+      \brief get the estimated turn angle
+      \return turn angle value
+     */
+    double turnAngle() const { return M_turn_angle; }
+
+    /*!
       \brief get estimated total dash cycles
       \return the number of dash steps
     */

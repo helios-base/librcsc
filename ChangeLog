@@ -1,3 +1,10 @@
+2016-03-12  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/intercept_table.h:
+	* rcsc/player/self_intercept_simulator.cpp:
+	- InterceptInfoのコンストラクタ引数の誤りを修正
+	- InterceptInfo::turnAngle()を追加
+
 2015-08-07  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/intercept_table.cpp:

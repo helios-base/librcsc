@@ -327,8 +327,8 @@ SelfInterceptSimulator::simulateNoDash( const WorldModel & wm,
 
         self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
                                              InterceptInfo::TURN_FORWARD_DASH,
-                                             1, 0, // 1 turn, 0 dash
-                                             0.0, 0.0, 0.0,
+                                             1, 0.0, // 1 turn, but 0 moment
+                                             0, 0.0, 0.0, // 0 dash
                                              self_next,
                                              ball_next_dist,
                                              stamina_model.stamina() ) );
@@ -368,8 +368,8 @@ SelfInterceptSimulator::simulateNoDash( const WorldModel & wm,
 
     self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
                                          InterceptInfo::TURN_FORWARD_DASH,
-                                         0, 1, // 0 turn, 1 dash
-                                         0.0, 0.0, 0.0, // turn=0, power=0, dir=0
+                                         0, 0.0,  // 0 turn
+                                         1, 0.0, 0.0, // 1 dash, 0 power
                                          self_next,
                                          ball_next_dist,
                                          stamina_model.stamina() ) );
@@ -1087,7 +1087,7 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
                               ( back_dash
                                 ? InterceptInfo::TURN_BACK_DASH
                                 : InterceptInfo::TURN_FORWARD_DASH ),
-                              n_turn, ( dash_angle - body_angle ).degree(),
+                              n_turn, ( body_angle - wm.self().body() ).degree(),
                               max_dash_step, first_dash_power, 0.0,
                               wm.self().pos() + self_pos.rotatedVector( body_angle ),
                               self_pos.dist( ball_rel ),
