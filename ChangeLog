@@ -1,3 +1,13 @@
+2016-04-22  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/ann/sirm.cpp:
+	* rcsc/ann/sirm.h:
+	* rcsc/ann/sirms_model.cpp:
+	* rcsc/ann/sirms_model.h:
+	* rcsc/ann/Makefile.am:
+	- SIRMsをライブラリとして追加
+	- librcsc_annのライブラリバージョンを更新
+
 2016-03-12  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/intercept_table.h:
