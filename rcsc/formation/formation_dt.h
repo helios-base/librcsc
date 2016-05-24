@@ -89,11 +89,19 @@ public:
       }
 
     /*!
+      \brief get the sample data array
+      \return sample data array
+     */
+    const std::vector< formation::SampleData > & sampleVector() const
+      {
+          return M_sample_vector;
+      }
+
+    /*!
       \brief get the delaunay triangulation
       \return const reference to the triangulation instance
      */
-    const
-    DelaunayTriangulation & triangulation() const
+    const DelaunayTriangulation & triangulation() const
       {
           return M_triangulation;
       }
