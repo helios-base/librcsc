@@ -521,7 +521,7 @@ SampleDataSet::replaceSymmetryData( const Formation & formation,
     }
 
     std::cerr << "Replaced symmetry data at index="
-              << std::distance( M_data_cont.begin(), replaced ) + 1
+              << std::distance( M_data_cont.begin(), replaced )
               << std::endl;
 
     return NO_ERROR;
