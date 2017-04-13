@@ -1,3 +1,8 @@
+2017-04-13  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/world_model.cpp:
+	- 範囲外アクセスを修正
+
 2016-05-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/formation/sample_data.cpp:

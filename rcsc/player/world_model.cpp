@@ -563,7 +563,7 @@ WorldModel::setAudioMemory( boost::shared_ptr< AudioMemory > memory )
 void
 WorldModel::setServerParam()
 {
-    for ( int i = 0; i < 12; ++i )
+    for ( int i = 0; i < 11; ++i )
     {
         M_our_stamina_capacity[i] = ServerParam::i().staminaCapacity();
     }
