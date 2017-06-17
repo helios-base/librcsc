@@ -170,6 +170,7 @@ PlayerConfig::setDefaultParam()
     M_debug_communication = false;
     M_debug_analyzer = false;
     M_debug_action_chain = false;
+    M_debug_training = false;
 }
 
 /*-------------------------------------------------------------------*/
@@ -259,6 +260,7 @@ PlayerConfig::createParamMap()
         ( "debug_communication", "", BoolSwitch( &M_debug_communication ) )
         ( "debug_analyzer", "", BoolSwitch( &M_debug_analyzer ) )
         ( "debug_action_chain", "", BoolSwitch( &M_debug_action_chain ) )
+        ( "debug_training", "", BoolSwitch( &M_debug_training ) )
         ;
 }
 

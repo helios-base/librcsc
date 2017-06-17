@@ -1,3 +1,12 @@
+2017-06-17  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/common/logger.h:
+	* rcsc/player/player_agent.cpp:
+	* rcsc/player/player_config.cpp:
+	* rcsc/player/player_config.h:
+	- Logger::TRAININGを追加．デバッグログファイルに訓練データを書き込
+	む場合の利用を想定
+
 2017-04-13  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/world_model.cpp:

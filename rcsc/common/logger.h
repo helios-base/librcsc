@@ -141,6 +141,8 @@ public:
     static const boost::int32_t ACTION_CHAIN = ACT_SEQ; //!< log level definition alias
     static const boost::int32_t PLAN      = LEVEL_21; //!< log level definition alias
 
+    static const boost::int32_t TRAINING  = LEVEL_32; //!< log level definition alias
+
     static const boost::int32_t LEVEL_ANY = 0xffffffff; //!< log level definition variable
 
 private:

@@ -161,6 +161,8 @@ private:
     bool M_debug_analyzer; //!< debug level flag
     bool M_debug_action_chain; //!< debug level flag
 
+    bool M_debug_training; //!< debug level flag
+
 public:
 
     /*!
@@ -593,6 +595,12 @@ public:
       \return debug flag
      */
     bool debugActionChain() const { return M_debug_action_chain; }
+
+    /*!
+      \brief get the debug flag
+      \return debug flag
+     */
+    bool debugTraining() const { return M_debug_training; }
 };
 
 }

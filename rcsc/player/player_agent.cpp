@@ -1401,6 +1401,8 @@ PlayerAgent::Impl::setDebugFlags()
     dlog.setLogFlag( &current_time_, Logger::COMMUNICATION, c.debugCommunication() );
     dlog.setLogFlag( &current_time_, Logger::ANALYZER, c.debugAnalyzer() );
     dlog.setLogFlag( &current_time_, Logger::ACTION_CHAIN, c.debugActionChain() );
+
+    dlog.setLogFlag( &current_time_, Logger::TRAINING, c.debugTraining() );
 }
 
 /*-------------------------------------------------------------------*/
