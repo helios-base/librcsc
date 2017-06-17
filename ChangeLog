@@ -7,6 +7,11 @@
 	- Logger::TRAININGを追加．デバッグログファイルに訓練データを書き込
 	む場合の利用を想定
 
+2017-06-14  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/formation/sample_data.cpp:
+	- データ追加確認用メッセージをコメントアウト
+
 2017-04-13  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/world_model.cpp:

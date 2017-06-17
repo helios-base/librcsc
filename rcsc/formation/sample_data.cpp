@@ -284,8 +284,8 @@ SampleDataSet::addData( const Formation & formation,
     //
     M_data_cont.push_back( data );
 
-    std::cerr << "Added data. current data size = " << M_data_cont.size()
-              << std::endl;
+    // std::cerr << "Added data. current data size = " << M_data_cont.size()
+    //           << std::endl;
 
     //
     // add symmetry data
