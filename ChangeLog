@@ -1,3 +1,9 @@
+2017-07-12  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/geom/vector_2d.h:
+	- dist(),dist2()のバリエーションを追加
+	- 距離比較用ファンクタとしてDistCmpを追加
+
 2017-06-17  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/common/logger.h:
