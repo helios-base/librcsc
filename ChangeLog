@@ -1,5 +1,8 @@
 2017-07-12  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
+	* configure.ac:
+	- バージョン番号文字列を更新
+
 	* rcsc/geom/vector_2d.h:
 	- dist(),dist2()のバリエーションを追加
 	- 距離比較用ファンクタとしてDistCmpを追加
