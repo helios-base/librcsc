@@ -677,6 +677,27 @@ BallObject::updateByHear( const ActionEffector & act,
         }
         return;
     }
+
+#if 1
+    // 2017-07-18
+    if ( posCount() > 0
+         && distFromSelf() > ServerParam::i().visibleDistance() // NOTE: previous cycle info
+         && sender_to_ball_dist < ServerParam::i().visibleDistance() - 1.0 )
+    {
+#ifdef DEBUG_PRINT
+        dlog.addText( Logger::WORLD,
+                      __FILE__" (updateByHear) teammate near to the ball." );
+#endif
+        M_pos = heard_pos;
+        M_pos_count = 1;
+        if ( heard_vel.isValid() )
+        {
+            M_vel = heard_vel;
+            M_vel_count = 1;
+        }
+        return;
+    }
+#endif
 }
 
 /*-------------------------------------------------------------------*/
