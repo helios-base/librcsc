@@ -365,6 +365,33 @@ public:
       }
 
     /*!
+      \brief get the squared distance from this to (xx,yy).
+      \param xx x coordinate of the target point
+      \param yy y coordinate of the target point
+      \return squared distance to (xx,yy)
+    */
+    double dist2( const double xx,
+                  const double yy ) const
+      {
+          return ( std::pow( this->x - xx, 2 )
+                   + std::pow( this->y - yy, 2 ) );
+      }
+
+    /*!
+      \brief get the distance from this to (xx, yy).
+      \param xx x coordinate of the target point
+      \param yy y coordinate of the target point
+      \return distance to (xx, yy)
+    */
+    double dist( const double xx,
+                 const double yy ) const
+      {
+          //return std::hypot( this->x - xx,
+          //                   this->y - yy );
+          return std::sqrt( dist2( xx, yy ) );
+      }
+
+    /*!
       \brief reverse vector components
       \return *this.
     */
@@ -776,6 +803,45 @@ public:
                                 const second_argument_type & rhs ) const
           {
               return lhs.equals( rhs );
+          }
+    };
+
+    /*!
+      \struct DistCmp
+      \brief function object for sorting by distance
+     */
+    struct DistCmp {
+    private:
+        double x_; //!< x coordinate of the target point
+        double y_; //!< x coordinate of the target point
+        DistCmp(); // not used
+    public:
+        /*!
+          \brief constructor with given point
+          \param p target point
+         */
+        DistCmp( const Vector2D & p )
+            : x_( p.x ), y_( p.y )
+          { }
+                /*!
+          \brief constructor with given point
+          \param xx x coordinate of target point
+          \param yy y coordinate of target point
+         */
+        DistCmp( const double xx,
+                 const double yy )
+            : x_( xx ), y_( yy )
+          { }
+        /*!
+          \brief function operator
+          \param lhs left hand side argument
+          \param rhs right hand side argument
+          \return compared result
+         */
+        bool operator()( const Vector2D & lhs,
+                         const Vector2D & rhs ) const
+          {
+              return lhs.dist2( x_, y_ ) < rhs.dist2( x_, y_ );
           }
     };
 
