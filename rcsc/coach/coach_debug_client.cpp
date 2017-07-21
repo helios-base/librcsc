@@ -168,7 +168,7 @@ public:
     void operator()( const CoachPlayerObject * p )
       {
           M_os << " (";
-          M_os << M_tag << ' ' << p->unum();
+          M_os << M_tag << ' ' << p->unum() << ' ' << p->type();
 
           M_os << ' ' << ROUND( p->pos().x, 0.01 )
                << ' ' << ROUND( p->pos().y, 0.01 );
