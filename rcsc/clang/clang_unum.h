@@ -52,6 +52,8 @@ public:
     //! set container type
     typedef std::set< int > Set;
 
+    static const int All = 0;
+
 private:
 
     //! uniform number set
@@ -113,7 +115,7 @@ public:
      */
     bool isAll() const
       {
-          return M_entries.find( 0 ) != M_entries.end();
+          return M_entries.find( All ) != M_entries.end();
       }
 
     /*!
