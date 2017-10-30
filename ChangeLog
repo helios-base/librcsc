@@ -1,3 +1,8 @@
+2017-10-30  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/coach/player_type_analyzer.cpp:
+	- ヘテロ分析のバグ修正
+
 2017-07-22  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/clang/clang_unum.h:

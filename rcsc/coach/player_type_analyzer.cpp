@@ -756,7 +756,7 @@ PlayerTypeAnalyzer::checkKick()
     const double rand_max = M_prev_ball.vel().r() * ServerParam::i().ballRand();
 
     if ( std::fabs( M_world.ball().pos().x - new_ball_pos.x ) > rand_max
-         || std::fabs( M_world.ball().pos().x - new_ball_pos.x ) > rand_max )
+         || std::fabs( M_world.ball().pos().y - new_ball_pos.y ) > rand_max )
     {
         ball_kicked = true;
 #ifdef DEBUG_PRINT
