@@ -1,3 +1,8 @@
+2017-12-16  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/action/body_smart_kick.cpp:
+	- ボールの目標初速の範囲チェックを追加
+
 2017-10-30  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/coach/player_type_analyzer.cpp:

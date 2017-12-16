@@ -79,7 +79,7 @@ Body_SmartKick::execute( PlayerAgent * agent )
         return Body_StopBall().execute( agent );
     }
 
-    double first_speed = std::min( M_first_speed, ServerParam::i().ballSpeedMax() );
+    double first_speed = bound( 0.001, M_first_speed, ServerParam::i().ballSpeedMax() );
     double first_speed_thr = std::max( 0.0, M_first_speed_thr );
     int max_step = std::max( 1, M_max_step );
 
