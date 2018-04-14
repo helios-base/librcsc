@@ -128,6 +128,7 @@ AbstractClient::setCompressionLevel( const int level )
 
     return old_level;
 #else
+    (void)level;
     return 0;
 #endif
 }
@@ -147,8 +148,8 @@ AbstractClient::compress( const char * msg )
                                 std::strlen( msg ) + 1,
                                 M_sent_message );
     }
-#endif
     else
+#endif
     {
         M_sent_message = msg;
         M_sent_message += '\0'; // Non-compressed outgoing messages have to be null-terminated.
