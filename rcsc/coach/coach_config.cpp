@@ -85,6 +85,7 @@ CoachConfig::setDefaultParam()
 
     M_use_eye = true;
     M_hear_say = true;
+    M_audio_shift = 0;
 
     M_analyze_player_type = true;
 
@@ -174,6 +175,7 @@ CoachConfig::createParamMap()
 
         ( "use_eye", "", &M_use_eye )
         ( "hear_say", "", &M_hear_say )
+        ( "audio_shift", "", &M_audio_shift )
 
         ( "analyze_player_type", "", &M_analyze_player_type )
 

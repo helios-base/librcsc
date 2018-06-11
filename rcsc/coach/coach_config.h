@@ -78,6 +78,9 @@ private:
     //! if true, coach will analyze say message
     bool M_hear_say;
 
+    //! shift parameter to encrypt audio message
+    int M_audio_shift;
+
     //! if true, coach will try to analyze opponent team players' player type
     bool M_analyze_player_type;
 
@@ -261,6 +264,12 @@ public:
       \return true if ear mode is on, othewise false
      */
     bool hearSay() const { return M_hear_say; }
+
+    /*
+      \brief shift value to encrypt audio encoder
+      \return shift value
+     */
+    int audioShift() const { return M_audio_shift; }
 
     /*!
       \brief get the player type analyzer mode

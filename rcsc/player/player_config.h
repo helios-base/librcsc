@@ -77,6 +77,7 @@ private:
 
     bool M_use_communication; //!< if true, communiction is used
     bool M_hear_opponent_audio; //!< if true, opponent communication is heared
+    int M_audio_shift; //!< shift parameter to encrypt audio message
 
     bool M_use_fullstate; //!< if true, WorldModel is updated by fullstate.
     bool M_debug_fullstate; //!< if true, the virtual fullstate worldmodel is used.
@@ -298,6 +299,12 @@ public:
       \return auditory sensor mode flag for opponent
      */
     bool hearOpponentAudio() const { return M_hear_opponent_audio; }
+
+    /*
+      \brief shift value to encrypt audio encoder
+      \return shift value
+     */
+    int audioShift() const { return M_audio_shift; }
 
     /*!
       \brief get the fullstate mode flag that determines whether the world model is updated by fullstate information

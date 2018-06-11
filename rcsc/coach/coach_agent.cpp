@@ -43,6 +43,7 @@
 #include <rcsc/clang/clang_message.h>
 
 #include <rcsc/common/abstract_client.h>
+#include <rcsc/common/audio_codec.h>
 #include <rcsc/common/online_client.h>
 #include <rcsc/common/offline_client.h>
 #include <rcsc/common/logger.h>
@@ -513,6 +514,8 @@ CoachAgent::initImpl( CmdLineParser & cmd_parser )
     }
 
     M_impl->setDebugFlags();
+
+    AudioCodec::instance().createMap( config().audioShift() );
 
     return true;
 }

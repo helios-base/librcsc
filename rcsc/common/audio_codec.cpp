@@ -99,29 +99,25 @@ namespace rcsc {
 
 const double AudioCodec::ERROR_VALUE = std::numeric_limits< double >::max();
 
-//[-0-9a-zA-Z ().+*/?<>_]
-const std::string AudioCodec::CHAR_SET =
-"0123456789"
-"abcdefghijklmnopqrstuvwxyz"
-"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-" ().+-*/?<>_";
-
-const int AudioCodec::CHAR_SIZE = static_cast< int >( CHAR_SET.length() );
-
-
 /*-------------------------------------------------------------------*/
 /*!
 
 */
 AudioCodec::AudioCodec()
 {
-    // create int <-> char map
+    createMap( 0 );
+}
 
-    for ( int i = 0; i < CHAR_SIZE; ++i )
-    {
-        M_char_to_int_map.insert( std::make_pair( CHAR_SET[i], i ) );
-        M_int_to_char_map.push_back( CHAR_SET[i] );
-    }
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+AudioCodec &
+AudioCodec::instance()
+{
+    static AudioCodec s_instance;
+
+    return s_instance;
 }
 
 /*-------------------------------------------------------------------*/
@@ -132,9 +128,38 @@ const
 AudioCodec &
 AudioCodec::i()
 {
-    static AudioCodec s_instance;
+    return instance();
+}
 
-    return s_instance;
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+void
+AudioCodec::createMap( const int shift )
+{
+    //[-0-9a-zA-Z ().+*/?<>_]
+    M_char_set =
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        " ().+-*/?<>_"
+        "0123456789";
+
+    const int char_size = static_cast< int >( M_char_set.size() );
+    M_int_to_char_map.resize( char_size, '0' );
+
+    int shift_val = shift;
+    if ( shift_val < 0 ) shift_val = -shift_val;
+
+    for ( int i = 0; i < char_size; ++i )
+    {
+        int ch_i = ( i + shift_val ) % char_size;
+        char ch = M_char_set[ch_i];
+
+        //M_char_to_int_map.insert( std::make_pair( M_char_set[ch_i], i ) );
+        M_char_to_int_map[ ch ] = i;
+        M_int_to_char_map[i] = ch;
+    }
 }
 
 /*-------------------------------------------------------------------*/
@@ -151,13 +176,15 @@ AudioCodec::encodeInt64ToStr( const boost::int64_t & ival,
 
     boost::int64_t divided = ival;
 
+    const int char_size = static_cast< int >( M_char_set.size() );
+
     for ( int i = 0; i < len - 1; ++i )
     {
-        remainder_values.push_back( divided % CHAR_SIZE );
-        divided /= CHAR_SIZE;
+        remainder_values.push_back( divided % char_size );
+        divided /= char_size;
     }
 
-    if ( divided >= CHAR_SIZE )
+    if ( divided >= char_size )
     {
         std::cerr << __FILE__ << ':' << __LINE__
                   << " ***ERROR*** AudioCodec::encodeInt64ToStr."
@@ -206,6 +233,8 @@ AudioCodec::decodeStrToInt64( const std::string & from,
     boost::int64_t rval = 0;
     int digit_count = from.length() - 1;
 
+    const int char_size = static_cast< int >( M_char_set.length() );
+
     const std::string::const_iterator end = from.end();
     for ( std::string::const_iterator ch = from.begin();
           ch != end;
@@ -225,7 +254,7 @@ AudioCodec::decodeStrToInt64( const std::string & from,
         rval
             += static_cast< boost::int64_t >( it->second )
             * static_cast< boost::int64_t >
-            ( std::pow( static_cast< double >( CHAR_SIZE ), digit_count ) );
+            ( std::pow( static_cast< double >( char_size ), digit_count ) );
     }
 
     if ( to )
@@ -251,9 +280,11 @@ AudioCodec::encodePercentageToChar( const double & value ) const
         return '\0';
     }
 
-    int ival = static_cast< int >( rint( value * ( CHAR_SIZE - 1 ) ) * 10000.0 );
+    const int char_size = static_cast< int >( M_char_set.length() );
+
+    int ival = static_cast< int >( rint( value * ( char_size - 1 ) ) * 10000.0 );
     ival /= 10000;
-    if ( ival >= CHAR_SIZE )
+    if ( ival >= char_size )
     {
         std::cerr << __FILE__ << ':' << __LINE__
                   << " ***ERROR*** generated illegal index = "
@@ -292,8 +323,10 @@ AudioCodec::decodeCharToPercentage( const char ch ) const
         return ERROR_VALUE;
     }
 
+    const int char_size = static_cast< int >( M_char_set.length() );
+
     return ( static_cast< double >( it->second )
-             / static_cast< double >( CHAR_SIZE - 1) );
+             / static_cast< double >( char_size - 1 ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -650,6 +683,8 @@ std::string
 AudioCodec::encodeCoordToStr2( const double & xy,
                                const double & norm_factor ) const
 {
+    const int char_size = static_cast< int >( M_char_set.length() );
+
     // normalize value
     double tmp = min_max( -norm_factor, xy , norm_factor );
     tmp += norm_factor;
@@ -659,12 +694,12 @@ AudioCodec::encodeCoordToStr2( const double & xy,
 
     int ival = static_cast< int >( rint( tmp ) );
 
-    int i1 = ival % CHAR_SIZE;
-    ival /= CHAR_SIZE;
-    int i2 = ival % CHAR_SIZE;
+    int i1 = ival % char_size;
+    ival /= char_size;
+    int i2 = ival % char_size;
     //std::cout << " posx -> " << ix1 << " " << ix2 << std::endl;
 
-    if ( ival >= CHAR_SIZE )
+    if ( ival >= char_size )
     {
         std::cerr << __FILE__ << ": " << __LINE__
                   << " ***ERROR*** AudioCodec::encodeCoordToStr2."
@@ -727,9 +762,11 @@ AudioCodec::decodeStr2ToCoord( const char ch1,
     }
     int i2 = it->second;
 
+    const int char_size = static_cast< int >( M_char_set.length() );
+
     return
         (
-         static_cast< double >( i1 + i2 * CHAR_SIZE ) * COORD_STEP_L2
+         static_cast< double >( i1 + i2 * char_size ) * COORD_STEP_L2
          - norm_factor
          );
 }

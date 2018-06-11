@@ -96,6 +96,7 @@ PlayerConfig::setDefaultParam()
 
     M_use_communication = true;
     M_hear_opponent_audio = false;
+    M_audio_shift = 0;
 
     M_use_fullstate = true;
     M_debug_fullstate = false;
@@ -206,6 +207,7 @@ PlayerConfig::createParamMap()
 
         ( "use_communication", "", &M_use_communication )
         ( "hear_opponent_audio", "", &M_hear_opponent_audio )
+        ( "audio_shift", "", &M_audio_shift )
 
         ( "use_fullstate", "", &M_use_fullstate )
         ( "debug_fullstate", "", &M_debug_fullstate )

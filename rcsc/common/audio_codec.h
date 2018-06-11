@@ -57,18 +57,14 @@ public:
 
 private:
 
+    std::string M_char_set;
+
     //! map to cnvert character to integer. key: char, value int
     CharToIntCont M_char_to_int_map;
 
     //! map to cnvert integer to character. vector of char
     IntToCharCont M_int_to_char_map;
 
-public:
-
-    static const std::string CHAR_SET; //!< available character set
-    static const int CHAR_SIZE; //!< size of CHAR_SET
-
-private:
     /*!
       \brief private for singleton. create convert map.
     */
@@ -78,11 +74,17 @@ public:
 
     /*!
       \brief singleton interface
+      \return reference to the singleton instance
+     */
+    static AudioCodec & instance();
+
+    /*!
+      \brief singleton interface
       \return const reference to the singleton instance
      */
-    static
-    const
-    AudioCodec & i();
+    static const AudioCodec & i();
+
+    void createMap( const int shift );
 
 private:
 

@@ -45,6 +45,7 @@
 #include "soccer_action.h"
 #include "soccer_intention.h"
 
+#include <rcsc/common/audio_codec.h>
 #include <rcsc/common/audio_memory.h>
 #include <rcsc/common/abstract_client.h>
 #include <rcsc/common/online_client.h>
@@ -813,6 +814,8 @@ PlayerAgent::initImpl( CmdLineParser & cmd_parser )
     PlayerObject::set_count_thr( config().playerPosCountThr(),
                                  config().playerVelCountThr(),
                                  config().playerFaceCountThr() );
+
+    AudioCodec::instance().createMap( config().audioShift() );
 
     return true;
 }
