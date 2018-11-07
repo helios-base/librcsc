@@ -1,3 +1,8 @@
+2018-11-07  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/world_model.cpp:
+	- fullstate使用時に敵チーム情報が更新されていなかった不具合を修正
+
 2018-06-11  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/coach/coach_agent.cpp:

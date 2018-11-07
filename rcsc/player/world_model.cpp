@@ -1225,6 +1225,17 @@ WorldModel::updateAfterSee( const VisualSensor & see,
     dlog.addText( Logger::WORLD,
                   "*************** updateAfterSee *****************" );
 
+    //////////////////////////////////////////////////////////////////
+    // set opponent teamname
+    if ( M_their_team_name.empty()
+         && ! see.theirTeamName().empty() )
+    {
+        M_their_team_name = see.theirTeamName();
+    }
+
+    //////////////////////////////////////////////////////////////////
+    // already updated by fullstate
+
     if ( M_fullstate_time == current )
     {
 #ifdef DEBUG_PRINT
@@ -1246,14 +1257,6 @@ WorldModel::updateAfterSee( const VisualSensor & see,
         // update dir accuracy
         updateDirCount( varea );
         return;
-    }
-
-    //////////////////////////////////////////////////////////////////
-    // set opponent teamname
-    if ( M_their_team_name.empty()
-         && ! see.theirTeamName().empty() )
-    {
-        M_their_team_name = see.theirTeamName();
     }
 
     //////////////////////////////////////////////////////////////////
