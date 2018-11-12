@@ -61,6 +61,7 @@ ViewWidth::operator++()
         break;
     case ViewWidth::WIDE:
         M_type = ViewWidth::ILLEGAL;
+        break;
     default:
         M_type = ViewWidth::ILLEGAL;
         break;
