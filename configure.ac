@@ -118,6 +118,12 @@ AC_CHECK_FUNCS([floor inet_addr getaddrinfo gethostbyname gettimeofday])
 AC_CHECK_FUNCS([memset pow rint select socket sqrt strerror strtol])
 
 ##################################################
+# check C++
+##################################################
+
+AX_CXX_COMPILE_STDCXX_14(noext)
+
+##################################################
 # check boost
 ##################################################
 

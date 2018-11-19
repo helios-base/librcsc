@@ -134,7 +134,7 @@ private:
     //
 
     Card M_our_card[11]; //!< our team players' card status
-    bool M_their_card[11]; //!< their team players' card status
+    Card M_their_card[11]; //!< their team players' card status
 
     //
     // coach language management
