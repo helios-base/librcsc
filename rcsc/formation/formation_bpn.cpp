@@ -667,6 +667,28 @@ FormationBPN::getParam( const int unum ) const
 
 */
 bool
+FormationBPN::read( std::istream & is )
+{
+    if ( ! readHeader( is ) ) return false;
+    if ( ! readConf( is ) ) return false;
+    if ( ! readSamples( is ) ) return false;
+
+    if ( ! checkSymmetryNumber() )
+    {
+        std::cerr << __FILE__ << " *** ERROR *** Illegal symmetry data."
+                  << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+bool
 FormationBPN::readConf( std::istream & is )
 {
     if ( ! readPlayers( is ) )
@@ -789,6 +811,21 @@ FormationBPN::readPlayers( std::istream & is )
     }
 
     return true;
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationBPN::print( std::ostream & os ) const
+{
+    if ( os ) printHeader( os );
+    if ( os ) printConf( os );
+    if ( os ) printSamples( os );
+
+    return os;
 }
 
 /*-------------------------------------------------------------------*/

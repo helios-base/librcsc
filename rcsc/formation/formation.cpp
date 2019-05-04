@@ -408,57 +408,6 @@ Formation::updateMarker( const int unum,
 /*!
 
  */
-bool
-Formation::read( std::istream & is )
-{
-    if ( ! readHeader( is ) ) return false;
-    if ( ! readConf( is ) ) return false;
-    if ( ! readSamples( is ) ) return false;
-    if ( ! readEnd( is ) ) return false;
-
-    // check symmetry number circuration reference
-    for ( int i = 0; i < 11; ++i )
-    {
-        int referred_unum = M_symmetry_number[i];
-        if ( referred_unum <= 0 ) continue;
-        if ( M_symmetry_number[referred_unum - 1] > 0 )
-        {
-            std::cerr << __FILE__ << ' ' << __LINE__
-                      << ": *** ERROR *** failed to read formation."
-                      << " Bad symmetry data."
-                      << " player " << i + 1
-                      << " (mirro r= " << referred_unum
-                      << ") is already a symmetry tye player."
-                      << std::endl;
-            return false;
-        }
-    }
-
-
-    if ( ! generateModel() ) return false;
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-Formation::print( std::ostream & os ) const
-{
-    if ( os ) printHeader( os );
-    if ( os ) printConf( os );
-    if ( os ) printSamples( os );
-    if ( os ) printEnd( os );
-
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
 std::ostream &
 Formation::printComment( std::ostream & os,
                          const std::string & msg ) const
@@ -554,27 +503,27 @@ Formation::readSamples( std::istream & is )
     return true;
 }
 
-
 /*-------------------------------------------------------------------*/
 /*!
 
  */
 bool
-Formation::readEnd( std::istream & )
+Formation::checkSymmetryNumber() const
 {
+    // check symmetry number circuration reference
+    for ( int i = 0; i < 11; ++i )
+    {
+        int referred_unum = M_symmetry_number[i];
+        if ( referred_unum <= 0 ) continue;
+        if ( M_symmetry_number[referred_unum - 1] > 0 )
+        {
+            return false;
+        }
+    }
+
     return true;
+
 }
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-Formation::generateModel()
-{
-    return true;
-}
-
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -599,16 +548,6 @@ Formation::printSamples( std::ostream & os ) const
         M_samples->print( os );
     }
 
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-Formation::printEnd( std::ostream & os ) const
-{
     return os;
 }
 

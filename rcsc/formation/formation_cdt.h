@@ -171,6 +171,22 @@ public:
     virtual
     void train();
 
+    /*!
+      \brief read formation data from the input stream.
+      \param is reference to the input stream.
+      \return result status.
+    */
+    virtual
+    bool read( std::istream & is );
+
+    /*!
+      \brief put formation data to the output stream.
+      \param os reference to the output stream
+      \return reference to the output stream
+    */
+    virtual
+    std::ostream & print( std::ostream & os ) const;
+
 private:
 
     Vector2D interpolate( const int unum,
@@ -188,7 +204,11 @@ protected:
     virtual
     bool readConf( std::istream & is );
 
-    virtual
+    /*!
+      \brief read lines until the 'End' line found.
+      \param is input stream
+      \return parsing result
+     */
     bool readEnd( std::istream & is );
 
     /*!
@@ -222,21 +242,6 @@ private:
       \return parsing result
     */
     bool readRoles( std::istream & is );
-
-    /*!
-      \brief read sample data set.
-      \param is reference to the input stream.
-      \return parsing result
-    */
-    bool readVertices( std::istream & is );
-
-    /*!
-      \brief read constraints edges.
-      \param is reference to the input stream.
-      \return parsing result.
-    */
-    bool readConstraints( std::istream & is );
-
 
     /*!
       \brief print role data to the output stream.

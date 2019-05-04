@@ -465,6 +465,41 @@ FormationKNN::train()
 
  */
 bool
+FormationKNN::read( std::istream & is )
+{
+    if ( ! readHeader( is ) ) return false;
+    if ( ! readConf( is ) ) return false;
+    if ( ! readSamples( is ) ) return false;
+
+    if ( ! checkSymmetryNumber() )
+    {
+        std::cerr << __FILE__ << " *** ERROR *** Illegal symmetry data."
+                  << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationKNN::print( std::ostream & os ) const
+{
+    if ( os ) printHeader( os );
+    if ( os ) printConf( os );
+    if ( os ) printSamples( os );
+
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
 FormationKNN::readConf( std::istream & is )
 {
     // read role assignment

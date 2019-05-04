@@ -389,6 +389,46 @@ FormationCDT::train()
 
  */
 bool
+FormationCDT::read( std::istream & is )
+{
+    if ( ! readHeader( is ) ) return false;
+    if ( ! readConf( is ) ) return false;
+    if ( ! readSamples( is ) ) return false;
+    if ( ! readEnd( is ) ) return false;
+
+    if ( ! checkSymmetryNumber() )
+    {
+        std::cerr << __FILE__ << " *** ERROR *** Illegal symmetry data."
+                  << std::endl;
+        return false;
+    }
+
+    if ( ! generateModel() ) return false;
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationCDT::print( std::ostream & os ) const
+{
+    if ( os ) printHeader( os );
+    if ( os ) printConf( os );
+    if ( os ) printSamples( os );
+    if ( os ) printEnd( os );
+
+    return os;
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
 FormationCDT::readConf( std::istream & is )
 {
     if ( ! readRoles( is ) )
@@ -567,35 +607,6 @@ FormationCDT::readRoles( std::istream & is )
         break;
     }
 
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-FormationCDT::readVertices( std::istream & is )
-{
-    M_samples = SampleDataSet::Ptr( new SampleDataSet() );
-
-    if ( ! M_samples->read( is ) )
-    {
-        M_samples.reset();
-        return false;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-FormationCDT::readConstraints( std::istream & )
-{
-    //std::cerr << "FormationCDT::readConstraints()" << std::endl;
     return true;
 }
 

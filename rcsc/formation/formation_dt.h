@@ -180,6 +180,23 @@ public:
     virtual
     void train();
 
+    /*!
+      \brief read all data from the input stream.
+      \param is reference to the input stream.
+      \return result status.
+    */
+    virtual
+    bool read( std::istream & is );
+
+    /*!
+      \brief put formation data to the output stream.
+      \param os reference to the output stream
+      \return reference to the output stream
+    */
+    virtual
+    std::ostream & print( std::ostream & os ) const;
+
+
 private:
 
     Vector2D interpolate( const int unum,
@@ -198,11 +215,10 @@ protected:
     bool readConf( std::istream & is );
 
     /*!
-      \brief read lines until 'End' tag found.
+      \brief read lines until the 'End' line found.
       \param is input stream
       \return parsing result
      */
-    virtual
     bool readEnd( std::istream & is );
 
     /*!

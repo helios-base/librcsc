@@ -288,12 +288,21 @@ public:
     virtual
     void train();
 
+    /*!
+      \brief read all data from the input stream.
+      \param is reference to the input stream.
+      \return result status.
+    */
+    virtual
+    bool read( std::istream & is );
+
 
     /*!
       \brief put data to the output stream.
       \param os reference to the output stream
       \return reference to the output stream
     */
+    virtual
     std::ostream & print( std::ostream & os ) const;
 
 
