@@ -188,13 +188,15 @@ protected:
     virtual
     bool readConf( std::istream & is );
 
-    /*!
-      \brief read sample point data from the input stream.
-      \param is reference to the input stream.
-      \return result status.
-    */
     virtual
-    bool readSamples( std::istream & is );
+    bool readEnd( std::istream & is );
+
+    /*!
+      \brief reconstruct model using read samples
+      \return result of reconstruction
+     */
+    virtual
+    bool generateModel();
 
     /*!
       \brief put data to the output stream.
@@ -205,12 +207,12 @@ protected:
     std::ostream & printConf( std::ostream & os ) const;
 
     /*!
-      \brief put sample point data to the output stream.
+      \brief put the last info if necessary
       \param os reference to the output stream
       \return reference to the output stream
     */
     virtual
-    std::ostream & printSamples( std::ostream & os ) const;
+    std::ostream & printEnd( std::ostream & os ) const;
 
 private:
 
@@ -235,6 +237,7 @@ private:
     */
     bool readConstraints( std::istream & is );
 
+
     /*!
       \brief print role data to the output stream.
       \param os reference to the output stream.
@@ -242,19 +245,6 @@ private:
      */
     std::ostream & printRoles( std::ostream & os ) const;
 
-    /*!
-      \brief print sample data set.
-      \param os reference to the output stream.
-      \return reference to the output stream.
-     */
-    std::ostream & printVertices( std::ostream & os ) const;
-
-    /*!
-      \brief print constrained edges.
-      \param os reference to the output stream.
-      \return reference to the output stream.
-     */
-    std::ostream & printConstraints( std::ostream & os ) const;
 };
 
 }

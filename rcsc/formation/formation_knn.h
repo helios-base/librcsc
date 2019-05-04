@@ -175,28 +175,12 @@ protected:
     bool readConf( std::istream & is );
 
     /*!
-      \brief read sample point data from the input stream.
-      \param is reference to the input stream.
-      \return result status.
-    */
-    virtual
-    bool readSamples( std::istream & is );
-
-    /*!
       \brief put all variables to output stream
       \param os reference to the output stream
       \return  reference to the output stream
      */
     virtual
     std::ostream & printConf( std::ostream & os ) const;
-
-    /*!
-      \brief put sample point data to the output stream.
-      \param os reference to the output stream
-      \return reference to the output stream
-    */
-    virtual
-    std::ostream & printSamples( std::ostream & os ) const;
 
 private:
 

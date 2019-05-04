@@ -198,12 +198,19 @@ protected:
     bool readConf( std::istream & is );
 
     /*!
-      \brief read sample point data from the input stream.
-      \param is reference to the input stream.
-      \return result status.
-    */
+      \brief read lines until 'End' tag found.
+      \param is input stream
+      \return parsing result
+     */
     virtual
-    bool readSamples( std::istream & is );
+    bool readEnd( std::istream & is );
+
+    /*!
+      \brief reconstruct model using read samples
+      \return result of reconstruction
+     */
+    virtual
+    bool generateModel();
 
     /*!
       \brief put data to the output stream.
@@ -214,21 +221,14 @@ protected:
     std::ostream & printConf( std::ostream & os ) const;
 
     /*!
-      \brief put sample point data to the output stream.
+      \brief put the last info if necessary
       \param os reference to the output stream
       \return reference to the output stream
     */
     virtual
-    std::ostream & printSamples( std::ostream & os ) const;
+    std::ostream & printEnd( std::ostream & os ) const;
 
 private:
-
-    /*!
-      \brief read lines until 'End' tag found.
-      \param is input stream
-      \return parsing result
-     */
-    bool readEndTag( std::istream & is );
 
     /*!
       \brief read lines until 'Begin Roles' tag found.
@@ -255,46 +255,11 @@ private:
                                   const int symmetry_number );
 
     /*!
-      \brief read v1 format data.
-      \param is reference to the input stream
-      \return parsing result.
-    */
-    bool readV1( std::istream & is );
-
-    /*!
       \brief (v1 format) restore role assignment from the input stream
       \param is reference to the input stream
       \return parsing result
     */
     bool readRoles( std::istream & is );
-
-    /*!
-      \brief (v1 format) restore kernel point and sample data from the input stream
-      \param is reference to the input stream
-      \return parsing result
-    */
-    bool readVertices( std::istream & is );
-
-    /*!
-      \brief read v2 format data.
-      \param is reference to the input stream
-      \return parsing result.
-    */
-    bool readV2( std::istream & is );
-
-    /*!
-      \brief (v2 format) role assignment from the input stream
-      \param is reference to the input stream
-      \return parsing result
-    */
-    bool readRolesV2( std::istream & is );
-
-    /*!
-      \brief (v2 format) restore vertex data set from the input stream
-      \param is reference to the input stream
-      \return parsing result
-    */
-    bool readVerticesV2( std::istream & is );
 
     /*!
       \brief read v3 format data.
@@ -309,34 +274,6 @@ private:
       \return parsing result
     */
     bool readRolesV3( std::istream & is );
-
-    /*!
-      \brief (v1 format) print all data to the output stream
-      \param os reference to the output stream
-      \return reference to the output stream
-     */
-    std::ostream & printV1( std::ostream & os ) const;
-
-    /*!
-      \brief (v2 format) print all data to the output stream
-      \param os reference to the output stream
-      \return reference to the output stream
-     */
-    std::ostream & printV2( std::ostream & os ) const;
-
-    /*!
-      \brief (v2 format) print role data to the output stream
-      \param os reference to the output stream
-      \return reference to the output stream
-     */
-    std::ostream & printRolesV2( std::ostream & os ) const;
-
-    /*!
-      \brief (v2 format) print positional data to the output stream
-      \param os reference to the output stream
-      \return reference to the output stream
-     */
-    std::ostream & printDataV2( std::ostream & os ) const;
 
     /*!
       \brief (v3 format) print all data to the output stream

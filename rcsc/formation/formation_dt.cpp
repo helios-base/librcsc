@@ -484,13 +484,11 @@ FormationDT::readConf( std::istream & is )
     {
         result = readV3( is );
     }
-    else if ( version() == 2 )
-    {
-        result = readV2( is );
-    }
     else
     {
-        result = readV1( is );
+        std::cerr << __FILE__ << " (readConf) unsupported version "
+                  << version() << std::endl;
+        return false;
     }
 
     //
@@ -501,12 +499,6 @@ FormationDT::readConf( std::istream & is )
         M_version = 3;
     }
 
-    ////////////////////////////////////////////////////////
-    if ( result )
-    {
-        train();
-    }
-
     return result;
 }
 
@@ -515,8 +507,9 @@ FormationDT::readConf( std::istream & is )
 
  */
 bool
-FormationDT::readSamples( std::istream & )
+FormationDT::generateModel()
 {
+    train();
     return true;
 }
 
@@ -525,7 +518,7 @@ FormationDT::readSamples( std::istream & )
 
  */
 bool
-FormationDT::readEndTag( std::istream & is )
+FormationDT::readEnd( std::istream & is )
 {
     std::string line_buf;
     while ( std::getline( is, line_buf ) )
@@ -538,7 +531,7 @@ FormationDT::readEndTag( std::istream & is )
         if ( line_buf != "End" )
         {
             std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " *** ERROR *** (readEndTag) unexpected string ["
+                      << " *** ERROR *** (readEnd) unexpected string ["
                       << line_buf << ']' << std::endl;
             return false;
         }
@@ -548,7 +541,7 @@ FormationDT::readEndTag( std::istream & is )
     }
 
     std::cerr << __FILE__ << ':' << __LINE__ << ':'
-              << " *** ERROR *** (readEndTag) 'End' not found"
+              << " *** ERROR *** (readEnd) 'End' not found"
               << std::endl;
     if ( is.eof() )
     {
@@ -659,45 +652,6 @@ FormationDT::createRoleOrSetSymmetry( const int unum,
 
  */
 bool
-FormationDT::readV1( std::istream & is )
-{
-    // read role assignment
-    if ( ! readRoles( is ) )
-    {
-        return false;
-    }
-
-#if 0
-    std::cerr << "Loaded Role Assignment" << std::endl;
-    for ( int unum = 1; unum <= 11; ++unum )
-    {
-        std::cerr << "Role=" << getRoleName( unum )
-                  << " Symmetry=" << getSymmetryNumber( unum )
-                  << std::endl;
-    }
-#endif
-
-    //---------------------------------------------------
-    // read vertices
-    if ( ! readVertices( is ) )
-    {
-        return false;
-    }
-
-    if ( is.eof() )
-    {
-        std::cerr << "Input stream reaches EOF"
-                  << std::endl;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
 FormationDT::readRoles( std::istream & is )
 {
     std::string line_buf;
@@ -740,188 +694,9 @@ FormationDT::readRoles( std::istream & is )
 
  */
 bool
-FormationDT::readVertices( std::istream & is )
-{
-    M_samples = SampleDataSet::Ptr( new SampleDataSet() );
-
-    std::string line_buf;
-
-    while ( std::getline( is, line_buf ) )
-    {
-        if ( line_buf == "End" )
-        {
-            return true;
-        }
-
-        SampleData new_sample;
-
-        const char * msg = line_buf.c_str();
-
-        double read_x, read_y;
-        int n_read = 0;
-
-        // read ball pos
-        if ( std::sscanf( msg, " %lf %lf %n ",
-                          &read_x, &read_y, &n_read ) != 2 )
-        {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " *** ERROR *** Invalid ball data ["
-                      << line_buf << "]"
-                      << std::endl;
-            return false;
-        }
-        msg += n_read;
-
-        new_sample.ball_.assign( read_x, read_y );
-
-        for ( int unum = 1; unum <= 11; ++unum )
-        {
-            if ( std::sscanf( msg, " %lf %lf %n ",
-                              &read_x, &read_y, &n_read ) != 2 )
-            {
-                std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                          << " *** ERROR *** Illegal player data. unum = "
-                          << unum
-                          << " [" << line_buf << "]"
-                          << std::endl;
-                return false;
-            }
-            msg += n_read;
-
-            new_sample.players_.push_back( Vector2D( read_x, read_y ) );
-        }
-
-        M_samples->addData( *this, new_sample, false );
-    }
-
-    return false;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-FormationDT::readV2( std::istream & is )
-{
-    if ( ! readRolesV2( is ) )
-    {
-        return false;
-    }
-
-    if ( ! readVerticesV2( is ) )
-    {
-        return false;
-    }
-
-    if ( ! readEndTag( is ) )
-    {
-        return false;
-    }
-
-    return true;
-}
-
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-FormationDT::readRolesV2( std::istream & is )
-{
-    //
-    // read Begin tag
-    //
-
-    if ( ! readBeginRolesTag( is ) )
-    {
-        return false;
-    }
-
-    //
-    // read role data
-    //
-
-    for ( int unum = 1; unum <= 11; ++unum )
-    {
-        std::string line_buf;
-        while ( std::getline( is, line_buf ) )
-        {
-            if ( is_comment_line( line_buf ) )
-            {
-                continue;
-            }
-            break;
-        }
-
-        int read_unum = 0;
-        char role_name[128];
-        int symmetry_number = 0;
-
-        if ( std::sscanf( line_buf.c_str(),
-                          " %d %127s %d ",
-                          &read_unum, role_name, &symmetry_number ) != 3
-             || read_unum != unum )
-        {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " *** ERROR *** (readRolesV2) Illegal role data. num="
-                      << unum
-                      << " [" << line_buf << "]"
-                      << std::endl;
-            return false;
-        }
-
-        createRoleOrSetSymmetry( unum, role_name, symmetry_number );
-    }
-
-    //
-    // read End tag
-    //
-    if ( ! readEndRolesTag( is ) )
-    {
-        return false;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-FormationDT::readVerticesV2( std::istream & is )
-{
-    M_samples = SampleDataSet::Ptr( new SampleDataSet() );
-
-    if ( ! M_samples->read( is ) )
-    {
-        M_samples.reset();
-        return false;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
 FormationDT::readV3( std::istream & is )
 {
     if ( ! readRolesV3( is ) )
-    {
-        return false;
-    }
-
-    if ( ! readVerticesV2( is ) ) // same as v2 format
-    {
-        return false;
-    }
-
-    if ( ! readEndTag( is ) )
     {
         return false;
     }
@@ -1011,104 +786,9 @@ FormationDT::printConf( std::ostream & os ) const
 
  */
 std::ostream &
-FormationDT::printSamples( std::ostream & os ) const
-{
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-FormationDT::printV1( std::ostream & os ) const
-{
-    // put role assignment
-    for ( int unum = 1; unum <= 11; ++unum )
-    {
-        os << M_role_name[unum - 1] << ' '
-           << M_symmetry_number[unum - 1] << ' ';
-    }
-    os << '\n';
-
-    for ( std::vector< SampleData >::const_iterator it = M_sample_vector.begin();
-          it != M_sample_vector.end();
-          ++it )
-    {
-        os << round_coord( it->ball_.x ) << ' '
-           << round_coord( it->ball_.y ) << ' ';
-
-        for ( SampleData::PlayerCont::const_iterator p = it->players_.begin();
-              p != it->players_.end();
-              ++p )
-        {
-            os << round_coord( p->x ) << ' '
-               << round_coord( p->y ) << ' ';
-        }
-        os << '\n';
-    }
-
-    os << "End" << std::endl;
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-FormationDT::printV2( std::ostream & os ) const
-{
-    printRolesV2( os );
-    printDataV2( os );
-
-    os << "End" << std::endl;
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-FormationDT::printRolesV2( std::ostream & os ) const
-{
-    os << "Begin Roles\n";
-
-    for ( int unum = 1; unum <= 11; ++unum )
-    {
-        os << unum << ' '
-           << M_role_name[unum - 1] << ' '
-           << M_symmetry_number[unum - 1] << '\n';
-    }
-
-    os << "End Roles\n";
-
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-FormationDT::printDataV2( std::ostream & os ) const
-{
-    M_samples->print( os );
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
 FormationDT::printV3( std::ostream & os ) const
 {
     printRolesV3( os );
-    printDataV2( os ); // same as v2
-
-    os << "End" << std::endl;
     return os;
 }
 
@@ -1140,6 +820,17 @@ FormationDT::printRolesV3( std::ostream & os ) const
 
     os << "End Roles\n";
 
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationDT::printEnd( std::ostream & os ) const
+{
+    os << "End" << std::endl;
     return os;
 }
 

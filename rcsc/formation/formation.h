@@ -457,8 +457,17 @@ protected:
       \param is reference to the input stream.
       \return result status.
     */
-    virtual
     bool readSamples( std::istream & is );
+
+    virtual
+    bool readEnd( std::istream & is );
+
+    /*!
+      \brief reconstruct model using read data
+      \return result of reconstruction
+     */
+    virtual
+    bool generateModel();
 
 
     //
@@ -486,8 +495,15 @@ protected:
       \param os reference to the output stream
       \return reference to the output stream
     */
-    virtual
     std::ostream & printSamples( std::ostream & os ) const;
+
+    /*!
+      \brief put the last info if necessary
+      \param os reference to the output stream
+      \return reference to the output stream
+    */
+    virtual
+    std::ostream & printEnd( std::ostream & os ) const;
 };
 
 }

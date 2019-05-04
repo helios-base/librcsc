@@ -414,6 +414,7 @@ Formation::read( std::istream & is )
     if ( ! readHeader( is ) ) return false;
     if ( ! readConf( is ) ) return false;
     if ( ! readSamples( is ) ) return false;
+    if ( ! readEnd( is ) ) return false;
 
     // check symmetry number circuration reference
     for ( int i = 0; i < 11; ++i )
@@ -433,6 +434,9 @@ Formation::read( std::istream & is )
         }
     }
 
+
+    if ( ! generateModel() ) return false;
+
     return true;
 }
 
@@ -446,6 +450,7 @@ Formation::print( std::ostream & os ) const
     if ( os ) printHeader( os );
     if ( os ) printConf( os );
     if ( os ) printSamples( os );
+    if ( os ) printEnd( os );
 
     return os;
 }
@@ -549,6 +554,28 @@ Formation::readSamples( std::istream & is )
     return true;
 }
 
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+Formation::readEnd( std::istream & )
+{
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+Formation::generateModel()
+{
+    return true;
+}
+
+
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -572,6 +599,16 @@ Formation::printSamples( std::ostream & os ) const
         M_samples->print( os );
     }
 
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+Formation::printEnd( std::ostream & os ) const
+{
     return os;
 }
 

@@ -473,23 +473,6 @@ FormationKNN::readConf( std::istream & is )
         return false;
     }
 
-    //---------------------------------------------------
-    // read kernel point data
-    if ( ! readKernelPoints( is ) )
-    {
-        return false;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-FormationKNN::readSamples( std::istream & )
-{
     return true;
 }
 
@@ -614,24 +597,6 @@ FormationKNN::readRoles( std::istream & is )
 /*!
 
  */
-bool
-FormationKNN::readKernelPoints( std::istream & is )
-{
-    M_samples = SampleDataSet::Ptr( new formation::SampleDataSet() );
-
-    if ( ! M_samples->read( is ) )
-    {
-        M_samples.reset();
-        return false;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
 std::ostream &
 FormationKNN::printConf( std::ostream & os ) const
 {
@@ -639,16 +604,6 @@ FormationKNN::printConf( std::ostream & os ) const
     M_samples->print( os );
 
     os << "End" << std::endl;
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-FormationKNN::printSamples( std::ostream & os ) const
-{
     return os;
 }
 
