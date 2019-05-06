@@ -36,7 +36,7 @@
 #include "formation.h"
 
 #include "formation_bpn.h"
-#include "formation_cdt.h"
+//#include "formation_cdt.h"
 #include "formation_dt.h"
 #include "formation_knn.h"
 #include "formation_ngnet.h"
@@ -77,7 +77,7 @@ Formation::create( const std::string & name )
         ptr = creator();
     }
     else if ( name == FormationBPN::NAME ) ptr = FormationBPN::create();
-    else if ( name == FormationCDT::NAME ) ptr = FormationCDT::create();
+    //else if ( name == FormationCDT::NAME ) ptr = FormationCDT::create();
     else if ( name == FormationDT::NAME ) ptr = FormationDT::create();
     else if ( name == FormationKNN::NAME ) ptr = FormationKNN::create();
     else if ( name == FormationNGNet::NAME ) ptr = FormationNGNet::create();
