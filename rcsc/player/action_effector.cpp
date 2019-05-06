@@ -206,17 +206,34 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
 
     if ( sense.kickCount() != M_command_counter[PlayerCommand::KICK] )
     {
-        std::cout << M_agent.config().teamName() << ' '
-                  << M_agent.world().self().unum() << ": "
-                  << M_agent.world().time()
-                  << " lost kick? at " << M_last_action_time
-                  << " sense=" << sense.kickCount()
-                  << " internal=" << M_command_counter[PlayerCommand::KICK]
-                  << std::endl;
-        dlog.addText( Logger::SYSTEM,
-                       __FILE__": lost kick? sense= %d internal= %d",
-                      sense.kickCount(),
-                      M_command_counter[PlayerCommand::KICK] );
+        if ( sense.chargedExpires() == 0 )
+        {
+            std::cout << M_agent.config().teamName() << ' '
+                      << M_agent.world().self().unum() << ": "
+                      << M_agent.world().time()
+                      << " lost kick? at " << M_last_action_time
+                      << " sense=" << sense.kickCount()
+                      << " internal=" << M_command_counter[PlayerCommand::KICK]
+                      << std::endl;
+            dlog.addText( Logger::SYSTEM,
+                          __FILE__": lost kick? sense= %d internal= %d",
+                          sense.kickCount(),
+                          M_command_counter[PlayerCommand::KICK] );
+        }
+        else
+        {
+            std::cout << M_agent.config().teamName() << ' '
+                      << M_agent.world().self().unum() << ": "
+                      << M_agent.world().time()
+                      << " lost kick by foul at " << M_last_action_time
+                      << " sense=" << sense.kickCount()
+                      << " internal=" << M_command_counter[PlayerCommand::KICK]
+                      << std::endl;
+            dlog.addText( Logger::SYSTEM,
+                          __FILE__": lost kick by foul sense= %d internal= %d",
+                          sense.kickCount(),
+                          M_command_counter[PlayerCommand::KICK] );
+        }
         M_last_body_command_type[0] = PlayerCommand::ILLEGAL;
         M_kick_accel.assign( 0.0, 0.0 );
         M_kick_accel_error.assign( 0.0, 0.0 );
@@ -225,17 +242,20 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
 
     if ( sense.turnCount() != M_command_counter[PlayerCommand::TURN] )
     {
-        std::cout << M_agent.config().teamName() << ' '
-                  << M_agent.world().self().unum() << ": "
-                  << M_agent.world().time()
-                  << " lost turn? at " << M_last_action_time
-                  << " sense=" << sense.turnCount()
-                  << " internal=" << M_command_counter[PlayerCommand::TURN]
-                  << std::endl;
-        dlog.addText( Logger::SYSTEM,
-                       __FILE__": lost turn? sense= %d internal= %d",
-                      sense.turnCount(),
-                      M_command_counter[PlayerCommand::TURN] );
+        if ( sense.chargedExpires() == 0 )
+        {
+            std::cout << M_agent.config().teamName() << ' '
+                      << M_agent.world().self().unum() << ": "
+                      << M_agent.world().time()
+                      << " lost turn? at " << M_last_action_time
+                      << " sense=" << sense.turnCount()
+                      << " internal=" << M_command_counter[PlayerCommand::TURN]
+                      << std::endl;
+            dlog.addText( Logger::SYSTEM,
+                          __FILE__": lost turn? sense= %d internal= %d",
+                          sense.turnCount(),
+                          M_command_counter[PlayerCommand::TURN] );
+        }
         M_last_body_command_type[0] = PlayerCommand::ILLEGAL;
         M_turn_actual = 0.0;
         M_turn_error = 0.0;
@@ -244,17 +264,20 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
 
     if ( sense.dashCount() != M_command_counter[PlayerCommand::DASH] )
     {
-        std::cout << M_agent.config().teamName() << ' '
-                  << M_agent.world().self().unum() << ": "
-                  << M_agent.world().time()
-                  << " lost dash? at " << M_last_action_time
-                  << " sense=" << sense.dashCount()
-                  << " internal=" << M_command_counter[PlayerCommand::DASH]
-                  << std::endl;
-        dlog.addText( Logger::SYSTEM,
-                       __FILE__": lost dash? sense= %d internal= %d",
-                      sense.dashCount(),
-                      M_command_counter[PlayerCommand::DASH] );
+        if ( sense.chargedExpires() == 0 )
+        {
+            std::cout << M_agent.config().teamName() << ' '
+                      << M_agent.world().self().unum() << ": "
+                      << M_agent.world().time()
+                      << " lost dash? at " << M_last_action_time
+                      << " sense=" << sense.dashCount()
+                      << " internal=" << M_command_counter[PlayerCommand::DASH]
+                      << std::endl;
+            dlog.addText( Logger::SYSTEM,
+                          __FILE__": lost dash? sense= %d internal= %d",
+                          sense.dashCount(),
+                          M_command_counter[PlayerCommand::DASH] );
+        }
         M_last_body_command_type[0] = PlayerCommand::ILLEGAL;
         M_dash_accel.assign( 0.0, 0.0 );
         //M_dash_accel_error.assign( 0.0, 0.0 );
@@ -264,17 +287,20 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
 
     if ( sense.moveCount() != M_command_counter[PlayerCommand::MOVE] )
     {
-        std::cout << M_agent.config().teamName() << ' '
-                  << M_agent.world().self().unum() << ": "
-                  << M_agent.world().time()
-                  << " lost move? at " << M_last_action_time
-                  << " sense=" << sense.moveCount()
-                  << " internal=" << M_command_counter[PlayerCommand::MOVE]
-                  << std::endl;
-        dlog.addText( Logger::SYSTEM,
-                       __FILE__": lost move? sense= %d internal= %d",
-                      sense.moveCount(),
-                      M_command_counter[PlayerCommand::MOVE] );
+        if ( sense.chargedExpires() == 0 )
+        {
+            std::cout << M_agent.config().teamName() << ' '
+                      << M_agent.world().self().unum() << ": "
+                      << M_agent.world().time()
+                      << " lost move? at " << M_last_action_time
+                      << " sense=" << sense.moveCount()
+                      << " internal=" << M_command_counter[PlayerCommand::MOVE]
+                      << std::endl;
+            dlog.addText( Logger::SYSTEM,
+                          __FILE__": lost move? sense= %d internal= %d",
+                          sense.moveCount(),
+                          M_command_counter[PlayerCommand::MOVE] );
+        }
         M_last_body_command_type[0] = PlayerCommand::ILLEGAL;
         M_move_pos.invalidate();
         M_command_counter[PlayerCommand::MOVE] = sense.moveCount();
@@ -282,17 +308,20 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
 
     if ( sense.catchCount() != M_command_counter[PlayerCommand::CATCH] )
     {
-        std::cout << M_agent.config().teamName() << ' '
-                  << M_agent.world().self().unum() << ": "
-                  << M_agent.world().time()
-                  << " lost catch? at " << M_last_action_time
-                  << " sense=" << sense.catchCount()
-                  << " internal=" << M_command_counter[PlayerCommand::CATCH]
-                  << std::endl;
-        dlog.addText( Logger::SYSTEM,
-                       __FILE__": lost catch? sense= %d internal= %d",
-                      sense.catchCount(),
-                      M_command_counter[PlayerCommand::CATCH] );
+        if ( sense.chargedExpires() == 0 )
+        {
+            std::cout << M_agent.config().teamName() << ' '
+                      << M_agent.world().self().unum() << ": "
+                      << M_agent.world().time()
+                      << " lost catch? at " << M_last_action_time
+                      << " sense=" << sense.catchCount()
+                      << " internal=" << M_command_counter[PlayerCommand::CATCH]
+                      << std::endl;
+            dlog.addText( Logger::SYSTEM,
+                          __FILE__": lost catch? sense= %d internal= %d",
+                          sense.catchCount(),
+                          M_command_counter[PlayerCommand::CATCH] );
+        }
         M_last_body_command_type[0] = PlayerCommand::ILLEGAL;
         //M_catch_time.assign( 0, 0 ); // Do *NOT* reset the time
         M_command_counter[PlayerCommand::CATCH] = sense.catchCount();
@@ -300,17 +329,20 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
 
     if ( sense.tackleCount() != M_command_counter[PlayerCommand::TACKLE] )
     {
-        std::cout << M_agent.config().teamName() << ' '
-                  << M_agent.world().self().unum() << ": "
-                  << M_agent.world().time()
-                  << " lost tackle? at " << M_last_action_time
-                  << " sense=" << sense.tackleCount()
-                  << " internal=" << M_command_counter[PlayerCommand::TACKLE]
-                  << std::endl;
-        dlog.addText( Logger::SYSTEM,
-                       __FILE__": lost tackle? sense= %d internal= %d",
-                      sense.tackleCount(),
-                      M_command_counter[PlayerCommand::TACKLE] );
+        if ( sense.chargedExpires() == 0 )
+        {
+            std::cout << M_agent.config().teamName() << ' '
+                      << M_agent.world().self().unum() << ": "
+                      << M_agent.world().time()
+                      << " lost tackle? at " << M_last_action_time
+                      << " sense=" << sense.tackleCount()
+                      << " internal=" << M_command_counter[PlayerCommand::TACKLE]
+                      << std::endl;
+            dlog.addText( Logger::SYSTEM,
+                          __FILE__": lost tackle? sense= %d internal= %d",
+                          sense.tackleCount(),
+                          M_command_counter[PlayerCommand::TACKLE] );
+        }
         M_last_body_command_type[0] = PlayerCommand::ILLEGAL;
         M_tackle_power = 0.0;
         M_tackle_dir = 0.0;
