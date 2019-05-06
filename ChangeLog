@@ -1,3 +1,10 @@
+2019-05-06  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/player/action_effector.cpp:
+	- フォウルを受けた場合のコマンドロストに対してデバッグメッセージを
+	出力しないように変更．確認のために，キックのみファウルによ
+	るコマンドロスト情報を出力する．
+
 2018-11-07  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/world_model.cpp:
