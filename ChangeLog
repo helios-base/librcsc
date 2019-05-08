@@ -1,3 +1,9 @@
+2019-05-08  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/formation/Makefile.am:
+	* rcsc/formation/formation.cpp:
+	- DTとStatic以外のフォーメーションモデルをビルド対象から除外．
+
 2019-05-06  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/player/action_effector.cpp:
