@@ -164,6 +164,8 @@ public:
     */
     virtual
     bool read( std::istream & is );
+    virtual
+    bool readCSV( std::istream & is );
 
     /*!
       \brief put formation data to the output stream.
@@ -172,8 +174,12 @@ public:
     */
     virtual
     std::ostream & print( std::ostream & os ) const;
+    virtual
+    std::ostream & printCSV( std::ostream & os ) const;
 
 protected:
+
+    bool readOld( std::istream & is );
 
     /*!
       \brief restore conf data from the input stream.
@@ -183,6 +189,8 @@ protected:
     virtual
     bool readConf( std::istream & is );
 
+    std::ostream & printOld( std::ostream & os ) const;
+
     /*!
       \brief put all variables to output stream
       \param os reference to the output stream
@@ -190,6 +198,10 @@ protected:
      */
     virtual
     std::ostream & printConf( std::ostream & os ) const;
+
+    std::ostream & printRoleNumbers( std::ostream & os ) const;
+    std::ostream & printRoleNames( std::ostream & os ) const;
+    std::ostream & printPositions( std::ostream & os ) const;
 
 private:
 

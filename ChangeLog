@@ -1,3 +1,16 @@
+2019-05-12  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/formation/formation.cpp:
+	* rcsc/formation/formation.h:
+	* rcsc/formation/formation_dt.cpp:
+	* rcsc/formation/formation_dt.h:
+	* rcsc/formation/formation_static.cpp:
+	* rcsc/formation/formation_static.h:
+	* rcsc/formation/sample_data.cpp:
+	* rcsc/formation/sample_data.h:
+	- フォーメーションファイルのフォーマットをCSV形式に変更．旧版を読
+	み書きする関数は別名で残す．
+
 2019-05-08  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/formation/Makefile.am:

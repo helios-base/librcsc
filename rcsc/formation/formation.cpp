@@ -45,6 +45,8 @@
 #include "formation_static.h"
 //#include "formation_uva.h"
 
+#include <boost/algorithm/string.hpp>
+
 #include <sstream>
 
 namespace rcsc {
@@ -97,7 +99,7 @@ Formation::Ptr
 Formation::create( std::istream & is )
 {
     std::string line_buf;
-    std::string temp, type;
+    std::string method_name;
 
     while ( std::getline( is, line_buf ) )
     {
@@ -108,13 +110,24 @@ Formation::create( std::istream & is )
             continue;
         }
 
-        std::istringstream istr( line_buf );
-        istr >> temp >> type;
+        std::vector< std::string > tokens;
+        boost::split( tokens, line_buf, boost::is_any_of( " ,") );
+
+        if ( tokens.size() < 2 )
+        {
+            std::cerr << __FILE__ << ':'
+                      << " (create) ERROR Illegal header line. [" << line_buf << ']'
+                      << std::endl;
+            return Formation::Ptr();
+        }
+
+        method_name = tokens[1];
+
         break;
     }
 
     is.seekg( 0 );
-    return create( type );
+    return create( method_name );
 }
 
 
@@ -490,11 +503,71 @@ Formation::readHeader( std::istream & is )
 
  */
 bool
+Formation::readMethodName( std::istream & is )
+{
+    std::string line_buf;
+
+    while ( std::getline( is, line_buf ) )
+    {
+        if ( line_buf.empty()
+             || line_buf[0] == '#' )
+        {
+            continue;
+        }
+
+        break;
+    }
+
+    std::vector< std::string > tokens;
+    boost::split( tokens, line_buf, boost::is_any_of( " ," ) );
+
+    if ( tokens.size() < 2 )
+    {
+        std::cerr << __FILE__ << ':'
+                  << " (readMethodName) ERROR Illegal header line. [" << line_buf << ']'
+                  << std::endl;
+        return false;
+    }
+
+    if ( tokens[1] != methodName() )
+    {
+        std::cerr << __FILE__ << ':'
+                  << " (readMethodName) Unsupported formation method "
+                  << " [" << tokens[1] << "]" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
 Formation::readSamples( std::istream & is )
 {
     M_samples = SampleDataSet::Ptr( new SampleDataSet() );
 
     if ( ! M_samples->read( is ) )
+    {
+        M_samples.reset();
+        return false;
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+Formation::readSamplesCSV( std::istream & is )
+{
+    M_samples = SampleDataSet::Ptr( new SampleDataSet() );
+
+    if ( ! M_samples->readCSV( is ) )
     {
         M_samples.reset();
         return false;
@@ -541,11 +614,37 @@ Formation::printHeader( std::ostream & os ) const
 
  */
 std::ostream &
-Formation::printSamples( std::ostream & os ) const
+Formation::printMethodName( std::ostream & os ) const
+{
+    os << "Method," << methodName() << '\n';
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+Formation::printSamplesOld( std::ostream & os ) const
 {
     if ( M_samples )
     {
-        M_samples->print( os );
+        M_samples->printOld( os );
+    }
+
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+Formation::printSamplesCSV( std::ostream & os ) const
+{
+    if ( M_samples )
+    {
+        M_samples->printCSV( os );
     }
 
     return os;

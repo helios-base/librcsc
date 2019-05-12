@@ -39,6 +39,10 @@
 #include <rcsc/geom/line_2d.h>
 #include <rcsc/math_util.h>
 
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
+
+#include <vector>
 #include <sstream>
 #include <cstdio>
 
@@ -87,7 +91,7 @@ FormationDT::FormationDT()
 
     for ( int i = 0; i < 11; ++i )
     {
-        M_role_name[i] = "Dummy";
+        M_role_names[i] = "Dummy";
     }
 }
 
@@ -242,7 +246,7 @@ FormationDT::setRoleName( const int unum,
         return;
     }
 
-    M_role_name[unum - 1] = name;
+    M_role_names[unum - 1] = name;
 }
 
 /*-------------------------------------------------------------------*/
@@ -260,7 +264,7 @@ FormationDT::getRoleName( const int unum ) const
         return std::string( "" );
     }
 
-    return M_role_name[unum - 1];
+    return M_role_names[unum - 1];
 }
 
 /*-------------------------------------------------------------------*/
@@ -340,7 +344,6 @@ FormationDT::getPositions( const Vector2D & focus_point,
         positions.push_back( interpolate( unum, focus_point, tri ) );
     }
 }
-
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -472,6 +475,44 @@ FormationDT::train()
     M_triangulation.compute();
 }
 
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationDT::generateModel()
+{
+    train();
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+FormationDT::createRoleOrSetSymmetry( const int unum,
+                                      const std::string & role_name,
+                                      const int symmetry_number )
+{
+    const Formation::SideType type = ( symmetry_number == 0
+                                       ? Formation::CENTER
+                                       : symmetry_number < 0
+                                       ? Formation::SIDE
+                                       : Formation::SYMMETRY );
+    if ( type == Formation::CENTER )
+    {
+        createNewRole( unum, role_name, type );
+    }
+    else if ( type == Formation::SIDE )
+    {
+        createNewRole( unum, role_name, type );
+    }
+    else
+    {
+        setSymmetryType( unum, symmetry_number, role_name );
+    }
+}
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -479,6 +520,340 @@ FormationDT::train()
  */
 bool
 FormationDT::read( std::istream & is )
+{
+    return readCSV( is );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationDT::readOld( std::istream & is )
+{
+    return readV3( is );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationDT::readCSV( std::istream & is )
+{
+    std::vector< int > role_numbers;
+    std::vector< std::string > role_names;
+    std::vector< std::string > role_types;
+    std::vector< int > symmetry_numbers;
+    std::vector< int > marker_flags;
+    std::vector< int > setplay_marker_flags;
+
+    if ( ! readMethodName( is ) ) return false;
+
+    std::string line_buf;
+    std::vector< std::string > values;
+
+    while ( std::getline( is, line_buf ) )
+    {
+        if ( line_buf.empty()
+             || line_buf.front() == '#' )
+        {
+            continue;
+        }
+
+        boost::split( values, line_buf, boost::is_any_of( " ," ) );
+
+        if ( values.empty() )
+        {
+            std::cerr << __FILE__ << " (readCSV) ERROR Empty line."
+                      << std::endl;
+            return false;
+        }
+
+        if ( values.front() == "RoleNumber" )
+        {
+            if ( values.size() != 12 )
+            {
+                std::cerr << __FILE__ << " (readCSV) ERROR Illegal # of role numberss." << std::endl;
+                return false;
+            }
+
+            for ( int i = 1; i <= 11; ++i )
+            {
+                role_numbers.push_back( boost::lexical_cast< int >( values[i] ) );
+            }
+        }
+        else if ( values.front() == "RoleName" )
+        {
+            role_names.assign( values.begin() + 1, values.end() );
+            if ( role_names.size() != 11 )
+            {
+                std::cerr << __FILE__ << " (readCSV) ERROR Illegal # of role names." << std::endl;
+                return false;
+            }
+        }
+        else if ( values.front() == "RoleType" )
+        {
+            role_types.assign( values.begin() + 1, values.end() );
+            if ( role_types.size() != 11 )
+            {
+                std::cerr << __FILE__ << " (readCSV) ERROR Illegal # of role types." << std::endl;
+                return false;
+            }
+        }
+        else if ( values.front() == "SymmetryNumber" )
+        {
+            if ( values.size() != 12 )
+            {
+                std::cerr << __FILE__ << " (readCSV) ERROR Illegal # of symmetry numbers." << std::endl;
+                return false;
+            }
+
+            for ( int i = 1; i <= 11; ++i )
+            {
+                symmetry_numbers.push_back( boost::lexical_cast< int >( values[i] ) );
+            }
+
+        }
+        else if ( values.front() == "Marker" )
+        {
+            if ( values.size() != 12 )
+            {
+                std::cerr << __FILE__ << " (readCSV) ERROR Illegal # of marker flags." << std::endl;
+                return false;
+            }
+
+            for ( int i = 1; i <= 11; ++i )
+            {
+                marker_flags.push_back( boost::lexical_cast< int >( values[i] ) );
+            }
+        }
+        else if ( values.front() == "SetplayMarker" )
+        {
+            if ( values.size() != 12 )
+            {
+                std::cerr << __FILE__ << " (readCSV) ERROR Illegal # of setplay marker flags." << std::endl;
+                return false;
+            }
+
+            for ( int i = 1; i <= 11; ++i )
+            {
+                setplay_marker_flags.push_back( boost::lexical_cast< int >( values[i] ) );
+            }
+        }
+        else if ( values.front() == "SampleData" )
+        {
+            readSamplesCSV( is );
+        }
+        else
+        {
+            std::cerr << __FILE__ << " (readCSV) Unsupported data line. [" << values.front() << ']' << std::endl;
+            return false;
+        }
+
+        values.clear();
+
+    }
+
+    if ( role_numbers.size() != 11
+         || role_names.size() != 11
+         || role_types.size() != 11
+         || symmetry_numbers.size() != 11
+         || marker_flags.size() != 11
+         || setplay_marker_flags.size() != 11 )
+    {
+        std::cerr << __FILE__ << " (readCSV) ERROR Illegal # of data." << std::endl;
+        return false;
+    }
+
+    for ( int i = 0; i < 11; ++i )
+    {
+        createRoleOrSetSymmetry( role_numbers[i],
+                                 role_names[i],
+                                 symmetry_numbers[i] );
+        setRoleType( role_numbers[i], role_types[i] );
+        setMarker( role_numbers[i],
+                   marker_flags[i] == 0 ? "x" : "marker",
+                   setplay_marker_flags[i] == 0 ? "x" : "setplay_marker" );
+
+    }
+
+
+    if ( ! checkSymmetryNumber() )
+    {
+        std::cerr << __FILE__ << " *** ERROR *** Illegal symmetry data."
+                  << std::endl;
+        return false;
+    }
+
+    if ( ! generateModel() ) return false;
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationDT::print( std::ostream & os ) const
+{
+    return printCSV( os );
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationDT::printOld( std::ostream & os ) const
+{
+    return printV3( os );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationDT::printV3( std::ostream & os ) const
+{
+    if ( os ) printHeader( os );
+    if ( os ) printRolesV3( os );
+    if ( os ) printSamplesOld( os );
+    if ( os ) printEnd( os );
+
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationDT::printCSV( std::ostream & os ) const
+{
+    printMethodName( os );
+    printRoleNumbers( os );
+    printRoleNames( os );
+    printRoleTypes( os );
+    printSymmetryNumbers( os );
+    printMarkerFlags( os );
+    printSetplayMarkerFlags( os );
+    printSamplesCSV( os );
+
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationDT::printRoleNumbers( std::ostream & os ) const
+{
+    os << "RoleNumber";
+    for ( int i = 1; i <= 11; ++i )
+    {
+        os << ',' << i;
+    }
+    os << '\n';
+
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationDT::printRoleNames( std::ostream & os ) const
+{
+    os << "RoleName";
+    for ( int unum = 1; unum <= 11; ++unum )
+    {
+        os << ',' << M_role_names[unum - 1];
+    }
+    os << '\n';
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationDT::printRoleTypes( std::ostream & os ) const
+{
+    os << "RoleType";
+    for ( int unum = 1; unum <= 11; ++unum )
+    {
+        os << ( M_role_type[unum - 1] == Goalie ? ",G"
+                : M_role_type[unum - 1] == Defender ? ",DF"
+                : M_role_type[unum - 1] == MidFielder ? ",MF"
+                : M_role_type[unum - 1] == Forward ? ",FW"
+                : ",U" );
+    }
+    os << '\n';
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationDT::printMarkerFlags( std::ostream & os ) const
+{
+    os << "Marker";
+    for ( int unum = 1; unum <= 11; ++unum )
+    {
+        os << ',' << M_marker[unum-1];
+    }
+    os << '\n';
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationDT::printSetplayMarkerFlags( std::ostream & os ) const
+{
+    os << "SetplayMarker";
+    for ( int unum = 1; unum <= 11; ++unum )
+    {
+        os << ',' << M_setplay_marker[unum-1];
+    }
+    os << '\n';
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationDT::printSymmetryNumbers( std::ostream & os ) const
+{
+    os << "SymmetryNumber";
+    for ( int unum = 1; unum <= 11; ++unum )
+    {
+        os << ',' << M_symmetry_number[unum-1];
+    }
+    os << '\n';
+    return os;
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationDT::readV3( std::istream & is )
 {
     if ( ! readHeader( is ) ) return false;
     if ( ! readConf( is ) ) return false;
@@ -501,28 +876,13 @@ FormationDT::read( std::istream & is )
 /*!
 
  */
-std::ostream &
-FormationDT::print( std::ostream & os ) const
-{
-    if ( os ) printHeader( os );
-    if ( os ) printConf( os );
-    if ( os ) printSamples( os );
-    if ( os ) printEnd( os );
-
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
 bool
 FormationDT::readConf( std::istream & is )
 {
     bool result = false;
     if ( version() >= 3 )
     {
-        result = readV3( is );
+        result = readRolesV3( is );
     }
     else
     {
@@ -540,56 +900,6 @@ FormationDT::readConf( std::istream & is )
     }
 
     return result;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-FormationDT::generateModel()
-{
-    train();
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-FormationDT::readEnd( std::istream & is )
-{
-    std::string line_buf;
-    while ( std::getline( is, line_buf ) )
-    {
-        if ( is_comment_line( line_buf ) )
-        {
-            continue;
-        }
-
-        if ( line_buf != "End" )
-        {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " *** ERROR *** (readEnd) unexpected string ["
-                      << line_buf << ']' << std::endl;
-            return false;
-        }
-
-        // found
-        return true;
-    }
-
-    std::cerr << __FILE__ << ':' << __LINE__ << ':'
-              << " *** ERROR *** (readEnd) 'End' not found"
-              << std::endl;
-    if ( is.eof() )
-    {
-        std::cerr << "Input stream reaches EOF"
-                  << std::endl;
-    }
-
-    return false;
 }
 
 /*-------------------------------------------------------------------*/
@@ -659,89 +969,44 @@ FormationDT::readEndRolesTag( std::istream & is )
     return false;
 }
 
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-void
-FormationDT::createRoleOrSetSymmetry( const int unum,
-                                      const std::string & role_name,
-                                      const int symmetry_number )
-{
-    const Formation::SideType type = ( symmetry_number == 0
-                                       ? Formation::CENTER
-                                       : symmetry_number < 0
-                                       ? Formation::SIDE
-                                       : Formation::SYMMETRY );
-    if ( type == Formation::CENTER )
-    {
-        createNewRole( unum, role_name, type );
-    }
-    else if ( type == Formation::SIDE )
-    {
-        createNewRole( unum, role_name, type );
-    }
-    else
-    {
-        setSymmetryType( unum, symmetry_number, role_name );
-    }
-}
 
 /*-------------------------------------------------------------------*/
 /*!
 
  */
 bool
-FormationDT::readRoles( std::istream & is )
+FormationDT::readEnd( std::istream & is )
 {
     std::string line_buf;
-
-    if ( ! std::getline( is, line_buf ) )
+    while ( std::getline( is, line_buf ) )
     {
-        std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                  << " *** ERROR *** (readRoles) Failed getline "
-                  << std::endl;
-        return false;
-    }
+        if ( is_comment_line( line_buf ) )
+        {
+            continue;
+        }
 
-    const char * msg = line_buf.c_str();
-
-    for ( int unum = 1; unum <= 11; ++unum )
-    {
-        char role_name[128];
-        int symmetry_number;
-        int n_read = 0;
-
-        if ( std::sscanf( msg, " %s %d %n ",
-                          role_name, &symmetry_number, &n_read ) != 2 )
+        if ( line_buf != "End" )
         {
             std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " *** ERROR *** (readRoles) Failed to read player "
-                      << unum
-                      << std::endl;
+                      << " *** ERROR *** (readEnd) unexpected string ["
+                      << line_buf << ']' << std::endl;
             return false;
         }
-        msg += n_read;
 
-        createRoleOrSetSymmetry( unum, role_name, symmetry_number );
+        // found
+        return true;
     }
 
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-FormationDT::readV3( std::istream & is )
-{
-    if ( ! readRolesV3( is ) )
+    std::cerr << __FILE__ << ':' << __LINE__ << ':'
+              << " *** ERROR *** (readEnd) 'End' not found"
+              << std::endl;
+    if ( is.eof() )
     {
-        return false;
+        std::cerr << "Input stream reaches EOF"
+                  << std::endl;
     }
 
-    return true;
+    return false;
 }
 
 /*-------------------------------------------------------------------*/
@@ -816,27 +1081,6 @@ FormationDT::readRolesV3( std::istream & is )
 
  */
 std::ostream &
-FormationDT::printConf( std::ostream & os ) const
-{
-    return printV3( os );
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-FormationDT::printV3( std::ostream & os ) const
-{
-    printRolesV3( os );
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
 FormationDT::printRolesV3( std::ostream & os ) const
 {
     os << "Begin Roles\n";
@@ -851,7 +1095,7 @@ FormationDT::printRolesV3( std::ostream & os ) const
                 : M_role_type[unum - 1] == MidFielder ? "MF "
                 : M_role_type[unum - 1] == Forward ? "FW "
                 : "U  " )
-           << M_role_name[unum - 1] << ' '
+           << M_role_names[unum - 1] << ' '
            << M_symmetry_number[unum - 1] << ' '
            << ( M_marker[unum-1] ? "marker" : "x" ) << ' '
            << ( M_setplay_marker[unum-1] ? "setplay_marker" : "x" )
@@ -870,7 +1114,7 @@ FormationDT::printRolesV3( std::ostream & os ) const
 std::ostream &
 FormationDT::printEnd( std::ostream & os ) const
 {
-    os << "End" << std::endl;
+    //os << "End" << std::endl;
     return os;
 }
 

@@ -51,7 +51,7 @@ public:
 private:
 
     //! player's role names
-    std::string M_role_name[11];
+    std::string M_role_names[11];
 
     //! set of desired positins used by delaunay triangulation & linear interpolation
     std::vector< formation::SampleData > M_sample_vector;
@@ -187,6 +187,10 @@ public:
     */
     virtual
     bool read( std::istream & is );
+    virtual
+    bool readOld( std::istream & is );
+    virtual
+    bool readCSV( std::istream & is );
 
     /*!
       \brief put formation data to the output stream.
@@ -195,6 +199,10 @@ public:
     */
     virtual
     std::ostream & print( std::ostream & os ) const;
+    virtual
+    std::ostream & printOld( std::ostream & os ) const;
+    virtual
+    std::ostream & printCSV( std::ostream & os ) const;
 
 
 private:
@@ -207,59 +215,14 @@ private:
 protected:
 
     /*!
-      \brief restore conf data from the input stream.
-      \param is reference to the input stream.
-      \return parsing result
-    */
-    virtual
-    bool readConf( std::istream & is );
-
-    /*!
-      \brief read lines until the 'End' line found.
-      \param is input stream
-      \return parsing result
-     */
-    bool readEnd( std::istream & is );
-
-    /*!
       \brief reconstruct model using read samples
       \return result of reconstruction
      */
     virtual
     bool generateModel();
 
-    /*!
-      \brief put data to the output stream.
-      \param os reference to the output stream
-      \return reference to the output stream
-    */
-    virtual
-    std::ostream & printConf( std::ostream & os ) const;
-
-    /*!
-      \brief put the last info if necessary
-      \param os reference to the output stream
-      \return reference to the output stream
-    */
-    virtual
-    std::ostream & printEnd( std::ostream & os ) const;
 
 private:
-
-    /*!
-      \brief read lines until 'Begin Roles' tag found.
-      \param is input stream
-      \return parsing result
-     */
-    bool readBeginRolesTag( std::istream & is );
-
-    /*!
-      \brief read lines until 'End Roles' tag found.
-      \param is input stream
-      \return parsing result
-     */
-    bool readEndRolesTag( std::istream & is );
-
     /*!
       \brief create role or set symmetry
       \param unum player's uniform number
@@ -270,40 +233,32 @@ private:
                                   const std::string & role_name,
                                   const int symmetry_number );
 
-    /*!
-      \brief (v1 format) restore role assignment from the input stream
-      \param is reference to the input stream
-      \return parsing result
-    */
-    bool readRoles( std::istream & is );
+    std::ostream & printRoleNumbers( std::ostream & os ) const;
+    std::ostream & printRoleNames( std::ostream & os ) const;
+    std::ostream & printRoleTypes( std::ostream & os ) const;
+    std::ostream & printMarkerFlags( std::ostream & os ) const;
+    std::ostream & printSetplayMarkerFlags( std::ostream & os ) const;
+    std::ostream & printSymmetryNumbers( std::ostream & os ) const;
 
-    /*!
-      \brief read v3 format data.
-      \param is reference to the input stream
-      \return parsing result.
-     */
+
+    //
+    // old format
+    //
     bool readV3( std::istream & is );
 
-    /*!
-      \brief (v3 format) role assignment from the input stream
-      \param is reference to the input stream
-      \return parsing result
-    */
+
+    bool readBeginRolesTag( std::istream & is );
+    bool readEndRolesTag( std::istream & is );
+
+    bool readConf( std::istream & is );
+
+    bool readEnd( std::istream & is );
+
     bool readRolesV3( std::istream & is );
-
-    /*!
-      \brief (v3 format) print all data to the output stream
-      \param os output stream
-      \return output stream
-     */
     std::ostream & printV3( std::ostream & os ) const;
-
-    /*!
-      \brief (v3 format) print role data to the output stream
-      \param os output stream
-      \return output stream
-     */
     std::ostream & printRolesV3( std::ostream & os ) const;
+    std::ostream & printEnd( std::ostream & os ) const;
+
 };
 
 }
