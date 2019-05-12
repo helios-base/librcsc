@@ -406,28 +406,38 @@ public:
     void train() = 0;
 
     /*!
-      \brief read all data from the input stream.
+      \brief read formation data from the input stream.
       \param is reference to the input stream.
       \return result status.
     */
-    bool read( std::istream & is );
+    virtual
+    bool read( std::istream & is ) = 0;
+    virtual
+    bool readOld( std::istream & ) = 0;
+    virtual
+    bool readCSV( std::istream & ) = 0;
 
     /*!
-      \brief put all data to the output stream.
+      \brief put formation data to the output stream.
       \param os reference to the output stream
       \return reference to the output stream
     */
-    std::ostream & print( std::ostream & os ) const;
+    virtual
+    std::ostream & print( std::ostream & os ) const = 0;
+    virtual
+    std::ostream & printOld( std::ostream & os ) const = 0;
+    virtual
+    std::ostream & printCSV( std::ostream & os ) const = 0;
+
 
     /*!
-      \print write the comment message to the output stream
+      \brief put comment line
       \param os reference to the output stream
       \param msg comment message
       \return reference to the output stream
-     */
+    */
     std::ostream & printComment( std::ostream & os,
                                  const std::string & msg ) const;
-
 
 protected:
 
@@ -435,31 +445,27 @@ protected:
     // read
     //
 
-
     /*!
       \brief read header information (formation type name, format version...)
       \param is reference to the input stream
       \return result status.
     */
-    virtual
     bool readHeader( std::istream & is );
-
-    /*!
-      \brief read conf data from the input stream.
-      \param is reference to the input stream.
-      \return result status.
-    */
-    virtual
-    bool readConf( std::istream & is ) = 0;
+    bool readMethodName( std::istream & is );
 
     /*!
       \brief read sample point data from the input stream.
       \param is reference to the input stream.
       \return result status.
     */
-    virtual
     bool readSamples( std::istream & is );
+    bool readSamplesCSV( std::istream & is );
 
+    /*!
+      \brief check the consistency of symetric unum reference in read data
+      \return checked result
+     */
+    bool checkSymmetryNumber() const;
 
     //
     // print
@@ -470,24 +476,16 @@ protected:
       \param os reference to the output stream
       \return reference to the output stream
     */
-    virtual
     std::ostream & printHeader( std::ostream & os ) const;
-
-    /*!
-      \brief put conf data to the output stream.
-      \param os reference to the output stream
-      \return reference to the output stream
-    */
-    virtual
-    std::ostream & printConf( std::ostream & os ) const = 0;
+    std::ostream & printMethodName( std::ostream & os ) const;
 
     /*!
       \brief put sample point data to the output stream.
       \param os reference to the output stream
       \return reference to the output stream
     */
-    virtual
-    std::ostream & printSamples( std::ostream & os ) const;
+    std::ostream & printSamplesOld( std::ostream & os ) const;
+    std::ostream & printSamplesCSV( std::ostream & os ) const;
 };
 
 }

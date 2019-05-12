@@ -35,6 +35,10 @@
 
 #include "formation_static.h"
 
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
+
+#include <algorithm>
 #include <cstdio>
 
 namespace rcsc {
@@ -206,8 +210,63 @@ FormationStatic::getPositions( const Vector2D & focus_point,
 void
 FormationStatic::train()
 {
+    //std::cerr << "Static method never support any training" << std::endl;
 
+}
 
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationStatic::read( std::istream & is )
+{
+    //return readOld( is );
+    return readCSV( is );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationStatic::readOld( std::istream & is )
+{
+    if ( ! readHeader( is ) ) return false;
+    if ( ! readConf( is ) ) return false;
+    if ( ! readSamples( is ) ) return false;
+
+    if ( ! checkSymmetryNumber() )
+    {
+        std::cerr << __FILE__ << " *** ERROR *** Illegal symmetry data."
+                  << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationStatic::print( std::ostream & os ) const
+{
+    return printCSV( os );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationStatic::printOld( std::ostream & os ) const
+{
+    if ( os ) printHeader( os );
+    if ( os ) printConf( os );
+
+    return os;
 }
 
 /*-------------------------------------------------------------------*/
@@ -303,6 +362,176 @@ FormationStatic::printConf( std::ostream & os ) const
 
     return os << std::flush;
 }
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationStatic::readCSV( std::istream & is )
+{
+    std::vector< int > role_numbers;
+    std::vector< std::string > role_names;
+
+    if ( ! readMethodName( is ) ) return false;
+
+    std::string line_buf;
+    std::vector< std::string > values;
+
+    while ( std::getline( is, line_buf ) )
+    {
+        if ( line_buf.empty()
+             || line_buf[0] == '#' )
+        {
+            continue;
+        }
+
+        boost::split( values, line_buf, boost::is_any_of( " ,") );
+
+        if ( values.empty() )
+        {
+            std::cerr << __FILE__ << " (readCSV) ERROR Empty line."
+                      << std::endl;
+            return false;
+        }
+
+        if ( values.front() == "RoleNumber" )
+        {
+            if ( values.size() != 12 )
+            {
+                std::cerr << __FILE__ << " (readCSV) ERROR Illegal # of role numberss." << std::endl;
+                return false;
+            }
+
+            for ( int i = 1; i <= 11; ++i )
+            {
+                try
+                {
+                    role_numbers.push_back( boost::lexical_cast< int >( values[i] ) );
+                }
+                catch ( const boost::bad_lexical_cast & e )
+                {
+                    std::cerr << __FILE__ << " (readCSV) ERROR read role numbers. " << e.what() << std::endl;
+                    return false;
+                }
+            }
+        }
+        else if ( values.front() == "RoleName" )
+        {
+            role_names.assign( values.begin() + 1, values.end() );
+            if ( role_names.size() != 11 )
+            {
+                std::cerr << __FILE__ << " (readCSV) ERROR Illegal # of role names." << std::endl;
+                return false;
+            }
+            std::copy( role_names.begin(), role_names.end(), M_role_names );
+        }
+        else if ( values.front() == "Position" )
+        {
+            if ( values.size() != 1 + 11*2 )
+            {
+                std::cerr << __FILE__ << " (readCSV) ERROR Illegal # of position values." << std::endl;
+                return false;
+            }
+
+            for ( int i = 0; i < 11; ++i )
+            {
+                try
+                {
+                    M_pos[i].x = boost::lexical_cast< double >( values[ i*2 + 1 ] );
+                    M_pos[i].y = boost::lexical_cast< double >( values[ i*2 + 2 ] );
+                }
+                catch ( const boost::bad_lexical_cast & e )
+                {
+                    std::cerr << __FILE__ << " (readCSV) ERROR read position valuess. " << e.what() << std::endl;
+                    return false;
+                }
+            }
+
+        }
+        else
+        {
+            std::cerr << __FILE__ << " (readCSV) Unsupported data line. [" << values.front() << ']' << std::endl;
+            return false;
+        }
+
+        values.clear();
+    }
+
+    if ( role_numbers.size() != 11
+         || role_names.size() != 11 )
+    {
+        std::cerr << __FILE__ << " (readCSV) ERROR Illegal # of data." << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationStatic::printCSV( std::ostream & os ) const
+{
+    printMethodName( os );
+    printRoleNumbers( os );
+    printRoleNames( os );
+    printPositions( os );
+
+    return os;
+}
+
+
+std::ostream &
+FormationStatic::printRoleNumbers( std::ostream & os ) const
+{
+    os << "RoleNumber";
+    for ( int i = 1; i <= 11; ++i )
+    {
+        os << ',' << i;
+    }
+    os << '\n';
+
+    return os;
+}
+
+std::ostream &
+FormationStatic::printRoleNames( std::ostream & os ) const
+{
+    os << "RoleName";
+    for ( int i = 0; i < 11; ++i )
+    {
+        os << ',' << M_role_names[i];
+    }
+    os << '\n';
+    return os;
+}
+
+
+std::ostream &
+FormationStatic::printPositions( std::ostream & os ) const
+{
+    os << "#PositionIdx";
+    for ( int i = 1; i <= 11; ++i )
+    {
+        os << ',' << i << 'X'
+           << ',' << i << 'Y';
+    }
+    os << '\n';
+
+    os << "Position";
+    for ( int i = 0; i < 11; ++i )
+    {
+        os << ',' << M_pos[i].x << ',' << M_pos[i].y;
+    }
+    os << '\n';
+    return os;
+}
+
+
 
 
 /*-------------------------------------------------------------------*/

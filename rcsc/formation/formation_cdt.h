@@ -171,6 +171,22 @@ public:
     virtual
     void train();
 
+    /*!
+      \brief read formation data from the input stream.
+      \param is reference to the input stream.
+      \return result status.
+    */
+    virtual
+    bool read( std::istream & is );
+
+    /*!
+      \brief put formation data to the output stream.
+      \param os reference to the output stream
+      \return reference to the output stream
+    */
+    virtual
+    std::ostream & print( std::ostream & os ) const;
+
 private:
 
     Vector2D interpolate( const int unum,
@@ -189,12 +205,18 @@ protected:
     bool readConf( std::istream & is );
 
     /*!
-      \brief read sample point data from the input stream.
-      \param is reference to the input stream.
-      \return result status.
-    */
+      \brief read lines until the 'End' line found.
+      \param is input stream
+      \return parsing result
+     */
+    bool readEnd( std::istream & is );
+
+    /*!
+      \brief reconstruct model using read samples
+      \return result of reconstruction
+     */
     virtual
-    bool readSamples( std::istream & is );
+    bool generateModel();
 
     /*!
       \brief put data to the output stream.
@@ -205,12 +227,12 @@ protected:
     std::ostream & printConf( std::ostream & os ) const;
 
     /*!
-      \brief put sample point data to the output stream.
+      \brief put the last info if necessary
       \param os reference to the output stream
       \return reference to the output stream
     */
     virtual
-    std::ostream & printSamples( std::ostream & os ) const;
+    std::ostream & printEnd( std::ostream & os ) const;
 
 private:
 
@@ -222,39 +244,12 @@ private:
     bool readRoles( std::istream & is );
 
     /*!
-      \brief read sample data set.
-      \param is reference to the input stream.
-      \return parsing result
-    */
-    bool readVertices( std::istream & is );
-
-    /*!
-      \brief read constraints edges.
-      \param is reference to the input stream.
-      \return parsing result.
-    */
-    bool readConstraints( std::istream & is );
-
-    /*!
       \brief print role data to the output stream.
       \param os reference to the output stream.
       \return reference to the output stream.
      */
     std::ostream & printRoles( std::ostream & os ) const;
 
-    /*!
-      \brief print sample data set.
-      \param os reference to the output stream.
-      \return reference to the output stream.
-     */
-    std::ostream & printVertices( std::ostream & os ) const;
-
-    /*!
-      \brief print constrained edges.
-      \param os reference to the output stream.
-      \return reference to the output stream.
-     */
-    std::ostream & printConstraints( std::ostream & os ) const;
 };
 
 }

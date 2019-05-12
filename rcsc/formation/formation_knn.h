@@ -164,6 +164,23 @@ public:
     virtual
     void train();
 
+    /*!
+      \brief read formation data from the input stream.
+      \param is reference to the input stream.
+      \return result status.
+    */
+    virtual
+    bool read( std::istream & is );
+
+    /*!
+      \brief put formation data to the output stream.
+      \param os reference to the output stream
+      \return reference to the output stream
+    */
+    virtual
+    std::ostream & print( std::ostream & os ) const;
+
+
 protected:
 
     /*!
@@ -175,28 +192,12 @@ protected:
     bool readConf( std::istream & is );
 
     /*!
-      \brief read sample point data from the input stream.
-      \param is reference to the input stream.
-      \return result status.
-    */
-    virtual
-    bool readSamples( std::istream & is );
-
-    /*!
       \brief put all variables to output stream
       \param os reference to the output stream
       \return  reference to the output stream
      */
     virtual
     std::ostream & printConf( std::ostream & os ) const;
-
-    /*!
-      \brief put sample point data to the output stream.
-      \param os reference to the output stream
-      \return reference to the output stream
-    */
-    virtual
-    std::ostream & printSamples( std::ostream & os ) const;
 
 private:
 

@@ -359,28 +359,8 @@ public:
       \return result status.
      */
     bool read( std::istream & is );
-
-private:
-    /*!
-      \brief read data from input stream (v1 format).
-      \param is reference to the input stream.
-      \return result status.
-     */
     bool readOld( std::istream & is );
-
-    /*!
-      \brief read data from input stream (v2 format).
-      \param is reference to the input stream.
-      \return result status.
-     */
-    bool readV2( std::istream & is,
-                 const int data_size );
-
-    bool readSample( std::istream & is,
-                     const int index );
-    bool readConstraints( std::istream & is );
-
-public:
+    bool readCSV( std::istream & is );
 
     /*!
       \brief save data to the file.
@@ -395,23 +375,25 @@ public:
       \return reference to the output stream.
      */
     std::ostream & print( std::ostream & os ) const;
+    std::ostream & printOld( std::ostream & os ) const;
+    std::ostream & printCSV( std::ostream & os ) const;
 private:
 
-    /*!
-      \brief print data to the output stream (v1 format).
-      \param os reference to the output stream.
-      \return reference to the output stream.
-     */
-    std::ostream & printOld( std::ostream & os ) const;
+    bool readV1( std::istream & is );
 
-    /*!
-      \brief print data to the output stream (v2 format).
-      \param os reference to the output stream.
-      \return reference to the output stream.
-     */
+    bool readV2( std::istream & is,
+                 const int data_size );
+
+    bool readSample( std::istream & is,
+                     const int index );
+    bool readConstraints( std::istream & is );
+
+
+    std::ostream & printV1( std::ostream & os ) const;
     std::ostream & printV2( std::ostream & os ) const;
 
     std::ostream & printConstraints( std::ostream & os ) const;
+
 };
 
 }

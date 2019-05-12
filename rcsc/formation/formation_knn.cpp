@@ -465,18 +465,16 @@ FormationKNN::train()
 
  */
 bool
-FormationKNN::readConf( std::istream & is )
+FormationKNN::read( std::istream & is )
 {
-    // read role assignment
-    if ( ! readRoles( is ) )
-    {
-        return false;
-    }
+    if ( ! readHeader( is ) ) return false;
+    if ( ! readConf( is ) ) return false;
+    if ( ! readSamples( is ) ) return false;
 
-    //---------------------------------------------------
-    // read kernel point data
-    if ( ! readKernelPoints( is ) )
+    if ( ! checkSymmetryNumber() )
     {
+        std::cerr << __FILE__ << " *** ERROR *** Illegal symmetry data."
+                  << std::endl;
         return false;
     }
 
@@ -487,9 +485,29 @@ FormationKNN::readConf( std::istream & is )
 /*!
 
  */
-bool
-FormationKNN::readSamples( std::istream & )
+std::ostream &
+FormationKNN::print( std::ostream & os ) const
 {
+    if ( os ) printHeader( os );
+    if ( os ) printConf( os );
+    if ( os ) printSamples( os );
+
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationKNN::readConf( std::istream & is )
+{
+    // read role assignment
+    if ( ! readRoles( is ) )
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -614,24 +632,6 @@ FormationKNN::readRoles( std::istream & is )
 /*!
 
  */
-bool
-FormationKNN::readKernelPoints( std::istream & is )
-{
-    M_samples = SampleDataSet::Ptr( new formation::SampleDataSet() );
-
-    if ( ! M_samples->read( is ) )
-    {
-        M_samples.reset();
-        return false;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
 std::ostream &
 FormationKNN::printConf( std::ostream & os ) const
 {
@@ -639,16 +639,6 @@ FormationKNN::printConf( std::ostream & os ) const
     M_samples->print( os );
 
     os << "End" << std::endl;
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-FormationKNN::printSamples( std::ostream & os ) const
-{
     return os;
 }
 

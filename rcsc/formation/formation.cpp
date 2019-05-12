@@ -35,15 +35,17 @@
 
 #include "formation.h"
 
-#include "formation_bpn.h"
-#include "formation_cdt.h"
+//#include "formation_bpn.h"
+//#include "formation_cdt.h"
 #include "formation_dt.h"
-#include "formation_knn.h"
-#include "formation_ngnet.h"
-#include "formation_rbf.h"
-#include "formation_sbsp.h"
+//#include "formation_knn.h"
+//#include "formation_ngnet.h"
+//#include "formation_rbf.h"
+//#include "formation_sbsp.h"
 #include "formation_static.h"
-#include "formation_uva.h"
+//#include "formation_uva.h"
+
+#include <boost/algorithm/string.hpp>
 
 #include <sstream>
 
@@ -76,15 +78,15 @@ Formation::create( const std::string & name )
     {
         ptr = creator();
     }
-    else if ( name == FormationBPN::NAME ) ptr = FormationBPN::create();
-    else if ( name == FormationCDT::NAME ) ptr = FormationCDT::create();
+    //else if ( name == FormationBPN::NAME ) ptr = FormationBPN::create();
+    //else if ( name == FormationCDT::NAME ) ptr = FormationCDT::create();
     else if ( name == FormationDT::NAME ) ptr = FormationDT::create();
-    else if ( name == FormationKNN::NAME ) ptr = FormationKNN::create();
-    else if ( name == FormationNGNet::NAME ) ptr = FormationNGNet::create();
-    else if ( name == FormationRBF::NAME ) ptr = FormationRBF::create();
-    else if ( name == FormationSBSP::NAME ) ptr = FormationSBSP::create();
+    //else if ( name == FormationKNN::NAME ) ptr = FormationKNN::create();
+    //else if ( name == FormationNGNet::NAME ) ptr = FormationNGNet::create();
+    //else if ( name == FormationRBF::NAME ) ptr = FormationRBF::create();
+    //else if ( name == FormationSBSP::NAME ) ptr = FormationSBSP::create();
     else if ( name == FormationStatic::NAME ) ptr = FormationStatic::create();
-    else if ( name == FormationUvA::NAME ) ptr = FormationUvA::create();
+    //else if ( name == FormationUvA::NAME ) ptr = FormationUvA::create();
 
     return ptr;
 }
@@ -97,7 +99,7 @@ Formation::Ptr
 Formation::create( std::istream & is )
 {
     std::string line_buf;
-    std::string temp, type;
+    std::string method_name;
 
     while ( std::getline( is, line_buf ) )
     {
@@ -108,13 +110,24 @@ Formation::create( std::istream & is )
             continue;
         }
 
-        std::istringstream istr( line_buf );
-        istr >> temp >> type;
+        std::vector< std::string > tokens;
+        boost::split( tokens, line_buf, boost::is_any_of( " ,") );
+
+        if ( tokens.size() < 2 )
+        {
+            std::cerr << __FILE__ << ':'
+                      << " (create) ERROR Illegal header line. [" << line_buf << ']'
+                      << std::endl;
+            return Formation::Ptr();
+        }
+
+        method_name = tokens[1];
+
         break;
     }
 
     is.seekg( 0 );
-    return create( type );
+    return create( method_name );
 }
 
 
@@ -408,52 +421,6 @@ Formation::updateMarker( const int unum,
 /*!
 
  */
-bool
-Formation::read( std::istream & is )
-{
-    if ( ! readHeader( is ) ) return false;
-    if ( ! readConf( is ) ) return false;
-    if ( ! readSamples( is ) ) return false;
-
-    // check symmetry number circuration reference
-    for ( int i = 0; i < 11; ++i )
-    {
-        int referred_unum = M_symmetry_number[i];
-        if ( referred_unum <= 0 ) continue;
-        if ( M_symmetry_number[referred_unum - 1] > 0 )
-        {
-            std::cerr << __FILE__ << ' ' << __LINE__
-                      << ": *** ERROR *** failed to read formation."
-                      << " Bad symmetry data."
-                      << " player " << i + 1
-                      << " (mirro r= " << referred_unum
-                      << ") is already a symmetry tye player."
-                      << std::endl;
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-Formation::print( std::ostream & os ) const
-{
-    if ( os ) printHeader( os );
-    if ( os ) printConf( os );
-    if ( os ) printSamples( os );
-
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
 std::ostream &
 Formation::printComment( std::ostream & os,
                          const std::string & msg ) const
@@ -536,6 +503,48 @@ Formation::readHeader( std::istream & is )
 
  */
 bool
+Formation::readMethodName( std::istream & is )
+{
+    std::string line_buf;
+
+    while ( std::getline( is, line_buf ) )
+    {
+        if ( line_buf.empty()
+             || line_buf[0] == '#' )
+        {
+            continue;
+        }
+
+        break;
+    }
+
+    std::vector< std::string > tokens;
+    boost::split( tokens, line_buf, boost::is_any_of( " ," ) );
+
+    if ( tokens.size() < 2 )
+    {
+        std::cerr << __FILE__ << ':'
+                  << " (readMethodName) ERROR Illegal header line. [" << line_buf << ']'
+                  << std::endl;
+        return false;
+    }
+
+    if ( tokens[1] != methodName() )
+    {
+        std::cerr << __FILE__ << ':'
+                  << " (readMethodName) Unsupported formation method "
+                  << " [" << tokens[1] << "]" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
 Formation::readSamples( std::istream & is )
 {
     M_samples = SampleDataSet::Ptr( new SampleDataSet() );
@@ -547,6 +556,46 @@ Formation::readSamples( std::istream & is )
     }
 
     return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+Formation::readSamplesCSV( std::istream & is )
+{
+    M_samples = SampleDataSet::Ptr( new SampleDataSet() );
+
+    if ( ! M_samples->readCSV( is ) )
+    {
+        M_samples.reset();
+        return false;
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+Formation::checkSymmetryNumber() const
+{
+    // check symmetry number circuration reference
+    for ( int i = 0; i < 11; ++i )
+    {
+        int referred_unum = M_symmetry_number[i];
+        if ( referred_unum <= 0 ) continue;
+        if ( M_symmetry_number[referred_unum - 1] > 0 )
+        {
+            return false;
+        }
+    }
+
+    return true;
+
 }
 
 /*-------------------------------------------------------------------*/
@@ -565,11 +614,37 @@ Formation::printHeader( std::ostream & os ) const
 
  */
 std::ostream &
-Formation::printSamples( std::ostream & os ) const
+Formation::printMethodName( std::ostream & os ) const
+{
+    os << "Method," << methodName() << '\n';
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+Formation::printSamplesOld( std::ostream & os ) const
 {
     if ( M_samples )
     {
-        M_samples->print( os );
+        M_samples->printOld( os );
+    }
+
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+Formation::printSamplesCSV( std::ostream & os ) const
+{
+    if ( M_samples )
+    {
+        M_samples->printCSV( os );
     }
 
     return os;

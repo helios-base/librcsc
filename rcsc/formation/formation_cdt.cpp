@@ -42,6 +42,23 @@
 #include <sstream>
 #include <cstdio>
 
+
+namespace {
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+inline
+bool
+is_comment_line( const std::string & line )
+{
+    return ( line.empty()
+             || line[0] == '#'
+             || ! line.compare( 0, 2, "//" ) );
+}
+
+}
+
 namespace rcsc {
 
 using namespace formation;
@@ -372,6 +389,46 @@ FormationCDT::train()
 
  */
 bool
+FormationCDT::read( std::istream & is )
+{
+    if ( ! readHeader( is ) ) return false;
+    if ( ! readConf( is ) ) return false;
+    if ( ! readSamples( is ) ) return false;
+    if ( ! readEnd( is ) ) return false;
+
+    if ( ! checkSymmetryNumber() )
+    {
+        std::cerr << __FILE__ << " *** ERROR *** Illegal symmetry data."
+                  << std::endl;
+        return false;
+    }
+
+    if ( ! generateModel() ) return false;
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationCDT::print( std::ostream & os ) const
+{
+    if ( os ) printHeader( os );
+    if ( os ) printConf( os );
+    if ( os ) printSamples( os );
+    if ( os ) printEnd( os );
+
+    return os;
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
 FormationCDT::readConf( std::istream & is )
 {
     if ( ! readRoles( is ) )
@@ -379,44 +436,6 @@ FormationCDT::readConf( std::istream & is )
         return false;
     }
 
-    if ( ! readVertices( is ) )
-    {
-        return false;
-    }
-
-    //
-    // read End tag
-    //
-
-    std::string line_buf;
-    while ( std::getline( is, line_buf ) )
-    {
-        if ( line_buf.empty()
-             || line_buf[0] == '#'
-             || ! line_buf.compare( 0, 2, "//" ) )
-        {
-            continue;
-        }
-
-        if ( line_buf != "End" )
-        {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " *** ERROR *** readRolesV2(). Failed getline "
-                      << std::endl;
-            return false;
-        }
-
-        break;
-    }
-
-    if ( is.eof() )
-    {
-        std::cerr << "Input stream reaches EOF"
-                  << std::endl;
-    }
-
-
-    train();
     return true;
 }
 
@@ -425,9 +444,53 @@ FormationCDT::readConf( std::istream & is )
 
  */
 bool
-FormationCDT::readSamples( std::istream & )
+FormationCDT::generateModel()
 {
+    train();
     return true;
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationCDT::readEnd( std::istream & is )
+{
+    std::string line_buf;
+    while ( std::getline( is, line_buf ) )
+    {
+        std::cerr << "(readEnd) " << line_buf << std::endl;
+        if ( is_comment_line( line_buf ) )
+        {
+            continue;
+        }
+
+        if ( line_buf != "End" )
+        {
+            std::cerr << __FILE__ << ':' << __LINE__ << ':'
+                      << " *** ERROR *** (readEnd) unexpected string ["
+                      << line_buf << ']' << std::endl;
+            return false;
+        }
+
+        std::cerr << __FILE__ << "(readEnd) true" << std::endl;
+
+        // found
+        return true;
+    }
+
+    std::cerr << __FILE__ << ':' << __LINE__ << ':'
+              << " *** ERROR *** (readEnd) 'End' not found"
+              << std::endl;
+    if ( is.eof() )
+    {
+        std::cerr << "Input stream reaches EOF"
+                  << std::endl;
+    }
+
+    return false;
 }
 
 /*-------------------------------------------------------------------*/
@@ -551,53 +614,11 @@ FormationCDT::readRoles( std::istream & is )
 /*!
 
  */
-bool
-FormationCDT::readVertices( std::istream & is )
-{
-    M_samples = SampleDataSet::Ptr( new SampleDataSet() );
-
-    if ( ! M_samples->read( is ) )
-    {
-        M_samples.reset();
-        return false;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-FormationCDT::readConstraints( std::istream & )
-{
-    //std::cerr << "FormationCDT::readConstraints()" << std::endl;
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
 std::ostream &
 FormationCDT::printConf( std::ostream & os ) const
 {
     printRoles( os );
-    printVertices( os );
-    printConstraints( os );
 
-    os << "End" << std::endl;
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-FormationCDT::printSamples( std::ostream & os ) const
-{
     return os;
 }
 
@@ -627,20 +648,9 @@ FormationCDT::printRoles( std::ostream & os ) const
 
  */
 std::ostream &
-FormationCDT::printVertices( std::ostream & os ) const
+FormationCDT::printEnd( std::ostream & os ) const
 {
-    M_samples->print( os );
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-FormationCDT::printConstraints( std::ostream & os ) const
-{
-    std::cerr << "FormationCDT::printConstraints()" << std::endl;
+    os << "End" << std::endl;
     return os;
 }
 

@@ -39,6 +39,9 @@
 
 #include <rcsc/geom/segment_2d.h>
 
+//#include <boost/tokenizer.hpp>
+//#include <boost/lexical_cast.hpp>
+
 #include <iterator>
 #include <algorithm>
 #include <limits>
@@ -907,12 +910,24 @@ SampleDataSet::open( const std::string & filepath )
     return true;
 }
 
+
 /*-------------------------------------------------------------------*/
 /*!
 
  */
 bool
 SampleDataSet::read( std::istream & is )
+{
+    //return readOld( is );
+    return readCSV( is );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+SampleDataSet::readOld( std::istream & is )
 {
     M_data_cont.clear();
 
@@ -965,7 +980,7 @@ SampleDataSet::read( std::istream & is )
     {
         // reset stream position.
         is.seekg( 0 );
-        success = readOld( is );
+        success = readV1( is );
     }
 
     if ( ! success )
@@ -981,7 +996,113 @@ SampleDataSet::read( std::istream & is )
 
  */
 bool
-SampleDataSet::readOld( std::istream & is )
+SampleDataSet::readCSV( std::istream & is )
+{
+    M_data_cont.clear();
+
+    std::string line_buf;
+    int n_data = 0;
+
+    // // read the number of sample data
+    {
+        if ( ! std::getline( is, line_buf ) )
+        {
+            std::cerr << __FILE__ << ' ' << __LINE__ << ':'
+                      << " ERROR Could not read any line." << std::endl;
+            return false;
+        }
+
+        if ( std::sscanf( line_buf.c_str(), "Size,%d" , &n_data ) != 1 )
+        {
+            std::cerr << __FILE__ << ' ' << __LINE__ << ':'
+                      << " ERROR Could not parse the number of data." << std::endl;
+            return false;
+        }
+    }
+
+    // skip header line
+    {
+        if ( ! std::getline( is, line_buf ) )
+        {
+            std::cerr << __FILE__ << ' ' << __LINE__ << ':'
+                      << " ERROR no header line." << std::endl;
+            return false;
+        }
+        if ( line_buf.compare( 0, 3, "idx" ) != 0 )
+        {
+            std::cerr << __FILE__ << ' ' << __LINE__ << ':'
+                      << " ERROR Illegal header line." << std::endl;
+            return false;
+        }
+    }
+
+    // loop for reading all sample data
+    for ( int idx = 0; idx < n_data; ++idx )
+    {
+        if ( ! std::getline( is, line_buf ) )
+        {
+            std::cerr << __FILE__ << ' ' << __LINE__ << ':'
+                      << " ERROR Could not read the data line at idx=" << idx << std::endl;
+            return false;
+        }
+
+        const char * buf = line_buf.c_str();
+        int n_read = 0;
+
+        int read_idx = 0;
+        if ( std::sscanf( buf, "%d,%n", &read_idx, &n_read ) != 1 )
+        {
+            std::cerr << __FILE__ << ' ' << __LINE__ << ':'
+                      << " ERROR Could not read the data index at idx=" << idx << std::endl;
+            return false;
+        }
+        buf += n_read;
+
+        SampleData new_data;
+        double read_x, read_y;
+
+        // read ball
+        if ( std::sscanf( buf, "%lf,%lf%n", &read_x, &read_y, &n_read ) != 2 )
+        {
+            std::cerr << __FILE__ << ' ' << __LINE__ << ':'
+                      << " ERROR Could not read the ball data at idx=" << idx << std::endl;
+            return false;
+        }
+        buf += n_read;
+
+        new_data.ball_ = round_coordinates( read_x, read_y );
+
+        // read players
+        for ( int i = 1; i <= 11; ++i )
+        {
+            if ( std::sscanf( buf, ",%lf,%lf%n", &read_x, &read_y, &n_read ) != 2 )
+            {
+                std::cerr << __FILE__ << ' ' << __LINE__ << ':'
+                          << " ERROR Could not read the player data " << i << " at idx=" << idx << std::endl;
+                return false;
+            }
+            buf += n_read;
+
+            new_data.players_.push_back( round_coordinates( read_x, read_y ) );
+        }
+
+        M_data_cont.push_back( new_data );
+    }
+
+    updateDataIndex();
+
+
+    // TODO: read constraints
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+SampleDataSet::readV1( std::istream & is )
 {
     std::string line_buf;
 
@@ -1306,6 +1427,16 @@ SampleDataSet::save( const std::string & filepath ) const
 std::ostream &
 SampleDataSet::print( std::ostream & os ) const
 {
+    return printCSV( os );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+SampleDataSet::printOld( std::ostream & os ) const
+{
     printV2( os );
     return os << std::flush;
 }
@@ -1315,7 +1446,7 @@ SampleDataSet::print( std::ostream & os ) const
 
  */
 std::ostream &
-SampleDataSet::printOld( std::ostream & os ) const
+SampleDataSet::printV1( std::ostream & os ) const
 {
     // put data to the stream
     for ( DataCont::const_iterator it = M_data_cont.begin();
@@ -1392,6 +1523,54 @@ SampleDataSet::printConstraints( std::ostream & os ) const
     }
 
     os << "End Constraints\n";
+
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+SampleDataSet::printCSV( std::ostream & os ) const
+{
+    os << "SampleData\n";
+    os << "Size," << M_data_cont.size() << '\n';
+    os << "idx,ballX,ballY";
+    for ( int i = 1; i <= 11; ++i )
+    {
+        os << ',' << i << 'X'
+           << ',' << i << 'Y';
+    }
+    os << '\n';
+
+    int idx = 0;
+    for ( DataCont::const_iterator it = M_data_cont.begin();
+          it != M_data_cont.end();
+          ++it, ++idx )
+    {
+        os << idx << ',';
+        os << round_coord( it->ball_.x ) << ',' << round_coord( it->ball_.y );
+        for ( std::vector< Vector2D >::const_iterator p = it->players_.begin();
+              p != it->players_.end();
+              ++p )
+        {
+            os << ',' << round_coord( p->x ) << ',' << round_coord( p->y );
+        }
+        os << '\n';
+    }
+
+    if ( ! M_constraints.empty() )
+    {
+         os << "Constraints," << M_constraints.size() << '\n';
+
+         for ( Constraints::const_iterator it = M_constraints.begin();
+               it != M_constraints.end();
+               ++it )
+         {
+             os << it->first->index_ << ',' << it->second->index_ << '\n';
+         }
+    }
 
     return os;
 }
