@@ -234,7 +234,7 @@ FormationStatic::readOld( std::istream & is )
 {
     if ( ! readHeader( is ) ) return false;
     if ( ! readConf( is ) ) return false;
-    if ( ! readSamples( is ) ) return false;
+    if ( ! readSamplesOld( is ) ) return false;
 
     if ( ! checkSymmetryNumber() )
     {

@@ -458,7 +458,7 @@ protected:
       \param is reference to the input stream.
       \return result status.
     */
-    bool readSamples( std::istream & is );
+    bool readSamplesOld( std::istream & is );
     bool readSamplesCSV( std::istream & is );
 
     /*!

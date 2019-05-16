@@ -545,11 +545,11 @@ Formation::readMethodName( std::istream & is )
 
  */
 bool
-Formation::readSamples( std::istream & is )
+Formation::readSamplesOld( std::istream & is )
 {
     M_samples = SampleDataSet::Ptr( new SampleDataSet() );
 
-    if ( ! M_samples->read( is ) )
+    if ( ! M_samples->readOld( is ) )
     {
         M_samples.reset();
         return false;
