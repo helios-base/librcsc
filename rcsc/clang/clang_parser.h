@@ -163,6 +163,12 @@ private:
     bool handleActHeteroType();
 
     /*!
+      \brief semantic action for hold action
+      \return action result.
+     */
+    bool handleActHold();
+
+    /*!
       \brief semantic action for normal directive.
       \return action result.
      */

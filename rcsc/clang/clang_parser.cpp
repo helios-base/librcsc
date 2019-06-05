@@ -255,6 +255,7 @@ public:
 
         bsc::rule< S > clang_act_mark_p;
         bsc::rule< S > clang_act_htype_p;
+        bsc::rule< S > clang_act_hold_p;
         bsc::rule< S > clang_act_p;
 
         bsc::rule< S > clang_do_dont_p;
@@ -309,8 +310,12 @@ public:
                                     >> bsc::str_p( "htype" )
                                     >> bsc::int_p[boost::bind( &Impl::handleActHeteroTypeId, &self, _1 )]
                                     >> rp_p );
+              clang_act_hold_p = ( lp_p
+                                   >> bsc::str_p( "hold" )
+                                   >> rp_p );
               clang_act_p = ( clang_act_mark_p[boost::bind( &Impl::handleActMark, &self )]
                               | clang_act_htype_p[boost::bind( &Impl::handleActHeteroType, &self )]
+                              | clang_act_hold_p[boost::bind( &Impl::handleActHold, &self )]
                               );
 
               clang_do_dont_p
@@ -361,6 +366,7 @@ public:
               BOOST_SPIRIT_DEBUG_RULE( clang_cond_p );
               BOOST_SPIRIT_DEBUG_RULE( clang_act_mark_p );
               BOOST_SPIRIT_DEBUG_RULE( clang_act_htype_p );
+              BOOST_SPIRIT_DEBUG_RULE( clang_act_hold_p );
               BOOST_SPIRIT_DEBUG_RULE( clang_act_p );
               BOOST_SPIRIT_DEBUG_RULE( clang_do_dont_p );
               BOOST_SPIRIT_DEBUG_RULE( clang_team_p );
@@ -432,6 +438,11 @@ public:
     bool handleActHeteroTypeId( int type ) const
       {
           return M_parser.handleActHeteroTypeId( type );
+      }
+
+    bool handleActHold() const
+      {
+          return M_parser.handleActHold();
       }
 
     bool handleDirectiveCommon() const
@@ -803,6 +814,17 @@ CLangParser::handleActHeteroType()
     return true;
 }
 
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+CLangParser::handleActHold()
+{
+    CLangActionHold * act = new CLangActionHold();
+    M_impl->pushAction( act );
+    return true;
+}
 
 /*-------------------------------------------------------------------*/
 /*!
