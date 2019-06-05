@@ -63,4 +63,15 @@ CLangActionHeteroType::print( std::ostream & os ) const
     return os;
 }
 
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+CLangActionHold::print( std::ostream & os ) const
+{
+    os << "(hold)";
+    return os;
+}
+
 }

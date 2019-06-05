@@ -271,6 +271,76 @@ public:
     std::ostream & print( std::ostream & os ) const;
 };
 
+/*!
+  \class CLangActionHold
+  \brief clang action 'hold'
+ */
+class CLangActionHold
+    : public CLangAction {
+private:
+
+    CLangUnumSet::Ptr M_target_players; //!< target player who tends to select hold-action
+
+public:
+
+    /*!
+      \brief create with empty target players
+    */
+    CLangActionHold()
+        : M_target_players( new CLangUnumSet() )
+      { }
+
+  /*!
+      \brief create with target players
+      \param dynamically allocated object.
+     */
+    explicit
+    CLangActionHold( CLangUnumSet * players )
+        : M_target_players( players )
+      { }
+
+    // ~CLangActionHold()
+    //   {
+    //       std::cerr << "delete CLangActionHold " << *M_target_players << std::endl;
+    //   }
+
+    /*!
+      \brief get type id.
+      \return action type id.
+     */
+    virtual
+    Type type() const
+      {
+          return HOLD;
+      }
+
+    /*!
+      \brief get the set of target players' unum
+      \retur unum set
+     */
+    const CLangUnumSet::Ptr & targetPlayers() const
+      {
+          return M_target_players;
+      }
+
+    /*!
+      \brief add new target player
+      \param unum target player's uniform number
+     */
+    void addPlayer( const int unum )
+      {
+          M_target_players->add( unum );
+      }
+
+    /*!
+      \brief print clang message to the output stream
+      \param os reference to the output stream
+      \return reference to the output stream
+     */
+    virtual
+    std::ostream & print( std::ostream & os ) const;
+
+};
 
 //
 // TODO:
