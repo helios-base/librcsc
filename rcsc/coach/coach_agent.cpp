@@ -1097,7 +1097,7 @@ CoachAgent::Impl::analyzeInit( const char * msg )
     SideID side_id = ( side == 'l'
                        ? LEFT
                        : RIGHT );
-    agent_.M_worldmodel.init( side_id, agent_.config().version() );
+    agent_.M_worldmodel.init( agent_.config().teamName(), side_id, agent_.config().version() );
 
     if ( agent_.config().hearSay() )
     {

@@ -1,3 +1,11 @@
+2019-06-06  Hidehisa Akiyama  <akky@users.sourceforge.jp>
+
+	* rcsc/coach/coach_agent.cpp:
+	* rcsc/coach/coach_world_model.cpp:
+	* rcsc/coach/coach_world_model.h:
+	* rcsc/trainer/trainer_agent.cpp:
+	- コーチのワールドモデル初期化時にチーム名をセットするように変更
+
 2019-05-16  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/formation/formation.cpp:

@@ -107,9 +107,11 @@ CoachWorldModel::CoachWorldModel()
 
  */
 void
-CoachWorldModel::init( const SideID side,
+CoachWorldModel::init( const std::string & team_name,
+                       const SideID side,
                        const int client_version )
 {
+    M_our_team_name = team_name;
     M_our_side = side;
     M_client_version = client_version;
 }

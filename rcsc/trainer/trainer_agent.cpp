@@ -438,7 +438,7 @@ TrainerAgent::TrainerAgent()
     , M_impl( new Impl( *this ) )
     , M_config()
 {
-    M_worldmodel.init( NEUTRAL, 999 );
+    M_worldmodel.init( M_config.teamName(), NEUTRAL, 999 );
 
     boost::shared_ptr< AudioMemory > audio_memory( new AudioMemory );
 

@@ -159,11 +159,13 @@ public:
     CoachWorldModel();
 
     /*!
-      \brief init with team side info);
+      \brief init by team name, team side, and client version
+      \param team_name our team name
       \param side side character
       \param client_version client protocol version
      */
-    void init( const SideID side,
+    void init( const std::string & team_name,
+               const SideID side,
                const int client_version );
 
     /*!
