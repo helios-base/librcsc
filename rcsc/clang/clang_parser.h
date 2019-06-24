@@ -169,6 +169,12 @@ private:
     bool handleActHold();
 
     /*!
+      \brief semantic action for bto action
+      \return action result.
+     */
+    bool handleActBallTo();
+
+    /*!
       \brief semantic action for normal directive.
       \return action result.
      */

@@ -279,29 +279,16 @@ class CLangActionHold
     : public CLangAction {
 private:
 
-    CLangUnumSet::Ptr M_target_players; //!< target player who tends to select hold-action
-
 public:
 
     /*!
       \brief create with empty target players
     */
     CLangActionHold()
-        : M_target_players( new CLangUnumSet() )
-      { }
-
-  /*!
-      \brief create with target players
-      \param dynamically allocated object.
-     */
-    explicit
-    CLangActionHold( CLangUnumSet * players )
-        : M_target_players( players )
       { }
 
     // ~CLangActionHold()
     //   {
-    //       std::cerr << "delete CLangActionHold " << *M_target_players << std::endl;
     //   }
 
     /*!
@@ -315,21 +302,74 @@ public:
       }
 
     /*!
-      \brief get the set of target players' unum
-      \retur unum set
+      \brief print clang message to the output stream
+      \param os reference to the output stream
+      \return reference to the output stream
      */
-    const CLangUnumSet::Ptr & targetPlayers() const
+    virtual
+    std::ostream & print( std::ostream & os ) const;
+
+};
+
+/*!
+  \class CLangActionBallTo
+  \brief clang action 'bto'
+ */
+class CLangActionBallTo
+    : public CLangAction {
+private:
+
+    CLangUnumSet::Ptr M_assigned_players; //!< assigned player who moves to ball
+
+public:
+
+    /*!
+      \brief create with empty assigned players
+     */
+    CLangActionBallTo()
+        : M_assigned_players( new CLangUnumSet() )
+      { }
+
+    /*!
+      \brief create with the specified assigned player.
+      \param dynamically allocated object.
+     */
+    explicit
+    CLangActionBallTo( CLangUnumSet * players )
+        : M_assigned_players( players )
+      { }
+
+    // ~CLangActionBallTo()
+    //   {
+    //       std::cerr << "delete CLangActionBallTo " << M_player_unum << std::endl;
+    //   }
+
+    /*!
+      \brief get type id.
+      \return action type id.
+     */
+    virtual
+    Type type() const
       {
-          return M_target_players;
+          return BALLTO;
       }
 
     /*!
-      \brief add new target player
-      \param unum target player's uniform number
+      \brief get the player unum
+      \return player unum
+     */
+    const CLangUnumSet::Ptr & assignedPlayers() const
+      {
+          return M_assigned_players;
+      }
+
+    /*!
+      \brief set player type id.
+      \param type player type id
      */
     void addPlayer( const int unum )
       {
-          M_target_players->add( unum );
+          M_assigned_players->add( unum );
       }
 
     /*!
@@ -339,8 +379,9 @@ public:
      */
     virtual
     std::ostream & print( std::ostream & os ) const;
-
 };
+
+
 
 //
 // TODO:
