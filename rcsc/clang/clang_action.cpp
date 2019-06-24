@@ -74,4 +74,16 @@ CLangActionHold::print( std::ostream & os ) const
     return os;
 }
 
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+CLangActionBallTo::print( std::ostream & os ) const
+{
+    os << "(bto ";
+    M_assigned_players->print( os );
+    os << ')';
+    return os;
+}
 }

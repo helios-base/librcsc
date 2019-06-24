@@ -256,6 +256,8 @@ public:
         bsc::rule< S > clang_act_mark_p;
         bsc::rule< S > clang_act_htype_p;
         bsc::rule< S > clang_act_hold_p;
+        bsc::rule< S > clang_act_bto_p;
+
         bsc::rule< S > clang_act_p;
 
         bsc::rule< S > clang_do_dont_p;
@@ -313,9 +315,13 @@ public:
               clang_act_hold_p = ( lp_p
                                    >> bsc::str_p( "hold" )
                                    >> rp_p );
+              clang_act_bto_p = ( lp_p
+                                  >> bsc::str_p( "bto" ) >> clang_unum_set_p
+                                  >> rp_p );
               clang_act_p = ( clang_act_mark_p[boost::bind( &Impl::handleActMark, &self )]
                               | clang_act_htype_p[boost::bind( &Impl::handleActHeteroType, &self )]
                               | clang_act_hold_p[boost::bind( &Impl::handleActHold, &self )]
+                              | clang_act_bto_p[boost::bind( &Impl::handleActBallTo, &self )]
                               );
 
               clang_do_dont_p
@@ -367,6 +373,7 @@ public:
               BOOST_SPIRIT_DEBUG_RULE( clang_act_mark_p );
               BOOST_SPIRIT_DEBUG_RULE( clang_act_htype_p );
               BOOST_SPIRIT_DEBUG_RULE( clang_act_hold_p );
+              BOOST_SPIRIT_DEBUG_RULE( clang_act_bto_p );
               BOOST_SPIRIT_DEBUG_RULE( clang_act_p );
               BOOST_SPIRIT_DEBUG_RULE( clang_do_dont_p );
               BOOST_SPIRIT_DEBUG_RULE( clang_team_p );
@@ -443,6 +450,11 @@ public:
     bool handleActHold() const
       {
           return M_parser.handleActHold();
+      }
+
+    bool handleActBallTo() const
+      {
+          return M_parser.handleActBallTo();
       }
 
     bool handleDirectiveCommon() const
@@ -822,6 +834,27 @@ bool
 CLangParser::handleActHold()
 {
     CLangActionHold * act = new CLangActionHold();
+    M_impl->pushAction( act );
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+CLangParser::handleActBallTo()
+{
+    CLangUnumSet * uset = M_impl->popUnumSet();
+    if ( ! uset )
+    {
+        std::cerr << __FILE__ << ' ' << __LINE__
+                  << ": (handleActMark) could not get unum set from the stack."
+                  << std::endl;
+        return false;
+    }
+
+    CLangActionBallTo * act = new CLangActionBallTo( uset );
     M_impl->pushAction( act );
     return true;
 }
