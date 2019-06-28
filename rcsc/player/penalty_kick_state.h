@@ -71,9 +71,6 @@ private:
     //! current kick kicker's side id
     int M_kick_taker_side;
 
-    //! current kick kicker's uniform number
-    int M_kick_taker_unum;
-
     //! kick taker order
     int M_kick_taker_order[11];
 
@@ -153,11 +150,7 @@ public:
       \return checked result.
      */
     bool isKickTaker( const SideID side,
-                      const int unum ) const
-      {
-          return M_kick_taker_side == side
-              && M_kick_taker_unum == unum;
-      }
+                      const int unum ) const;
 
     /*!
       \brief update status using refeee message

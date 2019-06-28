@@ -52,13 +52,28 @@ PenaltyKickState::PenaltyKickState()
       M_their_taker_counter( 0 ),
       M_our_score( 0 ),
       M_their_score( 0 ),
-      M_kick_taker_side( NEUTRAL ),
-      M_kick_taker_unum( Unum_Unknown )
+      M_kick_taker_side( NEUTRAL )
 {
-    for ( int i = 0; i < 11; ++i )
+
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+bool
+PenaltyKickState::isKickTaker( const SideID side,
+                               const int unum ) const
+{
+    if ( M_kick_taker_side != side )
     {
-        M_kick_taker_order[i] = 11 - i;
+        return false;
     }
+
+    const int idx = ( ourTakerCounter() - 1 ) % 11;
+    const int kick_taker_unum = M_kick_taker_order[idx];
+
+    return kick_taker_unum == unum;
 }
 
 /*-------------------------------------------------------------------*/
@@ -126,14 +141,10 @@ PenaltyKickState::update( const GameMode & game_mode,
          )
     {
         M_kick_taker_side = game_mode.side();
-
-        int idx = ( ourTakerCounter() - 1 ) % 11;
-        M_kick_taker_unum = M_kick_taker_order[idx];
     }
     else
     {
         M_kick_taker_side = NEUTRAL;
-        M_kick_taker_unum = Unum_Unknown;
     }
 }
 
