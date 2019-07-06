@@ -4651,7 +4651,8 @@ WorldModel::updateTheirDefenseLine()
         if ( x > ball().pos().x + 3.0 )
         {
             double rate = 0.1;
-            if ( (*it)->vel().x < -ptype->realSpeedMax()*ptype->playerDecay() * 0.8 )
+            if ( (*it)->vel().x < -ptype->realSpeedMax()*ptype->playerDecay() * 0.8
+                 || ball().pos().x > 25.0 )
             {
                 rate = 0.8;
             }
