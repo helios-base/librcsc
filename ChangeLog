@@ -1,3 +1,8 @@
+2019-08-06  Takuya Fukushima  <takuya.fukushima@kis.osakafu-u.ac.jp>
+
+	* rcsc/player/world_model.cpp:
+	- lastKicker更新時のバグを修正
+
 2019-06-06  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* rcsc/coach/coach_agent.cpp:

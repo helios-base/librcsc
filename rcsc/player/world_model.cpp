@@ -851,7 +851,7 @@ WorldModel::update( const ActionEffector & act,
 #endif
 
     M_previous_kickable_teammate = false;
-    M_previous_kickable_teammate = Unum_Unknown;
+    M_previous_kickable_teammate_unum = Unum_Unknown;
     if ( M_kickable_teammate )
     {
         M_previous_kickable_teammate = true;
@@ -5087,7 +5087,7 @@ WorldModel::updateLastKicker()
         else if ( ! M_previous_kickable_teammate
                   && M_previous_kickable_opponent )
         {
-            M_last_kicker_side = ourSide();
+            M_last_kicker_side = theirSide();
             M_last_kicker_unum = M_previous_kickable_opponent_unum;
 #ifdef DEBUG_PRINT_LAST_KICKER
             dlog.addText( Logger::WORLD,
@@ -5238,6 +5238,9 @@ WorldModel::updateLastKicker()
     {
         bool exist_teammate_kicker = false;
         int teammate_kicker_unum = Unum_Unknown;
+        bool exist_opponent_kicker = false;
+        int opponent_kicker_unum = Unum_Unknown;
+
         for ( AbstractPlayerObject::Cont::const_iterator p = kickers.begin();
               p != kickers.end();
               ++p )
@@ -5247,9 +5250,24 @@ WorldModel::updateLastKicker()
                 exist_teammate_kicker = true;
                 teammate_kicker_unum = (*p)->unum();
             }
+            else if ( (*p)->side() == theirSide() )
+            {
+                exist_opponent_kicker = true;
+                opponent_kicker_unum = (*p)->unum();
+            }
         }
 
-        if ( exist_teammate_kicker )
+        if ( exist_teammate_kicker
+             && exist_opponent_kicker )
+        {
+            M_last_kicker_side = NEUTRAL;
+            M_last_kicker_unum = Unum_Unknown;
+#ifdef DEBUG_PRINT_LAST_KICKER
+            dlog.addText( Logger::WORLD,
+                          __FILE__" (updateLastKicker) set by seen both side kickers." );
+#endif
+        }
+        else if ( exist_teammate_kicker )
         {
             M_last_kicker_side = ourSide();
             M_last_kicker_unum = teammate_kicker_unum;
@@ -5259,6 +5277,16 @@ WorldModel::updateLastKicker()
 #endif
             return;
         }
+        else if ( exist_opponent_kicker )
+        {
+            M_last_kicker_side = theirSide();
+            M_last_kicker_unum = opponent_kicker_unum;
+#ifdef DEBUG_PRINT_LAST_KICKER
+            dlog.addText( Logger::WORLD,
+                          __FILE__" (updateLastKicker) set by seen opponent kicker." );
+#endif
+        }
+
     }
 #ifdef DEBUG_PRINT_LAST_KICKER
     dlog.addText( Logger::WORLD,
