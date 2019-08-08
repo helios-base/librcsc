@@ -5266,6 +5266,7 @@ WorldModel::updateLastKicker()
             dlog.addText( Logger::WORLD,
                           __FILE__" (updateLastKicker) set by seen both side kickers." );
 #endif
+            return;
         }
         else if ( exist_teammate_kicker )
         {
@@ -5285,6 +5286,7 @@ WorldModel::updateLastKicker()
             dlog.addText( Logger::WORLD,
                           __FILE__" (updateLastKicker) set by seen opponent kicker." );
 #endif
+            return;
         }
 
     }
