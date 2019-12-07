@@ -85,7 +85,9 @@ public:
         PenaltyMiss_, // Left | Right
         PenaltyScore_, // Left | Right
 
-        // these are not a real playmode
+        IllegalDefense_, // Left | Right
+
+        // not a real playmode
         PenaltyOnfield_, // next real playmode is PenaltySetup_
         PenaltyFoul_,    // next real playmode is PenaltyMiss_ or PenaltyScore_
         //PenaltyWinner_,  // next real playmode is TimeOver

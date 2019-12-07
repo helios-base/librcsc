@@ -339,6 +339,11 @@ public:
     static const int FOUL_CYCLES;
     // 15.0.0
     static const double RED_CARD_PROBABILITY;
+    // 16.0.0
+    static const bool USE_ILLEGAL_DEFENSE;
+    static const int ILLEGAL_DEFENSE_DURATION;
+    static const int ILLEGAL_DEFENSE_NUMBER;
+    static const double ILLEGAL_DEFENSE_DIST_X;
 private:
 
     //////////////////////////////////////////////////////
@@ -622,6 +627,11 @@ private:
 
     // 15.0.0
     double M_red_card_probability;
+
+    // 16.0.0
+    int M_illegal_defense_duration;
+    int M_illegal_defense_number;
+    double M_illegal_defense_dist_x;
 
     // xxx
     int M_random_seed;
@@ -1081,6 +1091,11 @@ public:
 
     // v15
     double redCardProbability() const { return M_red_card_probability; }
+
+    // v16
+    int illegalDefenseDuration() const { return M_illegal_defense_duration; }
+    int illegalDefenseNumber() const { return M_illegal_defense_number; }
+    double illegalDefenseDistX() const { return M_illegal_defense_dist_x; }
 
     // XXX
     int randomSeed() const { return M_random_seed; }
