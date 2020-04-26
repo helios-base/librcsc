@@ -3,6 +3,7 @@
 	* rcsc/common/server_param.cpp:
 	* rcsc/common/server_param.h:
 	- illegal defense対応のパラメータとメソッドを追加
+	- fixed teamname対応のパラメータとメソッドを追加
 
 2019-08-06  Takuya Fukushima  <takuya.fukushima@kis.osakafu-u.ac.jp>
 

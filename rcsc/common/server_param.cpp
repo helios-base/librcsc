@@ -657,6 +657,8 @@ ServerParam::setDefaultParam()
     M_illegal_defense_number = ILLEGAL_DEFENSE_NUMBER;
     M_illegal_defense_dist_x = ILLEGAL_DEFENSE_DIST_X;
     M_illegal_defense_width = ILLEGAL_DEFENSE_WIDTH;
+    M_fixed_teamname_l = "";
+    M_fixed_teamname_r = "";
 
     // XXX
     M_random_seed = -1;
@@ -963,6 +965,8 @@ ServerParam::createMap()
         ( "illegal_defense_number", "", &M_illegal_defense_number )
         ( "illegal_defense_dist_x", "", &M_illegal_defense_dist_x )
         ( "illegal_defense_width", "", &M_illegal_defense_width )
+        ( "fixed_teamname_l", "", &M_fixed_teamname_l )
+        ( "fixed_teamname_r", "", &M_fixed_teamname_r )
 
         //( "random_seed", "", &M_random_seed )
         ;
