@@ -1,8 +1,14 @@
 2020-04-26  Hidehisa Akiyama  <hidehisaakiyama@users.noreply.github.com>
 
+	* rcsc/coach/coach_agent.cpp:
+	* rcsc/player/player_agent.cpp:
+	* rcsc/trainer/trainer_agent.cpp:
+	- バージョン16プロトコルへの対応
+
 	* rcsc/common/server_param.cpp:
 	* rcsc/common/server_param.h:
 	- illegal defense対応のパラメータとメソッドを追加
+	- fixed teamname対応のパラメータとメソッドを追加
 
 2019-08-06  Takuya Fukushima  <takuya.fukushima@kis.osakafu-u.ac.jp>
 

@@ -633,6 +633,8 @@ private:
     int M_illegal_defense_number;
     double M_illegal_defense_dist_x;
     double M_illegal_defense_width;
+    std::string M_fixed_teamname_l;
+    std::string M_fixed_teamname_r;
 
     // xxx
     int M_random_seed;
@@ -1099,6 +1101,8 @@ public:
     int illegalDefenseNumber() const { return M_illegal_defense_number; }
     double illegalDefenseDistX() const { return M_illegal_defense_dist_x; }
     double illegalDefenseWidth() const { return M_illegal_defense_width; }
+    const std::string & fixedTeamNameLeft() const { return M_fixed_teamname_l; }
+    const std::string & fixedTeamNameRight() const { return M_fixed_teamname_r; }
 
     // XXX
     int randomSeed() const { return M_random_seed; }

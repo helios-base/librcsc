@@ -522,7 +522,7 @@ TrainerAgent::initImpl( CmdLineParser & cmd_parser )
     M_config.parse( cmd_parser );
 
     if ( config().version() < 1.0
-         || 16.0 <= config().version() )
+         || 17.0 <= config().version() )
     {
         std::cerr << "Unsupported client version: " << config().version()
                   << std::endl;
