@@ -127,6 +127,8 @@ MapHolder::MapHolder()
     M_playmode_map["penalty_miss_r"] = std::make_pair( GameMode::PenaltyMiss_, RIGHT );
     M_playmode_map["penalty_score_l"] = std::make_pair( GameMode::PenaltyScore_, LEFT );
     M_playmode_map["penalty_score_r"] = std::make_pair( GameMode::PenaltyScore_, RIGHT );
+    M_playmode_map["illegal_defense_l"] = std::make_pair( GameMode::IllegalDefense_, LEFT );
+    M_playmode_map["illegal_defense_r"] = std::make_pair( GameMode::IllegalDefense_, RIGHT );
 
     //"goal_SIDE_SCORE"
     M_playmode_map["half_time"] = std::make_pair( GameMode::FirstHalfOver, NEUTRAL );
@@ -292,6 +294,7 @@ GameMode::isServerCycleStoppedMode() const
     case FreeKickFault_:
     case BackPass_:
     case CatchFault_:
+    case IllegalDefense_:
         return true;
     default:
         return false;
@@ -357,6 +360,7 @@ GameMode::isTeamsSetPlay( const SideID team_side ) const
     case FreeKickFault_:
     case BackPass_:
     case CatchFault_:
+    case IllegalDefense_:
         if ( team_side != side() )
         {
             return true;
@@ -474,6 +478,10 @@ GameMode::getServerPlayMode() const
         return ( side() == LEFT
                  ? PM_PenaltyScore_Left
                  : PM_PenaltyScore_Right );
+    case IllegalDefense_:
+        return ( side() == LEFT
+                 ? PM_Illegal_Defense_Left
+                 : PM_Illegal_Defense_Right );
     default:
         return PM_MAX;
     };
@@ -680,6 +688,9 @@ GameMode::print( std::ostream & os ) const
         break;
         //case PenaltyWinner_:
         //case PenaltyDraw:
+    case IllegalDefense_:
+        os << "illgal_defense";
+        break;
     case GoalieCatch_:
         os << " goalie_catch";
         break;

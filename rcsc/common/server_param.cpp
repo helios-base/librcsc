@@ -339,6 +339,12 @@ const int ServerParam::FOUL_CYCLES = 5;
 // 15.0
 const double ServerParam::RED_CARD_PROBABILITY = 0.0;
 
+// 16.0
+const int ServerParam::ILLEGAL_DEFENSE_DURATION = 20;
+const int ServerParam::ILLEGAL_DEFENSE_NUMBER = 0;
+const double ServerParam::ILLEGAL_DEFENSE_DIST_X = 16.5;
+const double ServerParam::ILLEGAL_DEFENSE_WIDTH = 40.32;
+
 /*
   It is necessary to check out whether server is NEW_QSTEP mode
   bool defined_qstep_l = false;
@@ -646,6 +652,12 @@ ServerParam::setDefaultParam()
     // 15.0.0
     M_red_card_probability = RED_CARD_PROBABILITY;
 
+    // 16.0
+    M_illegal_defense_duration = ILLEGAL_DEFENSE_DURATION;
+    M_illegal_defense_number = ILLEGAL_DEFENSE_NUMBER;
+    M_illegal_defense_dist_x = ILLEGAL_DEFENSE_DIST_X;
+    M_illegal_defense_width = ILLEGAL_DEFENSE_WIDTH;
+
     // XXX
     M_random_seed = -1;
     M_long_kick_power_factor = 2.0;
@@ -946,6 +958,11 @@ ServerParam::createMap()
         ( "golden_goal", "", &M_golden_goal )
         // 15.0.0
         ( "red_card_probability", "", &M_red_card_probability )
+        // 16.0.0
+        ( "illegal_defense_duration", "", &M_illegal_defense_duration )
+        ( "illegal_defense_number", "", &M_illegal_defense_number )
+        ( "illegal_defense_dist_x", "", &M_illegal_defense_dist_x )
+        ( "illegal_defense_width", "", &M_illegal_defense_width )
 
         //( "random_seed", "", &M_random_seed )
         ;
