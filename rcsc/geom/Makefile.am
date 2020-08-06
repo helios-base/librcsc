@@ -2,7 +2,8 @@
 
 SUBDIRS = triangle .
 
-lib_LTLIBRARIES = librcsc_geom.la
+noinst_LTLIBRARIES = librcsc_geom.la
+#lib_LTLIBRARIES = librcsc_geom.la
 
 librcsc_geom_la_SOURCES = \
 	angle_deg.cpp \

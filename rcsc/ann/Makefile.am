@@ -1,6 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
-lib_LTLIBRARIES = librcsc_ann.la
+noinst_LTLIBRARIES = librcsc_ann.la
+#lib_LTLIBRARIES = librcsc_ann.la
 
 librcsc_ann_la_SOURCES = \
 	ngnet.cpp \

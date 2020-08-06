@@ -1,6 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
-lib_LTLIBRARIES = librcsc_time.la
+noinst_LTLIBRARIES = librcsc_time.la
+#lib_LTLIBRARIES = librcsc_time.la
 
 librcsc_time_la_SOURCES = \
 	timer.cpp

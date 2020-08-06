@@ -20,23 +20,46 @@ SUBDIRS = \
 	trainer \
 	.
 
-lib_LTLIBRARIES = librcsc_agent.la
+lib_LTLIBRARIES = librcsc.la
 
-librcsc_agent_la_SOURCES =
-librcsc_agent_la_LIBADD = \
+librcsc_la_SOURCES =
+
+librcsc_la_LIBADD = \
+	geom/librcsc_geom.la \
+	gz/librcsc_gz.la \
+	net/librcsc_net.la \
+	time/librcsc_time.la \
 	util/librcsc_util.la \
-	formation/librcsc_formation.la \
+	param/librcsc_param.la \
+	ann/librcsc_ann.la \
 	color/librcsc_color.la \
+	clang/librcsc_clang.la \
 	common/librcsc_common.la \
+	rcg/librcsc_rcg.la \
+	formation/librcsc_formation.la \
 	monitor/librcsc_monitor.la \
 	player/librcsc_player.la \
 	action/librcsc_action.la \
 	coach/librcsc_coach.la \
 	trainer/librcsc_trainer.la
 
+#lib_LTLIBRARIES = librcsc_agent.la
+#
+#librcsc_agent_la_SOURCES =
+#librcsc_agent_la_LIBADD = \
+#	util/librcsc_util.la \
+#	formation/librcsc_formation.la \
+#	color/librcsc_color.la \
+#	common/librcsc_common.la \
+#	monitor/librcsc_monitor.la \
+#	player/librcsc_player.la \
+#	action/librcsc_action.la \
+#	coach/librcsc_coach.la \
+	trainer/librcsc_trainer.la
+
 ##	action/librcsc_action_obsolete.la
 
-librcsc_agent_la_LDFLAGS = -version-info 8:0:0
+librcsc_la_LDFLAGS = -version-info 2020:0:0
 #libXXXX_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 #    1. Start with version information of `0:0:0' for each libtool library.
 #
@@ -57,11 +80,13 @@ librcsc_agent_la_LDFLAGS = -version-info 8:0:0
 #    6. If any interfaces have been removed since the last public release,
 #       then set AGE to 0.
 
-librcsc_agentincludedir = $(includedir)/rcsc
-librcsc_agentinclude_HEADERS =
+librcscincludedir = $(includedir)/rcsc
+#librcsc_agenincludedir = $(includedir)/rcsc
+#librcsc_agentinclude_HEADERS =
 
-rcscincludedir = $(includedir)/rcsc
-rcscinclude_HEADERS = \
+#rcscincludedir = $(includedir)/rcsc
+#rcscinclude_HEADERS =
+librcscinclude_HEADERS = \
 	types.h \
 	geom.h \
 	gz.h \

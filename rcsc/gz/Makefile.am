@@ -1,6 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
-lib_LTLIBRARIES = librcsc_gz.la
+noinst_LTLIBRARIES = librcsc_gz.la
+#lib_LTLIBRARIES = librcsc_gz.la
 
 librcsc_gz_la_SOURCES = \
 	gzcompressor.cpp \

@@ -1,6 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
-lib_LTLIBRARIES = librcsc_net.la
+noinst_LTLIBRARIES = librcsc_net.la
+#lib_LTLIBRARIES = librcsc_net.la
 
 librcsc_net_la_SOURCES = \
 	abstract_socket.cpp \
