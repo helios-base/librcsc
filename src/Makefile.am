@@ -16,14 +16,6 @@ rclmscheduler_CXXFLAGS = -Wall -W
 rclmscheduler_LDFLAGS =
 rclmscheduler_LDADD =
 
-rcgresultprinter_SOURCES = \
-	resultprinter.cpp
-rcgresultprinter_CXXFLAGS = -Wall -W
-rcgresultprinter_LDFLAGS = \
-	-L$(top_builddir)/rcsc \
-	-L$(top_builddir)/rcsc
-rcgresultprinter_LDADD = -lrcsc
-
 rclmtableprinter_SOURCES = \
 	tableprinter.cpp
 rclmtableprinter_CXXFLAGS = -Wall -W
@@ -31,39 +23,46 @@ rclmtableprinter_LDFLAGS =
 rclmtableprinter_LDADD =
 
 
+rcgresultprinter_SOURCES = \
+	resultprinter.cpp
+rcgresultprinter_CXXFLAGS = -Wall -W
+rcgresultprinter_LDFLAGS = \
+	-L$(top_builddir)/rcsc
+rcgresultprinter_LDADD = -lrcsc  $(BOOST_SYSTEM_LIB)
+
 rcg2txt_SOURCES = \
 	rcg2txt.cpp
 rcg2txt_CXXFLAGS = -Wall -W
 rcg2txt_LDFLAGS = \
 	-L$(top_builddir)/rcsc
-rcg2txt_LDADD = -lrcsc
+rcg2txt_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
 
 rcgrenameteam_SOURCES = \
 	rcgrenameteam.cpp
 rcgrenameteam_CXXFLAGS = -Wall -W
 rcgrenameteam_LDFLAGS = \
 	-L$(top_builddir)/rcsc
-rcgrenameteam_LDADD = -lrcsc
+rcgrenameteam_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
 
 rcgreverse_SOURCES = \
 	rcgreverse.cpp
 rcgreverse_CXXFLAGS = -Wall -W
 rcgreverse_LDFLAGS = \
 	-L$(top_builddir)/rcsc
-rcgreverse_LDADD = -lrcsc
+rcgreverse_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
 
 rcgverconv_SOURCES = \
 	rcgverconv.cpp
 rcgversion_CXXFLAGS = -Wall -W
 rcgverconv_LDFLAGS = \
 	-L$(top_builddir)/rcsc
-rcgverconv_LDADD = -lrcsc
+rcgverconv_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
 
 rcgversion_SOURCES = \
 	rcgversion.cpp
 rcgversion_LDFLAGS = \
 	-L$(top_builddir)/rcsc
-rcgversion_LDADD = -lrcsc
+rcgversion_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
 
 AM_CPPFLAGS = -I$(top_srcdir)
 AM_CXXFLAGS = -Wall -W
