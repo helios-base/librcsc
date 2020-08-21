@@ -9,7 +9,9 @@ Makefile
 Makefile.in
 aclocal.m4
 autom4te.cache
-config.*
+config.h
+config.h.in
+config.status
 config
 configure
 librcsc-config
