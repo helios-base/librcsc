@@ -49,3 +49,4 @@ configure_file(
 
 # sub directories
 add_subdirectory(rcsc)
+add_subdirectory(src)
