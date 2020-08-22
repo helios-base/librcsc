@@ -52,7 +52,7 @@ public:
     //! set container type
     typedef std::set< int > Set;
 
-    static const int All = 0;
+    static const int All;
 
 private:
 
