@@ -16,8 +16,10 @@ add_library(rcsc_rcg OBJECT
 	util.cpp
   )
 
-target_include_directories(rcsc_rcg PUBLIC
+target_include_directories(rcsc_rcg
+  PUBLIC
   ${Boost_INCLUDE_DIRS}
+  PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
   )
@@ -38,5 +40,5 @@ install(FILES
   serializer_v5.h
   types.h
   util.h
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rcsc/rcg
+  DESTINATION include/rcsc/rcg
   )

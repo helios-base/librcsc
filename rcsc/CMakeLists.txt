@@ -1,7 +1,7 @@
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON) # need for linking OBJCET libraries to a shared library
 
-#add_subdirectory(util)
+add_subdirectory(util)
 add_subdirectory(geom)
 add_subdirectory(gz)
 add_subdirectory(param)
@@ -20,9 +20,7 @@ add_subdirectory(coach)
 add_subdirectory(trainer)
 
 add_library(rcsc SHARED
-  util/game_mode.cpp
-  util/soccer_math.cpp
-  util/version.cpp
+  $<TARGET_OBJECTS:rcsc_util>
   $<TARGET_OBJECTS:rcsc_geom_triangle>
   $<TARGET_OBJECTS:rcsc_geom>
   $<TARGET_OBJECTS:rcsc_gz>

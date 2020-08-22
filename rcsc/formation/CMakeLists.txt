@@ -6,8 +6,10 @@ add_library(rcsc_formation OBJECT
   formation_static.cpp
   )
 
-target_include_directories(rcsc_formation PUBLIC
+target_include_directories(rcsc_formation
+  PUBLIC
   ${Boost_INCLUDE_DIRS}
+  PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
   )
@@ -17,5 +19,5 @@ install(FILES
   sample_data.h
   formation_dt.h
   formation_static.h
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rcsc/formation
+  DESTINATION include/rcsc/formation
   )

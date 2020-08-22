@@ -6,8 +6,10 @@ add_library(rcsc_ann OBJECT
   sirms_model.cpp
   )
 
-target_include_directories(rcsc_ann PUBLIC
+target_include_directories(rcsc_ann
+  PUBLIC
   ${Boost_INCLUDE_DIRS}
+  PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
   )
@@ -18,5 +20,5 @@ install(FILES
   rbf.h
   sirm.h
   sirms_model.h
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rcsc/ann
+  DESTINATION include/rcsc/ann
   )

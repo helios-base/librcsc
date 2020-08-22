@@ -15,8 +15,10 @@ add_library(rcsc_common OBJECT
   team_graphic.cpp
   )
 
-target_include_directories(rcsc_common PUBLIC
+target_include_directories(rcsc_common
+  PUBLIC
   ${Boost_INCLUDE_DIRS}
+  PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
   )
@@ -40,5 +42,5 @@ install(FILES
   soccer_agent.h
   stamina_model.h
   team_graphic.h
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rcsc/common
+  DESTINATION include/rcsc/common
   )

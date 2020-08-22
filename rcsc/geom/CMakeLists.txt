@@ -23,8 +23,10 @@ add_library(rcsc_geom OBJECT
 
 #set_property(TARGET rcsc_geom PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-target_include_directories(rcsc_geom PUBLIC
+target_include_directories(rcsc_geom
+  PUBLIC
   ${Boost_INCLUDE_DIRS}
+  PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
   )
@@ -49,5 +51,5 @@ install(FILES
   vector_2d.h
   voronoi_diagram.h
   voronoi_diagram_triangle.h
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rcsc/geom
+  DESTINATION include/rcsc/geom
   )

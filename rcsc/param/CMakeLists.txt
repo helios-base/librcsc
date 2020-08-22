@@ -6,8 +6,10 @@ add_library(rcsc_param OBJECT
   rcss_param_parser.cpp
   )
 
-target_include_directories(rcsc_param PUBLIC
+target_include_directories(rcsc_param
+  PUBLIC
   ${Boost_INCLUDE_DIRS}
+  PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
   )
@@ -18,5 +20,5 @@ install(FILES
   param_map.h
   param_parser.h
   rcss_param_parser.h
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rcsc/param
+  DESTINATION include/rcsc/param
   )

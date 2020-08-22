@@ -6,8 +6,10 @@ add_library(rcsc_net OBJECT
   tcp_socket.cpp
   )
 
-target_include_directories(rcsc_net PUBLIC
+target_include_directories(rcsc_net
+  PUBLIC
   ${Boost_INCLUDE_DIRS}
+  PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
   )
@@ -17,5 +19,5 @@ install(FILES
   host_address.h
   udp_socket.h
   tcp_socket.h
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rcsc/net
+  DESTINATION include/rcsc/net
   )

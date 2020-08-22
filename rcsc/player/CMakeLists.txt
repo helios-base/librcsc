@@ -28,8 +28,10 @@ add_library(rcsc_player OBJECT
   world_model.cpp
   )
 
-target_include_directories(rcsc_player PUBLIC
+target_include_directories(rcsc_player
+  PUBLIC
   ${Boost_INCLUDE_DIRS}
+  PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
   )
@@ -67,5 +69,5 @@ install(FILES
   view_mode.h
   visual_sensor.h
   world_model.h
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rcsc/player
+  DESTINATION include/rcsc/player
   )

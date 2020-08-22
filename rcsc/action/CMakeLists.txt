@@ -31,8 +31,10 @@ add_library(rcsc_action OBJECT
   kick_table.cpp
   )
 
-target_include_directories(rcsc_action PUBLIC
+target_include_directories(rcsc_action
+  PUBLIC
   ${Boost_INCLUDE_DIRS}
+  PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
   )
@@ -88,5 +90,5 @@ install(FILES
   view_synch.h
   view_wide.h
   kick_table.h
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rcsc/action
+  DESTINATION include/rcsc/action
   )

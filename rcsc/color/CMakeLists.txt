@@ -6,8 +6,10 @@ add_library(rcsc_color OBJECT
   thermo_color_provider.cpp
   )
 
-target_include_directories(rcsc_color PUBLIC
+target_include_directories(rcsc_color
+  PUBLIC
   ${Boost_INCLUDE_DIRS}
+  PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
   )
@@ -17,5 +19,5 @@ install(FILES
   gradation_color_provider.h
   gray_scale_provider.h
   thermo_color_provider.h
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rcsc/color
+  DESTINATION include/rcsc/color
   )

@@ -14,8 +14,10 @@ add_library(rcsc_coach OBJECT
   player_type_analyzer.cpp
   )
 
-target_include_directories(rcsc_coach PUBLIC
+target_include_directories(rcsc_coach
+  PUBLIC
   ${Boost_INCLUDE_DIRS}
+  PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
   )
@@ -33,5 +35,5 @@ install(FILES
   coach_world_model.h
   coach_world_state.h
   player_type_analyzer.h
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rcsc/coach
+  DESTINATION include/rcsc/coach
   )

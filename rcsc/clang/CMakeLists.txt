@@ -9,8 +9,10 @@ add_library(rcsc_clang OBJECT
   clang_unum.cpp
   )
 
-target_include_directories(rcsc_clang PUBLIC
+target_include_directories(rcsc_clang
+  PUBLIC
   ${Boost_INCLUDE_DIRS}
+  PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
   )
@@ -26,5 +28,5 @@ install(FILES
   clang_unum.h
   clang.h
   types.h
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rcsc/clang
+  DESTINATION include/rcsc/clang
   )
