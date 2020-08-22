@@ -15,8 +15,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # install destination
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  #  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "..." FORCE)
-  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/test" CACHE PATH "..." FORCE)
+  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "Install destination path" FORCE)
+  #set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/test" CACHE PATH "Install destination path" FORCE)
 endif()
 
 # check header files
