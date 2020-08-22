@@ -4,8 +4,7 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: @PACKAGE@
-Description: a base library of the soccer agent and/or the tool
-program for the RoboCup soccer 2D simulation.
+Description: a base library for developing a RoboCup soccer simulation client
 Version: @VERSION@
-Libs: -L${libdir} -lrcsc_agent -lrcsc_clang -lrcsc_ann -lrcsc_net -lrcsc_color -lrcsc_time -lrcsc_param -lrcsc_rcg -lrcsc_gz -lrcsc_geom -lz -lm
+Libs: -L${libdir} -lrcsc -lz -lm
 Cflags: -I${includedir}
