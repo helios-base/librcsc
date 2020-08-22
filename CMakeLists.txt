@@ -43,7 +43,7 @@ endif()
 # generate config.h
 add_definitions(-DHAVE_CONFIG_H)
 configure_file(
-  ${PROJECT_SOURCE_DIR}/config.h.cmake
+  ${PROJECT_SOURCE_DIR}/cmake-config.h.in
   ${PROJECT_BINARY_DIR}/config.h
   )
 
