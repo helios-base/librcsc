@@ -9,14 +9,18 @@ if(CMAKE_VERSION VERSION_LESS "3.7.0")
   set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
 
-# c++ version
+# compliler options
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+endif()
+set(CMAKE_CXX_FLAGS "-W -Wall")
 
 # install destination
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "Install destination path" FORCE)
-  #set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/test" CACHE PATH "Install destination path" FORCE)
 endif()
 
 # check header files
@@ -32,8 +36,13 @@ check_include_file("sys/socket.h" HAVE_SYS_SOCKET_H)
 check_include_file("sys/time.h" HAVE_SYS_TIME_H)
 check_include_file("unistd.h" HAVE_UNISTD_H)
 
-# libraries
+# boost
 find_package(Boost 1.36.0 COMPONENTS system REQUIRED)
+if(NOT Boost_FOUND)
+  message(FATAL_ERROR "Boost not found!")
+endif()
+
+# zlib
 find_package(ZLIB)
 if(ZLIB_FOUND)
   #add_definitions(-DHAVE_LIBZ)
@@ -46,6 +55,11 @@ configure_file(
   ${PROJECT_SOURCE_DIR}/cmake-config.h.in
   ${PROJECT_BINARY_DIR}/config.h
   )
+
+# check the settings
+message(STATUS "Build settings:")
+message(STATUS "  BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+message(STATUS "  INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}")
 
 # sub directories
 add_subdirectory(rcsc)
