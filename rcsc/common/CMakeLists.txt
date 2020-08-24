@@ -42,5 +42,5 @@ install(FILES
   soccer_agent.h
   stamina_model.h
   team_graphic.h
-  DESTINATION include/rcsc/common
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/common
   )

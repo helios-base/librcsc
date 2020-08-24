@@ -20,5 +20,5 @@ install(FILES
   param_map.h
   param_parser.h
   rcss_param_parser.h
-  DESTINATION include/rcsc/param
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/param
   )

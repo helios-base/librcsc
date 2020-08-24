@@ -84,11 +84,12 @@ configure_file(librcscenv.in librcscenv @ONLY)
 configure_file(librcsc.pc.in librcsc.pc @ONLY)
 
 install(PROGRAMS
-  librcsc-config librcscenv
+  ${CMAKE_CURRENT_BINARY_DIR}/librcsc-config
+  ${CMAKE_CURRENT_BINARY_DIR}/librcscenv
   DESTINATION bin
   )
 
 install(FILES
-  librcsc.pc
+  ${CMAKE_CURRENT_BINARY_DIR}/librcsc.pc
   DESTINATION lib/pkgconfig
   )

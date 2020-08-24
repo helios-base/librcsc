@@ -13,5 +13,5 @@ target_include_directories(rcsc_monitor
 
 install(FILES
   monitor_command.h
-  DESTINATION include/rcsc/monitor
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/monitor
   )

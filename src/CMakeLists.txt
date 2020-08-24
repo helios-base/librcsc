@@ -87,5 +87,5 @@ install(TARGETS
   rcgverconv
   rcgversion
   RUNTIME
-  DESTINATION  ${CMAKE_INSTALL_PREFIX}/bin
+  DESTINATION ${CMAKE_INSTALL_BINDIR}
   )

@@ -17,5 +17,5 @@ install(FILES
   trainer_agent.h
   trainer_command.h
   trainer_config.h
-  DESTINATION include/rcsc/trainer
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/trainer
   )

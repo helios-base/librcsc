@@ -20,5 +20,5 @@ install(FILES
   rbf.h
   sirm.h
   sirms_model.h
-  DESTINATION include/rcsc/ann
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/ann
   )

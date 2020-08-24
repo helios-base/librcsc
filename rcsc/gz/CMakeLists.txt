@@ -18,5 +18,5 @@ install(FILES
   gzcompressor.h
   gzfstream.h
   gzfilterstream.h
-  DESTINATION include/rcsc/gz
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/gz
   )

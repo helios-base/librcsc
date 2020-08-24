@@ -35,5 +35,5 @@ install(FILES
   coach_world_model.h
   coach_world_state.h
   player_type_analyzer.h
-  DESTINATION include/rcsc/coach
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/coach
   )

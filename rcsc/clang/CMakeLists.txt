@@ -28,5 +28,5 @@ install(FILES
   clang_unum.h
   clang.h
   types.h
-  DESTINATION include/rcsc/clang
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/clang
   )

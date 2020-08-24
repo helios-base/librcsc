@@ -61,7 +61,7 @@ set_target_properties(rcsc PROPERTIES
 install(TARGETS rcsc
 #  EXPORT librcsc-export # for install(EXPORT)
   LIBRARY
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT Libraries
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 #  INCLUDES DESTINATION include # for install(EXPORT)
@@ -82,7 +82,7 @@ install(FILES
   timer.h
   version.h
   #TYPE INCLUDE # available on cmake-3.14 or later
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rcsc
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc
   )
 
 # generated .cmake file

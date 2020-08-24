@@ -51,5 +51,5 @@ install(FILES
   vector_2d.h
   voronoi_diagram.h
   voronoi_diagram_triangle.h
-  DESTINATION include/rcsc/geom
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/geom
   )

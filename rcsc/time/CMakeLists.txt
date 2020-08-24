@@ -13,5 +13,5 @@ target_include_directories(rcsc_time
 
 install(FILES
   timer.h
-  DESTINATION include/rcsc/time
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/time
   )

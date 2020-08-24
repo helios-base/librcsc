@@ -40,5 +40,5 @@ install(FILES
   serializer_v5.h
   types.h
   util.h
-  DESTINATION include/rcsc/rcg
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/rcg
   )

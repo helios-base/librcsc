@@ -19,5 +19,5 @@ install(FILES
   host_address.h
   udp_socket.h
   tcp_socket.h
-  DESTINATION include/rcsc/net
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/net
   )

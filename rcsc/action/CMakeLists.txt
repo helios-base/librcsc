@@ -90,5 +90,5 @@ install(FILES
   view_synch.h
   view_wide.h
   kick_table.h
-  DESTINATION include/rcsc/action
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/action
   )

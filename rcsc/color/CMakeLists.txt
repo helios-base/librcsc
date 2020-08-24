@@ -19,5 +19,5 @@ install(FILES
   gradation_color_provider.h
   gray_scale_provider.h
   thermo_color_provider.h
-  DESTINATION include/rcsc/color
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/color
   )
