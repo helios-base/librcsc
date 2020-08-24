@@ -23,6 +23,8 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "Install destination path" FORCE)
 endif()
 
+include(GNUInstallDirs)
+
 # check header files
 include(CheckIncludeFile)
 if(WIN32)
@@ -64,3 +66,29 @@ message(STATUS "  INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}")
 # sub directories
 add_subdirectory(rcsc)
 add_subdirectory(src)
+
+# additional installation files
+set(PACKAGE ${PROJECT_NAME})
+set(VERSION ${librcsc_VERSION})
+set(prefix ${CMAKE_INSTALL_PREFIX})
+set(exec_prefix ${CMAKE_INSTALL_PREFIX})
+set(libdir ${CMAKE_INSTALL_FULL_LIBDIR})
+set(includedir ${CMAKE_INSTALL_FULL_INCLUDEDIR})
+set(builddir ${CMAKE_BINARY_DIR})
+set(top_srcdir ${PROJECT_SOURCE_DIR})
+set(HAVE_DOT "")
+
+configure_file(Doxyfile.in Doxyfile @ONLY)
+configure_file(librcsc-config.in librcsc-config @ONLY)
+configure_file(librcscenv.in librcscenv @ONLY)
+configure_file(librcsc.pc.in librcsc.pc @ONLY)
+
+install(PROGRAMS
+  librcsc-config librcscenv
+  DESTINATION bin
+  )
+
+install(FILES
+  librcsc.pc
+  DESTINATION lib/pkgconfig
+  )
