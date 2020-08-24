@@ -49,7 +49,7 @@ copyright()
      */
     return
         "******************************************************************\n"
-        " " PACKAGE_STRING "\n"
+        " "  PACKAGE_NAME  " "  VERSION "\n"
         " Copyright 2000 - 2007. Hidehisa Akiyama.\n"
         " Copyright 2007 - 2011. Hidehisa Akiyama and Hiroki Shimora\n"
         " Copyright 2011 -  Hidehisa Akiyama, Hiroki Shimora\n"

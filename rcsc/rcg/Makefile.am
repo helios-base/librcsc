@@ -1,6 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
-lib_LTLIBRARIES = librcsc_rcg.la
+noinst_LTLIBRARIES = librcsc_rcg.la
+#lib_LTLIBRARIES = librcsc_rcg.la
 
 librcsc_rcg_la_SOURCES = \
 	handler.cpp \

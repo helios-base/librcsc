@@ -1,6 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
-lib_LTLIBRARIES = librcsc_clang.la
+noinst_LTLIBRARIES = librcsc_clang.la
+#lib_LTLIBRARIES = librcsc_clang.la
 
 librcsc_clang_la_SOURCES = \
 	clang_action.cpp \

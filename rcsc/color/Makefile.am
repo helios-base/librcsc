@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-lib_LTLIBRARIES = librcsc_color.la
+noinst_LTLIBRARIES = librcsc_color.la
 
 librcsc_color_la_SOURCES = \
 	rgb_color.cpp \
