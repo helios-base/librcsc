@@ -16,6 +16,15 @@ target_link_libraries(rclmtableprinter PRIVATE
   ZLIB::ZLIB
   )
 
+add_executable(rcg2csv
+  rcg2csv.cpp
+  )
+target_link_libraries(rcg2csv PRIVATE
+  rcsc
+  Boost::system
+  ZLIB::ZLIB
+  )
+
 add_executable(rcg2txt
   rcg2txt.cpp
   )

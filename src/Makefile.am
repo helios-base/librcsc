@@ -2,6 +2,7 @@
 bin_PROGRAMS = \
 	rclmscheduler \
 	rclmtableprinter \
+	rcg2csv \
 	rcg2txt \
 	rcgrenameteam \
 	rcgresultprinter \
@@ -29,6 +30,13 @@ rcgresultprinter_CXXFLAGS = -Wall -W
 rcgresultprinter_LDFLAGS = \
 	-L$(top_builddir)/rcsc
 rcgresultprinter_LDADD = -lrcsc  $(BOOST_SYSTEM_LIB)
+
+rcg2csv_SOURCES = \
+	rcg2csv.cpp
+rcg2csv_CXXFLAGS = -Wall -W
+rcg2csv_LDFLAGS = \
+	-L$(top_builddir)/rcsc
+rcg2csv_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
 
 rcg2txt_SOURCES = \
 	rcg2txt.cpp
