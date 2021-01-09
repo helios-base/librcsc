@@ -230,8 +230,8 @@ public:
       \param current current game time
       \return true if player can change to next_width
     */
-    bool canChangeViewTo( const ViewWidth & next_width,
-                          const GameTime & current ) const;
+    bool canSendChangeView( const ViewWidth & next_width,
+                            const GameTime & current ) const;
 
     /*!
       \brief get cycles to get next see info

@@ -574,9 +574,9 @@ PlayerAgent::Impl::isDecisionTiming( const long & msec_from_sense,
         return true;
     }
 
-    int wait_thr = ( see_state_.isSynch()
-                     ? agent_.config().waitTimeThrSynchView()
-                     : agent_.config().waitTimeThrNoSynchView() );
+    const int wait_thr = ( see_state_.isSynch()
+                           ? agent_.config().waitTimeThrSynchView()
+                           : agent_.config().waitTimeThrNoSynchView() );
 
     // already done in sense_body received cycle.
     // When referee message is sent before sense_body,
@@ -2432,7 +2432,7 @@ PlayerAgent::Impl::doViewAction()
          && agent_.world().gameMode().type() != GameMode::PlayOn )
     {
         dlog.addText( Logger::SYSTEM,
-                      __FILE__" (doViewAction) not play_on. system must be adjust see synch..." );
+                      __FILE__" (doViewAction) *no sync and no play_on* agent need to synchronize see message." );
         return;
     }
 
@@ -2899,11 +2899,10 @@ PlayerAgent::doChangeView( const ViewWidth & width )
 {
     if ( M_impl->see_state_.isSynch() )
     {
-        if ( ! M_impl->see_state_.canChangeViewTo( width,
-                                                   world().time() ) )
+        if ( ! M_impl->see_state_.canSendChangeView( width, world().time() ) )
         {
             dlog.addText( Logger::ACTION,
-                          __FILE__": agent->doChangeView. width(%d) will break see synch... ",
+                          __FILE__" (doChangeView) width(%d) will break see synch... ",
                           width.type() );
             return false;
         }
@@ -2913,7 +2912,7 @@ PlayerAgent::doChangeView( const ViewWidth & width )
         if ( world().gameMode().type() != GameMode::PlayOn )
         {
             dlog.addText( Logger::ACTION,
-                          __FILE__": agent->doChangeView. no synch. not play on."
+                          __FILE__" (doChangeView) no synch. not play on."
                           " should try to adjust. " );
             return false;
         }
@@ -2922,7 +2921,7 @@ PlayerAgent::doChangeView( const ViewWidth & width )
     if ( width == M_effector.queuedNextViewWidth() )
     {
         dlog.addText( Logger::ACTION,
-                      __FILE__": agent->doChangeView. already same view mode %d",
+                      __FILE__" (doChangeView) already same view mode %d",
                       width.type() );
         return false;
     }

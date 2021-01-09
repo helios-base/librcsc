@@ -351,17 +351,29 @@ SeeState::isSynchedSeeCountSynchMode() const
 
 */
 bool
-SeeState::canChangeViewTo( const ViewWidth & next_width,
-                           const GameTime & current ) const
+SeeState::canSendChangeView( const ViewWidth & next_width,
+                             const GameTime & current ) const
 {
-    if ( current != M_last_see_time )
+    //
+    // synch mode
+    //
+
+    if ( synch_see_mode() )
     {
+        if ( current == M_last_see_time )
+        {
+            return true;
+        }
         return false;
     }
 
-    if ( S_synch_see_mode )
+    //
+    // no synch mode
+    //
+
+    if ( current != M_last_see_time )
     {
-        return true;
+        return false;
     }
 
     if ( next_width.type() == ViewWidth::NARROW )
@@ -426,7 +438,7 @@ SeeState::setViewMode( const ViewWidth & new_width,
     M_view_width = new_width;
     M_view_quality = new_quality;
 
-    if ( S_synch_see_mode )
+    if ( synch_see_mode() )
     {
         switch ( new_width.type() ) {
         case ViewWidth::WIDE:
