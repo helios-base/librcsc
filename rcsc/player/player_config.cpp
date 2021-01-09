@@ -81,7 +81,7 @@ PlayerConfig::setDefaultParam()
     M_interval_msec = 10;
     M_server_wait_seconds = 5;
 
-    M_wait_time_thr_synch_view = 79;
+    M_wait_time_thr_synch_view = 30; //79;
     M_wait_time_thr_nosynch_view = 75;
 
     M_normal_view_time_thr = 15;
