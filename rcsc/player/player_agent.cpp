@@ -1030,17 +1030,14 @@ PlayerAgent::handleTimeout( const int timeout_count,
     }
 
     // check alarm count etc...
-    if ( ! M_impl->isDecisionTiming( msec_from_sense, timeout_count ) )
+    if ( M_impl->isDecisionTiming( msec_from_sense, timeout_count ) )
     {
-        return;
+        // start decision
+        dlog.addText( Logger::SYSTEM,
+                      "----- TIMEOUT DECISION !! [%ld]ms from sense_body",
+                      msec_from_sense / ServerParam::i().slowDownFactor() );
+        action();
     }
-
-    // start decision
-    dlog.addText( Logger::SYSTEM,
-                  "----- TIMEOUT DECISION !! [%ld]ms from sense_body",
-                  msec_from_sense / ServerParam::i().slowDownFactor() );
-
-    action();
 }
 
 /*-------------------------------------------------------------------*/
