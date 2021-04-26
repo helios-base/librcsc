@@ -893,7 +893,7 @@ struct PlayerT {
      */
     bool isFocusing() const
       {
-          return side_ != 'n';
+          return focus_side_ != 'n';
       }
 
     /*!
@@ -947,8 +947,8 @@ struct PlayerT {
      */
     SideID focusSide() const
       {
-          return ( side_ == 'l' ? LEFT
-                   : side_ == 'r' ? RIGHT
+          return ( focus_side_ == 'l' ? LEFT
+                   : focus_side_ == 'r' ? RIGHT
                    : NEUTRAL );
       }
 
