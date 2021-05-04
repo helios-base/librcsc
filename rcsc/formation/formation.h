@@ -33,8 +33,10 @@
 #define RCSC_FORMATION_FORMATION_H
 
 #include <rcsc/formation/sample_data.h>
+#include <rcsc/common/role_type.h>
 #include <rcsc/geom/vector_2d.h>
 #include <rcsc/factory.h>
+#include <rcsc/types.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -56,18 +58,6 @@ public:
     typedef boost::shared_ptr< const Formation > ConstPtr; //<! const pointer type
     typedef Ptr (*Creator)(); //!< creator function
     typedef rcss::Factory< Creator, std::string > Creators; //!< creator function holder
-
-    /*!
-      \enum RoleType
-      \brief role types
-     */
-    enum RoleType {
-        Goalie,
-        Defender,
-        MidFielder,
-        Forward,
-        Unknown_Role,
-    };
 
     /*!
       \enum SideType
@@ -204,7 +194,7 @@ public:
      */
     RoleType roleType( const int unum ) const
       {
-          if ( unum < 1 || 11 < unum ) return Unknown_Role;
+          if ( unum < 1 || 11 < unum ) return RoleType();
           return M_role_type[unum-1];
       }
 
@@ -297,7 +287,7 @@ public:
       \return true if successfully updated
     */
     bool updateRoleType( const int unum,
-                         const RoleType type );
+                         const RoleType::Type type );
 
     /*!
       \brief set marker switch for each player
