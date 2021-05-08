@@ -341,6 +341,11 @@ public:
     bool removeSayMessage( const char header );
 
     /*!
+      \brief remove all registered say messages
+     */
+    void clearSayMessage();
+
+    /*!
       \brief set intention object
       \param intention pointer to the dynamically allocated object.
     */
