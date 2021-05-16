@@ -998,6 +998,11 @@ SelfObject::updateBallInfo( const BallObject & ball )
     M_dist_from_ball = ball.distFromSelf();
     M_angle_from_ball = ball.angleFromSelf() + AngleDeg( 180.0 );
 
+    if ( ball.ghostCount() > 0 )
+    {
+        return;
+    }
+
     const ServerParam & SP = ServerParam::i();
     const PlayerType & ptype = playerType();
 
