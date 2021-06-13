@@ -156,6 +156,7 @@ private:
 
     const PlayerObject * M_kickable_teammate; //!< kickable teammate
     const PlayerObject * M_kickable_opponent; //!< kickable opponent
+    const PlayerObject * M_maybe_kickable_teammate; //!< kickable teammate
     const PlayerObject * M_maybe_kickable_opponent; //!< kickable opponent
 
     bool M_previous_kickable_teammate; //! flag for kickable teammate in previous cycle
@@ -576,6 +577,12 @@ private:
       \brief update their goalie
      */
     void estimateTheirGoalie();
+
+    /*!
+      \brief update maybe kickable teammate
+      this methos has to be called after WorldModel::updateInterceptTable()
+     */
+    void estimateMaybeKickableTeammate();
 
     /*!
       \brief update kickable players.
@@ -1055,6 +1062,12 @@ public:
       \return player object pointer
      */
     const PlayerObject * kickableOpponent() const { return M_kickable_opponent; }
+
+    /*!
+      \brief get the estimated kickable teammate (maybe kickable).
+      \return player object pointer
+     */
+    const PlayerObject * maybeKickableTeammate() const { return M_maybe_kickable_teammate; }
 
     /*!
       \brief get the estimated kickable opponent (maybe kickable).
