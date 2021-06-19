@@ -4290,7 +4290,7 @@ WorldModel::estimateMaybeKickableTeammate()
     if ( this->kickableTeammate() )
     {
         dlog.addText( Logger::WORLD,
-                      __FILE__":(estimateKickableTeammate) exist normal" );
+                      __FILE__":(estimateMaybeKickableTeammate) exist normal" );
         s_previous_teammate_step = 0;
         s_previous_time = this->time();
         M_maybe_kickable_teammate = this->kickableTeammate();
@@ -4309,7 +4309,7 @@ WorldModel::estimateMaybeKickableTeammate()
              && this->audioMemory().pass().front().sender_ == t->unum() )
         {
             dlog.addText( Logger::WORLD,
-                          __FILE__":(estimateKickableTeammate) heard pass kick" );
+                          __FILE__":(estimateMaybeKickableTeammate) heard pass kick" );
             s_previous_teammate_step = this->interceptTable()->teammateReachCycle();
             s_previous_time = this->time();
             M_maybe_kickable_teammate = nullptr;
@@ -4321,8 +4321,8 @@ WorldModel::estimateMaybeKickableTeammate()
                                    + this->ball().distFromSelf() * 0.05 ) )
         {
             dlog.addText( Logger::WORLD,
-                          __FILE__":(estimateKickableTeammate) found" );
-            s_previous_teammate_step = this->interceptTable()->teammateReachCycle();
+                          __FILE__":(estimateMaybeKickableTeammate) found" );
+            s_previous_teammate_step = 1; //this->interceptTable()->teammateReachCycle();
             s_previous_time = this->time();
             M_maybe_kickable_teammate = t;
             return;
@@ -4333,7 +4333,7 @@ WorldModel::estimateMaybeKickableTeammate()
     s_previous_time = this->time();
 
     dlog.addText( Logger::WORLD,
-                  __FILE__":(estimateKickableTeammate) not found" );
+                  __FILE__":(estimateMaybeKickableTeammate) not found" );
 }
 
 /*-------------------------------------------------------------------*/
