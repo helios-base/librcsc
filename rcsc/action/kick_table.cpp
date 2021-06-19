@@ -1514,19 +1514,10 @@ KickTable::simulateTwoStep( const WorldModel & world,
             continue;
         }
 
-        if ( M_use_risky_node )
+        if ( ! M_use_risky_node
+             && is_risky_flag( state.flag_ ) )
         {
-            if ( ! is_risky_flag( state.flag_ ) )
-            {
-                continue;
-            }
-        }
-        else
-        {
-            if ( is_risky_flag( state.flag_ ) )
-            {
-                continue;
-            }
+            continue;
         }
 
         int kick_miss_flag = SAFETY;
@@ -1761,21 +1752,12 @@ KickTable::simulateThreeStep( const WorldModel & world,
             continue;
         }
 
-        if ( M_use_risky_node )
+        if ( ! M_use_risky_node
+             && ( is_risky_flag( state_1st.flag_ )
+                  || is_risky_flag( state_2nd.flag_ ) )
+             )
         {
-            if ( ! is_risky_flag( state_1st.flag_ )
-                 && ! is_risky_flag( state_2nd.flag_ ) )
-            {
-                continue;
-            }
-        }
-        else
-        {
-            if ( is_risky_flag( state_1st.flag_ )
-                 || is_risky_flag( state_2nd.flag_ ) )
-            {
-                continue;
-            }
+            continue;
         }
 
         const Vector2D target_vel = ( target_point - state_2nd.pos_ ).setLengthVector( first_speed );
@@ -2082,11 +2064,20 @@ KickTable::debugPrintSequence( const WorldModel & wm,
         dlog.addLine( Logger::KICK,
                       wm.ball().pos(), seq.pos_list_.front(),
                       "#F00" );
+        dlog.addRect( Logger::KICK,
+                      seq.pos_list_.front().x - 0.02,
+                      seq.pos_list_.front().y - 0.02,
+                      0.04, 0.04, "#F00" );
+
         for ( size_t i = 1; i < seq.pos_list_.size(); ++i )
         {
             dlog.addLine( Logger::KICK,
                           seq.pos_list_[i-1], seq.pos_list_[i],
                           std::max( 0, int( 255 - i * 80 ) ), 0, 0 );
+            dlog.addRect( Logger::KICK,
+                      seq.pos_list_[i].x - 0.02,
+                      seq.pos_list_[i].y - 0.02,
+                      0.04, 0.04, "#F00" );
         }
     }
 }
