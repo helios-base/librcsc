@@ -227,6 +227,18 @@ GameMode::update( const std::string & mode_str,
 /*!
 
 */
+void
+GameMode::setScore( const int score_l,
+                    const int score_r )
+{
+    M_score_left = score_l;
+    M_score_right = score_r;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
 GameMode::Pair
 GameMode::parse( const std::string & mode_str )
 {
@@ -247,12 +259,12 @@ GameMode::parse( const std::string & mode_str )
         {
             M_score_left = score;
         }
-        else
-        {
-            std::cerr << __FILE__ << ' ' << __LINE__
-                      << ": illegal playmode message [" << mode_str << "]"
-                      << std::endl;
-        }
+        // else
+        // {
+        //     std::cerr << __FILE__ << ' ' << __LINE__
+        //               << ": illegal playmode message [" << mode_str << "]"
+        //               << std::endl;
+        // }
         return std::make_pair( AfterGoal_, LEFT );
     }
     else if ( ! mode_str.compare( 0, 6, "goal_r" ) )
@@ -262,12 +274,12 @@ GameMode::parse( const std::string & mode_str )
         {
             M_score_right = score;
         }
-        else
-        {
-            std::cerr << __FILE__ << ' ' << __LINE__
-                      << ": illegal playmode message [" << mode_str << "]"
-                      << std::endl;
-        }
+        // else
+        // {
+        //     std::cerr << __FILE__ << ' ' << __LINE__
+        //               << ": illegal playmode message [" << mode_str << "]"
+        //               << std::endl;
+        // }
         return std::make_pair( AfterGoal_, RIGHT );
     }
 
