@@ -332,6 +332,11 @@ public:
     bool removeSayMessage( const char header );
 
     /*!
+      \brief remove all registered say messages
+    */
+    void clearSayMessage();
+
+    /*!
       \brief create pointto command and its effect with pointto parameter
       \param x target point x
       \param y target point y

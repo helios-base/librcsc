@@ -395,9 +395,10 @@ WorldModel::WorldModel()
       M_our_defense_player_line_x( 0.0 ),
       M_their_offense_player_line_x( 0.0 ),
       M_their_defense_player_line_x( 0.0 ),
-      M_kickable_teammate( static_cast< const PlayerObject * >( 0 ) ),
-      M_kickable_opponent( static_cast< const PlayerObject * >( 0 ) ),
-      M_maybe_kickable_opponent( static_cast< const PlayerObject * >( 0 ) ),
+      M_kickable_teammate( nullptr ),
+      M_kickable_opponent( nullptr ),
+      M_maybe_kickable_teammate( nullptr ),
+      M_maybe_kickable_opponent( nullptr ),
       M_previous_kickable_teammate( false ),
       M_previous_kickable_teammate_unum( Unum_Unknown ),
       M_previous_kickable_opponent( false ),
@@ -866,9 +867,10 @@ WorldModel::update( const ActionEffector & act,
         M_previous_kickable_opponent_unum = M_kickable_opponent->unum();
     }
 
-    M_kickable_teammate = static_cast< const PlayerObject * >( 0 );
-    M_kickable_opponent = static_cast< const PlayerObject * >( 0 );
-    M_maybe_kickable_opponent = static_cast< const PlayerObject * >( 0 );
+    M_kickable_teammate = nullptr;
+    M_kickable_opponent = nullptr;
+    M_maybe_kickable_teammate = nullptr;
+    M_maybe_kickable_opponent = nullptr;
 
     // clear pointer reference container
     M_teammates_from_self.clear();
@@ -2128,7 +2130,7 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
 
     updatePlayersCollision(); // have to be called after player type update.
 
-#if 1
+#if 0
     // 2008-04-18: akiyama
     // set the effect of opponent kickable state to the ball velocity
     if ( ( M_kickable_opponent
@@ -2155,6 +2157,8 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
     updateInterceptTable();
 
     updateOffsideLine();
+
+    estimateMaybeKickableTeammate();
 
     M_self.updateKickableState( M_ball,
                                 M_intercept_table->selfReachCycle(),
@@ -4269,43 +4273,111 @@ WorldModel::estimateTheirGoalie()
 
  */
 void
+WorldModel::estimateMaybeKickableTeammate()
+{
+    static GameTime s_update_time( -1, 0 );
+    static int s_previous_teammate_step = 1000;
+    static GameTime s_previous_time( -1, 0 );
+
+    if ( s_update_time == this->time() )
+    {
+        return;
+    }
+    s_update_time = this->time();
+
+    M_maybe_kickable_teammate = nullptr;
+
+    if ( this->kickableTeammate() )
+    {
+        dlog.addText( Logger::WORLD,
+                      __FILE__":(estimateMaybeKickableTeammate) exist normal" );
+        s_previous_teammate_step = 0;
+        s_previous_time = this->time();
+        M_maybe_kickable_teammate = this->kickableTeammate();
+        return;
+    }
+
+    if ( s_previous_time.stopped() == 0
+         && s_previous_time.cycle() + 1 == this->time().cycle()
+         && s_previous_teammate_step <= 1
+         && ! this->teammatesFromBall().empty() )
+    {
+        const PlayerObject * t =  this->teammatesFromBall().front();
+
+        if ( this->audioMemory().passTime() == this->time()
+             && ! this->audioMemory().pass().empty()
+             && this->audioMemory().pass().front().sender_ == t->unum() )
+        {
+            dlog.addText( Logger::WORLD,
+                          __FILE__":(estimateMaybeKickableTeammate) heard pass kick" );
+            s_previous_teammate_step = this->interceptTable()->teammateReachCycle();
+            s_previous_time = this->time();
+            M_maybe_kickable_teammate = nullptr;
+            return;
+        }
+
+        if ( t->distFromBall() < ( t->playerTypePtr()->kickableArea()
+                                   + t->distFromSelf() * 0.05
+                                   + this->ball().distFromSelf() * 0.05 ) )
+        {
+            dlog.addText( Logger::WORLD,
+                          __FILE__":(estimateMaybeKickableTeammate) found" );
+            s_previous_teammate_step = 1; //this->interceptTable()->teammateReachCycle();
+            s_previous_time = this->time();
+            M_maybe_kickable_teammate = t;
+            return;
+        }
+    }
+
+    s_previous_teammate_step = this->interceptTable()->teammateReachCycle();
+    s_previous_time = this->time();
+
+    dlog.addText( Logger::WORLD,
+                  __FILE__":(estimateMaybeKickableTeammate) not found" );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
 WorldModel::updateKickablePlayers()
 {
-    for ( PlayerObject::Cont::const_iterator p = M_teammates_from_ball.begin(),
-              end = M_teammates_from_ball.end();
-          p != end;
-          ++p )
+    //
+    // estimate teammate kickable state
+    //
+    for ( const PlayerObject * p : M_teammates_from_ball )
     {
-        if ( (*p)->isGhost()
-             || (*p)->isTackling()
-             || (*p)->posCount() > ball().posCount() )
+        if ( p->isGhost()
+             || p->isTackling()
+             || p->posCount() > ball().posCount() )
         {
             continue;
         }
 
-        if ( (*p)->isKickable( 0.0 ) )
+        if ( p->isKickable( 0.0 ) )
         {
-            M_kickable_teammate = *p;
+            M_kickable_teammate = p;
             dlog.addText( Logger::WORLD,
                           __FILE__" (updateKickablePlayers) found teammate %d (%.1f %.1f)",
-                          (*p)->unum(), (*p)->pos().x, (*p)->pos().y );
+                          p->unum(), p->pos().x, p->pos().y );
             break;
         }
     }
 
-    for ( PlayerObject::Cont::const_iterator p = M_opponents_from_ball.begin(),
-              end = M_opponents_from_ball.end();
-          p != end;
-          ++p )
+    //
+    // estimate opponent kickable state
+    //
+    for ( const PlayerObject * p : M_opponents_from_ball )
     {
-        if ( (*p)->isGhost()
-             || (*p)->isTackling()
-             || (*p)->posCount() >= 10 ) //ball().posCount()
+        if ( p->isGhost()
+             || p->isTackling()
+             || p->posCount() >= 10 ) //ball().posCount()
         {
             continue;
         }
 
-        if ( (*p)->distFromBall() > 5.0 ) // magic number
+        if ( p->distFromBall() > 5.0 ) // magic number
         {
             break;
         }
@@ -4315,26 +4387,26 @@ WorldModel::updateKickablePlayers()
         if ( ! M_maybe_kickable_opponent )
         {
             buf = std::min( 1.0,
-                            (*p)->distFromSelf() * 0.05 + ball().distFromSelf() * 0.05 );
+                            p->distFromSelf() * 0.05 + ball().distFromSelf() * 0.05 );
 
-            if ( (*p)->isKickable( -buf ) )
+            if ( p->isKickable( -buf ) )
             {
-                M_maybe_kickable_opponent = *p;
+                M_maybe_kickable_opponent = p;
                 dlog.addText( Logger::WORLD,
                               __FILE__" (updateKickablePlayers) maybe opponent %d (%.1f %.1f)",
-                              (*p)->unum(), (*p)->pos().x, (*p)->pos().y );
+                              p->unum(), p->pos().x, p->pos().y );
             }
         }
 
         buf = std::min( 0.5,
-                        (*p)->distFromSelf() * 0.02 + ball().distFromSelf() * 0.02 );
+                        p->distFromSelf() * 0.02 + ball().distFromSelf() * 0.02 );
 
-        if ( (*p)->isKickable( -buf ) )
+        if ( p->isKickable( -buf ) )
         {
-            M_kickable_opponent = *p;
+            M_kickable_opponent = p;
             dlog.addText( Logger::WORLD,
                           __FILE__" (updateKickablePlayers) found opponent %d (%.1f %.1f)",
-                          (*p)->unum(), (*p)->pos().x, (*p)->pos().y );
+                          p->unum(), p->pos().x, p->pos().y );
             break;
         }
     }

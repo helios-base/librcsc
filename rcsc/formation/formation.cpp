@@ -141,8 +141,8 @@ Formation::Formation()
 {
     for ( int i = 0; i < 11; ++i )
     {
-        M_role_type[i] = Unknown_Role;
-        M_symmetry_number[i] = -1;
+        //M_role_type[i] = RoleType();
+        M_symmetry_number[i] = 0;
         M_marker[i] = false;
         M_setplay_marker[i] = false;
     }
@@ -164,10 +164,10 @@ Formation::setRoleType( const int unum,
         return;
     }
 
-    if ( role_type == "G" ) M_role_type[unum - 1] = Goalie;
-    else if ( role_type == "DF" ) M_role_type[unum - 1] = Defender;
-    else if ( role_type == "MF" ) M_role_type[unum - 1] = MidFielder;
-    else if ( role_type == "FW" ) M_role_type[unum - 1] = Forward;
+    if ( role_type == "G" ) M_role_type[unum - 1].setType( RoleType::Goalie );
+    else if ( role_type == "DF" ) M_role_type[unum - 1].setType( RoleType::Defender );
+    else if ( role_type == "MF" ) M_role_type[unum - 1].setType( RoleType::MidFielder );
+    else if ( role_type == "FW" ) M_role_type[unum - 1].setType( RoleType::Forward );
     else
     {
         std::cerr << __FILE__ << " (setRoleType)"
@@ -191,6 +191,7 @@ Formation::setCenterType( const int unum )
         return;
     }
 
+    M_role_type[unum - 1].setSide( RoleType::Center );
     M_symmetry_number[unum - 1] = 0;
 }
 
@@ -209,6 +210,7 @@ Formation::setSideType( const int unum )
         return;
     }
 
+    M_role_type[unum - 1].setSide( RoleType::Left );
     M_symmetry_number[unum - 1] = -1;
 }
 
@@ -274,6 +276,7 @@ Formation::setSymmetryType( const int unum,
         }
     }
 
+    M_role_type[unum - 1].setSide( RoleType::Right );
     M_symmetry_number[unum - 1] = symmetry_unum;
 
     if ( role_name.empty() )
@@ -376,16 +379,16 @@ Formation::updateRole( const int unum,
  */
 bool
 Formation::updateRoleType( const int unum,
-                           const RoleType type )
+                           const RoleType::Type type )
 {
     if ( unum < 1 || 11 < unum )
     {
         return false;
     }
 
-    if ( M_role_type[unum-1] != type )
+    if ( M_role_type[unum-1].type() != type )
     {
-        M_role_type[unum-1] = type;
+        M_role_type[unum-1].setType( type );
         return true;
     }
 

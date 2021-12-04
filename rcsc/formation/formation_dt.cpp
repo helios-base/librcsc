@@ -789,10 +789,10 @@ FormationDT::printRoleTypes( std::ostream & os ) const
     os << "RoleType";
     for ( int unum = 1; unum <= 11; ++unum )
     {
-        os << ( M_role_type[unum - 1] == Goalie ? ",G"
-                : M_role_type[unum - 1] == Defender ? ",DF"
-                : M_role_type[unum - 1] == MidFielder ? ",MF"
-                : M_role_type[unum - 1] == Forward ? ",FW"
+        os << ( M_role_type[unum - 1].isGoalie() ? ",G"
+                : M_role_type[unum - 1].isDefender() ? ",DF"
+                : M_role_type[unum - 1].isMidFielder() ? ",MF"
+                : M_role_type[unum - 1].isForward() ? ",FW"
                 : ",U" );
     }
     os << '\n';
@@ -1090,10 +1090,10 @@ FormationDT::printRolesV3( std::ostream & os ) const
     for ( int unum = 1; unum <= 11; ++unum )
     {
         os << unum << ' '
-           << ( M_role_type[unum - 1] == Goalie ? "G  "
-                : M_role_type[unum - 1] == Defender ? "DF "
-                : M_role_type[unum - 1] == MidFielder ? "MF "
-                : M_role_type[unum - 1] == Forward ? "FW "
+           << ( M_role_type[unum - 1].isGoalie() ? "G  "
+                : M_role_type[unum - 1].isDefender() ? "DF "
+                : M_role_type[unum - 1].isMidFielder() ? "MF "
+                : M_role_type[unum - 1].isForward() ? "FW "
                 : "U  " )
            << M_role_names[unum - 1] << ' '
            << M_symmetry_number[unum - 1] << ' '
