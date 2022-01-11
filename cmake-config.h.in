@@ -20,3 +20,15 @@
 #cmakedefine HAVE_SYS_TIME_H
 
 #cmakedefine HAVE_UNISTD_H
+
+#cmakedefine HAVE_INET_ADDR
+
+#cmakedefine HAVE_GETADDRINFO
+
+#cmakedefine HAVE_GETHOSTBYNAME
+
+#cmakedefine HAVE_GETTIMEOFDAY
+
+#cmakedefine HAVE_SELECT
+
+#cmakedefine HAVE_SOCKET
