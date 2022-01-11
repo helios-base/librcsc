@@ -20,7 +20,7 @@ set(CMAKE_CXX_FLAGS "-W -Wall")
 
 # install destination
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "Install destination path" FORCE)
+  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/local" CACHE PATH "Install destination path" FORCE)
 endif()
 
 include(GNUInstallDirs)
@@ -37,6 +37,15 @@ check_include_file("netdb.h" HAVE_NETDB_H)
 check_include_file("sys/socket.h" HAVE_SYS_SOCKET_H)
 check_include_file("sys/time.h" HAVE_SYS_TIME_H)
 check_include_file("unistd.h" HAVE_UNISTD_H)
+
+# check funcs
+include(CheckCXXSymbolExists)
+check_cxx_symbol_exists(inet_addr arpa/inet.h HAVE_INET_ADDR)
+check_cxx_symbol_exists(getaddrinfo netdb.h HAVE_GETADDRINFO)
+check_cxx_symbol_exists(gethostbyname netdb.h HAVE_GETHOSTBYNAME)
+check_cxx_symbol_exists(gettimeofday sys/time.h HAVE_GETTIMEOFDAY)
+check_cxx_symbol_exists(select sys/select.h HAVE_SELECT)
+check_cxx_symbol_exists(socket sys/socket.h HAVE_SOCKET)
 
 # boost
 find_package(Boost 1.36.0 COMPONENTS system REQUIRED)
