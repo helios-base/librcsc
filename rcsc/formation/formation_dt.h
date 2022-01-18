@@ -259,6 +259,10 @@ private:
     std::ostream & printRolesV3( std::ostream & os ) const;
     std::ostream & printEnd( std::ostream & os ) const;
 
+    // v2
+    bool readV2( std::istream & is );
+    bool readRolesV2( std::istream & is );
+    bool readVerticesV2( std::istream & is );
 };
 
 }

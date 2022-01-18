@@ -217,6 +217,14 @@ public:
     bool update( const std::string & mode_str,
                  const GameTime & current );
 
+    /*!
+      \brief set scores directly.
+      \param score_l left team score
+      \param score_r right team score
+     */
+    void setScore( const int score_l,
+                   const int score_r );
+
 private:
     /*!
       \brief analyze playmode string. if mode is goal_?_?, score is updated

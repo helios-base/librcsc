@@ -1355,6 +1355,16 @@ ActionEffector::removeSayMessage( const char header )
 
 */
 void
+ActionEffector::clearSayMessage()
+{
+    M_say_message_cont.clear();
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+void
 ActionEffector::setPointto( const double & x,
                             const double & y )
 {

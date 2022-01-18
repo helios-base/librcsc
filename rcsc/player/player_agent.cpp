@@ -3168,6 +3168,16 @@ PlayerAgent::removeSayMessage( const char header )
 
  */
 void
+PlayerAgent::clearSayMessage()
+{
+    M_effector.clearSayMessage();
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
 PlayerAgent::setIntention( SoccerIntention * intention )
 {
     M_impl->intention_ = boost::shared_ptr< SoccerIntention >( intention );
