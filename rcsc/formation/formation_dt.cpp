@@ -522,6 +522,7 @@ bool
 FormationDT::read( std::istream & is )
 {
     return readCSV( is );
+    //return readV2( is );
 }
 
 /*-------------------------------------------------------------------*/
@@ -1116,6 +1117,200 @@ FormationDT::printEnd( std::ostream & os ) const
 {
     //os << "End" << std::endl;
     return os;
+}
+
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationDT::readV2( std::istream & is )
+{
+    if ( ! readHeader( is ) )
+    {
+        return false;
+    }
+
+    if ( ! readRolesV2( is ) )
+    {
+        return false;
+    }
+
+    if ( ! readVerticesV2( is ) )
+    {
+        return false;
+    }
+
+    //
+    // read End tag
+    //
+
+    std::string line_buf;
+    while ( std::getline( is, line_buf ) )
+    {
+        if ( line_buf.empty()
+             || line_buf[0] == '#'
+             || ! line_buf.compare( 0, 2, "//" ) )
+        {
+            continue;
+        }
+
+        if ( line_buf != "End" )
+        {
+            std::cerr << __FILE__ << ':' << __LINE__ << ':'
+                      << " *** ERROR *** readV2(). No end tag "
+                      << std::endl;
+            return false;
+        }
+
+        break;
+    }
+
+    if ( is.eof() )
+    {
+        std::cerr << "Input stream reaches EOF"
+                  << std::endl;
+    }
+
+    return true;
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationDT::readRolesV2( std::istream & is )
+{
+    std::string line_buf;
+
+    //
+    // read Begin tag
+    //
+
+    while ( std::getline( is, line_buf ) )
+    {
+        if ( line_buf.empty()
+             || line_buf[0] == '#'
+             || ! line_buf.compare( 0, 2, "//" ) )
+        {
+            continue;
+        }
+
+        if ( line_buf != "Begin Roles" )
+        {
+            std::cerr << __FILE__ << ':' << __LINE__ << ':'
+                      << " *** ERROR *** readRolesV2(). Illegal header ["
+                      << line_buf << ']'
+                      << std::endl;
+            return false;
+        }
+
+        break;
+    }
+
+    //
+    // read role data
+    //
+
+    for ( int unum = 1; unum <= 11; ++unum )
+    {
+        while ( std::getline( is, line_buf ) )
+        {
+            if ( line_buf.empty()
+                 || line_buf[0] == '#'
+                 || ! line_buf.compare( 0, 2, "//" ) )
+            {
+                continue;
+            }
+            break;
+        }
+
+        int read_unum = 0;
+        char role_name[128];
+        int symmetry_number = 0;
+
+        if ( std::sscanf( line_buf.c_str(),
+                          " %d %127s %d ",
+                          &read_unum, role_name, &symmetry_number ) != 3
+             || read_unum != unum )
+        {
+            std::cerr << __FILE__ << ':' << __LINE__ << ':'
+                      << " *** ERROR *** readRolesV2(). Illegal role data. num="
+                      << unum
+                      << " [" << line_buf << "]"
+                      << std::endl;
+            return false;
+        }
+
+        //
+        // create role or set symmetry.
+        //
+        const Formation::SideType type = ( symmetry_number == 0
+                                           ? Formation::CENTER
+                                           : symmetry_number < 0
+                                           ? Formation::SIDE
+                                           : Formation::SYMMETRY );
+        if ( type == Formation::CENTER )
+        {
+            createNewRole( unum, role_name, type );
+        }
+        else if ( type == Formation::SIDE )
+        {
+            createNewRole( unum, role_name, type );
+        }
+        else
+        {
+            setSymmetryType( unum, symmetry_number, role_name );
+        }
+    }
+
+    //
+    // read End tag
+    //
+
+    while ( std::getline( is, line_buf ) )
+    {
+        if ( line_buf.empty()
+             || line_buf[0] == '#'
+             || ! line_buf.compare( 0, 2, "//" ) )
+        {
+            continue;
+        }
+
+        if ( line_buf != "End Roles" )
+        {
+            std::cerr << __FILE__ << ':' << __LINE__ << ':'
+                      << " *** ERROR *** readRolesV2(). Failed getline "
+                      << std::endl;
+            return false;
+        }
+
+        break;
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationDT::readVerticesV2( std::istream & is )
+{
+    M_samples = SampleDataSet::Ptr( new SampleDataSet() );
+
+    if ( ! M_samples->readOld( is ) )
+    {
+        M_samples.reset();
+        return false;
+    }
+
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
