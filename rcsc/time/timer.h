@@ -216,4 +216,38 @@ public:
 
 }
 
+/*-------------------------------------------------------------------*/
+/*!
+  \brief operator '<' for rcsc::TimeStamp
+  \param lhs left hand side argument
+  \param rhs right hand side argument
+  \return boolean value
+*/
+inline
+bool
+operator<( const rcsc::TimeStamp & lhs,
+           const rcsc::TimeStamp & rhs )
+{
+    return ( lhs.sec() < rhs.sec()
+             || ( lhs.sec()== rhs.sec()
+                  && lhs.usec() < rhs.usec() ) );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief operator '>' for rcsc::TimeStamp
+  \param lhs left hand side argument
+  \param rhs right hand side argument
+  \return boolean value
+*/
+inline
+bool
+operator>( const rcsc::TimeStamp & lhs,
+           const rcsc::TimeStamp & rhs )
+{
+    return ( lhs.sec() > rhs.sec()
+             || ( lhs.sec() == rhs.sec()
+                  && lhs.usec() > rhs.usec() ) );
+}
+
 #endif
