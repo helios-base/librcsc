@@ -596,6 +596,17 @@ PlayerAgent::Impl::isDecisionTiming( const long & msec_from_sense,
         return false;
     }
 
+    // synch_see mode, and big see_offset
+    if ( SeeState::synch_see_mode()
+         && ServerParam::i().synchSeeOffset() > wait_thr
+         && msec_from_sense >= 0 )
+    {
+        dlog.addText( Logger::SYSTEM,
+                      __FILE__" (isDicisionTiming) [true] synch_see mode. offset(%d) > threshold(%d)",
+                      ServerParam::i().synchSeeOffset(), wait_thr );
+        return true;
+    }
+
     // no see info during the current cycle.
     if ( see_state_.isSynch()
          && see_state_.cyclesTillNextSee() > 0 )
@@ -969,7 +980,7 @@ PlayerAgent::handleMessageOffline()
     if ( M_impl->think_received_ )
     {
         dlog.addText( Logger::SYSTEM,
-                      __FILE__" (handleMessaegOffline) Got think message: decide action" );
+                      __FILE__" (handleMessageOffline) Got think message: decide action" );
 #if 0
         std::cout << world().teamName() << ' '
                   << world().self().unum() << ": "
@@ -2311,15 +2322,23 @@ PlayerAgent::action()
          && M_impl->see_state_.cyclesTillNextSee() == 0
          && world().seeTime() != M_impl->current_time_ )
     {
-        dlog.addText( Logger::SYSTEM,
-                      __FILE__" (action) missed see synch. action without see" );
-        std::cout << world().teamName() << ' '
-                  << world().self().unum() << ": "
-                  << world().time()
-                  << " missed see synch. action without see" << std::endl;
+        if ( SeeState::synch_see_mode()
+             && ServerParam::i().synchSeeOffset() > ServerParam::i().synchOffset() )
+        {
+            // no problem?
+        }
+        else
+        {
+            dlog.addText( Logger::SYSTEM,
+                          __FILE__" (action) missed see synch. action without see" );
+            std::cout << world().teamName() << ' '
+                      << world().self().unum() << ": "
+                      << world().time()
+                      << " missed see synch. action without see" << std::endl;
 
-        // set synch timing to illegal.
-        M_impl->see_state_.setLastSeeTiming( SeeState::TIME_NOSYNCH );
+            // set synch timing to illegal.
+            M_impl->see_state_.setLastSeeTiming( SeeState::TIME_NOSYNCH );
+        }
     }
 
     // ------------------------------------------------------------------------
