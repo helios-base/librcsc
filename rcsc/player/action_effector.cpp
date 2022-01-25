@@ -1469,12 +1469,9 @@ ActionEffector::getSayMessageLength() const
 {
     int len = 0;
 
-    for ( std::vector< SayMessage::Ptr >::const_iterator it = M_say_message_cont.begin(),
-              end = M_say_message_cont.end();
-          it != end;
-          ++it )
+    for ( const SayMessage::Ptr & i : M_say_message_cont )
     {
-        len += (*it)->length();
+        len += i->length();
     }
 
     return len;
@@ -1498,17 +1495,14 @@ ActionEffector::makeSayCommand()
     // std::sort( M_say_message_cont.begin(), M_say_message_cont.end(),
     //            SayMessagePtrSorter() );
 
-    for ( std::vector< SayMessage::Ptr >::const_iterator it = M_say_message_cont.begin(),
-              end = M_say_message_cont.end();
-          it != end;
-          ++it )
+    for ( const SayMessage::Ptr & i : M_say_message_cont )
     {
-        if ( ! (*it)->appendTo( M_say_message ) )
+        if ( ! i->appendTo( M_say_message ) )
         {
             std::cerr << M_agent.world().teamName() << ' '
                       << M_agent.world().self().unum() << " : "
                       << M_agent.world().time() << " Error say message builder. type=["
-                      << (*it)->header() << ']'
+                      << i->header() << ']'
                       << std::endl;
             dlog.addText( Logger::ACTION,
                           __FILE__" (makeSayCommand) error occured." );

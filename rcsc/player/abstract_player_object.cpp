@@ -155,12 +155,9 @@ AbstractPlayerObject::get_minimum_evaluation( const AbstractPlayerObject::Cont &
 {
     double min_value = std::numeric_limits< double >::max();
 
-    for ( AbstractPlayerObject::Cont::const_iterator it = cont.begin(),
-              end = cont.end();
-          it != end;
-          ++it )
+    for ( const AbstractPlayerObject * p : cont )
     {
-        double value = (*evaluator)( **it );
+        double value = (*evaluator)( *p );
 
         if ( value < min_value )
         {
@@ -182,12 +179,9 @@ AbstractPlayerObject::get_maximum_evaluation( const AbstractPlayerObject::Cont &
 {
     double max_value = -std::numeric_limits< double >::max();
 
-    for ( AbstractPlayerObject::Cont::const_iterator it = cont.begin(),
-              end = cont.end();
-          it != end;
-          ++it )
+    for ( const AbstractPlayerObject * p : cont )
     {
-        double value = (*evaluator)( **it );
+        double value = (*evaluator)( *p );
 
         if ( value > max_value )
         {

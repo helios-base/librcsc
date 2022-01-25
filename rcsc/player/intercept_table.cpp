@@ -237,13 +237,11 @@ InterceptTable::hearTeammate( const int unum,
 
     const PlayerObject * p = static_cast< const PlayerObject * >( 0 );
 
-    for ( PlayerObject::Cont::const_iterator it = M_world.teammates().begin(), end = M_world.teammates().end();
-          it != end;
-          ++it )
+    for ( const PlayerObject * i : M_world.teammates() )
     {
-        if ( (*it)->unum() == unum )
+        if ( i->unum() == unum )
         {
-            p = *it;
+            p = i;
             break;
         }
     }

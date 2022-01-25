@@ -666,12 +666,9 @@ DebugClient::buildString( const WorldModel & world,
     if ( ! effector.getSayMessage().empty() )
     {
         ostr << " (say \"";
-        for ( std::vector< SayMessage::Ptr >::const_iterator it = effector.sayMessageCont().begin(),
-                  end = effector.sayMessageCont().end();
-              it != end;
-              ++it )
+        for ( const SayMessage::Ptr & i : effector.sayMessageCont() )
         {
-            (*it)->printDebug( ostr );
+            i->printDebug( ostr );
         }
         ostr << " {" << effector.getSayMessage() << "}\")";
     }

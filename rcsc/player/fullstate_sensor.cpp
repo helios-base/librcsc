@@ -155,24 +155,18 @@ FullstateSensor::reverseSide()
     M_ball.pos_.reverse();
     M_ball.vel_.reverse();
 
-    for ( PlayerCont::iterator p = M_our_players.begin(),
-              end = M_our_players.end();
-          p != end;
-          ++p )
+    for ( PlayerT & p : M_our_players )
     {
-        p->pos_.reverse();
-        p->vel_.reverse();
-        p->body_ = AngleDeg::normalize_angle( p->body_ + 180.0 );
+        p.pos_.reverse();
+        p.vel_.reverse();
+        p.body_ = AngleDeg::normalize_angle( p.body_ + 180.0 );
     }
 
-    for ( PlayerCont::iterator p = M_their_players.begin(),
-              end = M_their_players.end();
-          p != end;
-          ++p )
+    for ( PlayerT & p : M_their_players )
     {
-        p->pos_.reverse();
-        p->vel_.reverse();
-        p->body_ = AngleDeg::normalize_angle( p->body_ + 180.0 );
+        p.pos_.reverse();
+        p.vel_.reverse();
+        p.body_ = AngleDeg::normalize_angle( p.body_ + 180.0 );
     }
 }
 
@@ -513,20 +507,14 @@ FullstateSensor::print( std::ostream & os ) const
     std::copy( M_their_players.begin(), M_their_players.end(),
                std::ostream_iterator< PlayerT >( os, "\n" ) );
 #else
-    for ( PlayerCont::const_iterator it = M_our_players.begin(),
-              end = M_our_players.end();
-          it != end;
-          ++it )
+    for ( const PlayerT & p : M_our_players )
     {
-        it->print( os );
+        p.print( os );
     }
 
-    for ( PlayerCont::const_iterator it = M_their_players.begin(),
-              end = M_their_players.end();
-          it != end;
-          ++it )
+    for ( const PlayerT & p : M_their_players )
     {
-        it->print( os );
+        p.print( os );
     }
 #endif
     return os;
@@ -569,19 +557,16 @@ FullstateSensor::printWithWorld( const WorldModel & world ) const
                   "____internal (%+.3f %+.3f)",
                   world.ball().velError().x, world.ball().velError().y );
 
-    for ( FullstateSensor::PlayerCont::const_iterator it = ourPlayers().begin(),
-              end = ourPlayers().end();
-          it != end;
-          ++it )
+    for ( const PlayerT & p : ourPlayers() )
     {
-        if ( it->unum_ == world.self().unum() )
+        if ( p.unum_ == world.self().unum() )
         {
             dlog.addText( Logger::WORLD,
                           "FS self  (%+.3f %+.3f) (%+.3f %+.3f) b=%+.2f n=%+.2f f=%+.2f",
-                          it->pos_.x, it->pos_.y,
-                          it->vel_.x, it->vel_.y,
-                          it->body_, it->neck_,
-                          AngleDeg::normalize_angle( it->body_ + it->neck_ ) );
+                          p.pos_.x, p.pos_.y,
+                          p.vel_.x, p.vel_.y,
+                          p.body_, p.neck_,
+                          AngleDeg::normalize_angle( p.body_ + p.neck_ ) );
 
             dlog.addText( Logger::WORLD,
                           "____internal (%+.3f %+.3f) (%+.3f %+.3f) b=%+.2f n=%+.2f f=%+.2f",
@@ -591,7 +576,7 @@ FullstateSensor::printWithWorld( const WorldModel & world ) const
                           world.self().neck().degree(),
                           world.self().face().degree() );
 
-            tmpv = it->pos_ - world.self().pos();
+            tmpv = p.pos_ - world.self().pos();
             double d = tmpv.r();
             dlog.addText( Logger::WORLD,
                           "__self pos err (%+.3f %+.3f) %.3f %s",
@@ -601,7 +586,7 @@ FullstateSensor::printWithWorld( const WorldModel & world ) const
                           world.self().posError().x,
                           world.self().posError().y,
                           world.self().posError().r() );
-            tmpv = it->vel_ - world.self().vel();
+            tmpv = p.vel_ - world.self().vel();
             dlog.addText( Logger::WORLD,
                           "__self vel err (%+.3f %+.3f) %.3f",
                           tmpv.x, tmpv.y, tmpv.r() );
@@ -610,7 +595,7 @@ FullstateSensor::printWithWorld( const WorldModel & world ) const
                           world.self().velError().x,
                           world.self().velError().y,
                           world.self().velError().r() );
-            tmpv = ball().pos_ - it->pos_;
+            tmpv = ball().pos_ - p.pos_;
             dlog.addText( Logger::WORLD,
                           "__ball rpos (%+.3f %+.3f) %.3f",
                           tmpv.x, tmpv.y, tmpv.r() );
