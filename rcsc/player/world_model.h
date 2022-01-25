@@ -38,6 +38,7 @@
 #include <rcsc/player/view_area.h>
 #include <rcsc/player/view_grid_map.h>
 
+#include <rcsc/time/timer.h>
 #include <rcsc/geom/vector_2d.h>
 #include <rcsc/game_mode.h>
 #include <rcsc/game_time.h>
@@ -96,6 +97,10 @@ private:
     GameTime M_sense_body_time; //!< sense_body updated time
     GameTime M_see_time; //!< see updated time
     GameTime M_fullstate_time; //!< fullstate update time
+    GameTime M_decision_time; //!< action performed time
+
+    TimeStamp M_see_time_stamp; //! time stamp when see received
+    TimeStamp M_decision_time_stamp; //! time stamp when action performed
 
     GameTime M_last_set_play_start_time; //!< SetPlay started time
     int M_setplay_count; //!< setplay counter
@@ -684,8 +689,19 @@ public:
     const GameTime & fullstateTime() const { return M_fullstate_time; }
 
     /*!
-      \brief get last time updated by fullstate
+      \brief get the time value when the last action performed
      */
+    const GameTime & decisionTime() const { return M_decision_time; }
+
+    /*!
+      \brief get the time stamp when see received
+    */
+    const TimeStamp & seeTimeStamp() const { return M_see_time_stamp; }
+
+    /*!
+      \brief get the time stamp when action performed
+    */
+    const TimeStamp & decisionTimeStamp() const { return M_decision_time_stamp; }
 
     /*!
       \brief get last setplay type playmode start time

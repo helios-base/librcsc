@@ -52,7 +52,7 @@ bool
 Bhv_ScanField::execute( PlayerAgent * agent )
 {
     dlog.addText( Logger::ACTION,
-                  __FILE__": Bhf_ScanField" );
+                  __FILE__": Bhv_ScanField" );
 
     const WorldModel & wm = agent->world();
 
@@ -86,10 +86,10 @@ Bhv_ScanField::findBall( PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
 
-    if ( wm.seeTime() != wm.time() )
+    if ( wm.seeTimeStamp() < wm.decisionTimeStamp() )
     {
         dlog.addText( Logger::ACTION,
-                      __FILE__": (findBall) no current see info" );
+                      __FILE__": (findBall) no see info after the previous decision" );
         agent->doTurn( 0.0 );
         agent->setNeckAction( new Neck_TurnToRelative( wm.self().neck() ) );
         return;
@@ -143,10 +143,10 @@ Bhv_ScanField::scanAllField( PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
 
-    if ( wm.seeTime() != wm.time() )
+    if ( wm.seeTimeStamp() < wm.decisionTimeStamp() )
     {
         dlog.addText( Logger::ACTION,
-                      __FILE__":scanAllField) no current see info" );
+                      __FILE__":scanAllField) no see info after the previous decision" );
         agent->doTurn( 0.0 );
         agent->setNeckAction( new Neck_TurnToRelative( wm.self().neck() ) );
         return;

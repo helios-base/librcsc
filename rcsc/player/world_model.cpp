@@ -61,11 +61,11 @@
 #include <cassert>
 #include <cmath>
 
-// #define DEBUG_PROFILE
-// #define DEBUG_PRINT
+#define DEBUG_PROFILE
+#define DEBUG_PRINT
 
 // #define DEBUG_PRINT_SELF_UPDATE
-#define DEBUG_PRINT_BALL_UPDATE
+// #define DEBUG_PRINT_BALL_UPDATE
 // #define DEBUG_PRINT_PLAYER_UPDATE
 // #define DEBUG_PRINT_PLAYER_UPDATE_DETAIL
 // #define DEBUG_PRINT_GOALIE_UPDATE
@@ -374,6 +374,7 @@ WorldModel::WorldModel()
       M_time( -1, 0 ),
       M_sense_body_time( -1, 0 ),
       M_see_time( -1, 0 ),
+      M_decision_time( -1, 0 ),
       M_last_set_play_start_time( 0, 0 ),
       M_setplay_count( 0 ),
       M_game_mode(),
@@ -1223,6 +1224,7 @@ WorldModel::updateAfterSee( const VisualSensor & see,
     //////////////////////////////////////////////////////////////////
     // time update
     M_see_time = current;
+    M_see_time_stamp.setCurrent();
 
     dlog.addText( Logger::WORLD,
                   "*************** updateAfterSee *****************" );
@@ -2173,6 +2175,9 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
 void
 WorldModel::updateJustAfterDecision( const ActionEffector & act )
 {
+    M_decision_time = this->time();
+    M_decision_time_stamp.setCurrent();
+
     if ( act.changeViewCommand() )
     {
         M_self.setViewMode( act.changeViewCommand()->width(),
