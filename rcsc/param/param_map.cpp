@@ -39,36 +39,6 @@
 
 namespace rcsc {
 
-/*!
-  \struct LongNamePredicate
-  \brief function object to check if the parameter's long name is same
-  or not.
-*/
-struct LongNamePredicate
-    : public std::unary_function< ParamEntity::Ptr, bool > {
-
-    std::string name_; //!< name string to be compared
-
-    /*!
-      \brief construct with the compared long name string
-      \param long_name the compared long name
-    */
-    explicit
-    LongNamePredicate( const std::string & long_name )
-        : name_( long_name )
-      { }
-
-    /*!
-      \brief predicate operator
-      \param arg compared parameter
-      \return compared result
-    */
-    result_type operator()( const argument_type & arg ) const
-      {
-          return arg->longName() == name_;
-      }
-};
-
 namespace {
 
 /*-------------------------------------------------------------------*/
@@ -472,7 +442,10 @@ ParamMap::remove( const std::string & long_name )
 {
     M_parameters.erase( std::remove_if( M_parameters.begin(),
                                         M_parameters.end(),
-                                        LongNamePredicate( long_name ) ),
+                                        [&]( const ParamEntity::Ptr & v )
+                                          {
+                                              return v->longName() == long_name;
+                                          } ),
                         M_parameters.end() );
 
     std::map< std::string, ParamEntity::Ptr >::iterator it_long = M_long_name_map.find( long_name );

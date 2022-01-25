@@ -65,44 +65,6 @@
 
 namespace rcsc {
 
-/*!
-  \struct KeepDribbleCmp
-  \brief function object to evaluate the keep dribble
-*/
-struct KeepDribbleCmp
-    : public std::binary_function< Body_Dribble2008::KeepDribbleInfo,
-                                   Body_Dribble2008::KeepDribbleInfo,
-                                   bool > {
-    /*!
-      \brief compare operator
-      \param lhs left hand side argument
-      \param rhs right hand side argument
-    */
-    result_type operator()( const first_argument_type & lhs,
-                            const second_argument_type & rhs ) const
-      {
-          if ( lhs.dash_count_ > rhs.dash_count_ )
-          {
-              return true;
-          }
-
-          if ( lhs.dash_count_ == rhs.dash_count_ )
-          {
-              if ( lhs.min_opp_dist_ > 5.0
-                   && rhs.min_opp_dist_ > 5.0 )
-              {
-                  return lhs.ball_forward_travel_ > rhs.ball_forward_travel_;
-                  //return lhs.ball_forward_travel_ < rhs.ball_forward_travel_;
-                  ///return lhs.last_ball_rel_.absX() < rhs.last_ball_rel_.absX();
-              }
-
-              return lhs.min_opp_dist_ > rhs.min_opp_dist_;
-          }
-
-          return false;
-      }
-};
-
 /*-------------------------------------------------------------------*/
 /*!
   execute action
@@ -1275,7 +1237,22 @@ Body_Dribble2008::doKickDashesWithBall( PlayerAgent * agent,
     std::vector< KeepDribbleInfo >::const_iterator dribble
         = std::min_element( dribble_info.begin(),
                             dribble_info.end(),
-                            KeepDribbleCmp() );
+                            []( const KeepDribbleInfo & lhs, const KeepDribbleInfo & rhs )
+                              {
+                                  if ( lhs.dash_count_ > rhs.dash_count_ ) return true;
+                                  if ( lhs.dash_count_ == rhs.dash_count_ )
+                                  {
+                                       if ( lhs.min_opp_dist_ > 5.0
+                                            && rhs.min_opp_dist_ > 5.0 )
+                                       {
+                                           return lhs.ball_forward_travel_ > rhs.ball_forward_travel_;
+                                           //return lhs.ball_forward_travel_ < rhs.ball_forward_travel_;
+                                           ///return lhs.last_ball_rel_.absX() < rhs.last_ball_rel_.absX();
+                                       }
+                                       return lhs.min_opp_dist_ > rhs.min_opp_dist_;
+                                  }
+                                  return false;
+                              });
 
     if ( dodge_mode
          && dash_count > dribble->dash_count_ )

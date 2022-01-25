@@ -194,7 +194,10 @@ Body_Pass::get_best_pass( const WorldModel & world,
         std::vector< PassRoute >::iterator max_it
             = std::max_element( S_cached_pass_route.begin(),
                                 S_cached_pass_route.end(),
-                                PassRouteScoreComp() );
+                                []( const PassRoute & lhs, const PassRoute & rhs )
+                                  {
+                                      return lhs.score_ < rhs.score_;
+                                  });
         S_last_calc_target = max_it->receive_point_;
         S_last_calc_speed = max_it->first_speed_;
         S_last_calc_receiver = max_it->receiver_->unum();

@@ -36,7 +36,6 @@
 #include "team_graphic.h"
 
 #include <algorithm>
-#include <functional> // ptr_fun
 #include <string>
 #include <fstream>
 #include <iostream>

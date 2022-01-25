@@ -247,7 +247,13 @@ ConvexHull::computeDirectMethod()
         std::sort( M_vertices.begin() + 1,
                    M_vertices.end(),
                    AngleSortPredicate( M_vertices.front() ) );
-        M_vertices.erase( std::unique( M_vertices.begin(), M_vertices.end(), Vector2D::Equal() ),
+        M_vertices.erase( std::unique( M_vertices.begin(), M_vertices.end(),
+                                       //Vector2D::Equal() ),
+                                       []( const Vector2D & lhs, const Vector2D & rhs )
+                                         {
+                                             return lhs.equals( rhs );
+                                         }
+                                       ),
                           M_vertices.end() );
     }
 }

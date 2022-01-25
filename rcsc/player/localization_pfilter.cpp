@@ -596,7 +596,10 @@ LocalizationPFilter::Impl::updatePointsBy( const VisualSensor::MarkerT & marker,
 
     M_points.erase( std::remove_if( M_points.begin(),
                                     M_points.end(),
-                                    std::not1( Vector2D::IsWithin< Sector2D >( sector ) ) ),
+                                    [&]( const Vector2D & p )
+                                      {
+                                          return ! sector.contains( p );
+                                      } ),
                     M_points.end() );
 
 #ifdef DEBUG_PROFILE_REMOVE
