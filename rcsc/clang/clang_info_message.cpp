@@ -46,12 +46,9 @@ CLangInfoMessage::print( std::ostream & os ) const
 {
     os << "(info ";
 
-    for ( CLangToken::Cont::const_iterator it = M_tokens.begin(),
-              end = M_tokens.end();
-          it != end;
-          ++it )
+    for ( const auto & tok : M_tokens )
     {
-        os << **it;
+        os << *tok;
     }
 
     os << ')';

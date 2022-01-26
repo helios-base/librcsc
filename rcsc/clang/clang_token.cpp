@@ -73,14 +73,11 @@ CLangTokenRule::print( std::ostream & os ) const
     }
     else
     {
-        for ( CLangDirective::Cont::const_iterator it = M_directives.begin(),
-                  end = M_directives.end();
-              it != end;
-              ++it )
+        for ( const auto & dir : M_directives )
         {
-            if ( *it )
+            if ( dir )
             {
-                os << ' ' << **it;
+                os << ' ' << *dir;
             }
             else
             {

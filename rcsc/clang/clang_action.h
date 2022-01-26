@@ -68,7 +68,8 @@ public:
         INTERCEPT,
         TACKLE,
         MAX_TYPE,
-};
+    };
+
     //! smart pointer type
     typedef boost::shared_ptr< CLangAction > ConstPtr;
 
