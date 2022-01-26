@@ -197,8 +197,7 @@ AudioCodec::encodeInt64ToStr( const boost::int64_t & ival,
 
     try
     {
-        const std::vector< int >::reverse_iterator end = remainder_values.rend();
-        for ( std::vector< int >::reverse_iterator it = remainder_values.rbegin();
+        for ( std::vector< int >::reverse_iterator it = remainder_values.rbegin(), end = remainder_values.rend();
               it != end;
               ++it )
         {
@@ -235,8 +234,7 @@ AudioCodec::decodeStrToInt64( const std::string & from,
 
     const int char_size = static_cast< int >( M_char_set.length() );
 
-    const std::string::const_iterator end = from.end();
-    for ( std::string::const_iterator ch = from.begin();
+    for ( std::string::const_iterator ch = from.begin(), end = from.end();
           ch != end;
           ++ch, --digit_count )
     {

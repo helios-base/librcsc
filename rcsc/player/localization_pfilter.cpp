@@ -287,16 +287,13 @@ LocalizationPFilter::Impl::getNearestMarker( const VisualSensor::ObjectType obj_
     double mindist2 = 3.0 * 3.0;
     MarkerID candidate = Marker_Unknown;
 
-    const MarkerMap::const_iterator end = objectTable().landmarkMap().end();
-    for ( MarkerMap::const_iterator it = objectTable().landmarkMap().begin();
-          it != end;
-          ++it )
+    for ( const auto & v : objectTable().landmarkMap() )
     {
-        double d2 = pos.dist2( it->second );
+        double d2 = pos.dist2( v.second );
         if ( d2 < mindist2 )
         {
             mindist2 = d2;
-            candidate = it->first;
+            candidate = v.first;
         }
     }
 
@@ -480,8 +477,7 @@ LocalizationPFilter::Impl::updatePointsByBehindMarker( const VisualSensor::Marke
         g_filter_count = 0;
 
         int count = 0;
-        const VisualSensor::MarkerCont::const_iterator end = markers.end();
-        for ( VisualSensor::MarkerCont::const_iterator marker = markers.begin();
+        for ( VisualSensor::MarkerCont::const_iterator marker = markers.begin(), end = markers.end();
               marker != end && count < 20;
               ++marker, ++count )
         {
@@ -653,8 +649,7 @@ LocalizationPFilter::Impl::averagePoints( Vector2D * ave_pos,
     max_y = min_y = M_points.front().y;
 
     int count = 0;
-    const std::vector< Vector2D >::const_iterator end = M_points.end();
-    for ( std::vector< Vector2D >::const_iterator it = M_points.begin();
+    for ( std::vector< Vector2D >::const_iterator it = M_points.begin(), end = M_points.end();
           it != end;
           ++it, ++count )
     {
@@ -1249,19 +1244,15 @@ LocalizationPFilter::Impl::updateParticles( const Vector2D & last_move,
 
     if ( s_last_update_time == current )
     {
-        for ( std::vector< Vector2D >::iterator p = M_particles.begin();
-              p != M_particles.end();
-              ++p )
+        for ( Vector2D & p : M_particles )
         {
-            *p -= s_last_move;
+            p -= s_last_move;
         }
     }
 
-    for ( std::vector< Vector2D >::iterator p = M_particles.begin();
-          p != M_particles.end();
-          ++p )
+    for ( Vector2D & p : M_particles )
     {
-        *p += last_move;
+        p += last_move;
     }
 
     s_last_move = last_move;
@@ -1497,35 +1488,32 @@ LocalizationPFilter::Impl::averageParticles( Vector2D * ave_pos,
     max_x = min_x = M_particles.front().x;
     max_y = min_y = M_particles.front().y;
 
-    const std::vector< Vector2D >::const_iterator end = M_particles.end();
-    for ( std::vector< Vector2D >::const_iterator it = M_particles.begin();
-          it != end;
-          ++it )
+    for ( const Vector2D & p : M_particles )
     {
-        *ave_pos += *it;
+        *ave_pos += p;
 #ifdef DEBUG_PRINT_PARTICLE
         // display points
         dlog.addCircle( Logger::WORLD,
-                        *it, 0.01,
+                        p, 0.01,
                         "#00ffff",
                         true ); // fill
 #endif
-        if ( it->x > max_x )
+        if ( p.x > max_x )
         {
-            max_x = it->x;
+            max_x = p.x;
         }
-        else if ( it->x < min_x )
+        else if ( p.x < min_x )
         {
-            min_x = it->x;
+            min_x = p.x;
         }
 
-        if ( it->y > max_y )
+        if ( p.y > max_y )
         {
-            max_y = it->y;
+            max_y = p.y;
         }
-        else if ( it->y < min_y )
+        else if ( p.y < min_y )
         {
-            min_y = it->y;
+            min_y = p.y;
         }
     }
 

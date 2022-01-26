@@ -555,68 +555,56 @@ AudioMemory::printDebug( std::ostream & os ) const
 
     if ( time() == ballTime() )
     {
-        for ( std::vector< Ball >::const_iterator it = ball().begin();
-              it != ball().end();
-              ++it )
+        for ( const Ball & b : ball() )
         {
-            os << '(' << it->sender_ << " \"Ball\")";
+            os << '(' << b.sender_ << " \"Ball\")";
         }
     }
 
     if ( time() == passTime() )
     {
-        for ( std::vector< Pass >::const_iterator it = pass().begin();
-              it != pass().end();
-              ++it )
+        for ( const Pass & p : pass() )
         {
-            os << '(' << it->sender_ << " \"Pass\")";
+            os << '(' << p.sender_ << " \"Pass\")";
         }
     }
 
     if ( time() == ourInterceptTime() )
     {
-        for ( std::vector< OurIntercept >::const_iterator it = ourIntercept().begin();
-              it != ourIntercept().end();
-              ++it )
+        for ( const OurIntercept & i : ourIntercept() )
         {
-            os << '(' << it->sender_ << " \"OurIntercept:" << it->interceptor_ << "\")";
+            os << '(' << i.sender_ << " \"OurIntercept:" << i.interceptor_ << "\")";
         }
     }
 
     if ( time() == oppInterceptTime() )
     {
-        for ( std::vector< OppIntercept >::const_iterator it = oppIntercept().begin();
-              it != oppIntercept().end();
-              ++it )
+        for ( const OppIntercept & i : oppIntercept() )
         {
-            os << '(' << it->sender_ << " \"OppIntercept:" << it->interceptor_ << "\")";
+            os << '(' << i.sender_ << " \"OppIntercept:" << i.interceptor_ << "\")";
         }
     }
 
     if ( time() == goalieTime() )
     {
-        for ( std::vector< Goalie >::const_iterator it = goalie().begin();
-              it != goalie().end();
-              ++it )
+        for ( const Goalie & g : goalie() )
         {
-            os << '(' << it->sender_ << " \"Goalie\")";
+            os << '(' << g.sender_ << " \"Goalie\")";
         }
     }
 
     if ( time() == playerTime() )
     {
-        for ( std::vector< Player >::const_iterator it = player().begin();
-              it != player().end();
-              ++it )
+        for ( const Player & p : player() )
         {
-            os << '(' << it->sender_;
-            if ( it->unum_ <= 11 )
+            os << '(' << p.sender_;
+            if ( p.unum_ <= 11 )
             {
-                os << " \"T_" << it->unum_;
+                os << " \"T_" << p.unum_;
             }
             else
             {
-                os << " \"O_" << it->unum_ - 11;
+                os << " \"O_" << p.unum_ - 11;
             }
             os << "\")";
         }
@@ -624,91 +612,73 @@ AudioMemory::printDebug( std::ostream & os ) const
 
     if ( time() == offsideLineTime() )
     {
-        for ( std::vector< OffsideLine >::const_iterator it = offsideLine().begin();
-              it != offsideLine().end();
-              ++it )
+        for ( const OffsideLine & v : offsideLine() )
         {
-            os << '(' << it->sender_ << " \"OffsideLine\")";
+            os << '(' << v.sender_ << " \"OffsideLine\")";
         }
     }
 
     if ( time() == defenseLineTime() )
     {
-        for ( std::vector< DefenseLine >::const_iterator it = defenseLine().begin();
-              it != defenseLine().end();
-              ++it )
+        for ( const DefenseLine & v : defenseLine() )
         {
-            os << '(' << it->sender_ << " \"DefenseLine\")";
+            os << '(' << v.sender_ << " \"DefenseLine\")";
         }
     }
 
     if ( time() == waitRequestTime() )
     {
-        for ( std::vector< WaitRequest >::const_iterator it = waitRequest().begin();
-              it != waitRequest().end();
-              ++it )
+        for ( const WaitRequest & v : waitRequest() )
         {
-            os << '(' << it->sender_ << " \"Wait\")";
+            os << '(' << v.sender_ << " \"Wait\")";
         }
     }
 
     if ( time() == passRequestTime() )
     {
-        for ( std::vector< PassRequest >::const_iterator it = passRequest().begin();
-              it != passRequest().end();
-              ++it )
+        for ( const PassRequest & v : passRequest() )
         {
-            os << '(' << it->sender_ << " \"PassRequest\")";
+            os << '(' << v.sender_ << " \"PassRequest\")";
         }
     }
 
     if ( time() == runRequestTime() )
     {
-        for ( std::vector< RunRequest >::const_iterator it = runRequest().begin();
-              it != runRequest().end();
-              ++it )
+        for ( const RunRequest & v : runRequest() )
         {
-            os << '(' << it->sender_ << " \"RunRequest\")";
+            os << '(' << v.sender_ << " \"RunRequest\")";
         }
     }
 
     if ( time() == staminaTime() )
     {
-        for ( std::vector< Stamina >::const_iterator it = stamina().begin();
-              it != stamina().end();
-              ++it )
+        for ( const Stamina &v : stamina() )
         {
-            os << '(' << it->sender_ << " \"Stamina\")";
+            os << '(' << v.sender_ << " \"Stamina\")";
         }
     }
 
     if ( time() == recoveryTime() )
     {
-        for ( std::vector< Recovery >::const_iterator it = recovery().begin();
-              it != recovery().end();
-              ++it )
+        for ( const Recovery & v : recovery() )
         {
-            os << '(' << it->sender_ << " \"Recovery\")";
+            os << '(' << v.sender_ << " \"Recovery\")";
         }
     }
 
     if ( time() == dribbleTime() )
     {
-        for ( std::vector< Dribble >::const_iterator it = dribble().begin();
-              it != dribble().end();
-              ++it )
+        for ( const Dribble & v : dribble() )
         {
-            os << '(' << it->sender_ << " \"Dribble\")";
+            os << '(' << v.sender_ << " \"Dribble\")";
         }
     }
 
     if ( time() == freeMessageTime() )
     {
-        for ( std::vector< FreeMessage >::const_iterator it = freeMessage().begin();
-              it != freeMessage().end();
-              ++it )
+        for ( const FreeMessage & v : freeMessage() )
         {
-            os << '(' << it->sender_ << " \"FreeMessage\")";
+            os << '(' << v.sender_ << " \"FreeMessage\")";
         }
     }
 

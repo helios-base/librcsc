@@ -426,13 +426,10 @@ PlayerParam::toServerString() const
 
     os << "(player_param ";
 
-    for ( std::map< std::string, ParamEntity::Ptr >::const_iterator it = M_param_map->longNameMap().begin(),
-              end = M_param_map->longNameMap().end();
-          it != end;
-          ++it )
+    for ( const auto & m : M_param_map->longNameMap() )
     {
-        os << '(' << it->second->longName() << ' ';
-        it->second->printValue( os );
+        os << '(' << m.second->longName() << ' ';
+        m.second->printValue( os );
         os << ')';
     }
 

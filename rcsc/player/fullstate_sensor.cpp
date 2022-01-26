@@ -38,42 +38,7 @@
 #include <rcsc/common/logger.h>
 
 #include <algorithm>
-#include <iterator>
 #include <cstring>
-
-#if 0
-/*-------------------------------------------------------------------*/
-/*!
-  \brief stream operator
-  \param os reference to output stream
-  \param p printed data
-  \return reference to output stream
-*/
-inline
-std::ostream &
-operator<<( std::ostream & os,
-            const rcsc::FullstateSensor::PlayerT & p )
-{
-    return p.print( os );
-    /*
-    os << "FS player: side:" << p.side_
-       << " unum:" << p.unum_
-       << " goalie:" << p.goalie_
-       << " type:" << p.player_type_
-       << "\n    pos:" << p.pos_
-       << " vel:" << p.vel_
-       << " b:" << p.body_
-       << " n:" << p.neck_
-       << " h:" << rcsc::AngleDeg::normalize_angle( p.body_ + p.neck_ )
-       << " s:" << p.stamina_
-       << " e:" << p.effort_
-       << " r:" << p.recovery_
-       << " pdist:" << p.pointto_dist_
-       << " pdir:" << p.pointto_dir_;
-    return os;
-    */
-}
-#endif
 
 namespace rcsc {
 
@@ -501,12 +466,6 @@ FullstateSensor::print( std::ostream & os ) const
        << M_ball.pos_ << M_ball.vel_ << M_ball.vel_.r()
        << '\n';
 
-#if 0
-    std::copy( M_our_players.begin(), M_our_players.end(),
-               std::ostream_iterator< PlayerT >( os, "\n" ) );
-    std::copy( M_their_players.begin(), M_their_players.end(),
-               std::ostream_iterator< PlayerT >( os, "\n" ) );
-#else
     for ( const PlayerT & p : M_our_players )
     {
         p.print( os );
@@ -516,7 +475,7 @@ FullstateSensor::print( std::ostream & os ) const
     {
         p.print( os );
     }
-#endif
+
     return os;
 }
 

@@ -130,25 +130,22 @@ SelfInterceptV13::predict( const int max_cycle,
     dlog.addText( Logger::INTERCEPT,
                   "(SelfIntercept) solution size = %d",
                   self_cache.size() );
-    const std::vector< InterceptInfo >::iterator end = self_cache.end();
-    for ( std::vector< InterceptInfo >::iterator it = self_cache.begin();
-          it != end;
-          ++it )
+    for ( const InterceptInfo & i : self_cache )
     {
-        //Vector2D bpos = M_world.ball().inertiaPoint( it->reachCycle() );
+        //Vector2D bpos = M_world.ball().inertiaPoint( i.reachCycle() );
         dlog.addText( Logger::INTERCEPT,
                       "(SelfIntercept) type=%d cycle=%d (turn=%d dash=%d)"
                       " power=%.2f angle=%.1f"
                       " self_pos=(%.2f %.2f) bdist=%.3f stamina=%.1f",
-                      it->mode(),
-                      it->reachCycle(),
-                      it->turnCycle(),
-                      it->dashCycle(),
-                      it->dashPower(),
-                      it->dashAngle().degree(),
-                      it->selfPos().x, it->selfPos().y,
-                      it->ballDist(),
-                      it->stamina() );
+                      i.mode(),
+                      i.reachCycle(),
+                      i.turnCycle(),
+                      i.dashCycle(),
+                      i.dashPower(),
+                      i.dashAngle().degree(),
+                      i.selfPos().x, i.selfPos().y,
+                      i.ballDist(),
+                      i.stamina() );
     }
 #endif
 }

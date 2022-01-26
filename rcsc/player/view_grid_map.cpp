@@ -240,12 +240,9 @@ void
 ViewGridMap::incrementAll()
 {
 #ifdef USE_VECTOR
-    const std::vector< int >::iterator end = M_impl->grid_map_.end();
-    for ( std::vector< int >::iterator v = M_impl->grid_map_.begin();
-          v != end;
-          ++v )
+    for ( int & v : M_impl->grid_map_ )
     {
-        *v += 1;
+        v += 1;
     }
 #else
     for ( int x = 0; x < ViewGridMap::GRID_X_SIZE; ++x )

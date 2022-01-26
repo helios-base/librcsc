@@ -244,16 +244,13 @@ LocalizationDefault::Impl::getNearestMarker( const VisualSensor::ObjectType objt
     double mindist2 = 3.0 * 3.0;
     MarkerID candidate = Marker_Unknown;
 
-    const MarkerMap::const_iterator end = objectTable().landmarkMap().end();
-    for ( MarkerMap::const_iterator it = objectTable().landmarkMap().begin();
-          it != end;
-          ++it )
+    for ( const auto & v : objectTable().landmarkMap() )
     {
-        double d2 = pos.dist2( it->second );
+        double d2 = pos.dist2( v.second );
         if ( d2 < mindist2 )
         {
             mindist2 = d2;
-            candidate = it->first;
+            candidate = v.first;
         }
     }
 
@@ -442,8 +439,7 @@ LocalizationDefault::Impl::updatePointsByBehindMarker( const VisualSensor::Marke
         g_filter_count = 0;
 
         int count = 0;
-        const VisualSensor::MarkerCont::const_iterator end = markers.end();
-        for ( VisualSensor::MarkerCont::const_iterator marker = markers.begin();
+        for ( VisualSensor::MarkerCont::const_iterator marker = markers.begin(), end = markers.end();
               marker != end && count < 20;
               ++marker, ++count )
         {
@@ -615,8 +611,7 @@ LocalizationDefault::Impl::averagePoints( Vector2D * ave_pos,
     max_y = min_y = M_points.front().y;
 
     int count = 0;
-    const std::vector< Vector2D >::const_iterator end = M_points.end();
-    for ( std::vector< Vector2D >::const_iterator it = M_points.begin();
+    for ( std::vector< Vector2D >::const_iterator it = M_points.begin(), end = M_points.end();
           it != end;
           ++it, ++count )
     {

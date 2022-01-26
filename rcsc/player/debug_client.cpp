@@ -436,7 +436,7 @@ DebugClient::~DebugClient()
     this->close();
 
     delete M_impl;
-    M_impl = static_cast< Impl * >( 0 );
+    M_impl = nullptr;
 }
 
 /*-------------------------------------------------------------------*/
