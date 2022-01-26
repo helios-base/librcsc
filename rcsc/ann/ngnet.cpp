@@ -187,16 +187,13 @@ NGNet::propagate( const input_vector & input,
 
     double sum_unit_value = 0.0;
 
-    const std::vector< Unit >::const_iterator end = M_units.end();
-    for ( std::vector< Unit >::const_iterator it = M_units.begin();
-          it != end;
-          ++it )
+    for ( const Unit & unit : M_units )
     {
-        const double unit_value = it->calc( input );
+        const double unit_value = unit.calc( input );
         sum_unit_value += unit_value;
         for ( std::size_t i = 0; i < OUTPUT; ++ i )
         {
-            output[i] += unit_value * it->weights_[i];
+            output[i] += unit_value * unit.weights_[i];
         }
     }
 
@@ -210,11 +207,9 @@ NGNet::propagate( const input_vector & input,
     */
 
     // normalize
-    for ( output_vector::iterator it = output.begin();
-          it != output.end();
-          ++it )
+    for ( double & o : output )
     {
-        *it /= sum_unit_value;
+        o /= sum_unit_value;
     }
 }
 
@@ -238,33 +233,27 @@ NGNet::train( const input_vector & input,
         output_back[i] = err * 1.0;        // d_linear
     }
 
-    const std::vector< Unit >::iterator end = M_units.end();
-
     double sum_unit_value = 0.0;
-    for ( std::vector< Unit >::const_iterator it = M_units.begin();
-          it != end;
-          ++it )
+    for ( const Unit & unit : M_units )
     {
-        sum_unit_value += it->calc( input );
+        sum_unit_value += unit.calc( input );
     }
 
     //std::cerr << "train(). sum_unit_value = " << sum_unit_value << std::endl;
 
     // update each unit
-    for ( std::vector< Unit >::iterator it = M_units.begin();
-          it != end;
-          ++it )
+    for ( Unit & unit : M_units )
     {
-        const double unit_value = it->calc( input );
+        const double unit_value = unit.calc( input );
 
         // update weights
         for ( std::size_t i = 0; i < OUTPUT; ++i )
         {
-            it->delta_weights_[i]
+            unit.delta_weights_[i]
                 = M_eta * output_back[i] * ( unit_value / sum_unit_value )
-                + M_alpha * it->delta_weights_[i];
+                + M_alpha * unit.delta_weights_[i];
 
-            it->weights_[i] += it->delta_weights_[i];
+            unit.weights_[i] += unit.delta_weights_[i];
         }
     }
 
@@ -323,21 +312,18 @@ NGNet::print( std::ostream & os ) const
     os << M_units.size() << " ";
 
     // update each unit
-    const std::vector< Unit >::const_iterator end = M_units.end();
-    for ( std::vector< Unit >::const_iterator it = M_units.begin();
-          it != end;
-          ++it )
+    for ( const Unit & unit : M_units )
     {
         // center
-        std::copy( it->center_.begin(),
-                   it->center_.end(),
+        std::copy( unit.center_.begin(),
+                   unit.center_.end(),
                    std::ostream_iterator< double >( os, " " ) );
         // weights
-        std::copy( it->weights_.begin(),
-                   it->weights_.end(),
+        std::copy( unit.weights_.begin(),
+                   unit.weights_.end(),
                    std::ostream_iterator< double >( os, " " ) );
         // sigma
-        os << it->sigma_ << " ";
+        os << unit.sigma_ << " ";
     }
 
     return os << std::flush;
@@ -352,21 +338,19 @@ NGNet::printUnits( std::ostream & os ) const
 {
     // update each unit
     int count = 0;
-    const std::vector< Unit >::const_iterator end = M_units.end();
-    for ( std::vector< Unit >::const_iterator it = M_units.begin();
-          it != end;
-          ++it )
+    for ( const Unit & unit : M_units )
     {
-        std::cerr << " unit " << ++count
-                  << " center = (" << it->center_[0] << ","
-                  << it->center_[1] << "): ";
-        std::cerr << "  sigma = " << it->sigma_
-                  << " delta = " << it->delta_sigma_;
+        ++count;
+        std::cerr << " unit " << count
+                  << " center = (" << unit.center_[0] << ","
+                  << unit.center_[1] << "): ";
+        std::cerr << "  sigma = " << unit.sigma_
+                  << " delta = " << unit.delta_sigma_;
         std::cerr << "  weights = ";
         for ( std::size_t i = 0; i < OUTPUT; ++i )
         {
-            std::cerr << it->weights_[i]
-                      << " delta = " << it->delta_weights_[i] << " ";
+            std::cerr << unit.weights_[i]
+                      << " delta = " << unit.delta_weights_[i] << " ";
         }
         std::cerr << '\n';
     }
