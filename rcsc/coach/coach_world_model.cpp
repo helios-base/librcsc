@@ -752,8 +752,8 @@ CoachWorldModel::updateLastPasser()
         return;
     }
 
-    const CoachBallObject * ball = static_cast< const CoachBallObject * >( 0 );
-    const CoachPlayerObject * passer = static_cast< const CoachPlayerObject * >( 0 );
+    const CoachBallObject * ball = nullptr;
+    const CoachPlayerObject * passer = nullptr;
 
     if ( M_audio_memory->passTime() == M_current_state->time() )
     {
@@ -1305,18 +1305,15 @@ CoachWorldModel::existKickablePlayer() const
 {
     const CoachBallObject & cur_ball = M_current_state->ball();
 
-    for ( CoachPlayerObject::Cont::const_iterator p = allPlayers().begin(),
-              end = allPlayers().end();
-          p != end;
-          ++p )
+    for ( const CoachPlayerObject * p : allPlayers() )
     {
-        int type = playerTypeId( (*p)->side(), (*p)->unum() );
+        int type = playerTypeId( p->side(), p->unum() );
         const PlayerType * param = PlayerTypeSet::i().get( type );
         double kickable_area = ( param
                                  ? param->kickableArea()
                                  : ServerParam::i().defaultKickableArea() );
 
-        if ( (*p)->pos().dist2( cur_ball.pos() ) < std::pow( kickable_area, 2 ) )
+        if ( p->pos().dist2( cur_ball.pos() ) < std::pow( kickable_area, 2 ) )
         {
             return true;
         }
@@ -1333,19 +1330,16 @@ const
 CoachPlayerObject *
 CoachWorldModel::getPlayerNearestTo( const Vector2D & point ) const
 {
-    const CoachPlayerObject * ptr = static_cast< CoachPlayerObject * >( 0 );
+    const CoachPlayerObject * ptr = nullptr;
     double max_dist2 = 200000.0;
 
-    for ( CoachPlayerObject::Cont::const_iterator p = allPlayers().begin(),
-              end = allPlayers().end();
-          p != end;
-          ++p )
+    for ( const CoachPlayerObject * p : allPlayers() )
     {
-        double d2 = (*p)->pos().dist2( point );
+        double d2 = p->pos().dist2( point );
         if ( d2 < max_dist2 )
         {
             max_dist2 = d2;
-            ptr = *p;
+            ptr = p;
         }
     }
 
@@ -1366,12 +1360,9 @@ CoachWorldModel::print( std::ostream & os ) const
        << M_current_state->ball().pos() << ' '
        << M_current_state->ball().vel() << '\n';
 
-    for ( CoachPlayerObject::Cont::const_iterator p = allPlayers().begin(),
-              end = allPlayers().end();
-          p != end;
-          ++p )
+    for ( const CoachPlayerObject * p : allPlayers() )
     {
-        (*p)->print( os ) << '\n';
+        p->print( os ) << '\n';
     }
 
     os << std::flush;

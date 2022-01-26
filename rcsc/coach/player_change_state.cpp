@@ -86,7 +86,7 @@ PlayerChangeState::parse( const char * msg,
             // increment change count
             M_change_count++;
         }
-        std::map<int, int>::iterator it = M_teammate_type_count.find( type );
+        std::map< int, int >::iterator it = M_teammate_type_count.find( type );
         if ( it != M_teammate_type_count.end() )
         {
             it->second += 1;
@@ -185,7 +185,7 @@ PlayerChangeState::canChange( const int unum,
 
     if ( type != 0 )
     {
-        std::map<int, int>::const_iterator it = M_teammate_type_count.find(type);
+        std::map< int, int >::const_iterator it = M_teammate_type_count.find(type);
         if ( it == M_teammate_type_count.end() )
         {
             return true;

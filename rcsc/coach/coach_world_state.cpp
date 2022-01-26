@@ -116,28 +116,25 @@ CoachWorldState::CoachWorldState( const CoachVisualSensor & see_global,
     //
     // players
     //
-    for ( std::vector< CoachPlayerObject >::const_iterator vp = see_global.players().begin(),
-              end = see_global.players().end();
-          vp != end;
-          ++vp )
+    for ( const CoachPlayerObject & vp : see_global.players() )
     {
-        CoachPlayerObject * p = static_cast< CoachPlayerObject * >( 0 );
+        CoachPlayerObject * p = nullptr;
 
         if ( prev_state )
         {
-            const CoachPlayerObject * pp = prev_state->getPlayer( vp->side(), vp->unum() );
+            const CoachPlayerObject * pp = prev_state->getPlayer( vp.side(), vp.unum() );
 
             if ( pp )
             {
                 p = pp->clone();
-                p->update( *vp );
+                p->update( vp );
             }
         }
 
         if ( ! p )
         {
             p = new CoachPlayerObject();
-            p->update( *vp );
+            p->update( vp );
         }
 
         if ( p )
@@ -254,7 +251,7 @@ CoachWorldState::CoachWorldState( const rcg::DispInfoT & disp,
 
     for ( size_t i = 0; i < 22; ++i )
     {
-        CoachPlayerObject * p = static_cast< CoachPlayerObject * >( 0 );
+        CoachPlayerObject * p = nullptr;
 
         if ( prev_state )
         {
@@ -327,7 +324,7 @@ CoachWorldState::~CoachWorldState()
           ++p )
     {
         delete *p;
-        *p = static_cast< CoachPlayerObject * >( 0 );
+        *p = nullptr;
     }
 
     M_all_players.clear();
@@ -488,21 +485,18 @@ CoachWorldState::updatePlayerStamina( const AudioMemory & audio )
     //
     if ( audio.staminaTime() == this->time() )
     {
-        for ( std::vector< AudioMemory::Stamina >::const_iterator it = audio.stamina().begin(),
-                  end = audio.stamina().end();
-              it != end;
-              ++it )
+        for ( const AudioMemory::Stamina & v : audio.stamina() )
         {
-            if ( it->sender_ < 1 || 11 < it->sender_ ) continue;
-            if ( ! M_teammate_array[it->sender_ - 1] ) continue;
+            if ( v.sender_ < 1 || 11 < v.sender_ ) continue;
+            if ( ! M_teammate_array[v.sender_ - 1] ) continue;
 
-            double value = it->rate_ * SP.staminaMax();
+            double value = v.rate_ * SP.staminaMax();
 
             dlog.addText( Logger::WORLD,
                           __FILE__":(updateTeammateStamina) sender=%d stamina=%.3f",
-                          it->sender_, value );
+                          v.sender_, value );
 
-            M_teammate_array[it->sender_ - 1]->setStamina( value );
+            M_teammate_array[v.sender_ - 1]->setStamina( value );
         }
     }
 
@@ -514,23 +508,20 @@ CoachWorldState::updatePlayerStamina( const AudioMemory & audio )
         // dlog.addText( Logger::WORLD,
         //               __FILE__":(updateTeammateStamina) heard recovery info" );
 
-        for ( std::vector< AudioMemory::Recovery >::const_iterator it = audio.recovery().begin(),
-                  end = audio.recovery().end();
-              it != end;
-              ++it )
+        for ( const AudioMemory::Recovery & v : audio.recovery() )
         {
-            if ( it->sender_ < 1 || 11 < it->sender_ ) continue;
-            if ( ! M_teammate_array[it->sender_ - 1] ) continue;
+            if ( v.sender_ < 1 || 11 < v.sender_ ) continue;
+            if ( ! M_teammate_array[v.sender_ - 1] ) continue;
 
             double value
-                = it->rate_ * ( SP.recoverInit() - SP.recoverMin() )
+                = v.rate_ * ( SP.recoverInit() - SP.recoverMin() )
                 + SP.recoverMin();
 
             dlog.addText( Logger::WORLD,
                           __FILE__":(updateTeammateStamina) sender=%d recovery=%.3f",
-                          it->sender_, value );
+                          v.sender_, value );
 
-            M_teammate_array[it->sender_ - 1]->setRecovery( value );
+            M_teammate_array[v.sender_ - 1]->setRecovery( value );
         }
     }
 
@@ -539,21 +530,18 @@ CoachWorldState::updatePlayerStamina( const AudioMemory & audio )
     //
     if ( audio.staminaCapacityTime() == this->time() )
     {
-        for ( std::vector< AudioMemory::StaminaCapacity >::const_iterator it = audio.staminaCapacity().begin(),
-                  end = audio.staminaCapacity().end();
-              it != end;
-              ++it )
+        for ( const AudioMemory::StaminaCapacity & v : audio.staminaCapacity() )
         {
-            if ( it->sender_ < 1 || 11 < it->sender_ ) continue;
-            if ( ! M_teammate_array[it->sender_ - 1] ) continue;
+            if ( v.sender_ < 1 || 11 < v.sender_ ) continue;
+            if ( ! M_teammate_array[v.sender_ - 1] ) continue;
 
-            double value = it->rate_ * SP.staminaCapacity();
+            double value = v.rate_ * SP.staminaCapacity();
 
             dlog.addText( Logger::WORLD,
                           __FILE__":(updateTeammateStamina) sender=%d staminaCapacity=%.3f",
-                          it->sender_, value );
+                          v.sender_, value );
 
-            M_teammate_array[it->sender_ - 1]->setStaminaCapacity( value );
+            M_teammate_array[v.sender_ - 1]->setStaminaCapacity( value );
         }
     }
 }
@@ -621,11 +609,9 @@ CoachWorldState::updateOffsideLines()
         double max_x = 0.0;
         double second_max_x = 0.0;
 
-        for ( CoachPlayerObject::Cont::const_iterator p = opponents().begin(), end = opponents().end();
-              p != end;
-              ++p )
+        for ( const CoachPlayerObject * p : opponents() )
         {
-            second_max_x = std::max( second_max_x, (*p)->pos().x );
+            second_max_x = std::max( second_max_x, p->pos().x );
             if ( second_max_x > max_x )
             {
                 std::swap( max_x, second_max_x );
@@ -642,11 +628,9 @@ CoachWorldState::updateOffsideLines()
         double min_x = 0.0;
         double second_min_x = 0.0;
 
-        for ( CoachPlayerObject::Cont::const_iterator p = teammates().begin(), end = teammates().end();
-              p != end;
-              ++p )
+        for ( const CoachPlayerObject * p : teammates() )
         {
-            second_min_x = std::min( second_min_x, (*p)->pos().x );
+            second_min_x = std::min( second_min_x, p->pos().x );
             if ( second_min_x < min_x )
             {
                 std::swap( min_x, second_min_x );
@@ -676,7 +660,7 @@ CoachWorldState::updateKicker( const CoachWorldState::Ptr & prev_state )
         dlog.addText( Logger::ANALYZER,
                       "(CoachWorldState::updateKicker) no previous state" );
 #endif
-        M_kicker = static_cast< const CoachPlayerObject * >( 0 );
+        M_kicker = nullptr;
         return;
     }
 
@@ -687,14 +671,12 @@ CoachWorldState::updateKicker( const CoachWorldState::Ptr & prev_state )
     const double tackle_thr = tacklable + ServerParam::i().ballSpeedMax();
 
     double min_dist = 1000000.0;
-    const CoachPlayerObject * candidate = static_cast< const CoachPlayerObject * >( 0 );
+    const CoachPlayerObject * candidate = nullptr;
 
-    for ( CoachPlayerObject::Cont::const_iterator p = M_all_players.begin(), end = M_all_players.end();
-          p != end;
-          ++p )
+    for ( const CoachPlayerObject * p : M_all_players )
     {
-        if ( ! (*p)->isKicking()
-             && (*p)->tackleCycle() != 1 )
+        if ( ! p->isKicking()
+             && p->tackleCycle() != 1 )
         {
             // no kick/tackle observation
             continue;
@@ -703,10 +685,10 @@ CoachWorldState::updateKicker( const CoachWorldState::Ptr & prev_state )
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::ANALYZER,
                       "(CoachWorldState::updateKicker) found kicking/tackling player %s %d",
-                      side_str( (*p)->side() ), (*p)->unum() );
+                      side_str( p->side() ), p->unum() );
 #endif
 
-        const CoachPlayerObject * prev_p = prev_state->getPlayer( (*p)->side(), (*p)->unum() );
+        const CoachPlayerObject * prev_p = prev_state->getPlayer( p->side(), p->unum() );
 
         if ( ! prev_p )
         {
@@ -714,14 +696,14 @@ CoachWorldState::updateKicker( const CoachWorldState::Ptr & prev_state )
             continue;
         }
 
-        const double kickable = ( ( (*p)->type() != Hetero_Unknown
-                                    && (*p)->playerTypePtr() )
-                                  ? (*p)->playerTypePtr()->kickableArea()
+        const double kickable = ( ( p->type() != Hetero_Unknown
+                                    && p->playerTypePtr() )
+                                  ? p->playerTypePtr()->kickableArea()
                                   : ServerParam::i().defaultKickableArea() )
             + 0.001;
         const double kick_thr = kickable + ServerParam::i().ballSpeedMax();
 
-        const double current_dist = (*p)->pos().dist( M_ball.pos() );
+        const double current_dist = p->pos().dist( M_ball.pos() );
         const double prev_dist = prev_p->pos().dist( prev_state->ball().pos() );
 
 #ifdef DEBUG_PRINT
@@ -735,8 +717,8 @@ CoachWorldState::updateKicker( const CoachWorldState::Ptr & prev_state )
                       prev_p->pos().x, prev_p->pos().y );
 #endif
 
-        if ( ( (*p)->isKicking() && prev_dist < kickable && current_dist < kick_thr )
-             || ( (*p)->tackleCycle() == 1 && prev_dist <= tacklable && current_dist <= tackle_thr ) )
+        if ( ( p->isKicking() && prev_dist < kickable && current_dist < kick_thr )
+             || ( p->tackleCycle() == 1 && prev_dist <= tacklable && current_dist <= tackle_thr ) )
         {
 #ifdef DEBUG_PRINT
             dlog.addText( Logger::ANALYZER,
@@ -744,11 +726,11 @@ CoachWorldState::updateKicker( const CoachWorldState::Ptr & prev_state )
                           kickable, prev_dist, current_dist );
 #endif
 
-            M_kicker_candidates.push_back( *p );
+            M_kicker_candidates.push_back( p );
 
             if ( prev_dist < min_dist )
             {
-                candidate = *p;
+                candidate = p;
                 min_dist = prev_dist;
             }
         }
@@ -775,7 +757,7 @@ CoachWorldState::updateKicker( const CoachWorldState::Ptr & prev_state )
         {
             if ( side != (*p)->side() )
             {
-                M_kicker = static_cast< const CoachPlayerObject * >( 0 );
+                M_kicker = nullptr;
                 break;
             }
         }
@@ -850,14 +832,12 @@ CoachWorldState::updateInterceptTable()
     // dlog.addText( Logger::INTERCEPT,
     //               "timer elapsed %.3f [ms]", timer.elapsedReal() );
 #ifdef DEBUG_PRINT
-    for ( CoachPlayerPtrCont::iterator p = M_all_players.begin(), end = M_all_players.end();
-          p != end;
-          ++p )
+    for ( const CoachPlayerPtrCont * p : M_all_players )
     {
         dlog.addText( Logger::INTERCEPT,
                       "__ player %c %d step=%d",
-                      side_char( (*p)->side() ), (*p)->unum(),
-                      (*p)->ballReachStep() );
+                      side_char( p->side() ), p->unum(),
+                      p->ballReachStep() );
     }
 #endif
 }
@@ -871,18 +851,16 @@ const CoachPlayerObject *
 CoachWorldState::getPlayerImpl( const SideID side,
                                 const int unum ) const
 {
-    for ( CoachPlayerObject::Cont::const_iterator p = M_all_players.begin(), end = M_all_players.end();
-          p != end;
-          ++p )
+    for ( const CoachPlayerObject * p : M_all_players )
     {
-        if ( (*p)->side() == side
-             && (*p)->unum() == unum )
+        if ( p->side() == side
+             && p->unum() == unum )
         {
-            return *p;
+            return p;
         }
     }
 
-    return static_cast< const CoachPlayerObject * >( 0 );
+    return nullptr;
 }
 
 }

@@ -1785,12 +1785,9 @@ CoachAgent::Impl::buildFreeformMessage( std::string & to )
 {
     int len = to.length();
 
-    for ( std::vector< FreeformMessage::Ptr >::const_iterator it = freeform_messages_.begin(),
-              end = freeform_messages_.end();
-          it != end;
-          ++it )
+    for ( const FreeformMessage::Ptr & msg : freeform_messages_ )
     {
-        int new_len = len + (*it)->length();
+        int new_len = len + msg->length();
         if ( new_len > ServerParam::i().coachSayMsgSize() )
         {
             std::cerr << agent_.config().teamName()
@@ -1802,7 +1799,7 @@ CoachAgent::Impl::buildFreeformMessage( std::string & to )
             break;
         }
 
-        (*it)->append( to );
+        msg->append( to );
     }
 }
 
@@ -1935,11 +1932,9 @@ CoachAgent::doChangePlayerTypes( const std::vector< std::pair< int, int > > & ty
     //return sendCommand( com );
 
     bool result = true;
-    for ( std::vector< std::pair< int, int > >::const_iterator it = types.begin();
-          it != types.end();
-          ++it )
+    for ( const std::pair< int, int > & v : types )
     {
-        result = doChangePlayerType( it->first, it->second );
+        result = doChangePlayerType( v.first, v.second );
     }
 
     return result;
@@ -2024,9 +2019,9 @@ CoachAgent::doSayFreeform( const std::string & msg )
 
 */
 void
-CoachAgent::addFreeformMessage( FreeformMessage::Ptr message )
+CoachAgent::addFreeformMessage( FreeformMessage::Ptr new_message )
 {
-    if ( ! message )
+    if ( ! new_message )
     {
         std::cerr << config().teamName()
                   << " coach: "
@@ -2037,25 +2032,22 @@ CoachAgent::addFreeformMessage( FreeformMessage::Ptr message )
         return;
     }
 
-    for ( std::vector< FreeformMessage::Ptr >::const_iterator it = M_impl->freeform_messages_.begin(),
-              end = M_impl->freeform_messages_.end();
-          it != end;
-          ++it )
+    for ( const FreeformMessage::Ptr & msg : M_impl->freeform_messages_ )
     {
-        if ( (*it)->type() == message->type() )
+        if ( msg->type() == new_message->type() )
         {
             std::cerr << config().teamName()
                       << " coach: "
-                      << " ***WARNING*** freeform message type=[" << message->type()
+                      << " ***WARNING*** freeform message type=[" << new_message->type()
                       << "] has already been registered." << std::endl;
             dlog.addText( Logger::ACTION,
                           __FILE__": (addFreeformMessage) duplicated type [%s]",
-                          message->type().c_str() );
+                          new_message->type().c_str() );
             return;
         }
     }
 
-    M_impl->freeform_messages_.push_back( message );
+    M_impl->freeform_messages_.push_back( new_message );
 }
 
 /*-------------------------------------------------------------------*/
