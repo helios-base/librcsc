@@ -72,19 +72,15 @@ calc_score( const PlayerAgent * agent,
     const AngleDeg target_left_angle = target_angle - 30.0;
     const AngleDeg target_right_angle = target_angle + 30.0;
 
-    for ( PlayerObject::Cont::const_iterator it = agent->world().opponentsFromSelf().begin(),
-              end = agent->world().opponentsFromSelf().end();
-          it != end;
-          ++it )
+    for ( const PlayerObject * o : agent->world().opponentsFromSelf() )
     {
-        if ( (*it)->distFromBall() > 40.0 ) continue;
+        if ( o->distFromBall() > 40.0 ) continue;
 
-        if ( (*it)->angleFromSelf().isWithin( target_left_angle,
-                                              target_right_angle ) )
+        if ( o->angleFromSelf().isWithin( target_left_angle, target_right_angle ) )
         {
-            Vector2D project_point = angle_line.projection( (*it)->pos() );
+            Vector2D project_point = angle_line.projection( o->pos() );
             double width = std::max( 0.0,
-                                     angle_line.dist( (*it)->pos() ) - kickable_area );
+                                     angle_line.dist( o->pos() ) - kickable_area );
             double dist = agent->world().self().pos().dist( project_point );
             score *= width / dist;
         }

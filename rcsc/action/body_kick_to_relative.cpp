@@ -62,28 +62,25 @@ exist_opponent( const WorldModel & wm,
                   __FILE__":(exit_opponent) ball_pos=(%.2f %.2f)",
                   ball_pos.x, ball_pos.y );
 #endif
-    for ( PlayerObject::Cont::const_iterator p = wm.opponentsFromSelf().begin(),
-              end = wm.opponentsFromSelf().end();
-          p != end;
-          ++p )
+    for ( const PlayerObject * o : wm.opponentsFromSelf() )
     {
-        if ( (*p)->posCount() >= 4 ) continue;
-        if ( (*p)->distFromSelf() > 2.0 ) break;
+        if ( o->posCount() >= 4 ) continue;
+        if ( o->distFromSelf() > 2.0 ) break;
 
-        const PlayerType * ptype = (*p)->playerTypePtr();
-        const double control_area = ( (*p)->goalie()
+        const PlayerType * ptype = o->playerTypePtr();
+        const double control_area = ( o->goalie()
                                       && ball_pos.x > ServerParam::i().theirPenaltyAreaLineX()
                                       && ball_pos.absY() < ServerParam::i().penaltyAreaHalfWidth()
                                       ? ptype->maxCatchableDist() + 0.15
                                       : ptype->kickableArea() + 0.15 );
-        const Vector2D opponent_pos = (*p)->pos() + (*p)->vel();
+        const Vector2D opponent_pos = o->pos() + o->vel();
 
         if ( opponent_pos.dist2( ball_pos ) < std::pow( control_area, 2 ) )
         {
 #ifdef DEBUG_PRINT
             dlog.addText( Logger::ACTION,
                           __FILE__":(exit_opponent) found opponent[%d](%.2f %.2f)",
-                          (*p)->unum(), (*p)->pos().x, (*p)->pos().y );
+                          o->unum(), o->pos().x, o->pos().y );
 #endif
             return false;
         }

@@ -492,24 +492,21 @@ Body_HoldBall2008::evaluateKeepPoints( const WorldModel & wm,
     dlog.addText( Logger::HOLD,
                   __FILE__"(evaluate) =========" );
 #endif
-    for ( std::vector< KeepPoint >::iterator it = keep_points.begin(),
-              end = keep_points.end();
-          it != end;
-          ++it )
+    for ( KeepPoint & p : keep_points )
     {
 #ifdef DEBUG_EVAL
         dlog.addText( Logger::HOLD,
                       "%d: (evaluate) (%.2f %.2f)",
-                      ++count, it->pos_.x, it->pos_.y );
+                      ++count, p.pos_.x, p.pos_.y );
 #endif
-        it->score_ = evaluateKeepPoint( wm, it->pos_ );
-        // if ( it->score_ < DEFAULT_SCORE - 1.0e-5 )
+        p.score_ = evaluateKeepPoint( wm, p.pos_ );
+        // if ( p.score_ < DEFAULT_SCORE - 1.0e-5 )
         // {
-        //     it->score_ += it->pos_.dist( wm.ball().pos() ) * 0.001;
+        //     p.score_ += p.pos_.dist( wm.ball().pos() ) * 0.001;
         // }
         // else
         {
-            it->score_ += it->kick_rate_ * 1000.0;
+            p.score_ += p.kick_rate_ * 1000.0;
         }
     }
 
@@ -524,21 +521,18 @@ Body_HoldBall2008::evaluateKeepPoints( const WorldModel & wm,
     dlog.addText( Logger::HOLD,
                   __FILE__"(results) =========" );
     count = 0;
-    for ( std::vector< KeepPoint >::iterator it = keep_points.begin(),
-              end = keep_points.end();
-          it != end;
-          ++it )
+    for ( const KeepPoint & p : keep_points )
     {
         ++count;
         char score[16];
-        snprintf( score, 16, "%d:%.3f", count, it->score_ );
+        snprintf( score, 16, "%d:%.3f", count, p.score_ );
         dlog.addText( Logger::HOLD,
                       "%d: (evaluate) (%.2f %.2f) score=%f",
-                      count, it->pos_.x, it->pos_.y, it->score_ );
+                      count, p.pos_.x, p.pos_.y, p.score_ );
         dlog.addRect( Logger::HOLD,
-                      it->pos_.x - 0.02, it->pos_.y - 0.02, 0.04, 0.04, "#0F0" );
+                      p.pos_.x - 0.02, p.pos_.y - 0.02, 0.04, 0.04, "#0F0" );
         dlog.addMessage( Logger::HOLD,
-                         it->pos_, score );
+                         p.pos_, score );
     }
     dlog.addText( Logger::HOLD,
                   __FILE__"(results) =========" );
@@ -566,20 +560,17 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
 
     double score = DEFAULT_SCORE;
 
-    for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromBall().begin(),
-              end = wm.opponentsFromBall().end();
-          o != end;
-          ++o )
+    for ( const PlayerObject * o : wm.opponentsFromBall() )
     {
-        if ( (*o)->distFromBall() > consider_dist ) break;
+        if ( o->distFromBall() > consider_dist ) break;
 
-        if ( (*o)->posCount() > 10 ) continue;
-        if ( (*o)->isGhost() ) continue;
-        if ( (*o)->isTackling() ) continue;
+        if ( o->posCount() > 10 ) continue;
+        if ( o->isGhost() ) continue;
+        if ( o->isTackling() ) continue;
 
-        const PlayerType * player_type = (*o)->playerTypePtr();
-        const Vector2D opp_next = (*o)->pos() + (*o)->vel();
-        const double control_area = ( ( (*o)->goalie()
+        const PlayerType * player_type = o->playerTypePtr();
+        const Vector2D opp_next = o->pos() + o->vel();
+        const double control_area = ( ( o->goalie()
                                         && penalty_area.contains( opp_next )
                                         && penalty_area.contains( keep_point ) )
                                       ? SP.catchableArea()
@@ -592,8 +583,8 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
 #ifdef DEBUG_EVAL
             dlog.addText( Logger::HOLD,
                           "____ opp %d(%.1f %.1f) can control(1). score=%.3f",
-                          (*o)->unum(),
-                          (*o)->pos().x, (*o)->pos().y, score );
+                          o->unum(),
+                          o->pos().x, o->pos().y, score );
 
 #endif
         }
@@ -603,8 +594,8 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
 #ifdef DEBUG_EVAL
             dlog.addText( Logger::HOLD,
                           "____ opp %d(%.1f %.1f) can control(2). score=%.3f",
-                          (*o)->unum(),
-                          (*o)->pos().x, (*o)->pos().y, score );
+                          o->unum(),
+                          o->pos().x, o->pos().y, score );
 
 #endif
         }
@@ -614,21 +605,21 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
 #ifdef DEBUG_EVAL
             dlog.addText( Logger::HOLD,
                           "____ opp %d(%.1f %.1f) within tackle. score=%.3f",
-                          (*o)->unum(),
-                          (*o)->pos().x, (*o)->pos().y, score );
+                          o->unum(),
+                          o->pos().x, o->pos().y, score );
 
 #endif
         }
 
         AngleDeg opp_body;
-        if ( (*o)->bodyCount() == 0 )
+        if ( o->bodyCount() == 0 )
         {
-            opp_body = (*o)->body();
+            opp_body = o->body();
         }
-        else if ( (*o)->velCount() <= 1
-                  && (*o)->vel().r() > 0.2 )
+        else if ( o->velCount() <= 1
+                  && o->vel().r() > 0.2 )
         {
-            opp_body = (*o)->vel().th();
+            opp_body = o->vel().th();
         }
         else
         {
@@ -657,8 +648,8 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
 #ifdef DEBUG_EVAL
             dlog.addText( Logger::HOLD,
                           "____ opp %d(%.1f %.1f) on body line. body=%.1f y=%.3f score=%.3f",
-                          (*o)->unum(),
-                          (*o)->pos().x, (*o)->pos().y, opp_body.degree(),
+                          o->unum(),
+                          o->pos().x, o->pos().y, opp_body.degree(),
                           player_2_pos.absY(),
                           score );
 
@@ -687,8 +678,8 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
                     dlog.addText( Logger::HOLD,
                                   "____ tackle_prob=%.3f %d(%.1f %.1f) body=%.1f score=%.3f",
                                   1.0 - tackle_fail_prob,
-                                  (*o)->unum(),
-                                  (*o)->pos().x, (*o)->pos().y,
+                                  o->unum(),
+                                  o->pos().x, o->pos().y,
                                   opp_body.degree(), score );
 #endif
                 }
@@ -722,7 +713,7 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
 #ifdef DEBUG_EVAL
                 dlog.addText( Logger::HOLD,
                               "____ next kickable %d opponent_body=%.1f dash_dir=%.0f max_accel=%.3f",
-                              (*o)->unum(), opp_body.degree(), dir, max_accel );
+                              o->unum(), opp_body.degree(), dir, max_accel );
 #endif
                 //next_kick_penalty = -20.0;
                 next_kick_penalty -= 20.0;
@@ -734,7 +725,7 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
 #ifdef DEBUG_EVAL
                 dlog.addText( Logger::HOLD,
                               "____ next tackle %d opponent_body=%.1f dash_dir=%.0f max_accel=%.3f",
-                              (*o)->unum(), opp_body.degree(), dir, max_accel );
+                              o->unum(), opp_body.degree(), dir, max_accel );
 #endif
                 //next_tackle_penalty = -10.0;
                 next_tackle_penalty -= 10.0;
@@ -746,7 +737,7 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
 #ifdef DEBUG_EVAL
         dlog.addText( Logger::HOLD,
                       "____ %d kick_penalty=%.1f tackle_penalty=%.1f score=%.3f",
-                      (*o)->unum(), next_kick_penalty, next_tackle_penalty, score );
+                      o->unum(), next_kick_penalty, next_tackle_penalty, score );
 #endif
 
     }

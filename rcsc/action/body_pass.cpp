@@ -197,7 +197,7 @@ Body_Pass::get_best_pass( const WorldModel & world,
                                 []( const PassRoute & lhs, const PassRoute & rhs )
                                   {
                                       return lhs.score_ < rhs.score_;
-                                  });
+                                  } );
         S_last_calc_target = max_it->receive_point_;
         S_last_calc_speed = max_it->first_speed_;
         S_last_calc_receiver = max_it->receiver_->unum();
@@ -248,38 +248,35 @@ Body_Pass::create_routes( const WorldModel & world )
     S_cached_pass_route.clear();
 
     // loop candidate teammates
-    for ( PlayerObject::Cont::const_iterator it = world.teammatesFromSelf().begin(),
-              end = world.teammatesFromSelf().end();
-          it != end;
-          ++it )
+    for ( const PlayerObject * t : world.teammatesFromSelf() )
     {
-        if ( (*it)->goalie() && (*it)->pos().x < -22.0 )
+        if ( t->goalie() && t->pos().x < -22.0 )
         {
             // goalie is rejected.
             continue;
         }
-        if ( (*it)->posCount() > 3 )
+        if ( t->posCount() > 3 )
         {
             // low confidence players are rejected.
             continue;
         }
-        if ( (*it)->pos().x > world.offsideLineX() + 1.0 )
+        if ( t->pos().x > world.offsideLineX() + 1.0 )
         {
             // offside players are rejected.
             continue;
         }
-        if ( (*it)->pos().x < world.ball().pos().x - 25.0 )
+        if ( t->pos().x < world.ball().pos().x - 25.0 )
         {
             // too back
             continue;
         }
 
         // create & verify each route
-        create_direct_pass( world, *it );
-        create_lead_pass( world, *it );
+        create_direct_pass( world, t );
+        create_lead_pass( world, t );
         if ( world.self().pos().x > world.offsideLineX() - 20.0 )
         {
-            create_through_pass( world, *it );
+            create_through_pass( world, t );
         }
     }
 
@@ -1057,53 +1054,50 @@ Body_Pass::verify_direct_pass( const WorldModel & world,
                   first_speed, target_angle.degree() );
 #endif
 
-    for ( PlayerObject::Cont::const_iterator it = world.opponentsFromSelf().begin(),
-              end = world.opponentsFromSelf().end();
-          it != end;
-          ++it )
+    for ( const PlayerObject * o : world.opponentsFromSelf() )
     {
-        if ( (*it)->posCount() > 10 ) continue;
-        if ( (*it)->isGhost() && (*it)->posCount() >= 4 ) continue;
+        if ( o->posCount() > 10 ) continue;
+        if ( o->isGhost() && o->posCount() >= 4 ) continue;
 
         const double virtual_dash
-            = player_dash_speed * 0.8 * std::min( 5, (*it)->posCount() );
+            = player_dash_speed * 0.8 * std::min( 5, o->posCount() );
 
-//         if ( (*it)->pos().dist( target_point ) - virtual_dash > target_dist + 2.0 )
+//         if ( o->pos().dist( target_point ) - virtual_dash > target_dist + 2.0 )
 //         {
 // #ifdef DEBUG
 //             dlog.addText( Logger::PASS,
 //                           "______ opp%d(%.1f %.1f) is too far. not calculated.",
-//                           (*it)->unum(),
-//                           (*it)->pos().x, (*it)->pos().y );
+//                           o->unum(),
+//                           o->pos().x, o->pos().y );
 // #endif
 //             continue;
 //         }
 
 
-        if ( ( (*it)->angleFromSelf() - target_angle ).abs() > 100.0 )
+        if ( ( o->angleFromSelf() - target_angle ).abs() > 100.0 )
         {
 // #ifdef DEBUG
 //             dlog.addText( Logger::PASS,
 //                           "______ opp%d(%.1f %.1f) is back of target dir. not calculated.",
-//                           (*it)->unum(),
-//                           (*it)->pos().x, (*it)->pos().y );
+//                           o->unum(),
+//                           o->pos().x, o->pos().y );
 //#endif
             continue;
         }
 
-        if ( (*it)->pos().dist2( target_point ) < 3.0 * 3.0 )
+        if ( o->pos().dist2( target_point ) < 3.0 * 3.0 )
         {
 #ifdef DEBUG
             dlog.addText( Logger::PASS,
                           "______ opp%d(%.1f %.1f) is already on target point(%.1f %.1f).",
-                          (*it)->unum(),
-                          (*it)->pos().x, (*it)->pos().y,
+                          o->unum(),
+                          o->pos().x, o->pos().y,
                           target_point.x, target_point.y );
 #endif
             return false;
         }
 
-        Vector2D ball_to_opp = (*it)->pos();
+        Vector2D ball_to_opp = o->pos();
         ball_to_opp -= world.ball().pos();
         ball_to_opp -= first_vel;
         ball_to_opp.rotate( minus_target_angle );
@@ -1120,8 +1114,8 @@ Body_Pass::verify_direct_pass( const WorldModel & world,
 #ifdef DEBUG
                 dlog.addText( Logger::PASS,
                               "______ opp%d(%.1f %.1f) can reach pass line. rejected. vdash=%.1f",
-                              (*it)->unum(),
-                              (*it)->pos().x, (*it)->pos().y,
+                              o->unum(),
+                              o->pos().x, o->pos().y,
                               virtual_dash );
 #endif
                 return false;
@@ -1141,8 +1135,8 @@ Body_Pass::verify_direct_pass( const WorldModel & world,
                 dlog.addText( Logger::PASS,
                               "______ opp%d(%.1f %.1f) can reach pass line."
                               " ball reach step to project= %.1f",
-                              (*it)->unum(),
-                              (*it)->pos().x, (*it)->pos().y,
+                              o->unum(),
+                              o->pos().x, o->pos().y,
                               ball_steps_to_project );
 #endif
                 return false;
@@ -1150,8 +1144,8 @@ Body_Pass::verify_direct_pass( const WorldModel & world,
 #ifdef DEBUG
             dlog.addText( Logger::PASS,
                           "______ opp%d(%.1f %.1f) cannot intercept.",
-                          (*it)->unum(),
-                          (*it)->pos().x, (*it)->pos().y );
+                          o->unum(),
+                          o->pos().x, o->pos().y );
 #endif
         }
     }
@@ -1203,14 +1197,11 @@ Body_Pass::verify_through_pass( const WorldModel & world,
         very_aggressive = true;
     }
 
-    for ( PlayerObject::Cont::const_iterator it = world.opponentsFromSelf().begin(),
-              end = world.opponentsFromSelf().end();
-          it != end;
-          ++it )
+    for ( const PlayerObject * o : world.opponentsFromSelf() )
     {
-        if ( (*it)->posCount() > 10 ) continue;
+        if ( o->posCount() > 10 ) continue;
 
-        if ( (*it)->goalie() )
+        if ( o->goalie() )
         {
             if ( target_point.absY() > ServerParam::i().penaltyAreaWidth() - 3.0
                  || target_point.x < ServerParam::i().theirPenaltyAreaLineX() + 2.0 )
@@ -1220,8 +1211,8 @@ Body_Pass::verify_through_pass( const WorldModel & world,
         }
 
         const double virtual_dash
-            = player_dash_speed * std::min( 2, (*it)->posCount() );
-        const double opp_to_target = (*it)->pos().dist( target_point );
+            = player_dash_speed * std::min( 2, o->posCount() );
+        const double opp_to_target = o->pos().dist( target_point );
         double dist_rate = ( very_aggressive ? 0.8 : 1.0 );
         double dist_buf = ( very_aggressive ? 0.5 : 2.0 );
 
@@ -1230,13 +1221,13 @@ Body_Pass::verify_through_pass( const WorldModel & world,
 #ifdef DEBUG
             dlog.addText( Logger::PASS,
                           "______ opp%d(%.1f %.1f) is closer than receiver.",
-                          (*it)->unum(),
-                          (*it)->pos().x, (*it)->pos().y );
+                          o->unum(),
+                          o->pos().x, o->pos().y );
 #endif
             return false;
         }
 
-        Vector2D ball_to_opp = (*it)->pos();
+        Vector2D ball_to_opp = o->pos();
         ball_to_opp -= world.ball().pos();
         ball_to_opp -= first_vel;
         ball_to_opp.rotate(minus_target_angle);
@@ -1252,8 +1243,8 @@ Body_Pass::verify_through_pass( const WorldModel & world,
 #ifdef DEBUG
                 dlog.addText( Logger::PASS,
                               "______ opp%d(%.1f %.1f) is already on pass line.",
-                              (*it)->unum(),
-                              (*it)->pos().x, (*it)->pos().y );
+                              o->unum(),
+                              o->pos().x, o->pos().y );
 #endif
                 return false;
             }
@@ -1272,8 +1263,8 @@ Body_Pass::verify_through_pass( const WorldModel & world,
                 dlog.addText( Logger::PASS,
                               "______ opp%d(%.1f %.1f) can reach pass line."
                               " ball reach step to project= %.1f",
-                              (*it)->unum(),
-                              (*it)->pos().x, (*it)->pos().y,
+                              o->unum(),
+                              o->pos().x, o->pos().y,
                               ball_steps_to_project );
 #endif
                 return false;
@@ -1299,9 +1290,8 @@ Body_Pass::evaluate_routes( const WorldModel & world )
     const AngleDeg min_angle = -45.0;
     const AngleDeg max_angle = 45.0;
 
-    const std::vector< PassRoute >::iterator it_end = S_cached_pass_route.end();
-    for ( std::vector< PassRoute >::iterator it = S_cached_pass_route.begin();
-          it != it_end;
+    for ( std::vector< PassRoute >::iterator it = S_cached_pass_route.begin(), end = S_cached_pass_route.end();
+          it != end;
           ++it )
     {
         //-----------------------------------------------------------
@@ -1339,8 +1329,8 @@ Body_Pass::evaluate_routes( const WorldModel & world )
                                                   - world.ball().pos().y ) ) );
         //-----------------------------------------------------------
         const Sector2D sector( it->receive_point_,
-                                     0.0, 10.0,
-                                     min_angle, max_angle );
+                               0.0, 10.0,
+                               min_angle, max_angle );
 
         // opponent check with goalie
         double front_space_rate = 1.0;
