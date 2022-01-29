@@ -271,23 +271,15 @@ TeamGraphic::XpmTile::print( std::ostream & os ) const
        << '"';
     //os << "\n";
 
-    const std::vector< boost::shared_ptr< std::string > >::const_iterator cend
-        = colors().end();
-    for ( std::vector< boost::shared_ptr< std::string > >::const_iterator it
-              = colors().begin();
-          it != cend;
-          ++it )
+    for ( const std::shared_ptr< std::string > & c : colors() )
     {
-        os << " \"" << **it << '"';
+        os << " \"" << *c << '"';
         //os << "\n";
     }
 
-    const std::vector< std::string >::const_iterator pend = pixelLines().end();
-    for ( std::vector< std::string >::const_iterator it = pixelLines().begin();
-          it != pend;
-          ++it )
+    for ( const std::string & line : pixelLines() )
     {
-        os << " \"" << *it << '"';
+        os << " \"" << line << '"';
         //os << "\n";
     }
 
@@ -299,9 +291,9 @@ TeamGraphic::XpmTile::print( std::ostream & os ) const
 
  */
 TeamGraphic::TeamGraphic()
-    : M_width( 0 )
-    , M_height( 0 )
-    , M_cpp( 1 )
+    : M_width( 0 ),
+      M_height( 0 ),
+      M_cpp( 1 )
 {
 
 }
@@ -404,7 +396,7 @@ TeamGraphic::createXpmTiles( const char * const * xpm_data )
     //
     for ( int i = 0; i < xpm_n_color; ++i, ++xpm_data )
     {
-        boost::shared_ptr< std::string > ptr( new std::string( *xpm_data ) );
+        std::shared_ptr< std::string > ptr( new std::string( *xpm_data ) );
         M_colors.push_back( ptr );
     }
 
@@ -446,19 +438,13 @@ TeamGraphic::createXpmTiles( const char * const * xpm_data )
             //
             // set shared color data strings
             //
-            for ( std::vector< boost::shared_ptr< std::string > >::iterator color = M_colors.begin(),
-                      color_end = M_colors.end();
-                  color != color_end;
-                  ++color )
+            for ( const std::shared_ptr< std::string > & color : M_colors )
             {
-                for ( std::vector< std::string >::const_iterator line = tile->pixelLines().begin(),
-                          line_end = tile->pixelLines().end();
-                      line != line_end;
-                      ++line )
+                for ( const std::string & line : tile->pixelLines() )
                 {
-                    if ( line->find( (**color)[0] ) != std::string::npos )
+                    if ( line.find( (*color)[0] ) != std::string::npos )
                     {
-                        tile->addColor( *color );
+                        tile->addColor( color );
                         break;
                     }
                 }
@@ -477,23 +463,17 @@ TeamGraphic::createXpmTiles( const char * const * xpm_data )
     //
     // set shared color data strings
     //
-    for ( std::vector< boost::shared_ptr< std::string > >::iterator color = M_colors.begin(),
-              color_end = M_colors.end();
-          color != color_end;
-          ++color )
+    for ( const std::shared_ptr< std::string > & color : M_colors )
     {
         for ( Map::iterator tile = M_tiles.begin(), tile_end = M_tiles.end();
               tile != tile_end;
               ++tile )
         {
-            for ( std::vector< std::string >::const_iterator line = tile->second->pixelLines().begin(),
-                      line_end = tile->second->pixelLines().end();
-                  line != line_end;
-                  ++line )
+            for ( const std::string & line = tile->second->pixelLines() )
             {
-                if ( line->find( (**color)[0] ) != std::string::npos )
+                if ( line.find( (**color)[0] ) != std::string::npos )
                 {
-                    tile->second->addColor( *color );
+                    tile->second->addColor( color );
                     break;
                 }
             }
@@ -575,8 +555,8 @@ TeamGraphic::parse( const char * server_msg )
         }
         server_msg += n_read;
 
-        boost::shared_ptr< std::string > new_col( new std::string( line_buf ) );
-        boost::shared_ptr< std::string > col = findColor( *new_col );
+        std::shared_ptr< std::string > new_col( new std::string( line_buf ) );
+        std::shared_ptr< std::string > col = findColor( *new_col );
         if ( col )
         {
             tile->addColor( col );
@@ -702,13 +682,10 @@ TeamGraphic::isValid() const
     int max_x = 0;
     int max_y = 0;
 
-    const Map::const_iterator end = tiles().end();
-    for ( Map::const_iterator tile = tiles().begin();
-          tile != end;
-          ++tile )
+    for ( const Map::value_type & tile : tiles() )
     {
-        if ( tile->first.first > max_x ) max_x = tile->first.first;
-        if ( tile->first.second > max_y ) max_y = tile->first.second;
+        if ( tile.first.first > max_x ) max_x = tile.first.first;
+        if ( tile.first.second > max_y ) max_y = tile.first.second;
     }
 
     if ( static_cast< int >( tiles().size() ) != ( max_x + 1 ) * ( max_y + 1 ) )
@@ -723,21 +700,18 @@ TeamGraphic::isValid() const
 /*!
 
  */
-boost::shared_ptr< std::string >
+std::shared_ptr< std::string >
 TeamGraphic::findColor( const std::string & str )
 {
-    const std::vector< boost::shared_ptr< std::string > >::iterator color_end = M_colors.end();
-    for ( std::vector< boost::shared_ptr< std::string > >::iterator color = M_colors.begin();
-          color != color_end;
-          ++color )
+    for ( std::shared_ptr< std::string > color : M_colors )
     {
-        if ( **color == str )
+        if ( *color == str )
         {
-            return *color;
+            return color;
         }
     }
 
-    return boost::shared_ptr< std::string >();
+    return std::shared_ptr< std::string >();
 }
 
 /*-------------------------------------------------------------------*/
@@ -747,15 +721,12 @@ TeamGraphic::findColor( const std::string & str )
 std::ostream &
 TeamGraphic::print( std::ostream & os ) const
 {
-    const Map::const_iterator end = tiles().end();
-    for ( Map::const_iterator tile = tiles().begin();
-          tile != end;
-          ++tile )
+    for ( const Map::value_type & tile : tiles() )
     {
         //os << "colors = " << tile->second->colors().size() << "\n";
-        os << '(' << tile->first.first
-           << ' ' << tile->first.second << ' ';
-        tile->second->print( os );
+        os << '(' << tile.first.first
+           << ' ' << tile.first.second << ' ';
+        tile.second->print( os );
         os << ")\n";
     }
 

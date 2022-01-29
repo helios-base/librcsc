@@ -32,8 +32,7 @@
 #ifndef RCSC_CLANG_UNUM_H
 #define RCSC_CLANG_UNUM_H
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <set>
 #include <iostream>
 
@@ -47,7 +46,7 @@ class CLangUnumSet {
 public:
 
     //! smart pointer type
-    typedef boost::shared_ptr< CLangUnumSet > Ptr;
+    typedef std::shared_ptr< CLangUnumSet > Ptr;
 
     //! set container type
     typedef std::set< int > Set;

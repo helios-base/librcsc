@@ -47,7 +47,7 @@ namespace rcsc {
 /////////////////////////////////////////////////////////////////////
 
 //! the implementation of file stream buffer
-struct gzfilebuf_impl {
+struct gzfilebuf::Impl {
 
     //! file open mode flag
     std::ios_base::openmode open_mode_;
@@ -58,10 +58,10 @@ struct gzfilebuf_impl {
 #endif
 
     //! constructor
-    gzfilebuf_impl()
+    Impl()
         : open_mode_( static_cast< std::ios_base::openmode >( 0 ) )
 #ifdef HAVE_LIBZ
-        , file_( NULL )
+        , file_( nullptr )
 #endif
       { }
 };
@@ -73,10 +73,10 @@ struct gzfilebuf_impl {
 
 */
 gzfilebuf::gzfilebuf()
-    : M_impl( new gzfilebuf_impl )
-    , M_buf_size( 8192 )
-    , M_buf( NULL )
-    , M_remained_size( 0 )
+    : M_impl( new Impl() ),
+      M_buf_size( 8192 ),
+      M_buf( nullptr ),
+      M_remained_size( 0 )
 {
     //std::cerr << "create gzfilebuf" << std::endl;
 }
@@ -109,7 +109,7 @@ gzfilebuf::is_open()
 {
 #ifdef HAVE_LIBZ
     if ( M_impl
-         && M_impl->file_ != NULL  )
+         && M_impl->file_ != nullptr  )
     {
         //std::cerr << "gzfilebuf is open" << std::endl;
         return true;
@@ -127,7 +127,7 @@ gzfilebuf::open( const char * path,
                  std::ios_base::openmode mode,
                  int level, int strategy )
 {
-    gzfilebuf * ret = NULL;
+    gzfilebuf * ret = nullptr;
 #ifdef HAVE_LIBZ
     if ( ! M_impl )
     {
@@ -157,7 +157,7 @@ gzfilebuf::open( const char * path,
         //std::cerr << "gzfilebuf::open call gzopen" << std::endl;
         M_impl->file_ = gzopen( path, mode_str.c_str() );
 
-        if ( M_impl->file_ == NULL )
+        if ( M_impl->file_ == nullptr )
         {
             return ret;
         }
@@ -209,23 +209,23 @@ gzfilebuf::close() throw()
         if ( ! M_impl )
         {
             //std::cerr << "impl is null" << std::endl;
-            return NULL;
+            return nullptr;
         }
         //std::cerr << "impl exist" << std::endl;
-        if ( M_impl->file_ == NULL )
+        if ( M_impl->file_ == nullptr )
         {
             //std::cerr << "file pointer is null" << std::endl;
-            return NULL;
+            return nullptr;
         }
         //std::cerr << "file pointer exist" << std::endl;
         // TODO: checking close status...
         gzclose( M_impl->file_ );
-        M_impl->file_ = NULL;
+        M_impl->file_ = nullptr;
         M_impl->open_mode_ = static_cast< std::ios_base::openmode >( 0 );
         //std::cerr << "finish close gzip file" << std::endl;
     }
 #endif
-    return NULL;
+    return nullptr;
 }
 
 /*-------------------------------------------------------------------*/
@@ -350,10 +350,10 @@ gzfilebuf::destroyInternalBuffer() throw()
     {
         //std::cerr << "gzfilebuf destroy buffer" << std::endl;
         delete [] M_buf;
-        M_buf = NULL;
+        M_buf = nullptr;
         M_remained_size = 0;
-        this->setg( NULL, NULL, NULL );
-        this->setp( NULL, NULL );
+        this->setg( nullptr, nullptr, nullptr );
+        this->setp( nullptr, nullptr );
     }
 }
 

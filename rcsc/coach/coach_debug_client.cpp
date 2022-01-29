@@ -380,7 +380,7 @@ bool
 CoachDebugClient::connect( const std::string & hostname,
                            const int port )
 {
-    M_socket = boost::shared_ptr< UDPSocket >( new UDPSocket( hostname.c_str(), port ) );
+    M_socket = std::shared_ptr< UDPSocket >( new UDPSocket( hostname.c_str(), port ) );
 
     if ( ! M_socket
          || M_socket->fd() == -1 )

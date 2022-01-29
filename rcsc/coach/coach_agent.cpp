@@ -402,7 +402,7 @@ CoachAgent::CoachAgent()
       M_debug_client(),
       M_worldmodel()
 {
-    boost::shared_ptr< AudioMemory > audio_memory( new AudioMemory );
+    std::shared_ptr< AudioMemory > audio_memory( new AudioMemory );
 
     M_worldmodel.setAudioMemory( audio_memory );
 }
@@ -420,18 +420,18 @@ CoachAgent::~CoachAgent()
 /*!
 
  */
-boost::shared_ptr< AbstractClient >
+std::shared_ptr< AbstractClient >
 CoachAgent::createConsoleClient()
 {
-    boost::shared_ptr< AbstractClient > ptr;
+    std::shared_ptr< AbstractClient > ptr;
 
     if ( config().offlineClientMode() )
     {
-        ptr = boost::shared_ptr< AbstractClient >( new OfflineClient() );
+        ptr = std::shared_ptr< AbstractClient >( new OfflineClient() );
     }
     else
     {
-        ptr = boost::shared_ptr< AbstractClient >( new OnlineClient() );
+        ptr = std::shared_ptr< AbstractClient >( new OnlineClient() );
     }
 
     return ptr;

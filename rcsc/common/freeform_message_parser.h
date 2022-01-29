@@ -32,8 +32,7 @@
 #ifndef RCSC_COMMON_FREEFORM_MESSAGE_PARSER_H
 #define RCSC_COMMON_FREEFORM_MESSAGE_PARSER_H
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <string>
 
 namespace rcsc {
@@ -46,7 +45,7 @@ class FreeformMessageParser {
 public:
 
     //! pointer type
-    typedef boost::shared_ptr< FreeformMessageParser > Ptr;
+    typedef std::shared_ptr< FreeformMessageParser > Ptr;
 
 private:
 

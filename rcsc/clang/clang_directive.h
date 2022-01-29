@@ -34,6 +34,7 @@
 
 #include <rcsc/clang/clang_action.h>
 
+#include <memory>
 #include <vector>
 #include <iosfwd>
 
@@ -57,7 +58,7 @@ public:
     };
 
     //! smart pointer type
-    typedef boost::shared_ptr< const CLangDirective > ConstPtr;
+    typedef std::shared_ptr< const CLangDirective > ConstPtr;
 
     //! directive list type
     typedef std::vector< ConstPtr > Cont;

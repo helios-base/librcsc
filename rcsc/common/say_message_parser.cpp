@@ -50,7 +50,7 @@ namespace rcsc {
 /*!
 
 */
-BallMessageParser::BallMessageParser( boost::shared_ptr< AudioMemory > memory )
+BallMessageParser::BallMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -117,7 +117,7 @@ BallMessageParser::parse( const int sender ,
 /*!
 
 */
-PassMessageParser::PassMessageParser( boost::shared_ptr< AudioMemory > memory )
+PassMessageParser::PassMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -209,7 +209,7 @@ PassMessageParser::parse( const int sender,
 /*!
 
 */
-InterceptMessageParser::InterceptMessageParser( boost::shared_ptr< AudioMemory > memory )
+InterceptMessageParser::InterceptMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -286,7 +286,7 @@ InterceptMessageParser::parse( const int sender,
 /*!
 
 */
-GoalieMessageParser::GoalieMessageParser( boost::shared_ptr< AudioMemory > memory )
+GoalieMessageParser::GoalieMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -324,7 +324,7 @@ GoalieMessageParser::parse( const int sender,
     }
     ++msg;
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     if ( ! AudioCodec::i().decodeStrToInt64( std::string( msg, slength() - 1 ),
                                              &ival ) )
     {
@@ -362,7 +362,7 @@ GoalieMessageParser::parse( const int sender,
 /*!
 
 */
-GoalieAndPlayerMessageParser::GoalieAndPlayerMessageParser( boost::shared_ptr< AudioMemory > memory )
+GoalieAndPlayerMessageParser::GoalieAndPlayerMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -419,7 +419,7 @@ GoalieAndPlayerMessageParser::parse( const int sender,
     }
     ++msg;
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     if ( ! AudioCodec::i().decodeStrToInt64( std::string( msg, slength() - 1 ),
                                              &ival ) )
     {
@@ -477,7 +477,7 @@ GoalieAndPlayerMessageParser::parse( const int sender,
 /*!
 
 */
-OffsideLineMessageParser::OffsideLineMessageParser( boost::shared_ptr< AudioMemory > memory )
+OffsideLineMessageParser::OffsideLineMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -543,7 +543,7 @@ OffsideLineMessageParser::parse( const int sender,
 /*!
 
 */
-DefenseLineMessageParser::DefenseLineMessageParser( boost::shared_ptr< AudioMemory > memory )
+DefenseLineMessageParser::DefenseLineMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -608,7 +608,7 @@ DefenseLineMessageParser::parse( const int sender,
 /*!
 
 */
-WaitRequestMessageParser::WaitRequestMessageParser( boost::shared_ptr< AudioMemory > memory )
+WaitRequestMessageParser::WaitRequestMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -637,7 +637,7 @@ WaitRequestMessageParser::parse( const int sender,
 /*!
 
 */
-SetplayMessageParser::SetplayMessageParser( boost::shared_ptr< AudioMemory > memory )
+SetplayMessageParser::SetplayMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -691,7 +691,7 @@ SetplayMessageParser::parse( const int sender,
 /*!
 
 */
-PassRequestMessageParser::PassRequestMessageParser( boost::shared_ptr< AudioMemory > memory )
+PassRequestMessageParser::PassRequestMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -754,7 +754,7 @@ PassRequestMessageParser::parse( const int sender,
 /*!
 
 */
-StaminaMessageParser::StaminaMessageParser( boost::shared_ptr< AudioMemory > memory )
+StaminaMessageParser::StaminaMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -818,7 +818,7 @@ StaminaMessageParser::parse( const int sender,
 /*!
 
 */
-RecoveryMessageParser::RecoveryMessageParser( boost::shared_ptr< AudioMemory > memory )
+RecoveryMessageParser::RecoveryMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -884,7 +884,7 @@ RecoveryMessageParser::parse( const int sender,
 /*!
 
 */
-StaminaCapacityMessageParser::StaminaCapacityMessageParser( boost::shared_ptr< AudioMemory > memory )
+StaminaCapacityMessageParser::StaminaCapacityMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -948,7 +948,7 @@ StaminaCapacityMessageParser::parse( const int sender,
 /*!
 
 */
-DribbleMessageParser::DribbleMessageParser( boost::shared_ptr< AudioMemory > memory )
+DribbleMessageParser::DribbleMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -983,7 +983,7 @@ DribbleMessageParser::parse( const int sender,
     }
     ++msg;
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
 
     if ( ! AudioCodec::i().decodeStrToInt64( std::string( msg, slength() - 1 ),
                                              &ival ) )
@@ -1003,11 +1003,11 @@ DribbleMessageParser::parse( const int sender,
     count = static_cast< int >( ival % 10 ) + 1;
     ival /= 10;
 
-    boost::int64_t div = static_cast< boost::int64_t >( std::ceil( 68.0 / 0.5 ) );
+    std::int64_t div = static_cast< std::int64_t >( std::ceil( 68.0 / 0.5 ) );
     pos.y = ( ival % div ) * 0.5 - 34.0;
     ival /= div;
 
-    // div = static_cast< boost::int64_t >( std::ceil( 105.0 / 0.5 ) );
+    // div = static_cast< std::int64_t >( std::ceil( 105.0 / 0.5 ) );
     // pos.x = ( ival % div ) * 0.5 - 52.5;
     pos.x = ival * 0.5 - 52.5;
 
@@ -1026,7 +1026,7 @@ DribbleMessageParser::parse( const int sender,
 /*!
 
 */
-BallGoalieMessageParser::BallGoalieMessageParser( boost::shared_ptr< AudioMemory > memory )
+BallGoalieMessageParser::BallGoalieMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -1061,7 +1061,7 @@ BallGoalieMessageParser::parse( const int sender,
     }
     ++msg;
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     if ( ! AudioCodec::i().decodeStrToInt64( std::string( msg, slength() - 1 ),
                                              &ival ) )
     {
@@ -1127,7 +1127,7 @@ BallGoalieMessageParser::parse( const int sender,
 /*!
 
 */
-OnePlayerMessageParser::OnePlayerMessageParser( boost::shared_ptr< AudioMemory > memory )
+OnePlayerMessageParser::OnePlayerMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -1167,7 +1167,7 @@ OnePlayerMessageParser::parse( const int sender,
     }
     ++msg;
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     if ( ! AudioCodec::i().decodeStrToInt64( std::string( msg, slength() - 1 ),
                                              &ival ) )
     {
@@ -1213,7 +1213,7 @@ OnePlayerMessageParser::parse( const int sender,
 /*!
 
 */
-TwoPlayerMessageParser::TwoPlayerMessageParser( boost::shared_ptr< AudioMemory > memory )
+TwoPlayerMessageParser::TwoPlayerMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -1254,7 +1254,7 @@ TwoPlayerMessageParser::parse( const int sender,
     }
     ++msg;
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     if ( ! AudioCodec::i().decodeStrToInt64( std::string( msg, slength() - 1 ),
                                              &ival ) )
     {
@@ -1322,7 +1322,7 @@ TwoPlayerMessageParser::parse( const int sender,
 /*!
 
 */
-ThreePlayerMessageParser::ThreePlayerMessageParser( boost::shared_ptr< AudioMemory > memory )
+ThreePlayerMessageParser::ThreePlayerMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -1363,7 +1363,7 @@ ThreePlayerMessageParser::parse( const int sender,
     }
     ++msg;
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     if ( ! AudioCodec::i().decodeStrToInt64( std::string( msg, slength() - 1 ),
                                              &ival ) )
     {
@@ -1450,7 +1450,7 @@ ThreePlayerMessageParser::parse( const int sender,
 /*!
 
 */
-SelfMessageParser::SelfMessageParser( boost::shared_ptr< AudioMemory > memory )
+SelfMessageParser::SelfMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -1485,7 +1485,7 @@ SelfMessageParser::parse( const int sender,
     }
     ++msg;
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     if ( ! AudioCodec::i().decodeStrToInt64( std::string( msg, slength() - 1 ),
                                              &ival ) )
     {
@@ -1541,7 +1541,7 @@ SelfMessageParser::parse( const int sender,
 /*!
 
 */
-TeammateMessageParser::TeammateMessageParser( boost::shared_ptr< AudioMemory > memory )
+TeammateMessageParser::TeammateMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -1581,7 +1581,7 @@ TeammateMessageParser::parse( const int sender,
     }
     ++msg;
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     if ( ! AudioCodec::i().decodeStrToInt64( std::string( msg, slength() - 1 ),
                                              &ival ) )
     {
@@ -1635,7 +1635,7 @@ TeammateMessageParser::parse( const int sender,
 /*!
 
 */
-OpponentMessageParser::OpponentMessageParser( boost::shared_ptr< AudioMemory > memory )
+OpponentMessageParser::OpponentMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -1675,7 +1675,7 @@ OpponentMessageParser::parse( const int sender,
     }
     ++msg;
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     if ( ! AudioCodec::i().decodeStrToInt64( std::string( msg, slength() - 1 ),
                                              &ival ) )
     {
@@ -1728,7 +1728,7 @@ OpponentMessageParser::parse( const int sender,
 /*!
 
 */
-BallPlayerMessageParser::BallPlayerMessageParser( boost::shared_ptr< AudioMemory > memory )
+BallPlayerMessageParser::BallPlayerMessageParser( std::shared_ptr< AudioMemory > memory )
     : M_memory( memory )
 {
 
@@ -1780,7 +1780,7 @@ BallPlayerMessageParser::parse( const int sender,
     }
     msg += 5;
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     if ( ! AudioCodec::i().decodeStrToInt64( std::string( msg, 4 ),
                                              &ival ) )
     {

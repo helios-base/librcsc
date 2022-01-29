@@ -434,13 +434,13 @@ TrainerAgent::Impl::updateServerStatus()
 
 */
 TrainerAgent::TrainerAgent()
-    : SoccerAgent()
-    , M_impl( new Impl( *this ) )
-    , M_config()
+    : SoccerAgent(),
+      M_impl( new Impl( *this ) ),
+      M_config()
 {
     M_worldmodel.init( M_config.teamName(), NEUTRAL, 999 );
 
-    boost::shared_ptr< AudioMemory > audio_memory( new AudioMemory );
+    std::shared_ptr< AudioMemory > audio_memory( new AudioMemory );
 
     M_worldmodel.setAudioMemory( audio_memory );
 }
@@ -458,18 +458,18 @@ TrainerAgent::~TrainerAgent()
 /*!
 
  */
-boost::shared_ptr< AbstractClient >
+std::shared_ptr< AbstractClient >
 TrainerAgent::createConsoleClient()
 {
-    boost::shared_ptr< AbstractClient > ptr;
+    std::shared_ptr< AbstractClient > ptr;
 
     if ( config().offlineClientMode() )
     {
-        ptr = boost::shared_ptr< AbstractClient >( new OfflineClient() );
+        ptr = std::shared_ptr< AbstractClient >( new OfflineClient() );
     }
     else
     {
-        ptr = boost::shared_ptr< AbstractClient >( new OnlineClient() );
+        ptr = std::shared_ptr< AbstractClient >( new OnlineClient() );
     }
 
     return ptr;

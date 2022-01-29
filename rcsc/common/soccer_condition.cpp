@@ -41,8 +41,8 @@ namespace rcsc {
 /*!
 
 */
-AndCondition::AndCondition( const boost::shared_ptr< const Condition > & p1,
-                            const boost::shared_ptr< const Condition > & p2 )
+AndCondition::AndCondition( const std::shared_ptr< const Condition > & p1,
+                            const std::shared_ptr< const Condition > & p2 )
 {
     M_condition_set.push_back( p1 );
     M_condition_set.push_back( p2 );
@@ -52,9 +52,9 @@ AndCondition::AndCondition( const boost::shared_ptr< const Condition > & p1,
 /*!
 
 */
-AndCondition::AndCondition( const boost::shared_ptr< const Condition > & p1,
-                            const boost::shared_ptr< const Condition > & p2,
-                            const boost::shared_ptr< const Condition > & p3 )
+AndCondition::AndCondition( const std::shared_ptr< const Condition > & p1,
+                            const std::shared_ptr< const Condition > & p2,
+                            const std::shared_ptr< const Condition > & p3 )
 {
     M_condition_set.push_back( p1 );
     M_condition_set.push_back( p2 );
@@ -65,10 +65,10 @@ AndCondition::AndCondition( const boost::shared_ptr< const Condition > & p1,
 /*!
 
 */
-AndCondition::AndCondition( const boost::shared_ptr< const Condition > & p1,
-                            const boost::shared_ptr< const Condition > & p2,
-                            const boost::shared_ptr< const Condition > & p3,
-                            const boost::shared_ptr< const Condition > & p4 )
+AndCondition::AndCondition( const std::shared_ptr< const Condition > & p1,
+                            const std::shared_ptr< const Condition > & p2,
+                            const std::shared_ptr< const Condition > & p3,
+                            const std::shared_ptr< const Condition > & p4 )
 {
     M_condition_set.push_back( p1 );
     M_condition_set.push_back( p2 );
@@ -80,11 +80,11 @@ AndCondition::AndCondition( const boost::shared_ptr< const Condition > & p1,
 /*!
 
 */
-AndCondition::AndCondition( const boost::shared_ptr< const Condition > & p1,
-                            const boost::shared_ptr< const Condition > & p2,
-                            const boost::shared_ptr< const Condition > & p3,
-                            const boost::shared_ptr< const Condition > & p4,
-                            const boost::shared_ptr< const Condition > & p5 )
+AndCondition::AndCondition( const std::shared_ptr< const Condition > & p1,
+                            const std::shared_ptr< const Condition > & p2,
+                            const std::shared_ptr< const Condition > & p3,
+                            const std::shared_ptr< const Condition > & p4,
+                            const std::shared_ptr< const Condition > & p5 )
 {
     M_condition_set.push_back( p1 );
     M_condition_set.push_back( p2 );
@@ -97,12 +97,12 @@ AndCondition::AndCondition( const boost::shared_ptr< const Condition > & p1,
 /*!
 
 */
-AndCondition::AndCondition( const boost::shared_ptr< const Condition > & p1,
-                            const boost::shared_ptr< const Condition > & p2,
-                            const boost::shared_ptr< const Condition > & p3,
-                            const boost::shared_ptr< const Condition > & p4,
-                            const boost::shared_ptr< const Condition > & p5,
-                            const boost::shared_ptr< const Condition > & p6 )
+AndCondition::AndCondition( const std::shared_ptr< const Condition > & p1,
+                            const std::shared_ptr< const Condition > & p2,
+                            const std::shared_ptr< const Condition > & p3,
+                            const std::shared_ptr< const Condition > & p4,
+                            const std::shared_ptr< const Condition > & p5,
+                            const std::shared_ptr< const Condition > & p6 )
 {
     M_condition_set.push_back( p1 );
     M_condition_set.push_back( p2 );
@@ -116,13 +116,13 @@ AndCondition::AndCondition( const boost::shared_ptr< const Condition > & p1,
 /*!
 
 */
-AndCondition::AndCondition( const boost::shared_ptr< const Condition > & p1,
-                            const boost::shared_ptr< const Condition > & p2,
-                            const boost::shared_ptr< const Condition > & p3,
-                            const boost::shared_ptr< const Condition > & p4,
-                            const boost::shared_ptr< const Condition > & p5,
-                            const boost::shared_ptr< const Condition > & p6,
-                            const boost::shared_ptr< const Condition > & p7 )
+AndCondition::AndCondition( const std::shared_ptr< const Condition > & p1,
+                            const std::shared_ptr< const Condition > & p2,
+                            const std::shared_ptr< const Condition > & p3,
+                            const std::shared_ptr< const Condition > & p4,
+                            const std::shared_ptr< const Condition > & p5,
+                            const std::shared_ptr< const Condition > & p6,
+                            const std::shared_ptr< const Condition > & p7 )
 {
     M_condition_set.push_back( p1 );
     M_condition_set.push_back( p2 );
@@ -137,14 +137,14 @@ AndCondition::AndCondition( const boost::shared_ptr< const Condition > & p1,
 /*!
 
 */
-AndCondition::AndCondition( const boost::shared_ptr< const Condition > & p1,
-                            const boost::shared_ptr< const Condition > & p2,
-                            const boost::shared_ptr< const Condition > & p3,
-                            const boost::shared_ptr< const Condition > & p4,
-                            const boost::shared_ptr< const Condition > & p5,
-                            const boost::shared_ptr< const Condition > & p6,
-                            const boost::shared_ptr< const Condition > & p7,
-                            const boost::shared_ptr< const Condition > & p8 )
+AndCondition::AndCondition( const std::shared_ptr< const Condition > & p1,
+                            const std::shared_ptr< const Condition > & p2,
+                            const std::shared_ptr< const Condition > & p3,
+                            const std::shared_ptr< const Condition > & p4,
+                            const std::shared_ptr< const Condition > & p5,
+                            const std::shared_ptr< const Condition > & p6,
+                            const std::shared_ptr< const Condition > & p7,
+                            const std::shared_ptr< const Condition > & p8 )
 {
     M_condition_set.push_back( p1 );
     M_condition_set.push_back( p2 );
@@ -163,10 +163,10 @@ AndCondition::AndCondition( const boost::shared_ptr< const Condition > & p1,
 bool
 AndCondition::operator()( const PlayerAgent * agent ) const
 {
-    const std::vector< boost::shared_ptr< const Condition > >::const_iterator
+    const std::vector< std::shared_ptr< const Condition > >::const_iterator
         end = M_condition_set.end();
 
-    for ( std::vector< boost::shared_ptr< const Condition > >::const_iterator
+    for ( std::vector< std::shared_ptr< const Condition > >::const_iterator
               it = M_condition_set.begin();
           it != end;
           ++it )
@@ -184,8 +184,8 @@ AndCondition::operator()( const PlayerAgent * agent ) const
 /*!
 
 */
-OrCondition::OrCondition( const boost::shared_ptr< const Condition > & p1,
-                          const boost::shared_ptr< const Condition > & p2 )
+OrCondition::OrCondition( const std::shared_ptr< const Condition > & p1,
+                          const std::shared_ptr< const Condition > & p2 )
 {
     M_condition_set.push_back( p1 );
     M_condition_set.push_back( p2 );
@@ -195,9 +195,9 @@ OrCondition::OrCondition( const boost::shared_ptr< const Condition > & p1,
 /*!
 
 */
-OrCondition::OrCondition( const boost::shared_ptr< const Condition > & p1,
-                          const boost::shared_ptr< const Condition > & p2,
-                          const boost::shared_ptr< const Condition > & p3 )
+OrCondition::OrCondition( const std::shared_ptr< const Condition > & p1,
+                          const std::shared_ptr< const Condition > & p2,
+                          const std::shared_ptr< const Condition > & p3 )
 {
     M_condition_set.push_back( p1 );
     M_condition_set.push_back( p2 );
@@ -208,10 +208,10 @@ OrCondition::OrCondition( const boost::shared_ptr< const Condition > & p1,
 /*!
 
 */
-OrCondition::OrCondition( const boost::shared_ptr< const Condition > & p1,
-                          const boost::shared_ptr< const Condition > & p2,
-                          const boost::shared_ptr< const Condition > & p3,
-                          const boost::shared_ptr< const Condition > & p4 )
+OrCondition::OrCondition( const std::shared_ptr< const Condition > & p1,
+                          const std::shared_ptr< const Condition > & p2,
+                          const std::shared_ptr< const Condition > & p3,
+                          const std::shared_ptr< const Condition > & p4 )
 {
     M_condition_set.push_back( p1 );
     M_condition_set.push_back( p2 );
@@ -223,11 +223,11 @@ OrCondition::OrCondition( const boost::shared_ptr< const Condition > & p1,
 /*!
 
 */
-OrCondition::OrCondition( const boost::shared_ptr< const Condition > & p1,
-                          const boost::shared_ptr< const Condition > & p2,
-                          const boost::shared_ptr< const Condition > & p3,
-                          const boost::shared_ptr< const Condition > & p4,
-                          const boost::shared_ptr< const Condition > & p5 )
+OrCondition::OrCondition( const std::shared_ptr< const Condition > & p1,
+                          const std::shared_ptr< const Condition > & p2,
+                          const std::shared_ptr< const Condition > & p3,
+                          const std::shared_ptr< const Condition > & p4,
+                          const std::shared_ptr< const Condition > & p5 )
 {
     M_condition_set.push_back( p1 );
     M_condition_set.push_back( p2 );
@@ -240,12 +240,12 @@ OrCondition::OrCondition( const boost::shared_ptr< const Condition > & p1,
 /*!
 
 */
-OrCondition::OrCondition( const boost::shared_ptr< const Condition > & p1,
-                          const boost::shared_ptr< const Condition > & p2,
-                          const boost::shared_ptr< const Condition > & p3,
-                          const boost::shared_ptr< const Condition > & p4,
-                          const boost::shared_ptr< const Condition > & p5,
-                          const boost::shared_ptr< const Condition > & p6 )
+OrCondition::OrCondition( const std::shared_ptr< const Condition > & p1,
+                          const std::shared_ptr< const Condition > & p2,
+                          const std::shared_ptr< const Condition > & p3,
+                          const std::shared_ptr< const Condition > & p4,
+                          const std::shared_ptr< const Condition > & p5,
+                          const std::shared_ptr< const Condition > & p6 )
 {
     M_condition_set.push_back( p1 );
     M_condition_set.push_back( p2 );
@@ -259,13 +259,13 @@ OrCondition::OrCondition( const boost::shared_ptr< const Condition > & p1,
 /*!
 
 */
-OrCondition::OrCondition( const boost::shared_ptr< const Condition > & p1,
-                          const boost::shared_ptr< const Condition > & p2,
-                          const boost::shared_ptr< const Condition > & p3,
-                          const boost::shared_ptr< const Condition > & p4,
-                          const boost::shared_ptr< const Condition > & p5,
-                          const boost::shared_ptr< const Condition > & p6,
-                          const boost::shared_ptr< const Condition > & p7 )
+OrCondition::OrCondition( const std::shared_ptr< const Condition > & p1,
+                          const std::shared_ptr< const Condition > & p2,
+                          const std::shared_ptr< const Condition > & p3,
+                          const std::shared_ptr< const Condition > & p4,
+                          const std::shared_ptr< const Condition > & p5,
+                          const std::shared_ptr< const Condition > & p6,
+                          const std::shared_ptr< const Condition > & p7 )
 {
     M_condition_set.push_back( p1 );
     M_condition_set.push_back( p2 );
@@ -280,14 +280,14 @@ OrCondition::OrCondition( const boost::shared_ptr< const Condition > & p1,
 /*!
 
 */
-OrCondition::OrCondition( const boost::shared_ptr< const Condition > & p1,
-                          const boost::shared_ptr< const Condition > & p2,
-                          const boost::shared_ptr< const Condition > & p3,
-                          const boost::shared_ptr< const Condition > & p4,
-                          const boost::shared_ptr< const Condition > & p5,
-                          const boost::shared_ptr< const Condition > & p6,
-                          const boost::shared_ptr< const Condition > & p7,
-                          const boost::shared_ptr< const Condition > & p8 )
+OrCondition::OrCondition( const std::shared_ptr< const Condition > & p1,
+                          const std::shared_ptr< const Condition > & p2,
+                          const std::shared_ptr< const Condition > & p3,
+                          const std::shared_ptr< const Condition > & p4,
+                          const std::shared_ptr< const Condition > & p5,
+                          const std::shared_ptr< const Condition > & p6,
+                          const std::shared_ptr< const Condition > & p7,
+                          const std::shared_ptr< const Condition > & p8 )
 {
     M_condition_set.push_back( p1 );
     M_condition_set.push_back( p2 );
@@ -306,15 +306,9 @@ OrCondition::OrCondition( const boost::shared_ptr< const Condition > & p1,
 bool
 OrCondition::operator()( const PlayerAgent * agent ) const
 {
-    const std::vector< boost::shared_ptr< const Condition > >::const_iterator
-        end = M_condition_set.end();
-
-    for ( std::vector< boost::shared_ptr< const Condition > >::const_iterator
-              it = M_condition_set.begin();
-          it != end;
-          ++it )
+    for ( const std::shared_ptr< const Condition > & c : M_condition_set )
     {
-        if ( (*it)->operator()( agent ) )
+        if ( (*c)( agent ) )
         {
             return true;
         }

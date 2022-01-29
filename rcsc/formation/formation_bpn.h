@@ -35,8 +35,6 @@
 #include <rcsc/formation/formation.h>
 #include <rcsc/ann/bpn1.h>
 
-#include <boost/shared_ptr.hpp>
-
 #include <map>
 
 namespace rcsc {
@@ -181,7 +179,7 @@ public:
 private:
 
     //! key: unum. but size is not always 11 if symmetric player exists.
-    std::map< int, boost::shared_ptr< Param > > M_param_map;
+    std::map< int, std::shared_ptr< Param > > M_param_map;
 
 public:
 
@@ -338,14 +336,14 @@ private:
       \param unum player's number
       \return smart pointer to the parameter
     */
-    boost::shared_ptr< Param > getParam( const int unum );
+    std::shared_ptr< Param > getParam( const int unum );
 
     /*!
       \brief get const pointer to the specifed player's parameter
       \param unum player's number
       \return smart const pointer to the parameter
     */
-    boost::shared_ptr< const Param > getParam( const int unum ) const;
+    std::shared_ptr< const Param > getParam( const int unum ) const;
 
 };
 

@@ -295,7 +295,7 @@ void
 FormationNGNet::setRoleName( const int unum,
                              const std::string & name )
 {
-    boost::shared_ptr< FormationNGNet::Param > p = getParam( unum );
+    std::shared_ptr< Param > p = getParam( unum );
 
     if ( ! p )
     {
@@ -316,7 +316,7 @@ FormationNGNet::setRoleName( const int unum,
 std::string
 FormationNGNet::getRoleName( const int unum ) const
 {
-    const boost::shared_ptr< const FormationNGNet::Param > p = param( unum );
+    const std::shared_ptr< const Param > p = param( unum );
     if ( ! p )
     {
         std::cerr << __FILE__ << ":" << __LINE__
@@ -360,14 +360,13 @@ FormationNGNet::createNewRole( const int unum,
     }
 
     // erase old parameter, if exist
-    std::map< int, boost::shared_ptr< FormationNGNet::Param > >::iterator it
-        = M_param_map.find( unum );
+    std::map< int, std::shared_ptr< Param > >::iterator it = M_param_map.find( unum );
     if ( it != M_param_map.end() )
     {
         M_param_map.erase( it );
     }
 
-    boost::shared_ptr< FormationNGNet::Param > param( new FormationNGNet::Param );
+    std::shared_ptr< FormationNGNet::Param > param( new Param() );
     param->setRoleName( role_name );
 
     M_param_map.insert( std::make_pair( unum, param ) );
@@ -381,7 +380,7 @@ Vector2D
 FormationNGNet::getPosition( const int unum,
                              const Vector2D & ball_pos ) const
 {
-    const boost::shared_ptr< const FormationNGNet::Param > ptr = param( unum );
+    const std::shared_ptr< const Param > ptr = param( unum );
     if ( ! ptr )
     {
         std::cerr << __FILE__ << ':' << __LINE__
@@ -432,7 +431,7 @@ FormationNGNet::train()
     {
         int number = unum;
 
-        boost::shared_ptr< FormationNGNet::Param > param = getParam( number );
+        std::shared_ptr< Param > param = getParam( number );
         if ( ! param )
         {
             std::cerr << __FILE__ << ": " << __LINE__
@@ -599,7 +598,7 @@ FormationNGNet::print( std::ostream & os ) const
 /*!
 
  */
-boost::shared_ptr< FormationNGNet::Param >
+std::shared_ptr< FormationNGNet::Param >
 FormationNGNet::getParam( const int unum )
 {
     if ( unum < 1 || 11 < unum )
@@ -607,20 +606,16 @@ FormationNGNet::getParam( const int unum )
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** invalid unum " << unum
                   << std::endl;
-        return boost::shared_ptr< FormationNGNet::Param >
-            ( static_cast< FormationNGNet::Param * >( 0 ) );
+        return std::shared_ptr< FormationNGNet::Param >( nullptr );
     }
 
-    std::map< int, boost::shared_ptr< FormationNGNet::Param > >::const_iterator
-        it = M_param_map.find( unum );
-
+    std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
     if ( it == M_param_map.end() )
     {
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** Parameter not found! unum = "
                   << unum << std::endl;
-        return boost::shared_ptr< FormationNGNet::Param >
-            ( static_cast< FormationNGNet::Param * >( 0 ) );
+        return std::shared_ptr< Param >( nullptr );
     }
 
     return it->second;
@@ -630,7 +625,7 @@ FormationNGNet::getParam( const int unum )
 /*!
 
  */
-boost::shared_ptr< const FormationNGNet::Param >
+std::shared_ptr< const FormationNGNet::Param >
 FormationNGNet::param( const int unum ) const
 {
     if ( unum < 1 || 11 < unum )
@@ -638,20 +633,16 @@ FormationNGNet::param( const int unum ) const
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** invalid unum " << unum
                   << std::endl;
-        return boost::shared_ptr< const FormationNGNet::Param >
-            ( static_cast< FormationNGNet::Param * >( 0 ) );
+        return std::shared_ptr< const Param >( nullptr );
     }
 
-    std::map< int, boost::shared_ptr< FormationNGNet::Param > >::const_iterator
-        it = M_param_map.find( unum );
-
+    std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
     if ( it == M_param_map.end() )
     {
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** Parameter not found! unum = "
                   << unum << std::endl;
-        return boost::shared_ptr< const FormationNGNet::Param >
-            ( static_cast< FormationNGNet::Param * >( 0 ) );
+        return std::shared_ptr< const Param >( nullptr );
     }
 
     return it->second;
@@ -752,7 +743,7 @@ FormationNGNet::readPlayers( std::istream & is )
         */
 
         // read parameters
-        boost::shared_ptr< FormationNGNet::Param > param( new FormationNGNet::Param );
+        std::shared_ptr< Param > param( new Param() );
         if ( ! param->read( is ) )
         {
             std::cerr << __FILE__ << ":" << __LINE__
@@ -807,8 +798,7 @@ FormationNGNet::printConf( std::ostream & os ) const
           }
         */
 
-        std::map< int, boost::shared_ptr< FormationNGNet::Param > >::const_iterator
-            it = M_param_map.find( unum );
+        std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
         if ( it == M_param_map.end() )
         {
             std::cerr << __FILE__ << ":" << __LINE__

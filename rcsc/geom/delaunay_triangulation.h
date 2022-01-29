@@ -35,11 +35,10 @@
 #include <rcsc/geom/rect_2d.h>
 #include <rcsc/geom/vector_2d.h>
 
-#include <boost/array.hpp>
-
 #include <algorithm>
 #include <map>
 #include <vector>
+#include <array>
 
 namespace rcsc {
 
@@ -318,9 +317,9 @@ public:
         int M_id; //!< Id number of this triangle
 
         //! vertices of this triangle, but these are pointers to the vertex instance
-        boost::array< const Vertex *, 3 > M_vertices;
+        std::array< const Vertex *, 3 > M_vertices;
         //! edges of this triangle, but these are pointers to the vertex instance
-        boost::array< EdgePtr, 3 > M_edges;
+        std::array< EdgePtr, 3 > M_edges;
 
         Vector2D M_circumcenter; //!< coordinates of the circumcenter.
         double M_circumradius; //!< radius of the circumcircle.

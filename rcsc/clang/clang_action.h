@@ -34,8 +34,7 @@
 
 #include <rcsc/clang/clang_unum.h>
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <vector>
 #include <iosfwd>
 
@@ -71,7 +70,7 @@ public:
     };
 
     //! smart pointer type
-    typedef boost::shared_ptr< CLangAction > ConstPtr;
+    typedef std::shared_ptr< CLangAction > ConstPtr;
 
     //! action container type
     typedef std::vector< ConstPtr > Cont;

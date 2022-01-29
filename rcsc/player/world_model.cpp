@@ -542,7 +542,7 @@ WorldModel::penaltyKickState() const
 
  */
 void
-WorldModel::setAudioMemory( boost::shared_ptr< AudioMemory > memory )
+WorldModel::setAudioMemory( std::shared_ptr< AudioMemory > memory )
 {
     M_audio_memory = memory;
 }
@@ -5600,7 +5600,7 @@ WorldModel::getPlayers( const PlayerPredicate * predicate ) const
 
  */
 AbstractPlayerObject::Cont
-WorldModel::getPlayers( boost::shared_ptr< const PlayerPredicate > predicate ) const
+WorldModel::getPlayers( std::shared_ptr< const PlayerPredicate > predicate ) const
 {
     AbstractPlayerObject::Cont rval;
 
@@ -5645,7 +5645,7 @@ WorldModel::getPlayers( AbstractPlayerObject::Cont & cont,
  */
 void
 WorldModel::getPlayers( AbstractPlayerObject::Cont & cont,
-                        boost::shared_ptr< const PlayerPredicate > predicate ) const
+                        std::shared_ptr< const PlayerPredicate > predicate ) const
 {
     if ( ! predicate ) return;
 
@@ -5686,7 +5686,7 @@ WorldModel::countPlayer( const PlayerPredicate * predicate ) const
 
  */
 size_t
-WorldModel::countPlayer( boost::shared_ptr< const PlayerPredicate > predicate ) const
+WorldModel::countPlayer( std::shared_ptr< const PlayerPredicate > predicate ) const
 {
     size_t count = 0;
 

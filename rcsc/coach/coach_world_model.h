@@ -41,8 +41,6 @@
 #include <rcsc/game_time.h>
 #include <rcsc/types.h>
 
-#include <boost/shared_ptr.hpp>
-
 #include <iostream>
 #include <string>
 #include <vector>
@@ -87,7 +85,7 @@ private:
     GameTime M_training_time; //!< training start/end time for keepaway
 
     //! heard info memory
-    boost::shared_ptr< AudioMemory > M_audio_memory;
+    std::shared_ptr< AudioMemory > M_audio_memory;
 
     //
     // objects
@@ -173,7 +171,7 @@ public:
       \param memory pointer to the memory instance. This must be
       a dynamically allocated object.
      */
-    void setAudioMemory( boost::shared_ptr< AudioMemory > memory );
+    void setAudioMemory( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get audio memory

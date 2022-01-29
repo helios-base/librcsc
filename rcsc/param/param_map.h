@@ -32,9 +32,9 @@
 #ifndef RCSC_PARAM_PARAM_MAP_H
 #define RCSC_PARAM_PARAM_MAP_H
 
-#include <boost/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include <memory>
 #include <vector>
 #include <map>
 #include <string>
@@ -133,7 +133,7 @@ class ParamEntity {
 public:
 
     //! ParamEntity smart pointer type
-    typedef boost::shared_ptr< ParamEntity > Ptr;
+    typedef std::shared_ptr< ParamEntity > Ptr;
 
 private:
     //! long parameter name

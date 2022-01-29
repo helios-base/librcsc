@@ -44,7 +44,7 @@ namespace rcsc {
 /*!
   \brief implementation of gzfilterstreambuf
  */
-struct gzfilterstreambuf_impl {
+struct gzfilterstreambuf::Impl {
 #ifdef HAVE_LIBZ
     z_stream * comp_stream_; //!< compressin buffer
     z_stream * decomp_stream_; //!< decompression buffer
@@ -53,10 +53,10 @@ struct gzfilterstreambuf_impl {
     /*!
       \brief default constructo
      */
-    gzfilterstreambuf_impl()
+    Impl()
 #ifdef HAVE_LIBZ
-        : comp_stream_( NULL )
-        , decomp_stream_( NULL )
+        : comp_stream_( nullptr ),
+          decomp_stream_( nullptr )
 #endif
       { }
 };
@@ -68,16 +68,16 @@ struct gzfilterstreambuf_impl {
 gzfilterstreambuf::gzfilterstreambuf( std::streambuf & strm,
                                       int level,
                                       std::size_t bufsize )
-    : std::streambuf()
-    , M_strmbuf( strm )
-    , M_output_stream( NULL )
-    , M_input_stream( NULL )
-    , M_buf_size( bufsize )
-    , M_read_buf( NULL )
-    , M_input_buf( NULL )
-    , M_output_buf( NULL )
-    , M_write_buf( NULL )
-    , M_impl( new gzfilterstreambuf_impl )
+    : std::streambuf(),
+      M_strmbuf( strm ),
+      M_output_stream( nullptr ),
+      M_input_stream( nullptr ),
+      M_buf_size( bufsize ),
+      M_read_buf( nullptr ),
+      M_input_buf( nullptr ),
+      M_output_buf( nullptr ),
+      M_write_buf( nullptr ),
+      M_impl( new Impl() )
 #ifdef HAVE_LIBZ
     , M_level( level )
 #else
@@ -112,33 +112,33 @@ gzfilterstreambuf::~gzfilterstreambuf()
 #endif
 
     delete M_output_stream;
-    M_output_stream = NULL;
+    M_output_stream = nullptr;
 
     delete M_input_stream;
-    M_input_stream = NULL;
+    M_input_stream = nullptr;
 
     delete [] M_read_buf;
-    M_read_buf = NULL;
+    M_read_buf = nullptr;
 
     delete [] M_input_buf;
-    M_input_buf = NULL;
+    M_input_buf = nullptr;
 
     delete [] M_output_buf;
-    M_output_buf = NULL;
+    M_output_buf = nullptr;
 
     delete [] M_write_buf;
-    M_write_buf = NULL;
+    M_write_buf = nullptr;
 
 #ifdef HAVE_LIBZ
     delete M_impl->comp_stream_;
-    M_impl->comp_stream_ = NULL;
+    M_impl->comp_stream_ = nullptr;
 
     delete M_impl->decomp_stream_;
-    M_impl->decomp_stream_ = NULL;
+    M_impl->decomp_stream_ = nullptr;
 #endif
 
-    this->setg( NULL, NULL, NULL );
-    this->setp( NULL, NULL );
+    this->setg( nullptr, nullptr, nullptr );
+    this->setp( nullptr, nullptr );
 }
 
 /*-------------------------------------------------------------------*/
@@ -184,7 +184,7 @@ gzfilterstreambuf::writeData( int flush_type )
         return true;
     }
 
-    if ( M_output_stream == NULL )
+    if ( M_output_stream == nullptr )
     {
         //std::cerr << "create stream" << std::endl;
         M_output_stream = new std::ostream( &M_strmbuf );
@@ -198,12 +198,12 @@ gzfilterstreambuf::writeData( int flush_type )
     }
     else
     {
-        if ( M_impl->comp_stream_ == NULL )
+        if ( M_impl->comp_stream_ == nullptr )
         {
             M_impl->comp_stream_ = new z_stream;
             M_impl->comp_stream_->zalloc = Z_NULL;
             M_impl->comp_stream_->zfree = Z_NULL;
-            M_impl->comp_stream_->opaque = NULL;
+            M_impl->comp_stream_->opaque = nullptr;
             M_impl->comp_stream_->avail_in = 0;
             M_impl->comp_stream_->next_in = 0;
             M_impl->comp_stream_->next_out = 0;
@@ -214,7 +214,7 @@ gzfilterstreambuf::writeData( int flush_type )
                 return false;
             }
 
-            if ( M_write_buf == NULL )
+            if ( M_write_buf == nullptr )
             {
                 //std::cerr << "create write buf" << std::endl;
                 M_write_buf = new char[ M_buf_size ];
@@ -275,7 +275,7 @@ gzfilterstreambuf::readData( char * dest,
                              int & dest_size )
 {
     //std::cerr << "readData" << std::endl;
-    if ( M_input_stream == NULL )
+    if ( M_input_stream == nullptr )
     {
         M_input_stream = new std::istream( &M_strmbuf );
     }
@@ -335,7 +335,7 @@ gzfilterstreambuf::overflow( int_type c )
 {
     // if the buffer was not already allocated nor set by user,
     // do it just now
-    if ( pptr() == NULL )
+    if ( pptr() == nullptr )
     {
         M_output_buf = new char_type[ M_buf_size ];
     }
@@ -365,7 +365,7 @@ gzfilterstreambuf::overflow( int_type c )
 int
 gzfilterstreambuf::sync()
 {
-    if ( pptr() != NULL )
+    if ( pptr() != nullptr )
     {
         // just flush the put area
         if ( ! writeData( SYNC_FLUSH ) ) // == Z_SYNC_FLUSH
@@ -394,7 +394,7 @@ gzfilterstreambuf::underflow()
 
     // if the buffer was not already allocated nor set by user,
     // do it just now
-    if ( gptr() == NULL )
+    if ( gptr() == nullptr )
     {
         M_input_buf = new char_type[ M_buf_size ];
         this->setg( M_input_buf, M_input_buf, M_input_buf );
@@ -427,7 +427,7 @@ gzfilterstreambuf::underflow()
     }
     else
     {
-        if ( M_read_buf == NULL )
+        if ( M_read_buf == nullptr )
         {
             M_read_buf = new char_type[ M_buf_size ];
         }
@@ -437,12 +437,12 @@ gzfilterstreambuf::underflow()
             M_input_buf[ 0 ] = s_remained_char;
         }
 
-        if ( M_impl->decomp_stream_ == NULL )
+        if ( M_impl->decomp_stream_ == nullptr )
         {
             M_impl->decomp_stream_ = new z_stream;
             M_impl->decomp_stream_->zalloc = Z_NULL;
             M_impl->decomp_stream_->zfree = Z_NULL;
-            M_impl->decomp_stream_->opaque = NULL;
+            M_impl->decomp_stream_->opaque = nullptr;
             M_impl->decomp_stream_->avail_in = 0;
             M_impl->decomp_stream_->next_in = 0;
             M_impl->decomp_stream_->avail_out = 0;

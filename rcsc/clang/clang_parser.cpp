@@ -45,8 +45,9 @@
 #include "clang_unum.h"
 
 #include <boost/spirit/include/classic.hpp>
-#include <boost/bind.hpp>
+//#include <boost/bind.hpp>
 
+#include <functional>
 #include <stack>
 #include <utility>
 #include <iostream>
@@ -273,6 +274,9 @@ public:
 
         definition( const Impl & self )
           {
+              using std::placeholders::_1;
+              using std::placeholders::_2;
+
               lp_p = bsc::ch_p( '(' );
               rp_p = bsc::ch_p( ')' );
 
@@ -289,20 +293,20 @@ public:
               clang_str_p = ( bsc::ch_p( '"' )
                               >> clang_raw_str_p
                               >> bsc::ch_p( '"' )
-                              )[boost::bind( &Impl::handleString, &self, _1, _2 )];
+                              )[std::bind( &Impl::handleString, &self, _1, _2 )];
               clang_var_p = ( ( bsc::chset_p( "abefghijklmnoqrtuvwxyz" )
                                 | bsc::upper_p
                                 | bsc::ch_p( '_' ) )
                               >> +( bsc::alnum_p | bsc::ch_p( '_' ) )
-                              )[boost::bind( &Impl::handleVariable, &self, _1, _2 )];
+                              )[std::bind( &Impl::handleVariable, &self, _1, _2 )];
 
-              clang_unum_p = bsc::uint_p[boost::bind( &Impl::handleUnum, &self, _1 )];
+              clang_unum_p = bsc::uint_p[std::bind( &Impl::handleUnum, &self, _1 )];
               clang_unum_set_p = ( lb_p >> *clang_unum_p >> rb_p
-                                   )[boost::bind( &Impl::handleUnumSet, &self )];
+                                   )[std::bind( &Impl::handleUnumSet, &self )];
 
               clang_cond_bool_p
-                  = ( lp_p >> clang_true_p >> rp_p )[boost::bind( &Impl::handleConditionBool, &self, true )]
-                  | ( lp_p >> clang_false_p >> rp_p )[boost::bind( &Impl::handleConditionBool, &self, false )];
+                  = ( lp_p >> clang_true_p >> rp_p )[std::bind( &Impl::handleConditionBool, &self, true )]
+                  | ( lp_p >> clang_false_p >> rp_p )[std::bind( &Impl::handleConditionBool, &self, false )];
               clang_cond_p = clang_cond_bool_p;
 
               clang_act_mark_p = ( lp_p
@@ -310,7 +314,7 @@ public:
                                    >> rp_p );
               clang_act_htype_p = ( lp_p
                                     >> bsc::str_p( "htype" )
-                                    >> bsc::int_p[boost::bind( &Impl::handleActHeteroTypeId, &self, _1 )]
+                                    >> bsc::int_p[std::bind( &Impl::handleActHeteroTypeId, &self, _1 )]
                                     >> rp_p );
               clang_act_hold_p = ( lp_p
                                    >> bsc::str_p( "hold" )
@@ -318,44 +322,44 @@ public:
               clang_act_bto_p = ( lp_p
                                   >> bsc::str_p( "bto" ) >> clang_unum_set_p
                                   >> rp_p );
-              clang_act_p = ( clang_act_mark_p[boost::bind( &Impl::handleActMark, &self )]
-                              | clang_act_htype_p[boost::bind( &Impl::handleActHeteroType, &self )]
-                              | clang_act_hold_p[boost::bind( &Impl::handleActHold, &self )]
-                              | clang_act_bto_p[boost::bind( &Impl::handleActBallTo, &self )]
+              clang_act_p = ( clang_act_mark_p[std::bind( &Impl::handleActMark, &self )]
+                              | clang_act_htype_p[std::bind( &Impl::handleActHeteroType, &self )]
+                              | clang_act_hold_p[std::bind( &Impl::handleActHold, &self )]
+                              | clang_act_bto_p[std::bind( &Impl::handleActBallTo, &self )]
                               );
 
               clang_do_dont_p
-                  = bsc::str_p( "dont" )[boost::bind( &Impl::handlePositive, &self, false )]
-                  | bsc::str_p( "do" )[boost::bind( &Impl::handlePositive, &self, true )];
+                  = bsc::str_p( "dont" )[std::bind( &Impl::handlePositive, &self, false )]
+                  | bsc::str_p( "do" )[std::bind( &Impl::handlePositive, &self, true )];
 
               clang_team_p
-                  = bsc::str_p( "our" )[boost::bind( &Impl::handleTeam, &self, true )]
-                  | bsc::str_p( "opp" )[boost::bind( &Impl::handleTeam, &self, false )];
+                  = bsc::str_p( "our" )[std::bind( &Impl::handleTeam, &self, true )]
+                  | bsc::str_p( "opp" )[std::bind( &Impl::handleTeam, &self, false )];
 
               clang_directive_p = ( ( lp_p
                                       >> clang_do_dont_p
                                       >> clang_team_p
                                       >> clang_unum_set_p
                                       >> *clang_act_p
-                                      >> rp_p )[boost::bind( &Impl::handleDirectiveCommon, &self )]
-                                    | clang_str_p[boost::bind( &Impl::handleDirectiveNamed, &self )]
+                                      >> rp_p )[std::bind( &Impl::handleDirectiveCommon, &self )]
+                                    | clang_str_p[std::bind( &Impl::handleDirectiveNamed, &self )]
                                     );
 
               clang_token_p = ( ( lp_p
-                                  >> bsc::int_p[boost::bind( &Impl::handleTokenTTL, &self, _1 )]
-                                  >> clang_cond_p //[boost::bind( &Impl::handleCondition, &self )]
+                                  >> bsc::int_p[std::bind( &Impl::handleTokenTTL, &self, _1 )]
+                                  >> clang_cond_p //[std::bind( &Impl::handleCondition, &self )]
                                   >> *clang_directive_p
                                   >> rp_p
-                                  )[boost::bind( &Impl::handleTokenRule, &self )]
+                                  )[std::bind( &Impl::handleTokenRule, &self )]
                                 | ( lp_p >> bsc::str_p( "clear" ) >> rp_p
-                                    )[boost::bind( &Impl::handleTokenClear, &self )]
+                                    )[std::bind( &Impl::handleTokenClear, &self )]
                                 );
 
               clang_info_msg_p = ( lp_p
                                    >> bsc::str_p( "info" )
                                    >> *clang_token_p
                                    >> rp_p
-                                   )[boost::bind( &Impl::handleInfoMessage, &self )];
+                                   )[std::bind( &Impl::handleInfoMessage, &self )];
 
               clang_msg_p = clang_info_msg_p;
 

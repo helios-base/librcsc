@@ -129,13 +129,13 @@ struct PlayerAgent::Impl {
     int see_timings_[11];
 
     //! pointer to reserved action
-    boost::shared_ptr< ArmAction > arm_action_;
+    std::shared_ptr< ArmAction > arm_action_;
 
     //! pointer to reserved action
-    boost::shared_ptr< NeckAction > neck_action_;
+    std::shared_ptr< NeckAction > neck_action_;
 
     //! pointer to reserved action
-    boost::shared_ptr< ViewAction > view_action_;
+    std::shared_ptr< ViewAction > view_action_;
 
     //! intention queue
     SoccerIntention::Ptr intention_;
@@ -674,19 +674,19 @@ PlayerAgent::~PlayerAgent()
 /*!
 
  */
-boost::shared_ptr< AbstractClient >
+std::shared_ptr< AbstractClient >
 PlayerAgent::createConsoleClient()
 {
-    boost::shared_ptr< AbstractClient > ptr;
+    std::shared_ptr< AbstractClient > ptr;
 
     if ( 1 <= config().offlineClientNumber()
          && config().offlineClientNumber() <= 11 )
     {
-        ptr = boost::shared_ptr< AbstractClient >( new OfflineClient() );
+        ptr = std::shared_ptr< AbstractClient >( new OfflineClient() );
     }
     else
     {
-        ptr = boost::shared_ptr< AbstractClient >( new OnlineClient() );
+        ptr = std::shared_ptr< AbstractClient >( new OnlineClient() );
     }
 
     return ptr;
@@ -3108,7 +3108,7 @@ PlayerAgent::setArmAction( ArmAction * act )
 {
     if ( act )
     {
-        M_impl->arm_action_ = boost::shared_ptr< ArmAction >( act );
+        M_impl->arm_action_ = std::shared_ptr< ArmAction >( act );
     }
     else
     {
@@ -3130,7 +3130,7 @@ PlayerAgent::setNeckAction( NeckAction * act )
             dlog.addText( Logger::ACTION,
                           __FILE__": (setNeckAction) overwrite exsiting neck action." );
         }
-        M_impl->neck_action_ = boost::shared_ptr< NeckAction >( act );
+        M_impl->neck_action_ = std::shared_ptr< NeckAction >( act );
     }
     else
     {
@@ -3147,7 +3147,7 @@ PlayerAgent::setViewAction( ViewAction * act )
 {
     if ( act )
     {
-        M_impl->view_action_ = boost::shared_ptr< ViewAction >( act );
+        M_impl->view_action_ = std::shared_ptr< ViewAction >( act );
     }
     else
     {
@@ -3199,7 +3199,7 @@ PlayerAgent::clearSayMessage()
 void
 PlayerAgent::setIntention( SoccerIntention * intention )
 {
-    M_impl->intention_ = boost::shared_ptr< SoccerIntention >( intention );
+    M_impl->intention_ = std::shared_ptr< SoccerIntention >( intention );
 }
 
 /*-------------------------------------------------------------------*/

@@ -300,7 +300,7 @@ void
 FormationRBF::setRoleName( const int unum,
                            const std::string & name )
 {
-    boost::shared_ptr< FormationRBF::Param > p = getParam( unum );
+    std::shared_ptr< Param > p = getParam( unum );
 
     if ( ! p )
     {
@@ -321,7 +321,7 @@ FormationRBF::setRoleName( const int unum,
 std::string
 FormationRBF::getRoleName( const int unum ) const
 {
-    const boost::shared_ptr< const FormationRBF::Param > p = param( unum );
+    const std::shared_ptr< const Param > p = param( unum );
     if ( ! p )
     {
         std::cerr << __FILE__ << ":" << __LINE__
@@ -365,14 +365,13 @@ FormationRBF::createNewRole( const int unum,
     }
 
     // erase old parameter, if exist
-    std::map< int, boost::shared_ptr< FormationRBF::Param > >::iterator it
-        = M_param_map.find( unum );
+    std::map< int, std::shared_ptr< Param > >::iterator it = M_param_map.find( unum );
     if ( it != M_param_map.end() )
     {
         M_param_map.erase( it );
     }
 
-    boost::shared_ptr< FormationRBF::Param > param( new FormationRBF::Param );
+    std::shared_ptr< Param > param( new Param );
     param->setRoleName( role_name );
 
     M_param_map.insert( std::make_pair( unum, param ) );
@@ -386,7 +385,7 @@ Vector2D
 FormationRBF::getPosition( const int unum,
                            const Vector2D & ball_pos ) const
 {
-    const boost::shared_ptr< const FormationRBF::Param > ptr = param( unum );
+    const std::shared_ptr< const Param > ptr = param( unum );
     if ( ! ptr )
     {
         std::cerr << __FILE__ << ':' << __LINE__
@@ -437,7 +436,7 @@ FormationRBF::train()
     {
         int number = unum;
 
-        boost::shared_ptr< FormationRBF::Param > param = getParam( number );
+        std::shared_ptr< Param > param = getParam( number );
         if ( ! param )
         {
             std::cerr << __FILE__ << ": " << __LINE__
@@ -584,7 +583,7 @@ FormationRBF::print( std::ostream & os ) const
 /*!
 
  */
-boost::shared_ptr< FormationRBF::Param >
+std::shared_ptr< FormationRBF::Param >
 FormationRBF::getParam( const int unum )
 {
     if ( unum < 1 || 11 < unum )
@@ -592,20 +591,16 @@ FormationRBF::getParam( const int unum )
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** invalid unum " << unum
                   << std::endl;
-        return boost::shared_ptr< FormationRBF::Param >
-            ( static_cast< FormationRBF::Param * >( 0 ) );
+        return std::shared_ptr< Param >( nullptr );
     }
 
-    std::map< int, boost::shared_ptr< FormationRBF::Param > >::const_iterator
-        it = M_param_map.find( unum );
-
+    std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
     if ( it == M_param_map.end() )
     {
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** Parameter not found! unum = "
                   << unum << std::endl;
-        return boost::shared_ptr< FormationRBF::Param >
-            ( static_cast< FormationRBF::Param * >( 0 ) );
+        return std::shared_ptr< Param >( nullptr );
     }
 
     return it->second;
@@ -615,7 +610,7 @@ FormationRBF::getParam( const int unum )
 /*!
 
  */
-boost::shared_ptr< const FormationRBF::Param >
+std::shared_ptr< const FormationRBF::Param >
 FormationRBF::param( const int unum ) const
 {
     if ( unum < 1 || 11 < unum )
@@ -623,20 +618,16 @@ FormationRBF::param( const int unum ) const
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** invalid unum " << unum
                   << std::endl;
-        return boost::shared_ptr< const FormationRBF::Param >
-            ( static_cast< FormationRBF::Param * >( 0 ) );
+        return std::shared_ptr< const Param >( nullptr );
     }
 
-    std::map< int, boost::shared_ptr< FormationRBF::Param > >::const_iterator
-        it = M_param_map.find( unum );
-
+    std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
     if ( it == M_param_map.end() )
     {
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** Parameter not found! unum = "
                   << unum << std::endl;
-        return boost::shared_ptr< const FormationRBF::Param >
-            ( static_cast< FormationRBF::Param * >( 0 ) );
+        return std::shared_ptr< const Param >( nullptr );
     }
 
     return it->second;
@@ -737,7 +728,7 @@ FormationRBF::readPlayers( std::istream & is )
         */
 
         // read parameters
-        boost::shared_ptr< FormationRBF::Param > param( new FormationRBF::Param );
+        std::shared_ptr< Param > param( new Param() );
         if ( ! param->read( is ) )
         {
             std::cerr << __FILE__ << ":" << __LINE__
@@ -791,8 +782,7 @@ FormationRBF::printConf( std::ostream & os ) const
           }
         */
 
-        std::map< int, boost::shared_ptr< FormationRBF::Param > >::const_iterator
-            it = M_param_map.find( unum );
+        std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
         if ( it == M_param_map.end() )
         {
             std::cerr << __FILE__ << ":" << __LINE__

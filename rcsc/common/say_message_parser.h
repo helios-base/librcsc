@@ -34,8 +34,7 @@
 
 #include <rcsc/types.h>
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <string>
 
 namespace rcsc {
@@ -52,7 +51,7 @@ class SayMessageParser {
 public:
 
     //! pointer type alias
-    typedef boost::shared_ptr< SayMessageParser > Ptr;
+    typedef std::shared_ptr< SayMessageParser > Ptr;
 
 private:
 
@@ -116,7 +115,7 @@ class BallMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -125,7 +124,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    BallMessageParser( boost::shared_ptr< AudioMemory > memory );
+    BallMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -178,7 +177,7 @@ class PassMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -187,7 +186,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    PassMessageParser( boost::shared_ptr< AudioMemory > memory );
+    PassMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -240,7 +239,7 @@ class InterceptMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -249,7 +248,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    InterceptMessageParser( boost::shared_ptr< AudioMemory > memory );
+    InterceptMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -302,7 +301,7 @@ class GoalieMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -311,7 +310,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    GoalieMessageParser( boost::shared_ptr< AudioMemory > memory );
+    GoalieMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -365,7 +364,7 @@ class GoalieAndPlayerMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -374,7 +373,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    GoalieAndPlayerMessageParser( boost::shared_ptr< AudioMemory > memory );
+    GoalieAndPlayerMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -428,7 +427,7 @@ class OffsideLineMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -437,7 +436,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    OffsideLineMessageParser( boost::shared_ptr< AudioMemory > memory );
+    OffsideLineMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -490,7 +489,7 @@ class DefenseLineMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -499,7 +498,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    DefenseLineMessageParser( boost::shared_ptr< AudioMemory > memory );
+    DefenseLineMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -552,7 +551,7 @@ class WaitRequestMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -561,7 +560,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    WaitRequestMessageParser( boost::shared_ptr< AudioMemory > memory );
+    WaitRequestMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -614,7 +613,7 @@ class SetplayMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -623,7 +622,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    SetplayMessageParser( boost::shared_ptr< AudioMemory > memory );
+    SetplayMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -676,7 +675,7 @@ class PassRequestMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -685,7 +684,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    PassRequestMessageParser( boost::shared_ptr< AudioMemory > memory );
+    PassRequestMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -738,7 +737,7 @@ class StaminaMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -747,7 +746,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    StaminaMessageParser( boost::shared_ptr< AudioMemory > memory );
+    StaminaMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -800,7 +799,7 @@ class RecoveryMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -809,7 +808,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    RecoveryMessageParser( boost::shared_ptr< AudioMemory > memory );
+    RecoveryMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -862,7 +861,7 @@ class StaminaCapacityMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -871,7 +870,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    StaminaCapacityMessageParser( boost::shared_ptr< AudioMemory > memory );
+    StaminaCapacityMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -924,7 +923,7 @@ class DribbleMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -933,7 +932,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    DribbleMessageParser( boost::shared_ptr< AudioMemory > memory );
+    DribbleMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -986,7 +985,7 @@ class BallGoalieMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -995,7 +994,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    BallGoalieMessageParser( boost::shared_ptr< AudioMemory > memory );
+    BallGoalieMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -1048,7 +1047,7 @@ class OnePlayerMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -1057,7 +1056,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    OnePlayerMessageParser( boost::shared_ptr< AudioMemory > memory );
+    OnePlayerMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -1110,7 +1109,7 @@ class TwoPlayerMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -1119,7 +1118,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    TwoPlayerMessageParser( boost::shared_ptr< AudioMemory > memory );
+    TwoPlayerMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -1172,7 +1171,7 @@ class ThreePlayerMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -1181,7 +1180,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    ThreePlayerMessageParser( boost::shared_ptr< AudioMemory > memory );
+    ThreePlayerMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -1234,7 +1233,7 @@ class SelfMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -1243,7 +1242,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    SelfMessageParser( boost::shared_ptr< AudioMemory > memory );
+    SelfMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -1296,7 +1295,7 @@ class TeammateMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -1305,7 +1304,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    TeammateMessageParser( boost::shared_ptr< AudioMemory > memory );
+    TeammateMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -1358,7 +1357,7 @@ class OpponentMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -1367,7 +1366,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    OpponentMessageParser( boost::shared_ptr< AudioMemory > memory );
+    OpponentMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.
@@ -1420,7 +1419,7 @@ class BallPlayerMessageParser
 private:
 
     //! pointer to the audio memory
-    boost::shared_ptr< AudioMemory > M_memory;
+    std::shared_ptr< AudioMemory > M_memory;
 
 public:
 
@@ -1429,7 +1428,7 @@ public:
       \param memory pointer to the memory
      */
     explicit
-    BallPlayerMessageParser( boost::shared_ptr< AudioMemory > memory );
+    BallPlayerMessageParser( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief get the header character.

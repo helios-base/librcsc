@@ -38,8 +38,7 @@
 #include <rcsc/geom/vector_2d.h>
 #include <rcsc/types.h>
 
-#include <boost/scoped_ptr.hpp>
-
+#include <memory>
 #include <string>
 
 namespace rcsc {
@@ -56,10 +55,9 @@ class TrainerAgent
 private:
 
     struct Impl; //!< pimpl idiom
-    friend struct Impl;
 
     //! internal implementation object
-    boost::scoped_ptr< Impl > M_impl;
+    std::unique_ptr< Impl > M_impl;
 
 protected:
 
@@ -86,7 +84,7 @@ public:
       \return client object pointer.
      */
     virtual
-    boost::shared_ptr< AbstractClient > createConsoleClient();
+    std::shared_ptr< AbstractClient > createConsoleClient();
 
     /*!
       \brief finalize all things when the process exits

@@ -32,8 +32,7 @@
 #ifndef RCSC_CLANG_CONDITION_H
 #define RCSC_CLANG_CONDITION_H
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <iosfwd>
 
 namespace rcsc {
@@ -65,7 +64,7 @@ public:
     };
 
     //! smart pointer type
-    typedef boost::shared_ptr< CLangCondition > Ptr;
+    typedef std::shared_ptr< CLangCondition > Ptr;
 
 private:
 

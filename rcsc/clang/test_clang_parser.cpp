@@ -119,11 +119,11 @@ CLangParserTest::testInfoMessage()
     std::cout << "elapsed " << timer.elapsedReal() << " [ms]" << std::endl;
 
 
-    boost::shared_ptr< const rcsc::CLangInfoMessage > info;
+    std::shared_ptr< const rcsc::CLangInfoMessage > info;
 
     try
     {
-        info = boost::dynamic_pointer_cast< const rcsc::CLangInfoMessage >( parser.message() );
+        info = std::dynamic_pointer_cast< const rcsc::CLangInfoMessage >( parser.message() );
         if ( ! info )
         {
             std::cerr << "Failed dynamic_pointer_cast " << std::endl;

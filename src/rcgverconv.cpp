@@ -36,6 +36,7 @@
 #include <rcsc/gz.h>
 #include <rcsc/rcg.h>
 
+#include <memory>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -365,18 +366,16 @@ main( int argc, char** argv )
         return 1;
     }
 
-    boost::shared_ptr< std::ostream > fout;
+    std::shared_ptr< std::ostream > fout;
 
     if ( output_file.compare( output_file.length() - 3, 3, ".gz" ) == 0 )
     {
-        fout = boost::shared_ptr< std::ostream >
-            ( new rcsc::gzofstream( output_file.c_str() ) );
+        fout = std::shared_ptr< std::ostream >( new rcsc::gzofstream( output_file.c_str() ) );
     }
     else
     {
-        fout = boost::shared_ptr< std::ostream >
-            ( new std::ofstream( output_file.c_str(),
-                                 std::ios_base::out | std::ios_base::binary ) );
+        fout = std::shared_ptr< std::ostream >( new std::ofstream( output_file.c_str(),
+                                                                   std::ios_base::out | std::ios_base::binary ) );
     }
 
     if ( ! fout

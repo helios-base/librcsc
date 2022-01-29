@@ -37,8 +37,7 @@
 #include <rcsc/game_time.h>
 #include <rcsc/game_mode.h>
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <iostream>
 #include <list>
 #include <map>
@@ -59,8 +58,8 @@ struct DispInfoT;
 class CoachWorldState {
 public:
 
-    typedef boost::shared_ptr< CoachWorldState > Ptr; //!< smart pointer type
-    typedef boost::shared_ptr< const CoachWorldState > ConstPtr; //!< smart const pointer type
+    typedef std::shared_ptr< CoachWorldState > Ptr; //!< smart pointer type
+    typedef std::shared_ptr< const CoachWorldState > ConstPtr; //!< smart const pointer type
 
     typedef std::list< ConstPtr > List;
     typedef std::map< GameTime, ConstPtr, GameTime::Less > Map;

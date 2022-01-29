@@ -49,7 +49,7 @@ class SoccerIntention {
 public:
 
     //! smart pointer type.
-    typedef boost::shared_ptr< SoccerIntention > Ptr;
+    typedef std::shared_ptr< SoccerIntention > Ptr;
 
 private:
     //! not used

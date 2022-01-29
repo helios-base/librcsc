@@ -121,7 +121,7 @@ CoachWorldModel::init( const std::string & team_name,
 
  */
 void
-CoachWorldModel::setAudioMemory( boost::shared_ptr< AudioMemory > memory )
+CoachWorldModel::setAudioMemory( std::shared_ptr< AudioMemory > memory )
 {
     M_audio_memory = memory;
 }

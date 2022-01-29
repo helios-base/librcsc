@@ -34,7 +34,7 @@
 
 #include <rcsc/player/localization.h>
 
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 
 namespace rcsc {
 
@@ -49,7 +49,7 @@ private:
     class Impl;
 
     //! implemantion
-    boost::scoped_ptr< Impl > M_impl;
+    std::unique_ptr< Impl > M_impl;
 
 
     // not used

@@ -120,11 +120,9 @@ AbstractClient::setCompressionLevel( const int level )
         return old_level;
     }
 
-    M_compressor
-        = boost::shared_ptr< GZCompressor >( new GZCompressor( level ) );
+    M_compressor = std::shared_ptr< GZCompressor >( new GZCompressor( level ) );
 
-    M_decompressor
-        = boost::shared_ptr< GZDecompressor >( new GZDecompressor() );
+    M_decompressor = std::shared_ptr< GZDecompressor >( new GZDecompressor() );
 
     return old_level;
 #else

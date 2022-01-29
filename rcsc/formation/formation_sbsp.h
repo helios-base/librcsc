@@ -34,7 +34,8 @@
 
 #include <rcsc/formation/formation.h>
 #include <rcsc/geom/rect_2d.h>
-#include <boost/array.hpp>
+
+#include <array>
 
 namespace rcsc {
 
@@ -102,7 +103,7 @@ public:
     class Param {
     private:
         std::string M_name; //!< formation name
-        boost::array< Role, 11 > M_roles; //!< role set
+        std::array< Role, 11 > M_roles; //!< role set
 
         Param(); // not used
     public:

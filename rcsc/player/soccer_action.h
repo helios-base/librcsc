@@ -139,7 +139,7 @@ class NeckAction
 public:
 
     //! smart pointer type
-    typedef boost::shared_ptr< NeckAction > Ptr;
+    typedef std::shared_ptr< NeckAction > Ptr;
 
 private:
 
@@ -191,7 +191,7 @@ class ViewAction
 public:
 
     //! smart pointer type
-    typedef boost::shared_ptr< ViewAction > Ptr;
+    typedef std::shared_ptr< ViewAction > Ptr;
 
 private:
 
@@ -243,7 +243,7 @@ class ArmAction
 public:
 
     //! smart pointer type
-    typedef boost::shared_ptr< ArmAction > Ptr;
+    typedef std::shared_ptr< ArmAction > Ptr;
 
 private:
 

@@ -34,8 +34,7 @@
 
 #include <rcsc/geom/vector_2d.h>
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <vector>
 #include <list>
 #include <utility>
@@ -101,8 +100,8 @@ struct SampleData {
 class SampleDataSet {
 public:
 
-    typedef boost::shared_ptr< SampleDataSet > Ptr; //!< shared pointer type.
-    typedef boost::shared_ptr< const SampleDataSet > ConstPtr; //!< shared const pointer type.
+    typedef std::shared_ptr< SampleDataSet > Ptr; //!< shared pointer type.
+    typedef std::shared_ptr< const SampleDataSet > ConstPtr; //!< shared const pointer type.
 
     typedef std::list< SampleData > DataCont; //!< data container type.
     typedef std::pair< size_t, const SampleData * > IndexData; //!< index & data pair type.

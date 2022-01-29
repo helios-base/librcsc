@@ -36,8 +36,7 @@
 #include <rcsc/factory.h>
 #include <rcsc/types.h>
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <string>
 #include <ostream>
 
@@ -51,7 +50,7 @@ namespace rcg {
 class Serializer {
 public:
 
-    typedef boost::shared_ptr< Serializer > Ptr; //!< rcg serializer pointer type
+    typedef std::shared_ptr< Serializer > Ptr; //!< rcg serializer pointer type
     typedef Ptr (*Creator)(); //!< rcg serializer creator function
     typedef rcss::Factory< Creator, int > Creators; //!< creator function holder
 

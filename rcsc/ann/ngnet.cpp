@@ -79,8 +79,7 @@ NGNet::Unit::randomize( const double & min_weight,
     }
 
     boost::uniform_real<> dst( min_w, max_w );
-    boost::variate_generator< boost::mt19937 &, boost::uniform_real<> >
-        rng( gen, dst );
+    boost::variate_generator< boost::mt19937 &, boost::uniform_real<> > rng( gen, dst );
 
     std::generate( weights_.begin(),
                    weights_.end(),

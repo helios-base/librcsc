@@ -72,8 +72,7 @@ FormationBPN::Param::randomize()
 {
     static boost::mt19937 gen( std::time( 0 ) );
     boost::uniform_real<> dst( -0.5, 0.5 );
-    boost::variate_generator< boost::mt19937 &, boost::uniform_real<> >
-        rng( gen, dst );
+    boost::variate_generator< boost::mt19937 &, boost::uniform_real<> > rng( gen, dst );
 
     M_net.randomize( rng );
 }
@@ -331,7 +330,7 @@ void
 FormationBPN::setRoleName( const int unum,
                            const std::string & name )
 {
-    boost::shared_ptr< FormationBPN::Param > p = getParam( unum );
+    std::shared_ptr< Param > p = getParam( unum );
 
     if ( ! p )
     {
@@ -352,7 +351,7 @@ FormationBPN::setRoleName( const int unum,
 std::string
 FormationBPN::getRoleName( const int unum ) const
 {
-    const boost::shared_ptr< const FormationBPN::Param > p = getParam( unum );
+    const std::shared_ptr< const Param > p = getParam( unum );
     if ( ! p )
     {
         std::cerr << __FILE__ << ":" << __LINE__
@@ -399,14 +398,13 @@ FormationBPN::createNewRole( const int unum,
     }
 
     // erase old parameter, if exist
-    std::map< int, boost::shared_ptr< FormationBPN::Param > >::iterator it
-        = M_param_map.find( unum );
+    std::map< int, std::shared_ptr< Param > >::iterator it = M_param_map.find( unum );
     if ( it != M_param_map.end() )
     {
         M_param_map.erase( it );
     }
 
-    boost::shared_ptr< FormationBPN::Param > param( new FormationBPN::Param );
+    std::shared_ptr< Param > param( new Param() );
     param->setRoleName( role_name );
     param->randomize();
 
@@ -421,7 +419,7 @@ Vector2D
 FormationBPN::getPosition( const int unum,
                            const Vector2D & ball_pos ) const
 {
-    const boost::shared_ptr< const FormationBPN::Param > ptr = getParam( unum );
+    const std::shared_ptr< const Param > ptr = getParam( unum );
     if ( ! ptr )
     {
         std::cerr << __FILE__ << ':' << __LINE__
@@ -495,7 +493,7 @@ FormationBPN::train()
                       << std::endl;
         }
 
-        boost::shared_ptr< FormationBPN::Param > param = getParam( number );
+        std::shared_ptr< Param > param = getParam( number );
         if ( ! param )
         {
             std::cerr << __FILE__ << ": " << __LINE__
@@ -594,7 +592,7 @@ FormationBPN::train()
 /*!
 
 */
-boost::shared_ptr< FormationBPN::Param >
+std::shared_ptr< FormationBPN::Param >
 FormationBPN::getParam( const int unum )
 {
     if ( unum < 1 || 11 < unum )
@@ -602,26 +600,21 @@ FormationBPN::getParam( const int unum )
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** invalid unum " << unum
                   << std::endl;
-        return boost::shared_ptr< FormationBPN::Param >
-            ( static_cast< FormationBPN::Param * >( 0 ) );
+        return std::shared_ptr< FormationBPN::Param >( nullptr );
     }
 
     if ( M_symmetry_number[unum - 1] > 0 )
     {
-        return boost::shared_ptr< FormationBPN::Param >
-            ( static_cast< FormationBPN::Param * >( 0 ) );
+        return std::shared_ptr< FormationBPN::Param >( nullptr );
     }
 
-    std::map< int, boost::shared_ptr< FormationBPN::Param > >::const_iterator
-        it = M_param_map.find( unum );
-
+    std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
     if ( it == M_param_map.end() )
     {
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** Neteter not found! unum = "
                   << unum << std::endl;
-        return boost::shared_ptr< FormationBPN::Param >
-            ( static_cast< FormationBPN::Param * >( 0 ) );
+        return std::shared_ptr< Param >( nullptr );
     }
 
     return it->second;
@@ -631,7 +624,7 @@ FormationBPN::getParam( const int unum )
 /*!
 
 */
-boost::shared_ptr< const FormationBPN::Param >
+std::shared_ptr< const FormationBPN::Param >
 FormationBPN::getParam( const int unum ) const
 {
     if ( unum < 1 || 11 < unum )
@@ -639,24 +632,20 @@ FormationBPN::getParam( const int unum ) const
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** invalid unum " << unum
                   << std::endl;
-        return boost::shared_ptr< const FormationBPN::Param >
-            ( static_cast< FormationBPN::Param * >( 0 ) );
+        return std::shared_ptr< const FormationBPN::Param >( nullptr );
     }
 
     const int player_number = ( M_symmetry_number[unum - 1] <= 0 // center or original
                                 ? unum
                                 : M_symmetry_number[unum - 1] );
 
-    std::map< int, boost::shared_ptr< FormationBPN::Param > >::const_iterator
-        it = M_param_map.find( player_number );
-
+    std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( player_number );
     if ( it == M_param_map.end() )
     {
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** Neteter not found! unum = "
                   << unum << std::endl;
-        return boost::shared_ptr< const FormationBPN::Param >
-            ( static_cast< FormationBPN::Param * >( 0 ) );
+        return std::shared_ptr< const FormationBPN::Param >( nullptr );
     }
 
     return it->second;
@@ -777,7 +766,7 @@ FormationBPN::readPlayers( std::istream & is )
         }
 
         // read parameters
-        boost::shared_ptr< FormationBPN::Param > param( new FormationBPN::Param );
+        std::shared_ptr< FormationBPN::Param > param( new Param() );
         if ( ! param->read( is ) )
         {
             std::cerr << __FILE__ << ':' << __LINE__ << ':'
@@ -846,8 +835,7 @@ FormationBPN::printConf( std::ostream & os ) const
             continue;
         }
 
-        std::map< int, boost::shared_ptr< FormationBPN::Param > >::const_iterator
-            it = M_param_map.find( unum );
+        std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
         if ( it == M_param_map.end() )
         {
             std::cerr << __FILE__ << ':' << __LINE__ << ':'

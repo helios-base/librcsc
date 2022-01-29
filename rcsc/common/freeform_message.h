@@ -32,8 +32,7 @@
 #ifndef RCSC_COMMON_FREEFORM_MESSAGE_H
 #define RCSC_COMMON_FREEFORM_MESSAGE_H
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <string>
 #include <iostream>
 
@@ -48,7 +47,7 @@ class FreeformMessage {
 public:
 
     //! pointer type
-    typedef boost::shared_ptr< const FreeformMessage > Ptr;
+    typedef std::shared_ptr< const FreeformMessage > Ptr;
 
 private:
 

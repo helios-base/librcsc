@@ -32,8 +32,7 @@
 #ifndef RCSC_COMMON_TEAM_GRAPHIC_H
 #define RCSC_COMMON_TEAM_GRAPHIC_H
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <vector>
 #include <map>
 #include <string>
@@ -68,7 +67,7 @@ public:
         const int M_cpp; //!< character per pixel of this tile
 
         //! shared color strings
-        std::vector< boost::shared_ptr< std::string > > M_colors;
+        std::vector< std::shared_ptr< std::string > > M_colors;
         //! pixel lines
         std::vector< std::string > M_pixel_lines;
 
@@ -117,7 +116,7 @@ public:
           \brief get used color strings
           \return color string container
         */
-        const std::vector< boost::shared_ptr< std::string > > & colors() const
+        const std::vector< std::shared_ptr< std::string > > & colors() const
           {
               return M_colors;
           }
@@ -135,7 +134,7 @@ public:
           \brief add xpm color data string
           \param color pointer to the color data string
         */
-        void addColor( boost::shared_ptr< std::string > color )
+        void addColor( std::shared_ptr< std::string > color )
           {
               M_colors.push_back( color );
           }
@@ -158,8 +157,8 @@ public:
     };
 
 
-    typedef boost::shared_ptr< XpmTile > Ptr; //!< XpmTile pointer
-    typedef boost::shared_ptr< const XpmTile > ConstPtr; //!< XpmTile pointer
+    typedef std::shared_ptr< XpmTile > Ptr; //!< XpmTile pointer
+    typedef std::shared_ptr< const XpmTile > ConstPtr; //!< XpmTile pointer
     typedef std::pair< int, int > Index; //!<  xpm tile index
     typedef std::map< Index, const Ptr > Map; //!< xpm tile map
 
@@ -169,7 +168,7 @@ private:
     int M_cpp; //!< char per pixel
 
     //! color data strings
-    std::vector< boost::shared_ptr< std::string > > M_colors;
+    std::vector< std::shared_ptr< std::string > > M_colors;
 
     //! 8x8 xpm tiles
     Map M_tiles;
@@ -208,7 +207,7 @@ public:
       \brief get the xpm color data strings
       \return color strings container
     */
-    const std::vector< boost::shared_ptr< std::string > > & colors() const
+    const std::vector< std::shared_ptr< std::string > > & colors() const
       {
           return M_colors;
       }
@@ -256,7 +255,7 @@ private:
       \param str searched string
       \return string pointer. if not found null pointer is returned.
     */
-    boost::shared_ptr< std::string > findColor( const std::string & str );
+    std::shared_ptr< std::string > findColor( const std::string & str );
 
 public:
 

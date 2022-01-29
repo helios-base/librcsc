@@ -55,8 +55,8 @@ namespace rcsc {
 class WorldState {
 public:
 
-    typedef boost::shared_ptr< WorldStae > Ptr; //!< smart pointer type
-    typedef boost::shared_ptr< const WorldStae > ConstPtr; //!< const smart pointer type
+    typedef std::shared_ptr< WorldStae > Ptr; //!< smart pointer type
+    typedef std::shared_ptr< const WorldStae > ConstPtr; //!< const smart pointer type
 
     GameTime M_time; //!< game time of this state
     GameMode M_game_mode; //!< playmode data

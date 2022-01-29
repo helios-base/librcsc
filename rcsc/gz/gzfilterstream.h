@@ -37,8 +37,6 @@
 
 namespace rcsc {
 
-struct gzfilterstreambuf_impl;
-
 /////////////////////////////////////////////////////////////////////
 
 /*!
@@ -94,7 +92,10 @@ private:
     char_type * M_write_buf;
 
     //! Pimpl ideom.
-    boost::scoped_ptr< gzfilterstreambuf_impl > M_impl;
+    struct Impl;
+
+    //! Pimpl ideom.
+    std::unique_ptr< Impl > M_impl;
     /*!
       current level of compression/decompression.
       -1 means that data is handled without modification.

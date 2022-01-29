@@ -32,8 +32,7 @@
 #ifndef RCSC_COMMON_SAY_MESSAGE_H
 #define RCSC_COMMON_SAY_MESSAGE_H
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <string>
 #include <iostream>
 
@@ -48,7 +47,7 @@ class SayMessage {
 public:
 
     //! definition of the smart pointer type.
-    typedef boost::shared_ptr< const SayMessage > Ptr;
+    typedef std::shared_ptr< const SayMessage > Ptr;
 
 private:
 

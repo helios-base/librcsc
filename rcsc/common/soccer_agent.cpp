@@ -89,7 +89,7 @@ SoccerAgent::init( CmdLineParser & cmd_parser )
 
 */
 void
-SoccerAgent::setClient( boost::shared_ptr< AbstractClient > client )
+SoccerAgent::setClient( std::shared_ptr< AbstractClient > client )
 {
     assert( client );
 

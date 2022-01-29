@@ -49,7 +49,7 @@ namespace rcsc {
   \class GZCompressorImpl
   \brief the implementation of gzip compressor
  */
-class GZCompressorImpl {
+class GZCompressor::Impl {
 private:
 #ifdef HAVE_LIBZ
     z_stream M_stream;
@@ -65,9 +65,9 @@ public:
       \param level gzip compression level
      */
     explicit
-    GZCompressorImpl( const int level )
+    Impl( const int level )
 #ifdef HAVE_LIBZ
-        : M_out_buffer( NULL )
+        : M_out_buffer( nullptr )
         , M_out_size( 0 )
         , M_out_avail( 0 )
 #endif
@@ -75,7 +75,7 @@ public:
 #ifdef HAVE_LIBZ
           M_stream.zalloc = Z_NULL;
           M_stream.zfree = Z_NULL;
-          M_stream.opaque = NULL;
+          M_stream.opaque = nullptr;
 
           int lv = std::max( Z_BEST_SPEED, level );
           lv = std::min( level, Z_BEST_COMPRESSION );
@@ -88,7 +88,7 @@ public:
     /*!
       \brief cleaned up the memory
      */
-    ~GZCompressorImpl()
+    ~Impl()
       {
 #ifdef HAVE_LIBZ
           deflateEnd( &M_stream );
@@ -123,12 +123,12 @@ public:
           dest.clear();
 #ifdef HAVE_LIBZ
           // allocate output buffer
-          if ( M_out_buffer == NULL )
+          if ( M_out_buffer == nullptr )
           {
               M_out_avail = static_cast< int >( src_size * 1.01 + 12 );
               M_out_buffer = static_cast< char * >( std::malloc( M_out_avail ) );
 
-              if ( M_out_buffer == NULL )
+              if ( M_out_buffer == nullptr )
               {
                   return Z_MEM_ERROR;
               }
@@ -150,7 +150,7 @@ public:
                   M_out_buffer
                       = static_cast< char * >( std::realloc( M_out_buffer,
                                                              M_out_avail + extra ) );
-                  if ( M_out_buffer == NULL )
+                  if ( M_out_buffer == nullptr )
                   {
                       err = Z_MEM_ERROR;
                       break;
@@ -194,7 +194,7 @@ public:
   \class GZDecompressorImpl
   \brief the implementation of gzip decompressor
  */
-class GZDecompressorImpl {
+class GZDecompressor::Impl {
 private:
 #ifdef HAVE_LIBZ
     z_stream M_stream;
@@ -204,9 +204,9 @@ private:
     int M_out_avail;
 #endif
 public:
-    GZDecompressorImpl()
+    Impl()
 #ifdef HAVE_LIBZ
-        : M_out_buffer( NULL )
+        : M_out_buffer( nullptr )
         , M_out_size( 0 )
         , M_out_avail( 0 )
 #endif
@@ -214,13 +214,13 @@ public:
 #ifdef HAVE_LIBZ
           M_stream.zalloc = Z_NULL;
           M_stream.zfree = Z_NULL;
-          M_stream.opaque = NULL;
+          M_stream.opaque = nullptr;
 
           inflateInit( &M_stream );
 #endif
       }
 
-    ~GZDecompressorImpl()
+    ~Impl()
       {
 #ifdef HAVE_LIBZ
           inflateEnd( &M_stream );
@@ -241,12 +241,12 @@ public:
           dest.clear();
 #ifdef HAVE_LIBZ
           // allocate output buffer
-          if ( M_out_buffer == NULL )
+          if ( M_out_buffer == nullptr )
           {
               M_out_avail = src_size * 2;
               M_out_buffer
                   = static_cast< char * >( std::malloc( M_out_avail ) );
-              if ( M_out_buffer == NULL )
+              if ( M_out_buffer == nullptr )
               {
                   return Z_MEM_ERROR;
               }
@@ -269,7 +269,7 @@ public:
                   M_out_buffer
                       = static_cast< char * >( std::realloc( M_out_buffer,
                                                              M_out_avail + extra ) );
-                  if ( M_out_buffer == NULL )
+                  if ( M_out_buffer == nullptr )
                   {
                       err = Z_MEM_ERROR;
                       break;
@@ -315,7 +315,7 @@ public:
 
 */
 GZCompressor::GZCompressor( const int level )
-    : M_impl( new GZCompressorImpl( level ) )
+    : M_impl( new Impl( level ) )
 {
 
 }
@@ -359,7 +359,7 @@ GZCompressor::compress( const char * src_buf,
 
 */
 GZDecompressor::GZDecompressor()
-    : M_impl( new GZDecompressorImpl() )
+    : M_impl( new Impl() )
 {
 
 }

@@ -81,7 +81,7 @@ private:
 
     Localization * M_localize; //!< localization module
     InterceptTable * M_intercept_table; //!< interception info table
-    boost::shared_ptr< AudioMemory > M_audio_memory; //!< heard deqinfo memory
+    std::shared_ptr< AudioMemory > M_audio_memory; //!< heard deqinfo memory
     PenaltyKickState * M_penalty_kick_state; //!< penalty kick mode status
 
     //////////////////////////////////////////////////
@@ -267,7 +267,7 @@ public:
       \param memory pointer to the memory instance. This must be
       a dynamically allocated object.
      */
-    void setAudioMemory( boost::shared_ptr< AudioMemory > memory );
+    void setAudioMemory( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief set server param. this method have to be called only once just after server_param message received.
@@ -1263,7 +1263,7 @@ public:
       \param predicate predicate object for the player condition matching.
       \return container of AbstractPlayer pointer.
      */
-    AbstractPlayerObject::Cont getPlayers( boost::shared_ptr< const PlayerPredicate > predicate ) const;
+    AbstractPlayerObject::Cont getPlayers( std::shared_ptr< const PlayerPredicate > predicate ) const;
 
     /*!
       \brief get the new container of AbstractPlayer matched with the predicate.
@@ -1279,7 +1279,7 @@ public:
       \param predicate predicate object for the player condition matching.
      */
     void getPlayers( AbstractPlayerObject::Cont & result,
-                     boost::shared_ptr< const PlayerPredicate > predicate ) const;
+                     std::shared_ptr< const PlayerPredicate > predicate ) const;
 
     /*!
       \brief get the number of players that satisfy an input predicate.
@@ -1293,7 +1293,7 @@ public:
       \param predicate predicate predicate object for the player condition matching.
       \return number of players.
      */
-    size_t countPlayer( boost::shared_ptr< const PlayerPredicate > predicate ) const;
+    size_t countPlayer( std::shared_ptr< const PlayerPredicate > predicate ) const;
 
     /*!
       \brief get a goalie teammate (include self)

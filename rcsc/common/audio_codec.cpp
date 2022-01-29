@@ -167,14 +167,14 @@ AudioCodec::createMap( const int shift )
 
 */
 bool
-AudioCodec::encodeInt64ToStr( const boost::int64_t & ival,
+AudioCodec::encodeInt64ToStr( const std::int64_t & ival,
                               const int len,
                               std::string & to ) const
 {
     std::vector< int > remainder_values;
     remainder_values.reserve( len );
 
-    boost::int64_t divided = ival;
+    std::int64_t divided = ival;
 
     const int char_size = static_cast< int >( M_char_set.size() );
 
@@ -222,14 +222,14 @@ AudioCodec::encodeInt64ToStr( const boost::int64_t & ival,
 */
 bool
 AudioCodec::decodeStrToInt64( const std::string & from,
-                              boost::int64_t * to ) const
+                              std::int64_t * to ) const
 {
     if ( from.empty() )
     {
         return false;
     }
 
-    boost::int64_t rval = 0;
+    std::int64_t rval = 0;
     int digit_count = from.length() - 1;
 
     const int char_size = static_cast< int >( M_char_set.length() );
@@ -250,8 +250,8 @@ AudioCodec::decodeStrToInt64( const std::string & from,
         }
 
         rval
-            += static_cast< boost::int64_t >( it->second )
-            * static_cast< boost::int64_t >
+            += static_cast< std::int64_t >( it->second )
+            * static_cast< std::int64_t >
             ( std::pow( static_cast< double >( char_size ), digit_count ) );
     }
 
@@ -331,17 +331,17 @@ AudioCodec::decodeCharToPercentage( const char ch ) const
 /*!
 
 */
-boost::int32_t
+std::int32_t
 AudioCodec::posToBit18( const Vector2D & pos ) const
 {
-    boost::int32_t rval = 0;
+    std::int32_t rval = 0;
 
     // pos.x value -> 9 bits (=[0,511])
     {
         double x = min_max( -52.0, pos.x, 52.0 );
         x += 52.0;
         x *= ( 511.0 / 104.0 ); // x /= (104.0/511.0);
-        rval |= static_cast< boost::int32_t >( rint( x ) );
+        rval |= static_cast< std::int32_t >( rint( x ) );
     }
 
     rval <<= 9; // 9 bits shift for next info
@@ -351,7 +351,7 @@ AudioCodec::posToBit18( const Vector2D & pos ) const
         double y = min_max( -34.0, pos.y, 34.0 );
         y += 34.0;
         y *= ( 511.0 / 68.0 ); // y /= (68.0/511.0);
-        rval |= static_cast< boost::int32_t >( rint( y ) );
+        rval |= static_cast< std::int32_t >( rint( y ) );
     }
 
     return rval;
@@ -362,18 +362,18 @@ AudioCodec::posToBit18( const Vector2D & pos ) const
 
 */
 void
-AudioCodec::bit18ToPos( const boost::int32_t & val,
+AudioCodec::bit18ToPos( const std::int32_t & val,
                         Vector2D * pos ) const
 {
     // pos.x
     {
-        boost::int32_t ix = ( val >> 9 ) & MASK_9;
+        std::int32_t ix = ( val >> 9 ) & MASK_9;
         pos->x = ix * ( 104.0 / 511.0 ) - 52.0;
     }
 
     // pos.y
     {
-        boost::int32_t iy = val & MASK_9;
+        std::int32_t iy = val & MASK_9;
         pos->y = iy * ( 68.0 / 511.0 ) - 34.0;
     }
 }
@@ -383,17 +383,17 @@ AudioCodec::bit18ToPos( const boost::int32_t & val,
 /*!
 
 */
-boost::int32_t
+std::int32_t
 AudioCodec::posToBit19( const Vector2D & pos ) const
 {
-    boost::int32_t rval = 0;
+    std::int32_t rval = 0;
 
     // pos.x value -> 10 bits (=[0,1023])
     {
         double x = min_max( -52.5, pos.x, 52.5 );
         x += 52.5;
         x *= ( 1023.0 / 105.0 ); // x /= (105.0/1023.0);
-        rval |= static_cast< boost::int32_t >( rint( x ) );
+        rval |= static_cast< std::int32_t >( rint( x ) );
     }
 
     rval <<= 9; // 9 bits shift for next info
@@ -403,7 +403,7 @@ AudioCodec::posToBit19( const Vector2D & pos ) const
         double y = min_max( -34.0, pos.y, 34.0 );
         y += 34.0;
         y *= ( 511.0 / 68.0 ); // y /= (68.0/511.0);
-        rval |= static_cast< boost::int32_t >( rint( y ) );
+        rval |= static_cast< std::int32_t >( rint( y ) );
     }
 
     return rval;
@@ -414,18 +414,18 @@ AudioCodec::posToBit19( const Vector2D & pos ) const
 
 */
 void
-AudioCodec::bit19ToPos( const boost::int32_t & val,
+AudioCodec::bit19ToPos( const std::int32_t & val,
                         Vector2D * pos ) const
 {
     // pos.x
     {
-        boost::int32_t ix = ( val >> 9 ) & MASK_10;
+        std::int32_t ix = ( val >> 9 ) & MASK_10;
         pos->x = ix * ( 105.0 / 1023.0 ) - 52.5;
     }
 
     // pos.y
     {
-        boost::int32_t iy = val & MASK_9;
+        std::int32_t iy = val & MASK_9;
         pos->y = iy * ( 68.0 / 511.0 ) - 34.0;
     }
 }
@@ -434,13 +434,13 @@ AudioCodec::bit19ToPos( const boost::int32_t & val,
 /*!
 
 */
-boost::int32_t
+std::int32_t
 AudioCodec::posVelToBit31( const Vector2D & pos,
                            const Vector2D & vel ) const
 {
     const double max_speed = ServerParam::i().ballSpeedMax();
 
-    boost::int32_t rval = posToBit19( pos );
+    std::int32_t rval = posToBit19( pos );
 
 #if 1
     {
@@ -449,7 +449,7 @@ AudioCodec::posVelToBit31( const Vector2D & pos,
         rval <<= 5;
         double vx = std::min( vel.absX(), max_speed );
         vx *= ( 31.0 / max_speed );
-        rval |= static_cast< boost::int32_t >( rint( vx ) );
+        rval |= static_cast< std::int32_t >( rint( vx ) );
     }
     {
         rval <<= 1;
@@ -457,7 +457,7 @@ AudioCodec::posVelToBit31( const Vector2D & pos,
         rval <<= 5;
         double vy = std::min( vel.absY(), max_speed );
         vy *= ( 31.0 / max_speed );
-        rval |= static_cast< boost::int32_t >( rint( vy ) );
+        rval |= static_cast< std::int32_t >( rint( vy ) );
     }
 #else
     rval <<= 6; // 6 bits shift for next info
@@ -467,7 +467,7 @@ AudioCodec::posVelToBit31( const Vector2D & pos,
         double vx = min_max( -max_speed, vel.x, max_speed );
         vx += max_speed;
         vx *= ( 63.0 / ( max_speed*2.0 ) );
-        rval |= static_cast< boost::int32_t >( rint( vx ) );
+        rval |= static_cast< std::int32_t >( rint( vx ) );
     }
 
     rval <<= 6; // 6 bits shift for next info
@@ -477,7 +477,7 @@ AudioCodec::posVelToBit31( const Vector2D & pos,
         double vy = min_max( -max_speed, vel.y, max_speed );
         vy += max_speed;
         vy *= ( 63.0 / ( max_speed*2.0 ) );
-        rval |= static_cast< boost::int32_t >( rint( vy ) );
+        rval |= static_cast< std::int32_t >( rint( vy ) );
     }
 #endif
 
@@ -489,7 +489,7 @@ AudioCodec::posVelToBit31( const Vector2D & pos,
 
 */
 void
-AudioCodec::bit31ToPosVel( const boost::int32_t & val,
+AudioCodec::bit31ToPosVel( const std::int32_t & val,
                            Vector2D * pos,
                            Vector2D * vel ) const
 {
@@ -499,7 +499,7 @@ AudioCodec::bit31ToPosVel( const boost::int32_t & val,
 
 #if 1
     {
-        boost::int32_t ivx = ( val >> 6 ) & MASK_5;
+        std::int32_t ivx = ( val >> 6 ) & MASK_5;
         vel->x = ivx * ( max_speed / 31.0 );
         if ( ( val >> 11 ) & MASK_1 )
         {
@@ -507,7 +507,7 @@ AudioCodec::bit31ToPosVel( const boost::int32_t & val,
         }
     }
     {
-        boost::int32_t ivy = val & MASK_5;
+        std::int32_t ivy = val & MASK_5;
         vel->y = ivy * ( max_speed / 31.0 );
         if ( ( val >> 5 ) & MASK_1 )
         {
@@ -517,13 +517,13 @@ AudioCodec::bit31ToPosVel( const boost::int32_t & val,
 #else
     // vel.x
     {
-        boost::int32_t ivx = ( val >> 6 ) & MASK_6;
+        std::int32_t ivx = ( val >> 6 ) & MASK_6;
         vel->x = ivx * ( ( max_speed*2.0 ) / 63.0 ) - max_speed;
     }
 
     // vel.y
     {
-        boost::int32_t ivy = val & MASK_6;
+        std::int32_t ivy = val & MASK_6;
         vel->y = ivy * ( ( max_speed*2.0 ) / 63.0 ) - max_speed;
     }
 #endif
@@ -538,7 +538,7 @@ AudioCodec::encodePosVelToStr5( const Vector2D & pos,
                                 const Vector2D & vel,
                                 std::string & to ) const
 {
-    boost::int64_t ival = posVelToBit31( pos, vel );
+    std::int64_t ival = posVelToBit31( pos, vel );
 
     //std::cout << " ival dec = "<< std::dec << ival << std::endl;
     //std::cout << " ival hex = "<< std::hex << ival << std::endl;
@@ -560,14 +560,14 @@ AudioCodec::decodeStr5ToPosVel( const std::string & from,
         return false;
     }
 
-    boost::int64_t read_val = 0;
+    std::int64_t read_val = 0;
 
     if ( ! decodeStrToInt64( from, &read_val ) )
     {
         return false;
     }
 
-    bit31ToPosVel( static_cast< boost::int32_t >( read_val ),
+    bit31ToPosVel( static_cast< std::int32_t >( read_val ),
                    pos, vel );
 
     return true;
@@ -581,9 +581,9 @@ bool
 AudioCodec::encodePosToStr3( const Vector2D & pos,
                              std::string & to ) const
 {
-    boost::int32_t ival = posToBit18( pos );
+    std::int32_t ival = posToBit18( pos );
 
-    return encodeInt64ToStr( static_cast< boost::int64_t >( ival ),
+    return encodeInt64ToStr( static_cast< std::int64_t >( ival ),
                              3, to );
 }
 
@@ -600,7 +600,7 @@ AudioCodec::decodeStr3ToPos( const std::string & from,
         return false;
     }
 
-    boost::int64_t read_val = 0;
+    std::int64_t read_val = 0;
 
     if ( ! decodeStrToInt64( from, &read_val ) )
     {
@@ -609,7 +609,7 @@ AudioCodec::decodeStr3ToPos( const std::string & from,
 
     if ( pos )
     {
-        bit18ToPos( static_cast< boost::int32_t >( read_val ), pos );
+        bit18ToPos( static_cast< std::int32_t >( read_val ), pos );
     }
 
     return true;
@@ -629,10 +629,10 @@ AudioCodec::encodeUnumPosToStr4( const int unum,
         return false;
     }
 
-    boost::int64_t ival = posToBit19( pos );
+    std::int64_t ival = posToBit19( pos );
 
     ival <<= 4;
-    ival |= static_cast< boost::int64_t >( unum ); // 4 bits
+    ival |= static_cast< std::int64_t >( unum ); // 4 bits
 
     return encodeInt64ToStr( ival, 4, to );
 }
@@ -651,14 +651,14 @@ AudioCodec::decodeStr4ToUnumPos( const std::string & from,
         return false;
     }
 
-    boost::int64_t read_val = 0;
+    std::int64_t read_val = 0;
 
     if ( ! decodeStrToInt64( from, &read_val ) )
     {
         return false;
     }
 
-    boost::int32_t read_val32 = static_cast< boost::int32_t >( read_val );
+    std::int32_t read_val32 = static_cast< std::int32_t >( read_val );
 
     if ( unum )
     {

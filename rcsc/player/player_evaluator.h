@@ -50,8 +50,8 @@ namespace rcsc {
  */
 class PlayerEvaluator {
 public:
-    typedef boost::shared_ptr< PlayerEvaluator > Ptr;
-    typedef boost::shared_ptr< const PlayerEvaluator > ConstPtr;
+    typedef std::shared_ptr< PlayerEvaluator > Ptr;
+    typedef std::shared_ptr< const PlayerEvaluator > ConstPtr;
 
 protected:
     /*!

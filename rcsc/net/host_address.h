@@ -32,10 +32,9 @@
 #ifndef RCSC_NET_HOST_ADDRESS_H
 #define RCSC_NET_HOST_ADDRESS_H
 
-#include <boost/scoped_ptr.hpp>
-#include <boost/cstdint.hpp>
-
+#include <memory>
 #include <string>
+#include <cstdint>
 
 struct sockaddr_in;
 
@@ -43,8 +42,8 @@ namespace rcsc {
 
 class HostAddress {
 public:
-    typedef boost::uint16_t PortNumber; //!< port number type
-    typedef boost::uint32_t IPV4Address; //!< binary ipv4 host address type
+    typedef std::uint16_t PortNumber; //!< port number type
+    typedef std::uint32_t IPV4Address; //!< binary ipv4 host address type
     typedef struct sockaddr_in AddrType; //!< binary ipv4 host address type
 
 private:
@@ -52,7 +51,7 @@ private:
     class Impl; //!< pimpl idiom
 
     //! internal implementation object
-    boost::scoped_ptr< Impl > M_impl;
+    std::unique_ptr< Impl > M_impl;
 
 public:
 

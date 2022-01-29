@@ -144,7 +144,7 @@ bool
 OnlineClient::connectTo( const char * hostname,
                          const int port )
 {
-    M_socket = boost::shared_ptr< UDPSocket >( new UDPSocket( hostname, port ) );
+    M_socket = std::shared_ptr< UDPSocket >( new UDPSocket( hostname, port ) );
 
     if ( ! M_socket
          || M_socket->fd() == -1 )
