@@ -103,13 +103,18 @@ private:
     std::list< Vector2D > M_pos_history;
 
     // not used
-    BallObject( const BallObject & ball );
+    BallObject( const BallObject & ball ) = delete;
 
 public:
     /*!
       \brief constructor. initialize member variables
     */
     BallObject();
+
+    /*!
+      \brief substitition operator
+     */
+    BallObject & operator=( const BallObject & ball) = default;
 
     /*!
       \brief set accuracy count threshold values.
