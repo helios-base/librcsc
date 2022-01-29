@@ -35,8 +35,7 @@
 
 #include "rbf.h"
 
-#include <boost/random.hpp>
-
+#include <random>
 #include <algorithm>
 #include <numeric>
 #include <string>
@@ -51,11 +50,11 @@ namespace rcsc {
 */
 RBFNetwork::Unit::Unit( const std::size_t input_dim,
                         const std::size_t output_dim )
-    : center_( input_dim, 0.0 )
-    , weights_( output_dim, 0.0 )
-    , delta_weights_( output_dim, 0.0 )
-    , sigma_( 100.0 )
-    , delta_sigma_( 0.0 )
+    : center_( input_dim, 0.0 ),
+      weights_( output_dim, 0.0 ),
+      delta_weights_( output_dim, 0.0 ),
+      sigma_( 100.0 ),
+      delta_sigma_( 0.0 )
 {
 
 }
@@ -69,7 +68,10 @@ RBFNetwork::Unit::randomize( const double & min_weight,
                              const double & max_weight,
                              const double & initial_sigma )
 {
-    static boost::mt19937 gen( std::time( 0 ) );
+    //static std::mt19937 s_engine( std::random_device()() );
+    // static std::random_device rng;
+    // static std::mt19937 s_engine( rng() );
+    static std::mt19937 s_engine( std::time( 0 ) );
 
     double min_w = min_weight;
     double max_w = max_weight;
@@ -79,13 +81,13 @@ RBFNetwork::Unit::randomize( const double & min_weight,
         max_w = min_weight;
     }
 
-    boost::uniform_real<> dst( min_w, max_w );
-    boost::variate_generator< boost::mt19937 &, boost::uniform_real<> >
-        rng( gen, dst );
+    std::uniform_real_distribution<> dst( min_w, max_w );
 
     std::generate( weights_.begin(),
                    weights_.end(),
-                   rng );
+                   [&]() {
+                       return dst( s_engine );
+                   } );
 
     sigma_ = initial_sigma;
 }
@@ -96,13 +98,13 @@ RBFNetwork::Unit::randomize( const double & min_weight,
 */
 RBFNetwork::RBFNetwork( const std::size_t input_dim,
                         const std::size_t output_dim )
-        : M_input_dim( input_dim )
-        , M_output_dim( output_dim )
-        , M_eta( 0.1 )
-        , M_alpha( 0.5 )
-        , M_min_weight( -100.0 )
-        , M_max_weight( 100.0 )
-        , M_initial_sigma( 100.0 )
+        : M_input_dim( input_dim ),
+          M_output_dim( output_dim ),
+          M_eta( 0.1 ),
+          M_alpha( 0.5 ),
+          M_min_weight( -100.0 ),
+          M_max_weight( 100.0 ),
+          M_initial_sigma( 100.0 )
 {
 
 }

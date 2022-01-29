@@ -32,7 +32,7 @@
 #ifndef RCSC_PLAYER_SOCCER_ACTION_H
 #define RCSC_PLAYER_SOCCER_ACTION_H
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace rcsc {
 

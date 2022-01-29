@@ -32,8 +32,7 @@
 #ifndef RCSC_PLAYER_SOCCER_INTENTION_H
 #define RCSC_PLAYER_SOCCER_INTENTION_H
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <string>
 #include <queue>
 

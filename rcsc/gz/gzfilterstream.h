@@ -115,7 +115,7 @@ public:
       \param level gzip compression level
       \param buf_size allocated buffer size (default: 8192)
 
-      Default constructor creates an internal file buffer using boost::scoped_ptr.
+      Default constructor creates an internal file buffer using unique_ptr.
       This buffer is deleted automatically.
     */
     explicit

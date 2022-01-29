@@ -37,7 +37,7 @@
 
 #include <rcsc/math_util.h>
 
-#include <boost/random.hpp>
+#include <random>
 #include <sstream>
 #include <algorithm>
 #include <ctime>
@@ -70,11 +70,10 @@ FormationBPN::Param::Param()
 void
 FormationBPN::Param::randomize()
 {
-    static boost::mt19937 gen( std::time( 0 ) );
-    boost::uniform_real<> dst( -0.5, 0.5 );
-    boost::variate_generator< boost::mt19937 &, boost::uniform_real<> > rng( gen, dst );
+    static std::mt19937 s_engine( std::time( 0 ) );
+    std::uniform_real_distribution<> dst( -0.5, 0.5 );
 
-    M_net.randomize( rng );
+    M_net.randomize( [&](){ return dst( s_engine ); } );
 }
 
 /*-------------------------------------------------------------------*/

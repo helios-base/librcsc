@@ -42,8 +42,7 @@
 #include <rcsc/game_time.h>
 #include <rcsc/types.h>
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <string>
 
 namespace rcsc {

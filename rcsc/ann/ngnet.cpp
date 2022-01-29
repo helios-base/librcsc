@@ -35,8 +35,8 @@
 
 #include "ngnet.h"
 
-#include <boost/random.hpp>
-
+#include <iterator>
+#include <random>
 #include <algorithm>
 #include <numeric>
 #include <limits>
@@ -68,7 +68,7 @@ NGNet::Unit::randomize( const double & min_weight,
                         const double & max_weight,
                         const double & initial_sigma )
 {
-    static boost::mt19937 gen( std::time( 0 ) );
+    static std::mt19937 s_engine( std::time( 0 ) );
 
     double min_w = min_weight;
     double max_w = max_weight;
@@ -78,12 +78,13 @@ NGNet::Unit::randomize( const double & min_weight,
         max_w = min_weight;
     }
 
-    boost::uniform_real<> dst( min_w, max_w );
-    boost::variate_generator< boost::mt19937 &, boost::uniform_real<> > rng( gen, dst );
+    std::uniform_real_distribution<> dst( min_w, max_w );
 
     std::generate( weights_.begin(),
                    weights_.end(),
-                   rng );
+                   [&]() {
+                       return dst( s_engine );
+                   } );
 
     sigma_ = initial_sigma;
 }
@@ -93,11 +94,11 @@ NGNet::Unit::randomize( const double & min_weight,
 
 */
 NGNet::NGNet()
-        : M_eta( 0.1 )
-        , M_alpha( 0.9 )
-        , M_min_weight( -100.0 )
-        , M_max_weight( 100.0 )
-        , M_initial_sigma( 100.0 )
+        : M_eta( 0.1 ),
+          M_alpha( 0.9 ),
+          M_min_weight( -100.0 ),
+          M_max_weight( 100.0 ),
+          M_initial_sigma( 100.0 )
 {
 
 }

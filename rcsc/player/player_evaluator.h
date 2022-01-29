@@ -38,8 +38,7 @@
 #include <rcsc/geom/vector_2d.h>
 #include <rcsc/common/server_param.h>
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <cmath>
 
 namespace rcsc {

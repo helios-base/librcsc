@@ -41,10 +41,10 @@
 #include <rcsc/common/logger.h>
 #include <rcsc/geom/sector_2d.h>
 #include <rcsc/time/timer.h>
-#include <rcsc/random.h>
 #include <rcsc/math_util.h>
 
 #include <algorithm>
+#include <random>
 
 using std::min;
 using std::max;
@@ -806,7 +806,7 @@ LocalizationDefault::Impl::resamplePoints( const VisualSensor::MarkerT & marker,
                                            const double & self_face,
                                            const double & self_face_err )
 {
-    static boost::mt19937 s_engine( 49827140 );
+    static std::mt19937 s_engine( 49827140 );
     static const size_t max_count = 50;
 
     const std::size_t count = M_points.size();
@@ -830,8 +830,7 @@ LocalizationDefault::Impl::resamplePoints( const VisualSensor::MarkerT & marker,
     // x & y are generated independently.
     // result may not be within current candidate sector
 
-    boost::uniform_real<> xy_dst( -0.01, 0.01 );
-    boost::variate_generator< boost::mt19937&, boost::uniform_real<> > xy_rng( s_engine, xy_dst );
+    std::uniform_real_distribution<> xy_dst( -0.01, 0.01 );
 
     if ( count == 1 )
     {
@@ -843,7 +842,7 @@ LocalizationDefault::Impl::resamplePoints( const VisualSensor::MarkerT & marker,
         for ( size_t i = count; i < max_count; ++i )
         {
             M_points.push_back( M_points[0]
-                                + Vector2D( xy_rng(), xy_rng() ) );
+                                + Vector2D( xy_dst( s_engine ), xy_dst( s_engine ) ) );
 #ifdef DEBUG_PRINT_SHAPE
             dlog.addCircle( Logger::WORLD,
                             M_points.back(), 0.01,
@@ -860,13 +859,12 @@ LocalizationDefault::Impl::resamplePoints( const VisualSensor::MarkerT & marker,
                   (int)(max_count - count) );
 #endif
 
-    boost::uniform_smallint<> index_dst( 0, count - 1 );
-    boost::variate_generator< boost::mt19937&, boost::uniform_smallint<> > index_rng( s_engine, index_dst );
+    std::uniform_int_distribution<> index_dst( 0, count - 1 );
 
     for ( size_t i = count; i < max_count; ++i )
     {
-        M_points.push_back( M_points[index_rng()]
-                            + Vector2D( xy_rng(), xy_rng() ) );
+        M_points.push_back( M_points[index_dst( s_engine )]
+                            + Vector2D( xy_dst( s_engine ), xy_dst( s_engine ) ) );
 #ifdef DEBUG_PRINT_SHAPE
         dlog.addCircle( Logger::WORLD,
                         M_points.back(), 0.01,
