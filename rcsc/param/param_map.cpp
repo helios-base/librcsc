@@ -453,8 +453,7 @@ ParamMap::remove( const std::string & long_name )
     {
         if ( ! it_long->second->shortName().empty() )
         {
-            std::map< std::string, ParamEntity::Ptr >::iterator it_short
-                = M_short_name_map.find( it_long->second->shortName() );
+            std::map< std::string, ParamEntity::Ptr >::iterator it_short = M_short_name_map.find( it_long->second->shortName() );
             M_short_name_map.erase( it_short );
         }
 
@@ -515,14 +514,11 @@ ParamMap::printHelp( std::ostream & os,
 
     size_t width = 22;
 
-    for ( std::vector< ParamEntity::Ptr >::const_iterator it = M_parameters.begin(),
-              end = M_parameters.end();
-          it != end;
-          ++it )
+    for ( const ParamEntity::Ptr & p : M_parameters )
     {
         std::ostringstream ostr;
         ostr << "  ";
-        (*it)->printFormat( ostr );
+        p->printFormat( ostr );
 
         width = std::max( width, ostr.str().length() );
     }
@@ -532,19 +528,16 @@ ParamMap::printHelp( std::ostream & os,
     const std::size_t max_len = 80;
     const std::string indent( width, ' ' );
 
-    for ( std::vector< ParamEntity::Ptr >::const_iterator it = M_parameters.begin(),
-              end = M_parameters.end();
-          it != end;
-          ++it )
+    for ( const ParamEntity::Ptr & param : M_parameters )
     {
         std::ostringstream ostr;
         ostr << "  ";
-        (*it)->printFormat( ostr );
+        param->printFormat( ostr );
         os << ostr.str();
 
         const size_t padding = width - ostr.str().length();
 
-        const std::string & desc = (*it)->description();
+        const std::string & desc = param->description();
         if ( ! desc.empty() )
         {
             for ( size_t p = padding; p > 0; --p )
@@ -587,7 +580,7 @@ ParamMap::printHelp( std::ostream & os,
                 }
             }
 
-            if ( (*it)->isSwitch() )
+            if ( param->isSwitch() )
             {
                 os << "(Switch Default: ";
             }
@@ -596,7 +589,7 @@ ParamMap::printHelp( std::ostream & os,
                 os << "(Default: ";
             }
 
-            (*it)->printValue( os ) << ')';
+            param->printValue( os ) << ')';
         }
 
         os << '\n';
@@ -612,13 +605,10 @@ ParamMap::printHelp( std::ostream & os,
 std::ostream &
 ParamMap::printValues( std::ostream & os ) const
 {
-    for ( std::vector< ParamEntity::Ptr >::const_iterator it = M_parameters.begin(),
-              end = M_parameters.end();
-          it != end;
-          ++it )
+    for ( const ParamEntity::Ptr & param : M_parameters )
     {
-        os << (*it)->longName() << '\t';
-        (*it)->printValue( os );
+        os << param->longName() << '\t';
+        param->printValue( os );
         os << '\n';
     }
     return os << std::flush;

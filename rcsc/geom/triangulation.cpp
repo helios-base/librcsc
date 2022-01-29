@@ -114,8 +114,7 @@ Triangulation::addPoints( const PointCont & v )
 
     size_t size = 0;
 
-    const PointCont::const_iterator end = v.end();
-    for ( PointCont::const_iterator p = v.begin();
+    for ( PointCont::const_iterator p = v.begin(), end = v.end();
           p != end;
           ++p )
     {
@@ -220,10 +219,9 @@ Triangulation::compute()
     {
         in.segmentlist = static_cast< int * >( std::malloc( in.numberofsegments * 2 * sizeof( int ) ) );
 
-        const SegmentSet::const_iterator c_end = constraints.end();
         size_t i = 0;
-        for ( SegmentSet::const_iterator c = constraints.begin();
-              c != c_end;
+        for ( SegmentSet::const_iterator c = constraints.begin(), end = constraints.end();
+              c != end;
               ++c, ++i )
         {
             in.segmentlist[i * 2]     = static_cast< int >( c->first );
@@ -348,9 +346,8 @@ Triangulation::findTriangleContains( const Vector2D & point ) const
 {
     const PointCont & points = M_points;
 
-    const TriangleCont::const_iterator t_end = M_triangles.end();
-    for ( TriangleCont::const_iterator t = M_triangles.begin();
-          t != t_end;
+    for ( TriangleCont::const_iterator t = M_triangles.begin(), end = M_triangles.end();
+          t != end;
           ++t )
     {
         Vector2D rel1( points[t->v0_] - point );
@@ -382,10 +379,9 @@ Triangulation::findNearestPoint( const Vector2D & point ) const
     int index = -1;
     double min_dist2 = std::numeric_limits< double >::max();
 
-    const PointCont::const_iterator p_end = M_points.end();
     int i = 0;
-    for ( PointCont::const_iterator p = M_points.begin();
-          p != p_end;
+    for ( PointCont::const_iterator p = M_points.begin(), end = M_points.end();
+          p != end;
           ++p, ++i )
     {
         double d2 = p->dist2( point );

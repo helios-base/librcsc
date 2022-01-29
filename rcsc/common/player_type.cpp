@@ -1105,8 +1105,7 @@ PlayerTypeSet::print( std::ostream & os ) const
 {
     os << "All Player Types: n";
 
-    for ( Map::const_iterator it = M_player_type_map.begin(),
-              end = M_player_type_map.end();
+    for ( Map::const_iterator it = M_player_type_map.begin(), end = M_player_type_map.end();
           it != end;
           ++it )
     {

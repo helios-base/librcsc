@@ -189,8 +189,7 @@ VoronoiDiagramTest::testVoronoi()
     // check points
     //
     int n_points = 0;
-    for ( VoronoiDiagram::Vector2DCont::const_iterator p = v.vertices().begin(),
-              end = v.vertices().end();
+    for ( VoronoiDiagram::Vector2DCont::const_iterator p = v.vertices().begin(), end = v.vertices().end();
           p != end;
           ++p )
     {
@@ -206,8 +205,7 @@ VoronoiDiagramTest::testVoronoi()
     // check segments
     //
     int n_segments = 0;
-    for ( VoronoiDiagram::Segment2DCont::const_iterator s = v.segments().begin(),
-              end = v.segments().end();
+    for ( VoronoiDiagram::Segment2DCont::const_iterator s = v.segments().begin(), end = v.segments().end();
           s != end;
           ++s )
     {
@@ -226,8 +224,7 @@ VoronoiDiagramTest::testVoronoi()
     // check rays
     //
     int n_rays = 0;
-    for ( VoronoiDiagram::Ray2DCont::const_iterator r = v.rays().begin(),
-          end = v.rays().end();
+    for ( VoronoiDiagram::Ray2DCont::const_iterator r = v.rays().begin(), end = v.rays().end();
           r != end;
           ++r )
     {

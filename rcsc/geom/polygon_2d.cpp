@@ -103,8 +103,7 @@ Polygon2D::getBoundingBox() const
     double y_min = +DBL_MAX;
     double y_max = -DBL_MAX;
 
-    const std::vector< Vector2D >::const_iterator end = M_vertices.end();
-    for ( std::vector< Vector2D >::const_iterator p = M_vertices.begin();
+    for ( std::vector< Vector2D >::const_iterator p = M_vertices.begin(), end = M_vertices.end();
           p != end;
           ++p )
     {

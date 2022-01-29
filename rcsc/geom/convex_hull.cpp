@@ -550,11 +550,9 @@ ConvexHull::printInputPoints( std::ostream & os ) const
     //os << "set yrange [0:3]\n;"
     //os << "plot \"-\" using 1:2 with points\n";
 
-    for ( std::vector< Vector2D >::const_iterator p = M_input_points.begin();
-          p != M_input_points.end();
-          ++p )
+    for ( const Vector2D & p : M_input_points )
     {
-        os << p->x << ' ' << p->y << '\n';
+        os << p.x << ' ' << p.y << '\n';
     }
 
     //os << "end\n";
@@ -571,11 +569,9 @@ std::ostream &
 ConvexHull::printVertices( std::ostream & os ) const
 {
 
-    for ( VertexCont::const_iterator v = vertices().begin();
-          v != vertices().end();
-          ++v )
+    for ( const Vector2D & v : vertices() )
     {
-        os << v->x << ' ' << v->y << '\n';
+        os << v.x << ' ' << v.y << '\n';
     }
 
     return os << std::flush;
@@ -590,12 +586,10 @@ ConvexHull::printEdges( std::ostream & os ) const
 {
     //os << "plot \"-\" using 1:2 with lines\n";
 
-    for ( EdgeCont::const_iterator e = edges().begin();
-          e != edges().end();
-          ++e )
+    for ( const Segment2D & e : edges() )
     {
-        os << e->origin().x << ' ' << e->origin().y << '\n'
-           << e->terminal().x << ' ' << e->terminal().y << '\n'
+        os << e.origin().x << ' ' << e.origin().y << '\n'
+           << e.terminal().x << ' ' << e.terminal().y << '\n'
            << '\n';
     }
 

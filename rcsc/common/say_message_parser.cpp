@@ -246,8 +246,7 @@ InterceptMessageParser::parse( const int sender,
     }
     ++msg;
 
-    AudioCodec::CharToIntCont::const_iterator unum_it
-        = AudioCodec::i().charToIntMap().find( *msg );
+    AudioCodec::CharToIntCont::const_iterator unum_it = AudioCodec::i().charToIntMap().find( *msg );
     if ( unum_it == AudioCodec::i().charToIntMap().end()
          || unum_it->second <= 0
          || MAX_PLAYER*2 < unum_it->second )
@@ -262,8 +261,7 @@ InterceptMessageParser::parse( const int sender,
     }
     ++msg;
 
-    AudioCodec::CharToIntCont::const_iterator cycle
-        = AudioCodec::i().charToIntMap().find( *msg );
+    AudioCodec::CharToIntCont::const_iterator cycle = AudioCodec::i().charToIntMap().find( *msg );
     if ( cycle == AudioCodec::i().charToIntMap().end() )
     {
         std::cerr << "InterceptMessageParser::parse() "

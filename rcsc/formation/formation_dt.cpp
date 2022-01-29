@@ -463,13 +463,10 @@ FormationDT::train()
     M_triangulation.init( pitch );
     M_sample_vector.clear();
 
-    const SampleDataSet::DataCont::const_iterator end = M_samples->dataCont().end();
-    for ( SampleDataSet::DataCont::const_iterator it = M_samples->dataCont().begin();
-          it != end;
-          ++it )
+    for ( const SampleData & data : M_samples->dataCont() )
     {
-        M_triangulation.addVertex( it->ball_ );
-        M_sample_vector.push_back( *it );
+        M_triangulation.addVertex( data.ball_ );
+        M_sample_vector.push_back( data );
     }
 
     M_triangulation.compute();
