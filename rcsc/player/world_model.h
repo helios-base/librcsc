@@ -198,9 +198,9 @@ private:
     //////////////////////////////////////////////////
 
     //! not used
-    WorldModel( const WorldModel & );
+    WorldModel( const WorldModel & ) = delete;
     //! not used
-    WorldModel & operator=( const WorldModel & );
+    WorldModel & operator=( const WorldModel & ) = delete;
 
 public:
     /*!

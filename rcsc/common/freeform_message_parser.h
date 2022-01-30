@@ -52,9 +52,9 @@ private:
     const std::string M_type;
 
     // not used
-    FreeformMessageParser();
-    FreeformMessageParser( const FreeformMessageParser & );
-    FreeformMessageParser & operator=( const FreeformMessageParser & );
+    FreeformMessageParser() = delete;
+    FreeformMessageParser( const FreeformMessageParser & ) = delete;
+    FreeformMessageParser & operator=( const FreeformMessageParser & ) = delete;
 
 protected:
 
@@ -71,8 +71,7 @@ public:
       \brief virtual destructor.
      */
     virtual
-    ~FreeformMessageParser()
-      { }
+    ~FreeformMessageParser() = default;
 
     /*!
       \brief get the message type string.

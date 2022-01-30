@@ -84,11 +84,11 @@ private:
     std::vector< int > M_opponent_type_used_count;
 
     //! not used
-    PlayerTypeAnalyzer();
+    PlayerTypeAnalyzer() = delete;
     //! not used
-    PlayerTypeAnalyzer( const PlayerTypeAnalyzer & );
+    PlayerTypeAnalyzer( const PlayerTypeAnalyzer & ) = delete;
     //! not used
-    PlayerTypeAnalyzer & operator=( const PlayerTypeAnalyzer & );
+    PlayerTypeAnalyzer & operator=( const PlayerTypeAnalyzer & ) = delete;
 public:
     /*!
       \brief default constructor

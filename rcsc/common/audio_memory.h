@@ -449,8 +449,8 @@ protected:
 
 private:
     // not used
-    AudioMemory( const AudioMemory & );
-    AudioMemory & operator=( const AudioMemory & );
+    AudioMemory( const AudioMemory & ) = delete;
+    AudioMemory & operator=( const AudioMemory & ) = delete;
 
 public:
 
@@ -463,8 +463,7 @@ public:
       \brief virtual destructor
     */
     virtual
-    ~AudioMemory()
-      { }
+    ~AudioMemory() = default;
 
     // accessor methods
 

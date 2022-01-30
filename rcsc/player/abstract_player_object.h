@@ -101,9 +101,8 @@ private:
 
     int M_ball_reach_step; //!< estimated minimum ball interception step.
 
-
     // not used
-    AbstractPlayerObject();
+    AbstractPlayerObject() = delete;
 public:
 
     /*!
@@ -126,9 +125,7 @@ public:
       \brief destructor. nothing to do
     */
     virtual
-    ~AbstractPlayerObject()
-      { }
-
+    ~AbstractPlayerObject() = default;
 
     // ------------------------------------------
     /*!

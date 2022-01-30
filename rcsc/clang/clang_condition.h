@@ -69,16 +69,15 @@ public:
 private:
 
     // not used
-    CLangCondition( const CLangCondition & );
-    CLangCondition & operator=( const CLangCondition & );
+    CLangCondition( const CLangCondition & ) = delete;
+    CLangCondition & operator=( const CLangCondition & ) = delete;
 
 protected:
 
     /*!
       \brief protected constructor
      */
-    CLangCondition()
-      { }
+    CLangCondition() = default;
 
 public:
 
@@ -86,8 +85,7 @@ public:
       \brief virtual destructor
      */
     virtual
-    ~CLangCondition()
-      { }
+    ~CLangCondition() = default;
 
     /*!
       \brief get type id.
@@ -130,7 +128,7 @@ private:
     const bool M_value; //!< condition value
 
     // not used
-    CLangConditionBool();
+    CLangConditionBool() = delete;
 
 public:
 

@@ -53,8 +53,8 @@ private:
 
 
     // not used
-    LocalizationPFilter( const LocalizationPFilter & );
-    LocalizationPFilter & operator=( const LocalizationPFilter & );
+    LocalizationPFilter( const LocalizationPFilter & ) = delete;
+    LocalizationPFilter & operator=( const LocalizationPFilter & ) = delete;
 
 public:
     /*!

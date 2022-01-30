@@ -96,8 +96,8 @@ private:
     const CoachPlayerObject * M_fastest_intercept_opponent; //!< the opponent that the smallest ball reach step in opponents.
 
     // not used
-    CoachWorldState( const CoachWorldState & );
-    CoachWorldState & operator=( const CoachWorldState & );
+    CoachWorldState( const CoachWorldState & ) = delete;
+    CoachWorldState & operator=( const CoachWorldState & ) = delete;
 
 public:
 

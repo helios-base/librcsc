@@ -327,7 +327,7 @@ public:
         Vector2D M_voronoi_vertex; //!< candidate of the voronoi vertex
 
         // not used
-        Triangle();
+        Triangle() = delete;
     public:
 
         /*!
@@ -552,15 +552,14 @@ private:
     TriangleCont M_triangles;
 
     // not used
-    DelaunayTriangulation & operator=( const DelaunayTriangulation & );
+    DelaunayTriangulation & operator=( const DelaunayTriangulation & ) = delete;
 
 public:
 
     /*!
       \brief nothing to do
     */
-    DelaunayTriangulation()
-      { }
+    DelaunayTriangulation() = default;
 
     /*!
       \brief construct with considerable rectangle region

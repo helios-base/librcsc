@@ -53,8 +53,8 @@ private:
 
 
     // not used
-    LocalizationDefault( const LocalizationDefault & );
-    LocalizationDefault & operator=( const LocalizationDefault & );
+    LocalizationDefault( const LocalizationDefault & ) = delete;
+    LocalizationDefault & operator=( const LocalizationDefault & ) = delete;
 
 public:
     /*!

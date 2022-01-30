@@ -580,8 +580,8 @@ public:
     */
     explicit
     SelfPlayerPredicate( const WorldModel & wm )
-        : M_our_side( wm.ourSide() )
-        , M_self_unum( wm.self().unum() )
+        : M_our_side( wm.ourSide() ),
+          M_self_unum( wm.self().unum() )
       { }
 
     /*!
@@ -592,8 +592,8 @@ public:
     explicit
     SelfPlayerPredicate( const SideID our_side,
                          const int self_unum )
-        : M_our_side( our_side )
-        , M_self_unum( self_unum )
+        : M_our_side( our_side ),
+          M_self_unum( self_unum )
       { }
 
     /*!
@@ -1233,8 +1233,8 @@ public:
     */
     PointNearPlayerPredicate( const Vector2D & base_point,
                               const double & threshold )
-        : M_base_point( base_point )
-        , M_threshold2( threshold * threshold )
+        : M_base_point( base_point ),
+          M_threshold2( threshold * threshold )
       { }
 
     /*!
@@ -1283,8 +1283,8 @@ public:
     AbsAngleDiffLessPlayerPredicate( const Vector2D & base_point,
                                      const AngleDeg & base_angle,
                                      const double & degree_threshold )
-        : M_base_point( base_point )
-        , M_base_angle( base_angle ),
+        : M_base_point( base_point ),
+          M_base_angle( base_angle ),
           M_threshold( std::fabs( degree_threshold ) )
       { }
 

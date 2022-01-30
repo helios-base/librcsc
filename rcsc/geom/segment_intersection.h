@@ -48,7 +48,7 @@ private:
     Segment2D M_segment1; //!< second line segment
 
     // not used
-    SegmentIntersection();
+    SegmentIntersection() = delete;
 
 public:
 

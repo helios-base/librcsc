@@ -53,8 +53,8 @@ private:
     CLangMessage::ConstPtr M_message; //!< analyzed message object
 
     // not used
-    CLangParser( const CLangParser & );
-    CLangParser & operator=( const CLangParser & );
+    CLangParser( const CLangParser & ) = delete;
+    CLangParser & operator=( const CLangParser & ) = delete;
 
 public:
 

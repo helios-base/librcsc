@@ -56,16 +56,15 @@ public:
 private:
 
     // not used
-    SayMessageParser( const SayMessageParser & );
-    SayMessageParser & operator=( const SayMessageParser & );
+    SayMessageParser( const SayMessageParser & ) = delete;
+    SayMessageParser & operator=( const SayMessageParser & ) = delete;
 
 protected:
 
     /*!
       \brief protected constructer
      */
-    SayMessageParser()
-      { }
+    SayMessageParser() = default;
 
 public:
 
@@ -73,8 +72,7 @@ public:
       \brief virtual destruct. do nothing.
      */
     virtual
-    ~SayMessageParser()
-      { }
+    ~SayMessageParser() = default;
 
     /*!
       \brief pure virtual method that returns header character.

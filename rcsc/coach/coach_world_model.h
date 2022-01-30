@@ -147,8 +147,8 @@ private:
     int M_freeform_send_count; //!< the number of send out freeform message
 
     // not used
-    CoachWorldModel( const CoachWorldModel & );
-    CoachWorldModel & operator=( const CoachWorldModel & );
+    CoachWorldModel( const CoachWorldModel & ) = delete;
+    CoachWorldModel & operator=( const CoachWorldModel & ) = delete;
 
 public:
     /*!

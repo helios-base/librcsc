@@ -59,7 +59,7 @@ private:
     std::string M_right_team_name;
 
     // not used
-    TeamNameRenamer();
+    TeamNameRenamer() = delete;
 public:
 
     TeamNameRenamer( std::ostream & os,

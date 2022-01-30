@@ -55,7 +55,7 @@ private:
     const std::string M_realm;
 
     //! not used
-    ConfFileParser();
+    ConfFileParser() = delete;
 public:
     /*!
       \brief construct with file path and delimiters

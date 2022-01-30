@@ -124,10 +124,10 @@ private:
 
 
     // not used
-    ActionEffector();
+    ActionEffector() = delete;
     // nocopyable
-    ActionEffector( const ActionEffector & );
-    ActionEffector operator=( const ActionEffector & );
+    ActionEffector( const ActionEffector & ) = delete;
+    ActionEffector operator=( const ActionEffector & ) = delete;
 public:
     /*!
       \brief init member variables

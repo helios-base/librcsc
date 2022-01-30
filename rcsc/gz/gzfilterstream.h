@@ -103,9 +103,9 @@ private:
     int M_level;
 
     //! not used
-    gzfilterstreambuf( const gzfilterstreambuf & );
+    gzfilterstreambuf( const gzfilterstreambuf & ) = delete;
     //! not used
-    gzfilterstreambuf & operator=( const gzfilterstreambuf & );
+    gzfilterstreambuf & operator=( const gzfilterstreambuf & ) = delete;
 
 public:
 
@@ -197,9 +197,9 @@ private:
     gzfilterstreambuf M_filter_buf;
 
     //! not used
-    gzfilterstream( const gzfilterstream & );
+    gzfilterstream( const gzfilterstream & ) = delete;
     //! not used
-    gzfilterstream & operator=( const gzfilterstream & );
+    gzfilterstream & operator=( const gzfilterstream & ) = delete;
 
 public:
     /*!
@@ -251,9 +251,9 @@ private:
     gzfilterstreambuf M_filter_buf;
 
     //! not used
-    gzifilterstream( const gzifilterstream & );
+    gzifilterstream( const gzifilterstream & ) = delete;
     //! not used
-    gzifilterstream & operator=( const gzifilterstream & );
+    gzifilterstream & operator=( const gzifilterstream & ) = delete;
 
 public:
     /*!
@@ -305,9 +305,9 @@ private:
     gzfilterstreambuf M_filter_buf;
 
     //! not used.
-    gzofilterstream( const gzofilterstream & );
+    gzofilterstream( const gzofilterstream & ) = delete;
     //! not used.
-    gzofilterstream & operator=( const gzofilterstream & );
+    gzofilterstream & operator=( const gzofilterstream & ) = delete;
 public:
 
     /*!

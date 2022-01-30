@@ -47,25 +47,23 @@ class Condition {
 private:
 
     //! not used
-    Condition( const Condition & );
+    Condition( const Condition & ) = delete;
     //! not used
-    Condition & operator=( const Condition & );
+    Condition & operator=( const Condition & ) = delete;
 
 protected:
     /*!
       \brief nothing to do. but accessible only from derived
       classes.
      */
-    Condition()
-      { }
+    Condition() = default;
 
 public:
     /*!
       \brief nothing to do, but should be virtual.
      */
     virtual
-    ~Condition()
-      { }
+    ~Condition() = default;
 
     /*!
       \brief get the value of this condition.

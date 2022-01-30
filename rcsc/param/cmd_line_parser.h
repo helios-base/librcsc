@@ -59,7 +59,7 @@ private:
     std::vector< std::string > M_parsed_option_names;
 
     // not used
-    CmdLineParser();
+    CmdLineParser() = delete;
 public:
 
     /*!

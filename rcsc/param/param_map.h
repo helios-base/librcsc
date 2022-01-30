@@ -63,7 +63,7 @@ struct NegateBool {
 
 private:
     // not used
-    NegateBool();
+    NegateBool() = delete;
 };
 
 /*!
@@ -86,7 +86,7 @@ struct BoolSwitch {
 
 private:
     // not used
-    BoolSwitch();
+    BoolSwitch() = delete;
 };
 
 
@@ -121,7 +121,7 @@ struct NegateSwitch {
 
 private:
     // not used
-    NegateSwitch();
+    NegateSwitch() = delete;
 };
 
 /*-------------------------------------------------------------------*/
@@ -144,7 +144,7 @@ private:
     std::string M_description;
 
     //! not used
-    ParamEntity();
+    ParamEntity() = delete;
 
 protected:
 
@@ -493,7 +493,7 @@ private:
         //! reference to parameter container
         ParamMap & M_param_map;
         //! not used
-        Registrar();
+        Registrar() = delete;
     public:
         /*!
           \brief construct with parameter map

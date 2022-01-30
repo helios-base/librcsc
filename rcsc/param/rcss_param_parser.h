@@ -56,7 +56,7 @@ private:
     StrPairVec M_str_pairs;
 
     //! not used
-    RCSSParamParser();
+    RCSSParamParser() = delete;
 public:
     /*!
       \brief construct with original command line arguments

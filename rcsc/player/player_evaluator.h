@@ -86,7 +86,7 @@ private:
     const Vector2D M_point;
 
     // not used
-    AbsYDiffPlayerEvaluator();
+    AbsYDiffPlayerEvaluator() = delete;
 public:
     /*!
       \brief construct with base point
@@ -120,7 +120,7 @@ private:
     const AngleDeg M_base_angle;
 
     // not used
-    AbsAngleDiffPlayerEvaluator();
+    AbsAngleDiffPlayerEvaluator() = delete;
 public:
     /*!
       \brief construct with base point & angle
@@ -129,8 +129,8 @@ public:
      */
     AbsAngleDiffPlayerEvaluator( const Vector2D & base_point,
                                  const AngleDeg & base_angle )
-        : M_base_point( base_point )
-        , M_base_angle( base_angle )
+        : M_base_point( base_point ),
+          M_base_angle( base_angle )
       { }
 
     /*!
@@ -262,8 +262,6 @@ public:
       }
 };
 
-
-
 /*!
   \class PlayerEvaluatorComparator
   \brief compare evaluated values of two player objects
@@ -274,7 +272,7 @@ private:
     PlayerEvaluator::ConstPtr M_evaluator;
 
     // not used
-    PlayerEvaluatorComparator();
+    PlayerEvaluatorComparator() = delete;
 public:
     /*!
       \brief constructor

@@ -63,8 +63,8 @@ public:
     BallState M_ball; //!< ball instance
 
     // not used
-    WorldState( const WorldState & );
-    WorldState & operator=( const WorldState & );
+    WorldState( const WorldState & ) = delete;
+    WorldState & operator=( const WorldState & ) = delete;
 
 public:
     /*!

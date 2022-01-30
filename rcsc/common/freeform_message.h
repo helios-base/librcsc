@@ -54,9 +54,9 @@ private:
     const std::string M_type;
 
     // not used
-    FreeformMessage();
-    FreeformMessage( const FreeformMessage & );
-    FreeformMessage & operator=( const FreeformMessage & );
+    FreeformMessage() = delete;
+    FreeformMessage( const FreeformMessage & ) = delete;
+    FreeformMessage & operator=( const FreeformMessage & ) = delete;
 
 protected:
 
@@ -73,8 +73,7 @@ public:
       \brief virtual destructor.
     */
     virtual
-    ~FreeformMessage()
-      { }
+    ~FreeformMessage() = default;
 
     /*!
       \brief pure virtual method. get the message type strring.

@@ -52,16 +52,15 @@ public:
 private:
 
     // not used
-    SayMessage( const SayMessage & );
-    SayMessage & operator=( const SayMessage & );
+    SayMessage( const SayMessage & ) = delete;
+    SayMessage & operator=( const SayMessage & ) = delete;
 
 protected:
 
     /*!
       \brief protected constructer
     */
-    SayMessage()
-      { }
+    SayMessage() = default;
 
 public:
 
@@ -69,8 +68,7 @@ public:
       \brief virtual destruct. do nothing.
     */
     virtual
-    ~SayMessage()
-      { }
+    ~SayMessage() = default;
 
     /*!
       \brief pure virtual method. get the header character of this message

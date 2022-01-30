@@ -80,7 +80,12 @@ FormationSBSP::Role::Role( const Vector2D & attract,
 void
 FormationSBSP::Role::randomize()
 {
-    UniformReal rng( -1.0, 1.0 );
+    std::random_device seed_gen;
+    std::mt19937 engine( seed_gen() );
+    std::uniform_real_distribution<> dst( -1.0, 1.0 );
+    std::function rng = [&]() {
+                            return dst( engine );
+                        };
 
     pos_.x = 52.5 * rng();
     pos_.y = 34.0 * rng();

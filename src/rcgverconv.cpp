@@ -54,7 +54,7 @@ private:
     rcsc::rcg::Serializer::Ptr M_serializer;
 
     // not used
-    VersionConverter();
+    VersionConverter() = delete;
 public:
 
     VersionConverter( std::ostream & os,

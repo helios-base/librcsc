@@ -222,8 +222,8 @@ private:
     KickTable();
 
     // not used
-    KickTable( const KickTable & );
-    const KickTable & operator=( const KickTable & );
+    KickTable( const KickTable & ) = delete;
+    const KickTable & operator=( const KickTable & ) = delete;
 
 private:
 

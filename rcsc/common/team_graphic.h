@@ -72,7 +72,7 @@ public:
         std::vector< std::string > M_pixel_lines;
 
         // not used
-        XpmTile();
+        XpmTile() = delete;
     public:
 
         /*!

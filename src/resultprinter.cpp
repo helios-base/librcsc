@@ -96,9 +96,9 @@ private:
     rcsc::SideID M_last_penalty_taker_side;
 
     // not used
-    ResultPrinter();
-    ResultPrinter( const ResultPrinter & );
-    ResultPrinter & operator=( const ResultPrinter & );
+    ResultPrinter() = delete;
+    ResultPrinter( const ResultPrinter & ) = delete;
+    ResultPrinter & operator=( const ResultPrinter & ) = delete;
 
 public:
 

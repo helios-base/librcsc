@@ -105,7 +105,7 @@ public:
         std::string M_name; //!< formation name
         std::array< Role, 11 > M_roles; //!< role set
 
-        Param(); // not used
+        Param() = delete; // not used
     public:
 
         /*!

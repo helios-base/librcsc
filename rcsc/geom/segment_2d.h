@@ -53,7 +53,7 @@ private:
     Vector2D M_terminal; //!< terminal point
 
     //! not used
-    Segment2D();
+    Segment2D() = delete;
 
     bool checkIntersectsOnLine( const Vector2D & p ) const;
 

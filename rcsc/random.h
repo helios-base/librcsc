@@ -63,9 +63,9 @@ private:
       { }
 
     //! not used for singleton.
-    RandomEngine( const RandomEngine & );
+    RandomEngine( const RandomEngine & ) = delete;
     //! not used for singleton.
-    RandomEngine & operator=( const RandomEngine & );
+    RandomEngine & operator=( const RandomEngine & ) = delete;
 
 public:
 

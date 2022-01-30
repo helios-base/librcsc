@@ -52,24 +52,22 @@ public:
 
 private:
     //! not used
-    SoccerIntention( const SoccerIntention & );
+    SoccerIntention( const SoccerIntention & ) = delete;
     //! not used
-    SoccerIntention & operator=( const SoccerIntention & );
+    SoccerIntention & operator=( const SoccerIntention & ) = delete;
 
 protected:
     /*!
       \brief constructor is used only from derived class.
      */
-    SoccerIntention()
-      { }
+    SoccerIntention() = default;
 
 public:
     /*!
       \brief virtual destructor
      */
     virtual
-    ~SoccerIntention()
-      { }
+    ~SoccerIntention() = default;
 
     ///////////////////////////////////////////////
 

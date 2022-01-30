@@ -55,8 +55,8 @@ public:
 private:
 
     // not used
-    CLangMessage( const CLangMessage & );
-    CLangMessage & operator=( const CLangMessage & );
+    CLangMessage( const CLangMessage & ) = delete;
+    CLangMessage & operator=( const CLangMessage & ) = delete;
 
 protected:
 

@@ -54,7 +54,7 @@ private:
     std::shared_ptr< AudioMemory > M_memory;
 
     // not used
-    FreeMessageParser();
+    FreeMessageParser() = delete;
 
 public:
 
