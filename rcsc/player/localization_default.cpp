@@ -54,8 +54,6 @@ using std::max;
 // #define DEBUG_PRINT
 // #define DEBUG_PRINT_SHAPE
 
-// #define DEBUG_PRINT_PARTICLE
-
 namespace {
 static int g_filter_count = 0;
 }
@@ -610,39 +608,36 @@ LocalizationDefault::Impl::averagePoints( Vector2D * ave_pos,
     max_x = min_x = M_points.front().x;
     max_y = min_y = M_points.front().y;
 
-    int count = 0;
-    for ( std::vector< Vector2D >::const_iterator it = M_points.begin(), end = M_points.end();
-          it != end;
-          ++it, ++count )
+    for ( const Vector2D & p : M_points )
     {
-        *ave_pos += *it;
+        *ave_pos += p;
 #ifdef DEBUG_PRINT_SHAPE
         // display points
         dlog.addCircle( Logger::WORLD,
-                        *it, 0.005,
+                        p, 0.005,
                         "#ff0000",
                         true ); // fill
 #endif
-        if ( it->x > max_x )
+        if ( p.x > max_x )
         {
-            max_x = it->x;
+            max_x = p.x;
         }
-        else if ( it->x < min_x )
+        else if ( p.x < min_x )
         {
-            min_x = it->x;
+            min_x = p.x;
         }
 
-        if ( it->y > max_y )
+        if ( p.y > max_y )
         {
-            max_y = it->y;
+            max_y = p.y;
         }
-        else if ( it->y < min_y )
+        else if ( p.y < min_y )
         {
-            min_y = it->y;
+            min_y = p.y;
         }
     }
 
-    *ave_pos /= static_cast< double >( count );
+    *ave_pos /= static_cast< double >( M_points.size() );
 
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::WORLD,
@@ -831,27 +826,6 @@ LocalizationDefault::Impl::resamplePoints( const VisualSensor::MarkerT & marker,
     // result may not be within current candidate sector
 
     std::uniform_real_distribution<> xy_dst( -0.01, 0.01 );
-
-    if ( count == 1 )
-    {
-#ifdef DEBUG_PRINT
-        dlog.addText( Logger::WORLD,
-                      __FILE__" (resamplePoints) only one point. regenerate randomly" );
-#endif
-
-        for ( size_t i = count; i < max_count; ++i )
-        {
-            M_points.push_back( M_points[0]
-                                + Vector2D( xy_dst( s_engine ), xy_dst( s_engine ) ) );
-#ifdef DEBUG_PRINT_SHAPE
-            dlog.addCircle( Logger::WORLD,
-                            M_points.back(), 0.01,
-                            "#ff0000" );
-#endif
-        }
-
-        return;
-    }
 
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::WORLD,
