@@ -170,8 +170,7 @@ SelfIntercept::predictNoDash( const bool goalie_mode,
     // immediately success!!
     if ( goalie_mode )
     {
-        self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
-                                             1, 0, 0.0 ) ); // 1 turn
+        self_cache.emplace_back( InterceptInfo::NORMAL, 1, 0, 0.0 ); // 1 turn
         dlog.addText( Logger::INTERCEPT,
                       "--->Success! No dash goalie mode: nothing to do. next_dist = %f",
                       next_ball_dist );
@@ -221,8 +220,7 @@ SelfIntercept::predictNoDash( const bool goalie_mode,
 
 
     // at least, player can stop ball
-    self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
-                                         1, 0, 0.0 ) ); // 1 turn
+    self_cache.emplace_back( InterceptInfo::NORMAL, 1, 0, 0.0 ); // 1 turn
 #ifdef DEBUG
     dlog.addText( Logger::INTERCEPT,
                   "-->Sucess! No dash: nothing to do. next_dist = %f",
@@ -451,7 +449,7 @@ SelfIntercept::predictOneDashAdjustX( const double & control_area,
                 mode = InterceptInfo::EXHAUST;
             }
         }
-        self_cache.push_back( InterceptInfo( mode, 0, 1, dash_power ) );
+        self_cache.emplace_back( mode, 0, 1, dash_power );
 #ifdef DEBUG1
         dlog.addText( Logger::INTERCEPT,
                       "--->Success! 1 dash Adjust. register new dash power = %f  mode = %d",
@@ -738,12 +736,12 @@ SelfIntercept::predictLongStep( const int max_cycle,
 #endif
             double dash_power = ServerParam::i().maxDashPower();
             if ( back_dash ) dash_power = -dash_power;
-            self_cache.push_back( InterceptInfo( ( result_recovery >= M_world.self().recovery()
-                                                   ? InterceptInfo::NORMAL
-                                                   : InterceptInfo::EXHAUST ),
-                                                 n_turn,
-                                                 std::max( 0, cycle - n_turn ),
-                                                 dash_power ) );
+            self_cache.emplace_back( ( result_recovery >= M_world.self().recovery()
+                                       ? InterceptInfo::NORMAL
+                                       : InterceptInfo::EXHAUST ),
+                                     n_turn,
+                                     std::max( 0, cycle - n_turn ),
+                                     dash_power );
             if ( ! found )
             {
                 max_loop = std::min( max_cycle, cycle + 10 );
@@ -809,9 +807,9 @@ SelfIntercept::predictFinal( const int max_cycle,
                       n_turn, n_dash );
 #endif
     }
-    self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
-                                         n_turn, n_dash,
-                                         ServerParam::i().maxDashPower() ) );
+    self_cache.emplace_back( InterceptInfo::NORMAL,
+                             n_turn, n_dash,
+                             ServerParam::i().maxDashPower() );
 }
 
 /*-------------------------------------------------------------------*/

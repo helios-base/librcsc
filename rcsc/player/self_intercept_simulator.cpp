@@ -325,13 +325,13 @@ SelfInterceptSimulator::simulateNoDash( const WorldModel & wm,
         StaminaModel stamina_model = wm.self().staminaModel();
         stamina_model.simulateWait( ptype );
 
-        self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
-                                             InterceptInfo::TURN_FORWARD_DASH,
-                                             1, 0.0, // 1 turn, but 0 moment
-                                             0, 0.0, 0.0, // 0 dash
-                                             self_next,
-                                             ball_next_dist,
-                                             stamina_model.stamina() ) );
+        self_cache.emplace_back( InterceptInfo::NORMAL,
+                                 InterceptInfo::TURN_FORWARD_DASH,
+                                 1, 0.0, // 1 turn, but 0 moment
+                                 0, 0.0, 0.0, // 0 dash
+                                 self_next,
+                                 ball_next_dist,
+                                 stamina_model.stamina() );
 #ifdef DEBUG_PRINT_ONE_STEP
         dlog.addText( Logger::INTERCEPT,
                       "OK 0 dash: OK next_dist=%.3f catchable=%.3f noise=%.3f",
@@ -366,13 +366,13 @@ SelfInterceptSimulator::simulateNoDash( const WorldModel & wm,
     StaminaModel stamina_model = wm.self().staminaModel();
     stamina_model.simulateWait( ptype );
 
-    self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
-                                         InterceptInfo::TURN_FORWARD_DASH,
-                                         0, 0.0,  // 0 turn
-                                         1, 0.0, 0.0, // 1 dash, 0 power
-                                         self_next,
-                                         ball_next_dist,
-                                         stamina_model.stamina() ) );
+    self_cache.emplace_back( InterceptInfo::NORMAL,
+                             InterceptInfo::TURN_FORWARD_DASH,
+                             0, 0.0,  // 0 turn
+                             1, 0.0, 0.0, // 1 dash, 0 power
+                             self_next,
+                             ball_next_dist,
+                             stamina_model.stamina() );
 #ifdef DEBUG_PRINT_ONE_STEP
     dlog.addText( Logger::INTERCEPT,
                   "OK 0 dash: ball_next_dist=%.3f",
@@ -1344,13 +1344,13 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
                                                         && ! stamina_model.capacityIsEmpty()
                                                         ? InterceptInfo::EXHAUST
                                                         : InterceptInfo::NORMAL );
-            self_cache.push_back( InterceptInfo( stamina_type,
-                                                 InterceptInfo::OMNI_DASH,
-                                                 0, 0.0,
-                                                 reach_step, first_dash_power, first_dash_dir,
-                                                 self_pos,
-                                                 self_pos.dist( ball_pos ),
-                                                 stamina_model.stamina() ) );
+            self_cache.emplace_back( stamina_type,
+                                     InterceptInfo::OMNI_DASH,
+                                     0, 0.0,
+                                     reach_step, first_dash_power, first_dash_dir,
+                                     self_pos,
+                                     self_pos.dist( ball_pos ),
+                                     stamina_model.stamina() );
             ++success_count;
         }
         else
@@ -1419,13 +1419,13 @@ SelfInterceptSimulator::simulateFinal( const WorldModel & wm,
     stamina_model.simulateWaits( ptype, n_turn );
     stamina_model.simulateDashes( ptype, n_dash, ServerParam::i().maxDashPower() );
 
-    self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
-                                         InterceptInfo::TURN_FORWARD_DASH,
-                                         n_turn, ( dash_angle - wm.self().body() ).degree(),
-                                         n_dash, ServerParam::i().maxDashPower(), 0.0,
-                                         ball_pos,
-                                         0.0,
-                                         stamina_model.stamina() ) );
+    self_cache.emplace_back( InterceptInfo::NORMAL,
+                             InterceptInfo::TURN_FORWARD_DASH,
+                             n_turn, ( dash_angle - wm.self().body() ).degree(),
+                             n_dash, ServerParam::i().maxDashPower(), 0.0,
+                             ball_pos,
+                             0.0,
+                             stamina_model.stamina() );
 }
 
 }

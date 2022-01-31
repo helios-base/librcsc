@@ -208,13 +208,13 @@ VoronoiDiagram::compute()
                     {
                         M_vertices.insert( s.origin() );
                         M_vertices.insert( intersect0 );
-                        M_segments.push_back( Segment2D( s.origin(), intersect0 ) );
+                        M_segments.emplace_back( s.origin(), intersect0 );
                     }
                     else if ( M_bounding_rect->contains( s.terminal() ) )
                     {
                         M_vertices.insert( s.terminal() );
                         M_vertices.insert( intersect0 );
-                        M_segments.push_back( Segment2D( s.terminal(), intersect0 ) );
+                        M_segments.emplace_back( s.terminal(), intersect0 );
                     }
                     else
                     {
@@ -227,7 +227,7 @@ VoronoiDiagram::compute()
                 {
                     M_vertices.insert( intersect0 );
                     M_vertices.insert( intersect1 );
-                    M_segments.push_back( Segment2D( intersect0, intersect1 ) );
+                    M_segments.emplace_back( intersect0, intersect1 );
                 }
             }
             else
@@ -271,13 +271,13 @@ VoronoiDiagram::compute()
                 {
                     M_vertices.insert( intersect0 );
                     M_vertices.insert( intersect1 );
-                    M_segments.push_back( Segment2D( intersect0, intersect1 ) );
+                    M_segments.emplace_back( intersect0, intersect1 );
                 }
                 else if ( n == 1 )
                 {
                     M_vertices.insert( r.origin() );
                     M_vertices.insert( intersect0 );
-                    M_segments.push_back( Segment2D( r.origin(), intersect0 ) );
+                    M_segments.emplace_back( r.origin(), intersect0 );
                 }
                 else
                 {

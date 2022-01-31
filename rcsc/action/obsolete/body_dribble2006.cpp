@@ -1042,9 +1042,9 @@ Body_Dribble2006::doKickDashesWithBall( PlayerAgent * agent,
                 ball_vel *= ServerParam::i().ballDecay();
             }
 
-            dribble_info.push_back( KeepDribbleInfo( first_ball_vel,
-                                                     dash_count,
-                                                     min_opp_dist ) );
+            dribble_info.emplace_back( first_ball_vel,
+                                       dash_count,
+                                       min_opp_dist ) );
             dlog.addText( Logger::DRIBBLE,
                           "_____ add bdist=%.2f bangle=%.1f"
                           "vel=(%.1f %.1f) dash=%d  opp_dist=%.1f",

@@ -515,7 +515,7 @@ TablePrinter::getTeam( const std::string & name )
         }
     }
 
-    M_teams.push_back( Team( name ) );
+    M_teams.emplace_back( name );
 
     return &M_teams.back();
 }
@@ -607,9 +607,9 @@ TablePrinter::addMatch( const std::string & date,
     // addt to the match list
     //
 
-    M_match_list.push_back( Match( date,
-                                   name_l, score_l, pen_score_l,
-                                   name_r, score_r, pen_score_r ) );
+    M_match_list.emplace_back( date,
+                               name_l, score_l, pen_score_l,
+                               name_r, score_r, pen_score_r );
 
     //
     // insert to the match table

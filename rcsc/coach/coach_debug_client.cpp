@@ -736,7 +736,7 @@ CoachDebugClient::addLine( const Vector2D & from,
     {
         if ( M_impl->M_lines.size() < MAX_LINE )
         {
-            M_impl->M_lines.push_back( LineT( Segment2D( from, to ), color ) );
+            M_impl->M_lines.emplace_back( Segment2D( from, to ), color );
         }
     }
 }
@@ -753,7 +753,7 @@ CoachDebugClient::addTriangle( const Triangle2D & tri,
     {
         if ( M_impl->M_triangles.size() < MAX_TRIANGLE )
         {
-            M_impl->M_triangles.push_back( TriangleT( tri, color ) );
+            M_impl->M_triangles.emplace_back( tri, color );
         }
     }
 }
@@ -770,7 +770,7 @@ CoachDebugClient::addRectangle( const Rect2D & rect,
     {
         if ( M_impl->M_rectangles.size() < MAX_RECT )
         {
-            M_impl->M_rectangles.push_back( RectangleT( rect, color ) );
+            M_impl->M_rectangles.emplace_back( rect, color );
         }
     }
 }
@@ -787,7 +787,7 @@ CoachDebugClient::addCircle( const Circle2D & circle,
     {
         if ( M_impl->M_circles.size() < MAX_CIRCLE )
         {
-            M_impl->M_circles.push_back( CircleT( circle, color ) );
+            M_impl->M_circles.emplace_back( circle, color );
         }
     }
 }

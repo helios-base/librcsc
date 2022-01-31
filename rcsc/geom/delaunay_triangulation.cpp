@@ -226,7 +226,7 @@ DelaunayTriangulation::addVertex( const double x,
     }
 
     int id = M_vertices.size();
-    M_vertices.push_back( Vertex( id, x, y ) );
+    M_vertices.emplace_back( id, x, y );
     return id;
 }
 
@@ -243,7 +243,7 @@ DelaunayTriangulation::addVertices( const std::vector< Vector2D > & v )
 
     for ( const Vector2D & d : v )
     {
-        M_vertices.push_back( Vertex( id, d.x, d.y ) );
+        M_vertices.emplace_back( id, d.x, d.y );
         ++id;
     }
 }

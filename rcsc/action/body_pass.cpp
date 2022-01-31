@@ -451,16 +451,13 @@ Body_Pass::create_direct_pass( const WorldModel & world,
                              receiver_angle,
                              first_speed ) )
     {
-        S_cached_pass_route
-            .push_back( PassRoute( DIRECT,
-                                   receiver,
-                                   base_player_pos,
-                                   first_speed,
-                                   can_kick_by_one_step( world,
-                                                         first_speed,
-                                                         receiver_angle )
-                                   )
-                        );
+        S_cached_pass_route.emplace_back( DIRECT,
+                                          receiver,
+                                          base_player_pos,
+                                          first_speed,
+                                          can_kick_by_one_step( world,
+                                                                first_speed,
+                                                                receiver_angle ) );
     }
 
     // add kickable edge points
@@ -481,17 +478,13 @@ Body_Pass::create_direct_pass( const WorldModel & world,
                              angle_new,
                              first_speed ) )
     {
-        S_cached_pass_route
-            .push_back( PassRoute( DIRECT,
-                                   receiver,
-                                   target_new,
-                                   first_speed,
-                                   can_kick_by_one_step( world,
-                                                         first_speed,
-                                                         angle_new )
-                                   )
-                        );
-
+        S_cached_pass_route.emplace_back( DIRECT,
+                                          receiver,
+                                          target_new,
+                                          first_speed,
+                                          can_kick_by_one_step( world,
+                                                                first_speed,
+                                                                angle_new ) );
     }
     // left side
     target_new = world.ball().pos();
@@ -506,16 +499,13 @@ Body_Pass::create_direct_pass( const WorldModel & world,
                              angle_new,
                              first_speed ) )
     {
-        S_cached_pass_route
-            .push_back( PassRoute( DIRECT,
-                                   receiver,
-                                   target_new,
-                                   first_speed,
-                                   can_kick_by_one_step( world,
-                                                         first_speed,
-                                                         angle_new )
-                                   )
-                        );
+        S_cached_pass_route.emplace_back( DIRECT,
+                                          receiver,
+                                          target_new,
+                                          first_speed,
+                                          can_kick_by_one_step( world,
+                                                                first_speed,
+                                                                angle_new ) );
 #ifdef DEBUG
         dlog.addText( Logger::PASS,
                       "Pass Success direct unum=%d pos=(%.1f %.1f). first_speed= %.1f",
@@ -756,14 +746,13 @@ Body_Pass::create_lead_pass( const WorldModel & world,
                                       first_speed,
                                       ball_steps_to_target ) )
             {
-                S_cached_pass_route
-                    .push_back( PassRoute( LEAD,
-                                           receiver,
-                                           target_point,
-                                           first_speed,
-                                           can_kick_by_one_step( world,
-                                                                 first_speed,
-                                                                 target_angle ) ) );
+                S_cached_pass_route.emplace_back( LEAD,
+                                                  receiver,
+                                                  target_point,
+                                                  first_speed,
+                                                  can_kick_by_one_step( world,
+                                                                        first_speed,
+                                                                        target_angle ) );
 #ifdef DEBUG
                 dlog.addText( Logger::PASS,
                               "Pass Success lead unum=%d pos=(%.1f %.1f) angle=%.1f first_speed=%.1f",
@@ -990,16 +979,13 @@ Body_Pass::create_through_pass(const WorldModel & world,
                                       first_speed,
                                       ball_steps_to_target ) )
             {
-                S_cached_pass_route
-                    .push_back( PassRoute( THROUGH,
-                                           receiver,
-                                           target_point,
-                                           first_speed,
-                                           can_kick_by_one_step( world,
-                                                                 first_speed,
-                                                                 target_angle )
-                                           )
-                                );
+                S_cached_pass_route.emplace_back( THROUGH,
+                                                  receiver,
+                                                  target_point,
+                                                  first_speed,
+                                                  can_kick_by_one_step( world,
+                                                                        first_speed,
+                                                                        target_angle ) );
 #ifdef DEBUG
 
                 dlog.addText( Logger::PASS,

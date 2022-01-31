@@ -230,11 +230,11 @@ ConvexHull::computeDirectMethod()
 
                 if ( last_value < 0.0 )
                 {
-                    M_edges.push_back( Segment2D( p, q ) );
+                    M_edges.emplace_back( p, q );
                 }
                 else
                 {
-                    M_edges.push_back( Segment2D( q, p ) );
+                    M_edges.emplace_back( q, p );
                 }
             }
         }
@@ -348,7 +348,7 @@ ConvexHull::computeWrappingMethod()
     ++n;
     for ( ; n != M_vertices.end(); ++n )
     {
-        M_edges.push_back( Segment2D( *p, *n ) );
+        M_edges.emplace_back( *p, *n );
         p = n;
     }
     M_vertices.pop_back();
@@ -423,10 +423,10 @@ ConvexHull::computeGrahamScan()
     ++n;
     for ( ; n != M_vertices.end(); ++n )
     {
-        M_edges.push_back( Segment2D( *p, *n ) );
+        M_edges.emplace_back( *p, *n );
         p = n;
     }
-    M_edges.push_back( Segment2D( M_vertices.back(), M_vertices.front() ) );
+    M_edges.emplace_back( M_vertices.back(), M_vertices.front() );
 }
 
 /*-------------------------------------------------------------------*/

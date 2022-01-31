@@ -634,7 +634,7 @@ KickTable::createStateList( const PlayerType & player_type )
         AngleDeg angle = -180.0 + ( near_angle_step * near );
         Vector2D pos = Vector2D::polar2vector( near_dist, angle );
         double krate = player_type.kickRate( near_dist, angle.degree() );
-        M_state_list.push_back( State( index, near_dist, pos, krate ) );
+        M_state_list.emplace_back( index, near_dist, pos, krate );
         ++index;
     }
 
@@ -643,7 +643,7 @@ KickTable::createStateList( const PlayerType & player_type )
         AngleDeg angle = -180.0 + ( mid_angle_step * mid );
         Vector2D pos = Vector2D::polar2vector( mid_dist, angle );
         double krate = player_type.kickRate( mid_dist, angle.degree() );
-        M_state_list.push_back( State( index, mid_dist, pos, krate ) );
+        M_state_list.emplace_back( index, mid_dist, pos, krate );
         ++index;
     }
 
@@ -652,7 +652,7 @@ KickTable::createStateList( const PlayerType & player_type )
         AngleDeg angle = -180.0 + ( far_angle_step * far );
         Vector2D pos = Vector2D::polar2vector( far_dist, angle );
         double krate = player_type.kickRate( far_dist, angle.degree() );
-        M_state_list.push_back( State( index, far_dist, pos, krate ) );
+        M_state_list.emplace_back( index, far_dist, pos, krate );
         ++index;
     }
 
@@ -821,7 +821,7 @@ KickTable::createStateCache( const WorldModel & world )
             pos.setLength( near_dist );
             pos += self_pos;
 
-            M_state_cache[i].push_back( State( index, near_dist, pos, krate ) );
+            M_state_cache[i].emplace_back( index, near_dist, pos, krate );
             checkInterfereAt( world, i + 1, M_state_cache[i].back() );
             if ( ! pitch.contains( pos ) )
             {
@@ -846,7 +846,7 @@ KickTable::createStateCache( const WorldModel & world )
             pos.setLength( mid_dist );
             pos += self_pos;
 
-            M_state_cache[i].push_back( State( index, mid_dist, pos, krate ) );
+            M_state_cache[i].emplace_back( index, mid_dist, pos, krate );
             checkInterfereAt( world, i + 1, M_state_cache[i].back() );
             if ( ! pitch.contains( pos ) )
             {
@@ -871,7 +871,7 @@ KickTable::createStateCache( const WorldModel & world )
             pos.setLength( far_dist );
             pos += self_pos;
 
-            M_state_cache[i].push_back( State( index, far_dist, pos, krate ) );
+            M_state_cache[i].emplace_back( index, far_dist, pos, krate );
             checkInterfereAt( world, i + 1, M_state_cache[i].back() );
             if ( ! pitch.contains( pos ) )
             {

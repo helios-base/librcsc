@@ -87,7 +87,7 @@ AudioMemory::setBall( const int sender,
         M_ball.clear();
     }
 
-    M_ball.push_back(  Ball( sender, pos, vel ) );
+    M_ball.emplace_back( sender, pos, vel );
     M_ball_time = current;
 
     M_time = current;
@@ -115,7 +115,7 @@ AudioMemory::setPass( const int sender,
         M_pass.clear();
     }
 
-    M_pass.push_back( Pass( sender, receiver, pos ) );;
+    M_pass.emplace_back( sender, receiver, pos );
     M_pass_time = current;
 
     M_time = current;
@@ -145,9 +145,7 @@ AudioMemory::setIntercept( const int sender,
         }
 
         // -1 because the heard value was estimated in the previous cycle
-        M_our_intercept.push_back( OurIntercept( sender,
-                                                 interceptor,
-                                                 std::max( 0, cycle - 1 ) ) );
+        M_our_intercept.emplace_back( sender, interceptor, std::max( 0, cycle - 1 ) );
         M_our_intercept_time = current;
     }
     else
@@ -164,9 +162,7 @@ AudioMemory::setIntercept( const int sender,
         }
 
         // -1 because the heard value was estimated in the previous cycle
-        M_opp_intercept.push_back( OppIntercept( sender,
-                                                 interceptor - MAX_PLAYER,
-                                                 std::max( 0, cycle - 1 ) ) );
+        M_opp_intercept.emplace_back( sender, interceptor - MAX_PLAYER, std::max( 0, cycle - 1 ) );
         M_opp_intercept_time = current;
     }
 
@@ -194,7 +190,7 @@ AudioMemory::setOpponentGoalie( const int sender,
         M_goalie.clear();
     }
 
-    M_goalie.push_back( Goalie( sender, pos, body ) );
+    M_goalie.emplace_back( sender, pos, body );
     M_goalie_time = current;
 
     M_time = current;
@@ -220,7 +216,7 @@ AudioMemory::setPlayer( const int sender,
         M_player.clear();
     }
 
-    M_player.push_back( Player( sender, unum, pos ) );
+    M_player.emplace_back( sender, unum, pos );
     M_player_time = current;
 
     M_time = current;
@@ -254,7 +250,7 @@ AudioMemory::setPlayer( const int sender,
         M_player.clear();
     }
 
-    M_player.push_back( Player( sender, unum, pos, body, stamina ) );
+    M_player.emplace_back( sender, unum, pos, body, stamina );
     M_player_time = current;
 
     M_time = current;
@@ -285,7 +281,7 @@ AudioMemory::setOffsideLine( const int sender,
         M_offside_line.clear();
     }
 
-    M_offside_line.push_back( OffsideLine( sender, offside_line_x ) );
+    M_offside_line.emplace_back( sender, offside_line_x );
     M_offside_line_time = current;
 
     M_time = current;
@@ -309,7 +305,7 @@ AudioMemory::setDefenseLine( const int sender,
         M_defense_line.clear();
     }
 
-    M_defense_line.push_back( DefenseLine( sender, defense_line_x ) );
+    M_defense_line.emplace_back( sender, defense_line_x );
     M_defense_line_time = current;
 
     M_time = current;
@@ -332,7 +328,7 @@ AudioMemory::setWaitRequest( const int sender,
         M_wait_request.clear();
     }
 
-    M_wait_request.push_back( WaitRequest( sender ) );
+    M_wait_request.emplace_back( sender );
     M_wait_request_time = current;
 
     M_time = current;
@@ -358,7 +354,7 @@ AudioMemory::setSetplay( const int sender,
         M_setplay.clear();
     }
 
-    M_setplay.push_back( Setplay( sender, wait_step ) );
+    M_setplay.emplace_back( sender, wait_step );
     M_setplay_time = current;
 
     M_time = current;
@@ -382,7 +378,7 @@ AudioMemory::setPassRequest( const int sender,
         M_pass_request.clear();
     }
 
-    M_pass_request.push_back( PassRequest( sender, request_pos ) );
+    M_pass_request.emplace_back( sender, request_pos );
     M_pass_request_time = current;
 
     M_time = current;
@@ -408,7 +404,7 @@ AudioMemory::setRunRequest( const int sender,
         M_run_request.clear();
     }
 
-    M_run_request.push_back( RunRequest( sender, runner, request_pos ) );
+    M_run_request.emplace_back( sender, runner, request_pos );
     M_run_request_time = current;
 
     M_time = current;
@@ -432,7 +428,7 @@ AudioMemory::setStamina( const int sender,
         M_stamina.clear();
     }
 
-    M_stamina.push_back( Stamina( sender, rate ) );
+    M_stamina.emplace_back( sender, rate );
     M_stamina_time = current;
 
     M_time = current;
@@ -456,7 +452,7 @@ AudioMemory::setRecovery( const int sender,
         M_recovery.clear();
     }
 
-    M_recovery.push_back( Recovery( sender, rate ) );
+    M_recovery.emplace_back( sender, rate );
     M_recovery_time = current;
 
     M_time = current;
@@ -480,7 +476,7 @@ AudioMemory::setStaminaCapacity( const int sender,
         M_stamina_capacity.clear();
     }
 
-    M_stamina_capacity.push_back( StaminaCapacity( sender, rate ) );
+    M_stamina_capacity.emplace_back( sender, rate );
     M_stamina_capacity_time = current;
 
     M_time = current;
@@ -508,7 +504,7 @@ AudioMemory::setDribbleTarget( const int sender,
         M_dribble.clear();
     }
 
-    M_dribble.push_back( Dribble( sender, pos, queue_count ) );
+    M_dribble.emplace_back( sender, pos, queue_count );
     M_dribble_time = current;
 
     M_time = current;
@@ -536,7 +532,7 @@ AudioMemory::setFreeMessage( const int sender,
         M_free_message.clear();
     }
 
-    M_free_message.push_back( FreeMessage( sender, msg ) );
+    M_free_message.emplace_back( sender, msg );
     M_free_message_time = current;
 
     M_time = current;

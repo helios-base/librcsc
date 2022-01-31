@@ -278,9 +278,9 @@ Triangulation::compute()
 
         for ( int i = 0; i < number_of_triangles; ++i )
         {
-            M_triangles.push_back( Triangle( static_cast< size_t >( out.trianglelist[i * 3] ),
-                                             static_cast< size_t >( out.trianglelist[i * 3 + 1] ),
-                                             static_cast< size_t >( out.trianglelist[i * 3 + 2] ) ) );
+            M_triangles.emplace_back( static_cast< size_t >( out.trianglelist[i * 3] ),
+                                      static_cast< size_t >( out.trianglelist[i * 3 + 1] ),
+                                      static_cast< size_t >( out.trianglelist[i * 3 + 2] ) );
         }
     }
 
@@ -291,8 +291,8 @@ Triangulation::compute()
 
 //         for ( int i = 0; i < number_of_segments; ++i )
 //         {
-//             M_result_segments.push_back( Segment( static_cast< size_t >( out.segmentlist[i * 2] ),
-//                                                   static_cast< size_t >( out.segmentlist[i * 2 + 1] ) ) );
+//             M_result_segments.emplace_back( static_cast< size_t >( out.segmentlist[i * 2] ),
+//                                             static_cast< size_t >( out.segmentlist[i * 2 + 1] ) );
 //         }
 //     }
 
@@ -306,8 +306,8 @@ Triangulation::compute()
 
         for ( int i = 0; i < number_of_edges; ++i )
         {
-            M_edges.push_back( Segment( static_cast< size_t >( out.edgelist[i * 2] ),
-                                        static_cast< size_t >( out.edgelist[i * 2 + 1] ) ) );
+            M_edges.emplace_back( static_cast< size_t >( out.edgelist[i * 2] ),
+                                  static_cast< size_t >( out.edgelist[i * 2 + 1] ) );
         }
     }
 

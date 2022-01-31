@@ -268,9 +268,9 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
                                   near_pos.x, near_pos.y,
                                   d, near_dist );
 #endif
-                    candidates.push_back( KeepPoint( near_pos,
-                                                     near_krate,
-                                                     DEFAULT_SCORE ) );
+                    candidates.emplace_back( near_pos,
+                                             near_krate,
+                                             DEFAULT_SCORE );
                 }
 #ifdef DEBUG_CREATE
                 else
@@ -338,9 +338,9 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
                                       mid_pos.x, mid_pos.y,
                                       d, mid_dist );
 #endif
-                        candidates.push_back( KeepPoint( mid_pos,
-                                                         mid_krate,
-                                                         DEFAULT_SCORE ) );
+                        candidates.emplace_back( mid_pos,
+                                                 mid_krate,
+                                                 DEFAULT_SCORE );
                     }
 #ifdef DEBUG_CREATE
                     else
@@ -423,9 +423,9 @@ Body_HoldBall2008::createKeepPoints( const WorldModel & wm,
                                       far_pos.x, far_pos.y,
                                       d, far_dist );
 #endif
-                        candidates.push_back( KeepPoint( far_pos,
-                                                         far_krate,
-                                                         DEFAULT_SCORE ) );
+                        candidates.emplace_back( far_pos,
+                                                 far_krate,
+                                                 DEFAULT_SCORE );
                     }
 #ifdef DEBUG_CREATE
                     else

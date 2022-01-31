@@ -3350,7 +3350,7 @@ WorldModel::checkTeamPlayer( const SideID side,
                   player.pos_.x, player.pos_.y );
 #endif
 
-    new_known_players.push_back( PlayerObject( side, player ) );
+    new_known_players.emplace_back( side, player );
 }
 
 /*-------------------------------------------------------------------*/
@@ -3659,7 +3659,7 @@ WorldModel::checkUnknownPlayer( const Localization::PlayerT & player,
                   player.pos_.x, player.pos_.y );
 #endif
 
-    new_unknown_players.push_back( PlayerObject( NEUTRAL, player ) );
+    new_unknown_players.emplace_back( NEUTRAL, player );
 }
 
 /*-------------------------------------------------------------------*/
