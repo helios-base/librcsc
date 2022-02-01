@@ -681,8 +681,8 @@ gzfilebuf::xsputn( gzfilebuf::char_type * s,
 
 */
 gzifstream::gzifstream()
-    : std::istream( static_cast< std::streambuf * >( 0 ) )
-    , M_file_buf()
+    : std::istream( nullptr ),
+      M_file_buf()
 {
     this->init( &M_file_buf );
 }
@@ -692,8 +692,8 @@ gzifstream::gzifstream()
 
 */
 gzifstream::gzifstream( const char * path )
-    : std::istream( static_cast< std::streambuf * >( 0 ) )
-    , M_file_buf()
+    : std::istream( nullptr ),
+      M_file_buf()
 {
     this->init( &M_file_buf );
     this->open( path );
@@ -736,8 +736,8 @@ gzifstream::close()
 
 */
 gzofstream::gzofstream()
-    : std::ostream( static_cast< std::streambuf * >( 0 ) )
-    , M_file_buf()
+    : std::ostream( nullptr ),
+      M_file_buf()
 {
     this->init( &M_file_buf );
 }
@@ -749,8 +749,8 @@ gzofstream::gzofstream()
 gzofstream::gzofstream( const char * path,
                         int level,
                         int strategy )
-    : std::ostream( static_cast< std::streambuf * >( 0 ) )
-    , M_file_buf()
+    : std::ostream( nullptr ),
+      M_file_buf()
 {
     this->init( &M_file_buf );
     this->open( path, level, strategy );

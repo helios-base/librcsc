@@ -79,7 +79,7 @@ Serializer::creators()
 Serializer::Ptr
 Serializer::create( const int version )
 {
-    Serializer::Ptr ptr( static_cast< Serializer * >( 0 ) );
+    Serializer::Ptr ptr;
 
     Serializer::Creator creator;
     if ( Serializer::creators().getCreator( creator, version ) )

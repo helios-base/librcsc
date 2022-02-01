@@ -871,23 +871,21 @@ private:
                                          const int count_thr,
                                          const bool with_goalie ) const
       {
-          for ( PlayerObject::Cont::const_iterator p = players.begin(), end = players.end();
-                p != end;
-                ++p )
+          for ( PlayerObject::Cont::const_reference p : players )
           {
               if ( ! with_goalie
-                   && (*p)->goalie() )
+                   && p->goalie() )
               {
                   continue;
               }
 
-              if ( ! (*p)->isGhost()
-                   && (*p)->posCount() <= count_thr )
+              if ( ! p->isGhost()
+                   && p->posCount() <= count_thr )
               {
-                  return *p;
+                  return p;
               }
           }
-          return static_cast< PlayerObject * >( 0 );
+          return nullptr;
       }
 
 public:
@@ -1395,7 +1393,7 @@ public:
                                                const int count_thr,
                                                double * dist_to_point ) const
       {
-          if ( ! p ) return static_cast< const PlayerObject * >( 0 );
+          if ( ! p ) return nullptr;
           return getTeammateNearestTo( p->pos(), count_thr, dist_to_point );
       }
 
@@ -1426,7 +1424,7 @@ public:
                                          const int count_thr,
                                          double * dist_to_point ) const
       {
-          if ( ! p ) return static_cast< const PlayerObject * >( 0 );
+          if ( ! p ) return nullptr;
           return getOpponentNearestTo( p->pos(), count_thr, dist_to_point );
       }
 
@@ -1445,20 +1443,18 @@ private:
                         const int count_thr,
                         const bool with_goalie ) const
       {
-          for ( PlayerObject::Cont::const_iterator it = players.begin(), end = players.end();
-                it != end;
-                ++it )
+          for ( PlayerObject::Cont::const_reference p : players )
           {
-              if ( (*it)->posCount() > count_thr
-                   || (*it)->isGhost() )
+              if ( p->posCount() > count_thr
+                   || p->isGhost() )
               {
                   continue;
               }
-              if ( (*it)->goalie() && ! with_goalie )
+              if ( p->goalie() && ! with_goalie )
               {
                   continue;
               }
-              if ( region.contains( (*it)->pos() ) )
+              if ( region.contains( p->pos() ) )
               {
                   return true;
               }
@@ -1514,18 +1510,16 @@ private:
                            const bool with_goalie ) const
       {
           size_t count = 0;
-          for ( PlayerObject::Cont::const_iterator it = players.begin(), end = players.end();
-                it != end;
-                ++it )
+          for ( PlayerObject::Cont::const_reference p : players )
           {
-              if ( (*it)->posCount() > count_thr
-                   || (*it)->isGhost()
-                   || ( (*it)->goalie() && ! with_goalie )
+              if ( p->posCount() > count_thr
+                   || p->isGhost()
+                   || ( p->goalie() && ! with_goalie )
                    )
               {
                   continue;
               }
-              if ( region.contains( (*it)->pos() ) )
+              if ( region.contains( p->pos() ) )
               {
                   ++count;
               }

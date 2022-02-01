@@ -150,23 +150,23 @@ struct Item {
           switch ( type_ ) {
           case TOKEN:
               delete value_.token_;
-              value_.token_ = static_cast< CLangToken * >( 0 );
+              value_.token_ = nullptr;
               break;
           case DIRECTIVE:
               delete value_.directive_;
-              value_.directive_ = static_cast< CLangDirective * >( 0 );
+              value_.directive_ = nullptr;
               break;
           case CONDITION:
               delete value_.condition_;
-              value_.condition_ = static_cast< CLangCondition * >( 0 );
+              value_.condition_ = nullptr;
               break;
           case ACTION:
               delete value_.action_;
-              value_.action_ = static_cast< CLangAction * >( 0 );
+              value_.action_ = nullptr;
               break;
           case UNUM_SET:
               delete value_.unum_set_;
-              value_.unum_set_ = static_cast< CLangUnumSet * >( 0 );
+              value_.unum_set_ = nullptr;
               break;
           case UNUM:
           case TTL:
@@ -180,7 +180,7 @@ struct Item {
           case STRING:
           case VARIABLE:
               delete value_.string_value_;
-              value_.string_value_ = static_cast< std::string * >( 0 );
+              value_.string_value_ = nullptr;
               break;
           default:
               std::cerr << __FILE__ << ' ' << __LINE__
@@ -501,7 +501,7 @@ public:
           if ( M_item_stack.empty()
                || M_item_stack.top().type_ != Item::TOKEN )
           {
-              return static_cast< CLangToken * >( 0 );
+              return nullptr;
           }
 
           CLangToken * tok = M_item_stack.top().value_.token_;
@@ -519,7 +519,7 @@ public:
           if ( M_item_stack.empty()
                || M_item_stack.top().type_ != Item::DIRECTIVE )
           {
-              return static_cast< CLangDirective * >( 0 );
+              return nullptr;
           }
 
           CLangDirective * dir = M_item_stack.top().value_.directive_;
@@ -537,7 +537,7 @@ public:
           if ( M_item_stack.empty()
                || M_item_stack.top().type_ != Item::CONDITION )
           {
-              return static_cast< CLangCondition * >( 0 );
+              return nullptr;
           }
 
           CLangCondition * cond = M_item_stack.top().value_.condition_;
@@ -555,7 +555,7 @@ public:
           if ( M_item_stack.empty()
                || M_item_stack.top().type_ != Item::ACTION )
           {
-              return static_cast< CLangAction * >( 0 );
+              return nullptr;
           }
 
           CLangAction * act = M_item_stack.top().value_.action_;
@@ -573,7 +573,7 @@ public:
           if ( M_item_stack.empty()
                || M_item_stack.top().type_ != Item::UNUM_SET )
           {
-              return static_cast< CLangUnumSet * >( 0 );
+              return nullptr;
           }
 
           CLangUnumSet * uset = M_item_stack.top().value_.unum_set_;
@@ -632,7 +632,7 @@ public:
           if ( M_item_stack.empty()
                || M_item_stack.top().type_ != type )
           {
-              return static_cast< std::string * >( 0 );
+              return nullptr;
           }
 
           std::string * str = M_item_stack.top().value_.string_value_;
@@ -657,8 +657,7 @@ CLangParser::CLangParser()
  */
 CLangParser::~CLangParser()
 {
-    delete M_impl;
-    M_impl = static_cast< Impl * >( 0 );
+
 }
 
 /*-------------------------------------------------------------------*/

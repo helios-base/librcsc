@@ -634,11 +634,10 @@ SelfIntercept::predictLongStep( const int max_cycle,
     // calc Y distance from ball line
     Vector2D ball_to_self = M_world.self().pos() - M_world.ball().pos();
     ball_to_self.rotate( - M_world.ball().vel().th() );
-    int min_cycle = static_cast< int >
-        ( std::ceil( ( ball_to_self.absY()
-                       - M_world.self().playerType().kickableArea()
-                       - 0.2 )
-                     / M_world.self().playerType().realSpeedMax() ) );
+    int min_cycle = static_cast< int >( std::ceil( ( ball_to_self.absY()
+                                                     - M_world.self().playerType().kickableArea()
+                                                     - 0.2 )
+                                                   / M_world.self().playerType().realSpeedMax() ) );
 
     if ( min_cycle < 2 )
     {

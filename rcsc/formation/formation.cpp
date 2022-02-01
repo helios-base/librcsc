@@ -71,7 +71,7 @@ Formation::creators()
 Formation::Ptr
 Formation::create( const std::string & name )
 {
-    Formation::Ptr ptr( static_cast< Formation * >( 0 ) );
+    Formation::Ptr ptr;
 
     Formation::Creator creator;
     if ( Formation::creators().getCreator( creator, name ) )

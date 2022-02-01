@@ -1268,10 +1268,9 @@ Body_Dribble2006::doDodge( PlayerAgent * agent,
          && new_target.absY() > 15.0 )
     {
         double dist_to_target = wm.self().pos().dist(new_target);
-        n_dash = static_cast<int>
-            ( std::floor( dist_to_target
-                          / wm.self().playerType().realSpeedMax()
-                          * 0.9 ) );
+        n_dash = static_cast< int >( std::floor( dist_to_target
+                                                 / wm.self().playerType().realSpeedMax()
+                                                 * 0.9 ) );
         //n_dash = min_max( 2, n_dash, 5 );
         n_dash = std::min( 3, n_dash );
 
@@ -1414,9 +1413,8 @@ Body_Dribble2006::isDodgeSituation( const PlayerAgent * agent,
                            * 1.5, //10.0,
                            target_angle - 20.0, target_angle + 20.0 );
     const double base_safety_dir_diff = 60.0;
-    double dodge_consider_dist
-        = ( static_cast< double >( M_dash_count )
-            * ServerParam::i().defaultPlayerSpeedMax() * 2.0 )
+    double dodge_consider_dist = ( static_cast< double >( M_dash_count )
+                                   * ServerParam::i().defaultPlayerSpeedMax() * 2.0 )
         + 4.0;
 
     if ( dodge_consider_dist > 10.0 ) dodge_consider_dist = 10.0;

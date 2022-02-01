@@ -301,7 +301,7 @@ public:
      */
     const CoachPlayerObject * teammate( const int unum ) const
       {
-          if ( unum < 1 || 11 < unum ) return static_cast< const CoachPlayerObject * >( 0 );
+          if ( unum < 1 || 11 < unum ) return nullptr;
           return M_teammate_array[unum-1];
       }
 
@@ -312,7 +312,7 @@ public:
      */
     const CoachPlayerObject * opponent( const int unum ) const
       {
-          if ( unum < 1 || 11 < unum ) return static_cast< const CoachPlayerObject * >( 0 );
+          if ( unum < 1 || 11 < unum ) return nullptr;
           return M_opponent_array[unum-1];
       }
 

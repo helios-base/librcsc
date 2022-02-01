@@ -804,15 +804,13 @@ Body_Pass::create_through_pass(const WorldModel & world,
     static const double S_max_dash = 25.0;
     static const double S_dash_range = S_max_dash - S_min_dash;
     static const double S_dash_inc = 4.0;
-    static const int S_dash_loop
-        = static_cast< int >( std::ceil( S_dash_range / S_dash_inc ) ) + 1;
+    static const int S_dash_loop = static_cast< int >( std::ceil( S_dash_range / S_dash_inc ) ) + 1;
 
     static const AngleDeg S_min_angle = -20.0;
     static const AngleDeg S_max_angle = 20.0;
     static const double S_angle_range = ( S_min_angle - S_max_angle ).abs();
     static const double S_angle_inc = 10.0;
-    static const int S_angle_loop
-        = static_cast< int >( std::ceil( S_angle_range / S_angle_inc ) ) + 1;
+    static const int S_angle_loop = static_cast< int >( std::ceil( S_angle_range / S_angle_inc ) ) + 1;
 
 #ifdef DEBUG
     dlog.addText( Logger::PASS,

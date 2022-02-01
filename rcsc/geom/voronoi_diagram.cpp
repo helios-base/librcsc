@@ -105,7 +105,7 @@ VoronoiDiagram::clearBoundingRect()
     if ( M_bounding_rect )
     {
         delete M_bounding_rect;
-        M_bounding_rect = static_cast< Rect2D * >( 0 );
+        M_bounding_rect = nullptr;
     }
 }
 

@@ -203,7 +203,7 @@ public:
               //          << std::endl;
               M_vertices[0] = v0;
               M_vertices[1] = v1;
-              std::fill_n( M_triangles, 2, static_cast< Triangle * >( 0 ) );
+              std::fill_n( M_triangles, 2, nullptr );
           }
 
         /*!
@@ -224,14 +224,14 @@ public:
                   //std::cout << "Edge::removeTriangle() edge_id_" << M_id
                   //          << " remove tri_0 " << tri->id() << " "
                   //          << tri << std::endl;
-                  M_triangles[0] = static_cast< Triangle * >( 0 );
+                  M_triangles[0] = nullptr;
               }
               if ( M_triangles[1] == tri )
               {
                   //std::cout << "Edge::removeTriangle() edge_id_" << M_id
                   //          << " remove tri_1 " << tri->id() << " "
                   //          << tri << std::endl;
-                  M_triangles[1] = static_cast< Triangle * >( 0 );
+                  M_triangles[1] = nullptr;
               }
           }
 
@@ -469,7 +469,7 @@ public:
                       return M_vertices[i];
                   }
               }
-              return static_cast< const Vertex * >( 0 );
+              return nullptr;
           }
 
         /*!
@@ -501,7 +501,7 @@ public:
                       return M_edges[i];
                   }
               }
-              return static_cast< Edge * >( 0 );
+              return nullptr;
           }
 
         /*!
@@ -518,7 +518,7 @@ public:
                       return M_edges[i];
                   }
               }
-              return static_cast< Edge * >( 0 );
+              return nullptr;
           }
 
     };

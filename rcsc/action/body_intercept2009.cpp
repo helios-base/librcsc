@@ -253,23 +253,23 @@ Body_Intercept2009::getBestIntercept( const WorldModel & wm,
     const int mate_min = table->teammateReachCycle();
     //const PlayerObject * fastest_opponent = table->fastestOpponent();
 
-    const InterceptInfo * attacker_best = static_cast< InterceptInfo * >( 0 );
+    const InterceptInfo * attacker_best = nullptr;
     double attacker_score = 0.0;
 
-    const InterceptInfo * forward_best = static_cast< InterceptInfo * >( 0 );
+    const InterceptInfo * forward_best = nullptr;
     double forward_score = 0.0;
 
-    const InterceptInfo * noturn_best = static_cast< InterceptInfo * >( 0 );
+    const InterceptInfo * noturn_best = nullptr;
     double noturn_score = 10000.0;
 
-    const InterceptInfo * nearest_best = static_cast< InterceptInfo * >( 0 );
+    const InterceptInfo * nearest_best = nullptr;
     double nearest_score = 10000.0;
 
 #ifdef USE_GOALIE_MODE
-    const InterceptInfo * goalie_best = static_cast< InterceptInfo * >( 0 );
+    const InterceptInfo * goalie_best = nullptr;
     double goalie_score = -10000.0;
 
-    const InterceptInfo * goalie_aggressive_best = static_cast< InterceptInfo * >( 0 );
+    const InterceptInfo * goalie_aggressive_best = nullptr;
     double goalie_aggressive_score = -10000.0;
 #endif
 
@@ -729,7 +729,7 @@ Body_Intercept2009::getBestIntercept( const WorldModel & wm,
          && wm.ball().vel().th().abs() < 100.0
          && cache[0].reachCycle() > 1 )
     {
-        const InterceptInfo * chance_best = static_cast< InterceptInfo * >( 0 );
+        const InterceptInfo * chance_best = nullptr;
         for ( std::size_t i = 0; i < MAX; ++i )
         {
             if ( cache[i].reachCycle() <= cache[0].reachCycle() + 3

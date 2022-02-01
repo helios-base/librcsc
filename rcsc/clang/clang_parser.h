@@ -34,6 +34,7 @@
 
 #include <rcsc/clang/clang_message.h>
 
+#include <memory>
 #include <string>
 
 namespace rcsc {
@@ -48,7 +49,7 @@ private:
     //! pimpl ideom
     class Impl;
 
-    Impl * M_impl; //!< pimpl object pointer
+    std::unique_ptr< Impl > M_impl; //!< pimpl object pointer
 
     CLangMessage::ConstPtr M_message; //!< analyzed message object
 

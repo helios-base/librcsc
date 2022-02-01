@@ -387,7 +387,7 @@ DelaunayTriangulation::getVertex( const int id ) const
          || id < 0
          || static_cast< int >( M_vertices.size() ) < id )
     {
-        return static_cast< Vertex * >( 0 );
+        return nullptr;
     }
     return &M_vertices[id];
 }
@@ -400,7 +400,7 @@ const
 DelaunayTriangulation::Triangle *
 DelaunayTriangulation::findTriangleContains( const Vector2D & pos ) const
 {
-    Triangle * tri = static_cast< TrianglePtr >( 0 );
+    Triangle * tri = nullptr;
     findTriangleContains( pos, &tri );
     return tri;
 }
@@ -413,7 +413,7 @@ const
 DelaunayTriangulation::Vertex *
 DelaunayTriangulation::findNearestVertex( const Vector2D & pos ) const
 {
-    const Vertex * candidate = static_cast< Vertex * >( 0 );
+    const Vertex * candidate = nullptr;
 
     double min_dist2 = 10000000.0;
     for ( VertexCont::const_iterator it = M_vertices.begin(), end = M_vertices.end();
@@ -466,7 +466,7 @@ DelaunayTriangulation::compute()
         //std::cout << "compute() ********** vertex loop " << loop
         //          << vit->pos() << std::endl;
         // find triangle that contains 'vertex'
-        TrianglePtr tri = static_cast< TrianglePtr >( 0 );
+        TrianglePtr tri = nullptr;
         ContainedType type = findTriangleContains( vit->pos(), &tri );
 
         ////////////////////////////////////////////////////
@@ -663,7 +663,7 @@ DelaunayTriangulation::updateOnlineVertex( const Vertex * new_vertex,
 
     // find edge that vertex is on-line
     int online_count = 0;
-    EdgePtr online_edge = static_cast< EdgePtr >( 0 );
+    EdgePtr online_edge = nullptr;
     for ( std::size_t i = 0; i < 3; ++i )
     {
         Vector2D rel0( tri->edge( i )->vertex( 0 )->pos() - new_vertex->pos() );

@@ -517,8 +517,8 @@ gzfilterstreambuf::underflow()
 gzfilterstream::gzfilterstream( std::streambuf & strmbuf,
                                 int level,
                                 std::size_t buf_size )
-    : std::iostream( static_cast< std::streambuf * >( 0 ) )
-    , M_filter_buf( strmbuf, level, buf_size )
+    : std::iostream( nullptr ),
+      M_filter_buf( strmbuf, level, buf_size )
 {
     // std::basic_ios::init( basic_streambuf<charT,traits>* sb );
     this->init( &M_filter_buf );
@@ -531,8 +531,8 @@ gzfilterstream::gzfilterstream( std::streambuf & strmbuf,
 gzfilterstream::gzfilterstream( std::iostream & strm,
                                 int level,
                                 std::size_t buf_size )
-    : std::iostream( static_cast< std::streambuf* >( 0 ) )
-    , M_filter_buf( *(strm.rdbuf()), level, buf_size )
+    : std::iostream( nullptr ),
+      M_filter_buf( *(strm.rdbuf()), level, buf_size )
 
 {
     // std::basic_ios::init( basic_streambuf<charT,traits>* sb );
@@ -548,8 +548,8 @@ gzfilterstream::gzfilterstream( std::iostream & strm,
 gzifilterstream::gzifilterstream( std::streambuf & src,
                                   int level,
                                   std::size_t buf_size )
-    : std::istream( static_cast< std::streambuf * >( 0 ) )
-    , M_filter_buf( src, level, buf_size )
+    : std::istream( nullptr ),
+      M_filter_buf( src, level, buf_size )
 {
     // std::basic_ios::init( basic_streambuf<charT,traits>* sb );
     this->init( &M_filter_buf );
@@ -562,8 +562,8 @@ gzifilterstream::gzifilterstream( std::streambuf & src,
 gzifilterstream::gzifilterstream( std::istream & src,
                                   int level,
                                   std::size_t buf_size )
-    : std::istream( static_cast< std::streambuf * >( 0 ) )
-    , M_filter_buf( *(src.rdbuf()), level, buf_size )
+    : std::istream( nullptr ),
+      M_filter_buf( *(src.rdbuf()), level, buf_size )
 {
     // std::basic_ios::init( basic_streambuf<charT,traits>* sb );
     this->init( &M_filter_buf );
@@ -578,8 +578,8 @@ gzifilterstream::gzifilterstream( std::istream & src,
 gzofilterstream::gzofilterstream( std::streambuf & dest,
                                   int level,
                                   std::size_t buf_size )
-    : std::ostream( static_cast< std::streambuf * >( 0 ) )
-    , M_filter_buf( dest, level, buf_size )
+    : std::ostream( nullptr ),
+      M_filter_buf( dest, level, buf_size )
 {
     // std::basic_ios::init( basic_streambuf<charT,traits>* sb );
     this->init( &M_filter_buf );
@@ -592,8 +592,8 @@ gzofilterstream::gzofilterstream( std::streambuf & dest,
 gzofilterstream::gzofilterstream( std::ostream & dest,
                                   int level,
                                   std::size_t buf_size )
-    : std::ostream( static_cast< std::streambuf * >( 0 ) )
-    , M_filter_buf( *(dest.rdbuf()), level, buf_size )
+    : std::ostream( nullptr ),
+      M_filter_buf( *(dest.rdbuf()), level, buf_size )
 
 {
     // std::basic_ios::init( basic_streambuf<charT,traits>* sb );

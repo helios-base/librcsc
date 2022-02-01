@@ -226,7 +226,7 @@ ParamMap::Registrar::operator()( const std::string & long_name,
         return *this;
     }
 
-    if ( value.ptr_ == static_cast< bool * >( 0 ) )
+    if ( ! value.ptr_ )
     {
         std::cerr << "***ERROR*** detected null pointer for the option "
                   << long_name << std::endl;
@@ -261,7 +261,7 @@ ParamMap::Registrar::operator()( const std::string & long_name,
         return *this;
     }
 
-    if ( value.ptr_ == static_cast< bool * >( 0 ) )
+    if ( ! value.ptr_ )
     {
         std::cerr << "***ERROR*** detected null pointer for the option "
                   << long_name << std::endl;
@@ -294,7 +294,7 @@ ParamMap::Registrar::operator()( const std::string & long_name,
         return *this;
     }
 
-    if ( value.ptr_ == static_cast< bool * >( 0 ) )
+    if ( ! value.ptr_ )
     {
         std::cerr << "***ERROR*** detected null pointer for the option "
                   << long_name << std::endl;
@@ -475,7 +475,7 @@ ParamMap::findLongName( const std::string & long_name )
         return it->second;
     }
 
-    return ParamEntity::Ptr( static_cast< ParamEntity * >( 0 ) );
+    return ParamEntity::Ptr();
 }
 
 /*-------------------------------------------------------------------*/
@@ -492,7 +492,7 @@ ParamMap::findShortName( const std::string & short_name )
         return it->second;
     }
 
-    return ParamEntity::Ptr( static_cast< ParamEntity * >( 0 ) );
+    return ParamEntity::Ptr();
 }
 
 /*-------------------------------------------------------------------*/

@@ -67,18 +67,18 @@ CoachWorldState::CoachWorldState()
       M_game_mode(),
       M_our_offside_line_x( 0.0 ),
       M_their_offside_line_x( 0.0 ),
-      M_kicker( static_cast< const CoachPlayerObject * >( 0 ) ),
+      M_kicker( nullptr ),
       M_ball_owner_side( NEUTRAL ),
-      M_ball_owner( static_cast< const CoachPlayerObject * >( 0 ) ),
-      M_fastest_intercept_player( static_cast< const CoachPlayerObject * >( 0 ) ),
-      M_fastest_intercept_teammate( static_cast< const CoachPlayerObject * >( 0 ) ),
-      M_fastest_intercept_opponent( static_cast< const CoachPlayerObject * >( 0 ) )
+      M_ball_owner( nullptr ),
+      M_fastest_intercept_player( nullptr ),
+      M_fastest_intercept_teammate( nullptr ),
+      M_fastest_intercept_opponent( nullptr )
 {
     M_all_players.reserve( 22 );
     M_teammates.reserve( 11 );
     M_opponents.reserve( 11 );
-    std::fill( M_teammate_array, M_teammate_array + 11, static_cast< CoachPlayerObject * >( 0 ) );
-    std::fill( M_opponent_array, M_opponent_array + 11, static_cast< CoachPlayerObject * >( 0 ) );
+    std::fill( M_teammate_array, M_teammate_array + 11, nullptr );
+    std::fill( M_opponent_array, M_opponent_array + 11, nullptr );
 }
 
 /*-------------------------------------------------------------------*/
@@ -95,18 +95,18 @@ CoachWorldState::CoachWorldState( const CoachVisualSensor & see_global,
       M_game_mode( current_mode ),
       M_our_offside_line_x( 0.0 ),
       M_their_offside_line_x( 0.0 ),
-      M_kicker( static_cast< const CoachPlayerObject * >( 0 ) ),
+      M_kicker( nullptr ),
       M_ball_owner_side( NEUTRAL ),
-      M_ball_owner( static_cast< const CoachPlayerObject * >( 0 ) ),
-      M_fastest_intercept_player( static_cast< const CoachPlayerObject * >( 0 ) ),
-      M_fastest_intercept_teammate( static_cast< const CoachPlayerObject * >( 0 ) ),
-      M_fastest_intercept_opponent( static_cast< const CoachPlayerObject * >( 0 ) )
+      M_ball_owner( nullptr ),
+      M_fastest_intercept_player( nullptr ),
+      M_fastest_intercept_teammate( nullptr ),
+      M_fastest_intercept_opponent( nullptr )
 {
     M_all_players.reserve( 22 );
     M_teammates.reserve( 11 );
     M_opponents.reserve( 11 );
-    std::fill( M_teammate_array, M_teammate_array + 11, static_cast< CoachPlayerObject * >( 0 ) );
-    std::fill( M_opponent_array, M_opponent_array + 11, static_cast< CoachPlayerObject * >( 0 ) );
+    std::fill( M_teammate_array, M_teammate_array + 11, nullptr );
+    std::fill( M_opponent_array, M_opponent_array + 11, nullptr );
 
     //
     // ball
@@ -225,12 +225,12 @@ CoachWorldState::CoachWorldState( const rcg::DispInfoT & disp,
       M_game_mode( current_mode ),
       M_our_offside_line_x( 0.0 ),
       M_their_offside_line_x( 0.0 ),
-      M_kicker( static_cast< const CoachPlayerObject * >( 0 ) ),
+      M_kicker( nullptr ),
       M_ball_owner_side( NEUTRAL ),
-      M_ball_owner( static_cast< const CoachPlayerObject * >( 0 ) ),
-      M_fastest_intercept_player( static_cast< const CoachPlayerObject * >( 0 ) ),
-      M_fastest_intercept_teammate( static_cast< const CoachPlayerObject * >( 0 ) ),
-      M_fastest_intercept_opponent( static_cast< const CoachPlayerObject * >( 0 ) )
+      M_ball_owner( nullptr ),
+      M_fastest_intercept_player( nullptr ),
+      M_fastest_intercept_teammate( nullptr ),
+      M_fastest_intercept_opponent( nullptr )
 {
     //
     // ball
@@ -246,8 +246,8 @@ CoachWorldState::CoachWorldState( const rcg::DispInfoT & disp,
     M_all_players.reserve( 22 );
     M_teammates.reserve( 11 );
     M_opponents.reserve( 11 );
-    std::fill( M_teammate_array, M_teammate_array + 11, static_cast< CoachPlayerObject * >( 0 ) );
-    std::fill( M_opponent_array, M_opponent_array + 11, static_cast< CoachPlayerObject * >( 0 ) );
+    std::fill( M_teammate_array, M_teammate_array + 11, nullptr );
+    std::fill( M_opponent_array, M_opponent_array + 11, nullptr );
 
     for ( size_t i = 0; i < 22; ++i )
     {
@@ -316,8 +316,8 @@ CoachWorldState::~CoachWorldState()
     M_teammates.clear();
     M_opponents.clear();
 
-    std::fill( M_teammate_array, M_teammate_array + 11, static_cast< CoachPlayerObject * >( 0 ) );
-    std::fill( M_opponent_array, M_opponent_array + 11, static_cast< CoachPlayerObject * >( 0 ) );
+    std::fill( M_teammate_array, M_teammate_array + 11, nullptr );
+    std::fill( M_opponent_array, M_opponent_array + 11, nullptr );
 
     for ( CoachPlayerObject::Cont::iterator p = M_all_players.begin(), end = M_all_players.end();
           p != end;

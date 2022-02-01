@@ -1093,7 +1093,7 @@ PlayerTypeSet::get( const int id ) const
 
     std::cerr << __FILE__ << ":(PlayerTypeSet::get) "
               << "ERROR: type " << id << " is not registered."<< std::endl;
-    return static_cast< PlayerType * >( 0 );
+    return nullptr;
 }
 
 /*-------------------------------------------------------------------*/

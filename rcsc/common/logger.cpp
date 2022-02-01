@@ -66,8 +66,8 @@ Logger dlog;
 
  */
 Logger::Logger()
-    : M_time( static_cast< GameTime * >( 0 ) ),
-      M_fout( NULL ),
+    : M_time( nullptr ),
+      M_fout( nullptr ),
       M_flags( 0 )
 {
     g_str.reserve( 8192 * 4 );

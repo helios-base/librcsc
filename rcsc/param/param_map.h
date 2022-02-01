@@ -524,7 +524,7 @@ private:
                   return *this;
               }
 
-              if ( value_ptr == static_cast< ValueType * >( 0 ) )
+              if ( ! value_ptr )
               {
                   std::cerr << "***ERROR*** detected null pointer for the option "
                             << long_name << std::endl;

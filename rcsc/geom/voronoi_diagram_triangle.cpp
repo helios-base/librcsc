@@ -57,7 +57,7 @@ namespace rcsc {
 
  */
 VoronoiDiagramTriangle::VoronoiDiagramTriangle()
-    : M_bounding_rect( static_cast< Rect2D * >( 0 ) ),
+    : M_bounding_rect( nullptr ),
       M_input_points(),
       M_vertices(),
       M_segments(),
@@ -71,7 +71,7 @@ VoronoiDiagramTriangle::VoronoiDiagramTriangle()
 
  */
 VoronoiDiagramTriangle::VoronoiDiagramTriangle( const std::vector< Vector2D > & v )
-    : M_bounding_rect( static_cast< Rect2D * >( 0 ) ),
+    : M_bounding_rect( nullptr ),
       M_input_points( v ),
       M_vertices(),
       M_segments(),
@@ -122,7 +122,7 @@ VoronoiDiagramTriangle::clearBoundingRect()
     if ( M_bounding_rect )
     {
         delete M_bounding_rect;
-        M_bounding_rect = static_cast< Rect2D * >( 0 );
+        M_bounding_rect = nullptr;
     }
 }
 
@@ -178,13 +178,13 @@ VoronoiDiagramTriangle::compute()
     // set attribute
     //
     in.numberofpointattributes = 0;
-    in.pointattributelist = static_cast< REAL * >( 0 );
+    in.pointattributelist = nullptr;
 
 
     //
     // set marker
     //
-    in.pointmarkerlist = static_cast< int * >( 0 );
+    in.pointmarkerlist = nullptr;
 
 
     //
@@ -193,7 +193,7 @@ VoronoiDiagramTriangle::compute()
     in.numberofsegments = 0;
     in.numberofholes = 0;
     in.numberofregions = 0;
-    in.regionlist = static_cast< REAL * >( 0 );
+    in.regionlist = nullptr;
 
 
     //
@@ -319,7 +319,7 @@ VoronoiDiagramTriangle::compute()
                                                 out.normlist[ i * 2 ] ) );
 
                 Vector2D terminal;
-                if ( rect.intersection( ray, &terminal, static_cast< Vector2D * >( 0 ) ) != 1 )
+                if ( rect.intersection( ray, &terminal, nullptr ) != 1 )
                 {
                     std::cerr << __FILE__ << ':' << __LINE__ << ':'
                               << "Unexpected reach." << std::endl;

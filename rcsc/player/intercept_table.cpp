@@ -294,7 +294,7 @@ InterceptTable::hearOpponent( const int unum,
         }
     }
 
-    const PlayerObject * p = static_cast< const PlayerObject * >( 0 );
+    const PlayerObject * p = nullptr;
 
     for ( const PlayerObject * i : M_world.opponents() )
     {

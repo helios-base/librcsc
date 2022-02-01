@@ -202,13 +202,13 @@ Triangulation::compute()
     // set attribute
     //
     in.numberofpointattributes = 0;
-    in.pointattributelist = static_cast< REAL * >( 0 );
+    in.pointattributelist = nullptr;
 
 
     //
     // set marker
     //
-    in.pointmarkerlist = static_cast< int * >( 0 );
+    in.pointmarkerlist = nullptr;
 
 
     //
@@ -237,7 +237,7 @@ Triangulation::compute()
     //
     in.numberofholes = 0;
     in.numberofregions = 0;
-    in.regionlist = static_cast< REAL * >( 0 );
+    in.regionlist = nullptr;
 
 
     //
@@ -365,7 +365,7 @@ Triangulation::findTriangleContains( const Vector2D & point ) const
         }
     }
 
-    return static_cast< Triangle * >( 0 );
+    return nullptr;
 }
 
 

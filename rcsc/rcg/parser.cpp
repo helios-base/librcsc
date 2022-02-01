@@ -65,7 +65,7 @@ Parser::creators()
 Parser::Ptr
 Parser::create( std::istream & is )
 {
-    Parser::Ptr ptr( static_cast< Parser * >( 0 ) );
+    Parser::Ptr ptr;
 
     char header[5];
     int version = REC_OLD_VERSION;

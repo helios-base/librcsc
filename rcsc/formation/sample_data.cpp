@@ -105,7 +105,7 @@ SampleDataSet::data( const size_t idx ) const
     if ( M_data_cont.empty()
          || M_data_cont.size() < idx )
     {
-        return static_cast< const SampleData * >( 0 );
+        return nullptr;
     }
 
     SampleDataSet::DataCont::const_iterator it = M_data_cont.begin();

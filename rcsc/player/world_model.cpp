@@ -3279,7 +3279,7 @@ WorldModel::checkTeamPlayer( const SideID side,
     }
 
     PlayerObject::List::iterator candidate = old_unknown_players.end();
-    PlayerObject::List * target_list = static_cast< PlayerObject::List * >( 0 );
+    PlayerObject::List * target_list = nullptr;
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
     double min_dist = 1000.0;
 #endif
@@ -3562,8 +3562,8 @@ WorldModel::checkUnknownPlayer( const Localization::PlayerT & player,
     }
 
     PlayerObject::List::iterator candidate = old_unknown_players.end();;
-    PlayerObject::List * new_list = static_cast< PlayerObject::List * >( 0 );
-    PlayerObject::List * old_list = static_cast< PlayerObject::List * >( 0 );
+    PlayerObject::List * new_list = nullptr;
+    PlayerObject::List * old_list = nullptr;
     SideID side = NEUTRAL;
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
     double min_dist = 1000.0;
@@ -3745,7 +3745,7 @@ WorldModel::estimateUnknownPlayerUnum()
         }
         unum_set.erase( self().unum() );
 
-        PlayerObject * unknown_teammate = static_cast< PlayerObject * >( 0 );
+        PlayerObject * unknown_teammate = nullptr;
         for ( PlayerObject & t : M_teammates )
         {
             if ( t.unum() != Unum_Unknown )
