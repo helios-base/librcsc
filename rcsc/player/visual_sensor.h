@@ -35,7 +35,7 @@
 #include <rcsc/game_time.h>
 #include <rcsc/types.h>
 
-#include <map>
+#include <unordered_map>
 #include <list>
 #include <vector>
 #include <string>
@@ -251,6 +251,8 @@ public:
           }
     };
 
+    typedef std::unordered_map< std::string, MarkerID > MarkerMap;
+
     typedef std::vector< BallT > BallCont; //!< observed ball container
     typedef std::list< MarkerT > MarkerCont; //!< observed marker container
     typedef std::list< LineT > LineCont; //!< observed line container
@@ -263,9 +265,9 @@ private:
     std::string M_their_team_name; //!< seen opponent team name
 
     //! marker ID map
-    std::map< std::string, MarkerID > M_marker_map;
+    MarkerMap M_marker_map;
     //! marker ID map, old name
-    std::map< std::string, MarkerID > M_marker_map_old;
+    MarkerMap M_marker_map_old;
 
     BallCont M_balls; //!< seen ball
     MarkerCont M_markers; //!< seen markers
@@ -428,7 +430,7 @@ private:
       get positional data from object info token
     */
     bool parseMarker( const char * tok,
-                      const double & version,
+                      const double version,
                       MarkerT * info );
 
     /*!

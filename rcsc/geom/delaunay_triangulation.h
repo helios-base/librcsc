@@ -36,7 +36,7 @@
 #include <rcsc/geom/vector_2d.h>
 
 #include <algorithm>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <array>
 
@@ -526,8 +526,8 @@ public:
     ////////////////////////////////////////////////////////////////
 
     typedef std::vector< Vertex > VertexCont; //!< vertex container type
-    typedef std::map< int, EdgePtr > EdgeCont; //!< edge pointer container type
-    typedef std::map< int, TrianglePtr > TriangleCont; //!< triangle pointer container type
+    typedef std::unordered_map< int, EdgePtr > EdgeCont; //!< edge pointer container type
+    typedef std::unordered_map< int, TrianglePtr > TriangleCont; //!< triangle pointer container type
 
 private:
 

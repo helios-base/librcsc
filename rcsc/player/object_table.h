@@ -35,7 +35,7 @@
 #include <rcsc/geom/vector_2d.h>
 #include <rcsc/types.h>
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 namespace rcsc {
@@ -93,10 +93,13 @@ public:
           { }
     };
 
+    //! type of marker map container
+    typedef std::unordered_map< MarkerID, Vector2D > MarkerMap;
+
 private:
 
     //! landmark map. key: marker id, value: coordinate value
-    std::map< MarkerID, Vector2D > M_landmark_map;
+    MarkerMap M_landmark_map;
 
     //! distance table for stationary objects (line, marker)
     std::vector< DataEntry > M_static_table;
@@ -116,7 +119,7 @@ public:
       \return const reference to the map container
     */
     const
-    std::map< MarkerID, Vector2D > & landmarkMap() const
+    std::unordered_map< MarkerID, Vector2D > & landmarkMap() const
       {
           return M_landmark_map;
       }

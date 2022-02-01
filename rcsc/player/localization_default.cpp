@@ -60,9 +60,6 @@ static int g_filter_count = 0;
 
 namespace rcsc {
 
-//! type of maerker map container
-typedef std::map< MarkerID, Vector2D > MarkerMap;
-
 /*!
   \struct LocalizeImpl
   \brief localization implementation
@@ -460,7 +457,7 @@ LocalizationDefault::Impl::updatePointsBy( const VisualSensor::MarkerT & marker,
 {
     ////////////////////////////////////////////////////////////////////
     // get marker global position
-    MarkerMap::const_iterator it = objectTable().landmarkMap().find( id );
+    ObjectTable::MarkerMap::const_iterator it = objectTable().landmarkMap().find( id );
     if ( it == objectTable().landmarkMap().end() )
     {
         std::cerr << __FILE__ << ": " << __LINE__
@@ -678,7 +675,7 @@ LocalizationDefault::Impl::generatePoints( const VisualSensor::MarkerT & marker,
     ////////////////////////////////////////////////////////////////////
     // get closest marker info
 
-    MarkerMap::const_iterator marker_it = objectTable().landmarkMap().find( id );
+    ObjectTable::MarkerMap::const_iterator marker_it = objectTable().landmarkMap().find( id );
     if ( marker_it == objectTable().landmarkMap().end() )
     {
         std::cerr << __FILE__ << " (generatePoints) cannot find marker id ??"
@@ -903,7 +900,7 @@ LocalizationDefault::Impl::getFaceDirByMarkers( const VisualSensor::MarkerCont &
                   __FILE__" (getFaceDirByMarkers) try to get face from 2 markers" );
 #endif
 
-    MarkerMap::const_iterator it1 = objectTable().landmarkMap().find( markers.front().id_ );
+    ObjectTable::MarkerMap::const_iterator it1 = objectTable().landmarkMap().find( markers.front().id_ );
     if ( it1 == objectTable().landmarkMap().end() )
     {
 #ifdef DEBUG_PRINT
@@ -913,7 +910,7 @@ LocalizationDefault::Impl::getFaceDirByMarkers( const VisualSensor::MarkerCont &
         return angle;
     }
 
-    MarkerMap::const_iterator it2 = objectTable().landmarkMap().find( markers.back().id_ );
+    ObjectTable::MarkerMap::const_iterator it2 = objectTable().landmarkMap().find( markers.back().id_ );
     if ( it2 == objectTable().landmarkMap().end() )
     {
 #ifdef DEBUG_PRINT

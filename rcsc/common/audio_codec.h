@@ -34,7 +34,7 @@
 
 #include <rcsc/geom/vector_2d.h>
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <string>
 #include <cmath>
@@ -48,7 +48,7 @@ namespace rcsc {
 */
 class AudioCodec {
 public:
-    typedef std::map< char, int > CharToIntCont; //!< map from char to int
+    typedef std::unordered_map< char, int > CharToIntCont; //!< map from char to int
     typedef std::vector< char > IntToCharCont; //!< map from int to char
 
     //! constant error value (= std::numeric_limits< double >::max())

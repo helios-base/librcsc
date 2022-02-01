@@ -36,12 +36,12 @@
 #include "../game_mode.h"
 
 #include <iostream>
-#include <map>
+#include <unordered_map>
 #include <cstdio>
 
 namespace {
 
-typedef std::map< std::string, rcsc::GameMode::Pair > PlayModeMap;
+typedef std::unordered_map< std::string, rcsc::GameMode::Pair > PlayModeMap;
 
 /*!
   \class MapHolder

@@ -478,7 +478,7 @@ VisualSensor::parse( const char * msg,
 */
 bool
 VisualSensor::parseMarker( const char * tok,
-                           const double & version,
+                           const double version,
                            MarkerT * info )
 {
     // get marker id
@@ -505,8 +505,7 @@ VisualSensor::parseMarker( const char * tok,
         info->id_ = Marker_Unknown;
         if ( version >= 6.0 )
         {
-            std::map< std::string, MarkerID >::iterator
-                it = M_marker_map.find( marker_name );
+            MarkerMap::const_iterator it = M_marker_map.find( marker_name );
             if ( it != M_marker_map.end() )
             {
                 info->id_ = it->second;
@@ -514,8 +513,7 @@ VisualSensor::parseMarker( const char * tok,
         }
         else
         {
-            std::map< std::string, MarkerID >::iterator
-                it = M_marker_map_old.find( marker_name );
+            MarkerMap::const_iterator it = M_marker_map_old.find( marker_name );
             if ( it != M_marker_map_old.end() )
             {
                 info->id_ = it->second;
@@ -524,7 +522,7 @@ VisualSensor::parseMarker( const char * tok,
 
         if ( info->id_ == Marker_Unknown )
         {
-            std::cerr << "VisualSensor::parseMarker. unknown marker "
+            std::cerr << "(VisualSensor::parseMarker) unknown marker "
                       << std::string( tok, 16 ) << "]"
                       << std::endl;
             return false;
