@@ -37,7 +37,6 @@
 
 #include <rcsc/math_util.h>
 
-#include <boost/random.hpp>
 #include <sstream>
 #include <algorithm>
 #include <cstdio>

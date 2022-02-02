@@ -36,8 +36,6 @@
 #include <rcsc/gz/gzfstream.h>
 #include <rcsc/rcg.h>
 
-#include <boost/lexical_cast.hpp>
-
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -488,18 +486,18 @@ ResultPrinter::handleServerParam( const std::string & line )
         {
             if ( name_str == "goal_width" )
             {
-                M_goal_width = boost::lexical_cast< double >( value_str );
+                M_goal_width = std::stod( value_str );
             }
             else if ( name_str == "ball_size" )
             {
-                M_ball_size = boost::lexical_cast< double >( value_str );
+                M_ball_size = std::stod( value_str );
             }
             else if ( name_str == "half_time" )
             {
-                M_half_time = boost::lexical_cast< int >( value_str );
+                M_half_time = std::stoi( value_str );
             }
         }
-        catch ( boost::bad_lexical_cast & e )
+        catch ( std::exception & e )
         {
             std::cerr << __FILE__ << ' ' << __LINE__
                       << ": Exeption caught! " << e.what() << std::endl;

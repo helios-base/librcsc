@@ -63,8 +63,6 @@
 #include <rcsc/timer.h>
 #include <rcsc/version.h>
 
-#include <boost/lexical_cast.hpp>
-
 #include <sstream>
 #include <cstdio>
 #include <cstring>

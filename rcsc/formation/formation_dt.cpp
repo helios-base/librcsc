@@ -39,7 +39,6 @@
 #include <rcsc/geom/line_2d.h>
 #include <rcsc/math_util.h>
 
-#include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <vector>
@@ -578,7 +577,16 @@ FormationDT::readCSV( std::istream & is )
 
             for ( int i = 1; i <= 11; ++i )
             {
-                role_numbers.push_back( boost::lexical_cast< int >( values[i] ) );
+                try
+                {
+                    role_numbers.push_back( std::stoi( values[i] ) );
+                }
+                catch ( std::exception & e )
+                {
+                    std::cerr << __FILE__ << ' ' << e.what() << '\n'
+                              <<" (readCSV) ERROR Illegal # of role number." << std::endl;
+                    return false;
+                }
             }
         }
         else if ( values.front() == "RoleName" )
@@ -609,7 +617,16 @@ FormationDT::readCSV( std::istream & is )
 
             for ( int i = 1; i <= 11; ++i )
             {
-                symmetry_numbers.push_back( boost::lexical_cast< int >( values[i] ) );
+                try
+                {
+                    symmetry_numbers.push_back( std::stoi( values[i] ) );
+                }
+                catch ( std::exception & e )
+                {
+                    std::cerr << __FILE__ << ' ' << e.what() << '\n'
+                              <<" (readCSV) ERROR Illegal symmetry number." << std::endl;
+                    return false;
+                }
             }
 
         }
@@ -623,7 +640,16 @@ FormationDT::readCSV( std::istream & is )
 
             for ( int i = 1; i <= 11; ++i )
             {
-                marker_flags.push_back( boost::lexical_cast< int >( values[i] ) );
+                try
+                {
+                    marker_flags.push_back( std::stoi( values[i] ) );
+                }
+                catch ( std::exception & e )
+                {
+                    std::cerr << __FILE__ << ' ' << e.what() << '\n'
+                              <<" (readCSV) ERROR Illegal marker flag." << std::endl;
+                    return false;
+                }
             }
         }
         else if ( values.front() == "SetplayMarker" )
@@ -636,7 +662,16 @@ FormationDT::readCSV( std::istream & is )
 
             for ( int i = 1; i <= 11; ++i )
             {
-                setplay_marker_flags.push_back( boost::lexical_cast< int >( values[i] ) );
+                try
+                {
+                    setplay_marker_flags.push_back( std::stoi( values[i] ) );
+                }
+                catch ( std::exception & e )
+                {
+                    std::cerr << __FILE__ << ' ' << e.what() << '\n'
+                              <<" (readCSV) ERROR Illegal setplay marker." << std::endl;
+                    return false;
+                }
             }
         }
         else if ( values.front() == "SampleData" )
