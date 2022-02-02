@@ -112,7 +112,7 @@ InterceptTable::update()
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::INTERCEPT,
                   __FILE__" (update)" );
-    MSecTimer timer;
+    Timer timer;
 #endif
 
     // clear all data

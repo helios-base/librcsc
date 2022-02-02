@@ -1144,7 +1144,7 @@ Body_Dribble2008::doKickDashesWithBall( PlayerAgent * agent,
 
     const WorldModel & wm = agent->world();
 
-    MSecTimer timer;
+    Timer timer;
 
     // estimate my move positions
     createSelfCache( agent,

@@ -778,7 +778,7 @@ CoachWorldState::updateInterceptTable()
                   "(CoachWorldState::updateInterceptTable)" );
 #endif
 
-    // MSecTimer timer;
+    // Timer timer;
 
     for ( int i = 0; i < 11; ++i )
     {

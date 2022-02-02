@@ -680,14 +680,12 @@ CoachAgent::handleTimeout( const int timeout_count,
     }
 
     TimeStamp cur_time;
-    cur_time.setCurrent();
 
-    long msec_from_see = -1;
-    if ( M_impl->see_time_stamp_.sec() > 0 )
+    std::int64_t msec_from_see = -1;
+    if ( M_impl->see_time_stamp_.isValid() )
     {
-        msec_from_see = cur_time.getMSecDiffFrom( M_impl->see_time_stamp_ );
+        msec_from_see = cur_time.msecFrom( M_impl->see_time_stamp_ );
     }
-
 
     dlog.addText( Logger::SYSTEM,
                   "----- Timeout. msec from see_global = [%ld] ms."
@@ -940,7 +938,7 @@ CoachAgent::action()
         M_client->printOfflineThink();
     }
 
-    MSecTimer timer;
+    Timer timer;
     dlog.addText( Logger::SYSTEM,
                   __FILE__" (action) start" );
 
@@ -1153,7 +1151,7 @@ CoachAgent::Impl::analyzeCycle( const char * msg,
 void
 CoachAgent::Impl::analyzeSeeGlobal( const char * msg )
 {
-    see_time_stamp_.setCurrent();
+    see_time_stamp_.setNow();
 
     if ( ! analyzeCycle( msg, true ) )
     {

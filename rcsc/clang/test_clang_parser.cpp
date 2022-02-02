@@ -114,7 +114,7 @@ CLangParserTest::testInfoMessage()
     std::cout << '\n';
     std::cout << msg << '\n';
 
-    rcsc::MSecTimer timer;
+    rcsc::Timer timer;
     CPPUNIT_ASSERT( parser.parse( msg ) );
     std::cout << "elapsed " << timer.elapsedReal() << " [ms]" << std::endl;
 

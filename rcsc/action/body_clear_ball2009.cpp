@@ -309,7 +309,7 @@ get_clear_course( const WorldModel & wm )
     s_update_time = wm.time();
 
 #ifdef DEBUG_PROFILE
-    MSecTimer timer;
+    Timer timer;
 #endif
     s_last_angle = get_clear_course_recursive( wm,
                                                25.0, /* safe angle */

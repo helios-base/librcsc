@@ -1006,7 +1006,6 @@ PlayerAgent::handleTimeout( const int timeout_count,
     }
 
     TimeStamp cur_time;
-    cur_time.setCurrent();
     long msec_from_sense = -1;
     /*
       std::cerr << "cur_sec = " << cur_time.sec()
@@ -1015,9 +1014,9 @@ PlayerAgent::handleTimeout( const int timeout_count,
       << "  sense_usec=" << M_impl->body_time_stamp_.usec()
       << std::endl;
     */
-    if ( M_impl->body_time_stamp_.sec() > 0 )
+    if ( M_impl->body_time_stamp_.isValid() )
     {
-        msec_from_sense = cur_time.getMSecDiffFrom( M_impl->body_time_stamp_ );
+        msec_from_sense = cur_time.msecFrom( M_impl->body_time_stamp_ );
     }
 
     dlog.addText( Logger::SYSTEM,
@@ -1523,11 +1522,12 @@ PlayerAgent::Impl::analyzeCycle( const char * msg,
 void
 PlayerAgent::Impl::analyzeSee( const char * msg )
 {
-    see_time_stamp_.setCurrent();
-    long msec_from_sense = -1;
-    if ( body_time_stamp_.sec() > 0 )
+    std::int64_t msec_from_sense = -1;
+
+    see_time_stamp_.setNow();
+    if ( body_time_stamp_.isValid() )
     {
-        msec_from_sense = see_time_stamp_.getMSecDiffFrom( body_time_stamp_ );
+        msec_from_sense = see_time_stamp_.msecFrom( body_time_stamp_ );
 #ifdef PROFILE_SEE
         if ( see_state_.isSynch() )
         {
@@ -1603,7 +1603,7 @@ PlayerAgent::Impl::analyzeSee( const char * msg )
 void
 PlayerAgent::Impl::analyzeSenseBody( const char * msg )
 {
-    body_time_stamp_.setCurrent();
+    body_time_stamp_.setNow();
 
     // parse cycle info
     if ( ! analyzeCycle( msg, true ) )
@@ -2305,7 +2305,7 @@ PlayerAgent::Impl::analyzeWarning( const char * msg )
 void
 PlayerAgent::action()
 {
-    MSecTimer timer;
+    Timer timer;
     dlog.addText( Logger::SYSTEM,
                   __FILE__" (action) start" );
 

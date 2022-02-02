@@ -1192,13 +1192,13 @@ WorldModel::updateAfterSee( const VisualSensor & see,
     }
 
 #ifdef DEBUG_PROFILE
-    MSecTimer timer;
+    Timer timer;
 #endif
 
     //////////////////////////////////////////////////////////////////
     // time update
     M_see_time = current;
-    M_see_time_stamp.setCurrent();
+    M_see_time_stamp.setNow();
 
     dlog.addText( Logger::WORLD,
                   "*************** updateAfterSee *****************" );
@@ -2110,7 +2110,7 @@ void
 WorldModel::updateJustAfterDecision( const ActionEffector & act )
 {
     M_decision_time = this->time();
-    M_decision_time_stamp.setCurrent();
+    M_decision_time_stamp.setNow();
 
     if ( act.changeViewCommand() )
     {

@@ -340,7 +340,7 @@ KickTable::createTables()
 
     createStateList( player_type );
 
-    MSecTimer timer;
+    Timer timer;
 
     const double angle_step = 360.0 / DEST_DIR_DIVS;
     AngleDeg angle = -180.0;
@@ -727,7 +727,7 @@ KickTable::updateState( const WorldModel & world )
     // update current state
     //
 #ifdef DEBUG_PROFILE
-    MSecTimer timer;
+    Timer timer;
 #endif
 
     createStateCache( world );
@@ -2111,7 +2111,7 @@ KickTable::simulate( const WorldModel & world,
     }
 
 #ifdef DEBUG_PROFILE
-    MSecTimer timer;
+    Timer timer;
 #endif
 
     double target_speed = bound( 0.0,
