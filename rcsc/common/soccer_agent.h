@@ -32,8 +32,7 @@
 #ifndef RCSC_COMMON_SOCCER_AGENT_H
 #define RCSC_COMMON_SOCCER_AGENT_H
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <list>
 #include <string>
 
@@ -58,7 +57,7 @@ public:
 
 protected:
     //! interface to the rcssserver or offline log.
-    boost::shared_ptr< AbstractClient > M_client;
+    std::shared_ptr< AbstractClient > M_client;
 
 private:
 
@@ -95,14 +94,14 @@ public:
     /*!
       \param client pointer to the client object instance
      */
-    void setClient( boost::shared_ptr< AbstractClient > client );
+    void setClient( std::shared_ptr< AbstractClient > client );
 
     /*!
       \brief create standard console client object (online or offline) according to the command line option.
       \return client object pointer.
      */
     virtual
-    boost::shared_ptr< AbstractClient > createConsoleClient() = 0;
+    std::shared_ptr< AbstractClient > createConsoleClient() = 0;
 
 protected:
 

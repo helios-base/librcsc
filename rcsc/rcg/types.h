@@ -34,23 +34,22 @@
 
 #include <rcsc/types.h>
 
-#include <boost/cstdint.hpp>
-
 #include <string>
 #include <cmath>
+#include <cstdint>
 
 namespace rcsc {
 namespace rcg {
 
 
 //! type of the 16bits integer value
-typedef boost::int16_t Int16;
+typedef std::int16_t Int16;
 //! type of the unsigned 16bits integer value
-typedef boost::uint16_t UInt16;
+typedef std::uint16_t UInt16;
 //! type of the 32bits integer value
-typedef boost::int32_t Int32;
+typedef std::int32_t Int32;
 //! type of the unsigned 32bits integer value
-typedef boost::int32_t UInt32;
+typedef std::int32_t UInt32;
 
 /*!
   \brief max length of color name string.

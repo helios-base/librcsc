@@ -33,10 +33,8 @@
 
 #include "convex_hull.h"
 
-#include <boost/random.hpp>
-
+#include <random>
 #include <fstream>
-#include <ctime>
 
 #include <sys/time.h> // struct timeval, gettimeofday()
 
@@ -67,24 +65,25 @@ print_elapsed( const timeval & start,
 int
 main()
 {
-    boost::mt19937 eng( std::time( 0 ) );
+    std::random_devince seed_gen;
+    std::mt19937 engine( seed_gen() );
 
     //const double min_x = -10.0;
     //const double max_x = +10.0;
     //const double min_y = -10.0;
     //const double max_y = +10.0;
-    //boost::variate_generator< boost::mt19937&, boost::uniform_real<> > x_rng( eng, boost::uniform_real<>( min_x, max_x ) );
-    //boost::variate_generator< boost::mt19937&, boost::uniform_real<> > y_rng( eng, boost::uniform_real<>( min_y, max_y ) );
+    //std::uniform_real_distribution<> > x_dst( min_x, max_x );
+    //std::uniform_real_distribution<> > y_dst( min_y, max_y );
 
-    boost::variate_generator< boost::mt19937&, boost::normal_distribution<> > x_rng( eng, boost::normal_distribution<>( 0.0, 5.0 ) );
-    boost::variate_generator< boost::mt19937&, boost::normal_distribution<> > y_rng( eng, boost::normal_distribution<>( 0.0, 5.0 ) );
+    std::normal_distribution<> > x_dst( 0.0, 5.0 );
+    std::normal_distribution<> > y_dst( 0.0, 5.0 );
 
     rcsc::ConvexHull c0;
     rcsc::ConvexHull c1;
 
     for ( int i = 0; i < 1000; ++i )
     {
-        rcsc::Vector2D p( x_rng(), y_rng() );
+        rcsc::Vector2D p( x_dst( engine ), y_dst( engine ) );
         c0.addPoint( p );
         c1.addPoint( p );
     }

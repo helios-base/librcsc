@@ -45,9 +45,9 @@
 class CLangManager {
 private:
     // not used
-    CLangManager( const CLangManager & );
+    CLangManager( const CLangManager & ) = delete;
     // not used
-    CLangManager & operator=( const CLangManager & );
+    CLangManager & operator=( const CLangManager & ) = delete;
 
     static const int DEFAULT_CLANG_MIN_VER; //!< default minimal clang version
     static const int DEFAULT_CLANG_MAX_VER; //!< default maximal clang version

@@ -487,11 +487,9 @@ CoachVisualSensor::print( std::ostream & os ) const
     os << "Coach Visual " << M_time
        << " ball: " << M_ball.pos() << M_ball.vel() << std::endl;
 
-    for ( std::vector< CoachPlayerObject >::const_iterator it = M_players.begin();
-          it != M_players.end();
-          ++it )
+    for ( const CoachPlayerObject & p : M_players )
     {
-        it->print( os ) << '\n';
+        p.print( os ) << '\n';
     }
 
     return os << std::flush;

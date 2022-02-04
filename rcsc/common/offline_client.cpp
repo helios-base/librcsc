@@ -39,6 +39,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <cassert>
 
 namespace rcsc {
 

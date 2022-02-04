@@ -34,7 +34,7 @@
 
 #include <rcsc/player/localization.h>
 
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 
 namespace rcsc {
 
@@ -49,12 +49,12 @@ private:
     class Impl;
 
     //! implemantion
-    boost::scoped_ptr< Impl > M_impl;
+    std::unique_ptr< Impl > M_impl;
 
 
     // not used
-    LocalizationDefault( const LocalizationDefault & );
-    LocalizationDefault & operator=( const LocalizationDefault & );
+    LocalizationDefault( const LocalizationDefault & ) = delete;
+    LocalizationDefault & operator=( const LocalizationDefault & ) = delete;
 
 public:
     /*!
@@ -76,7 +76,7 @@ public:
       \return result
      */
     virtual
-    bool updateBySenseBody( const BodySensor & body );
+    bool updateBySenseBody( const BodySensor & body ) override;
 
     /*!
       \brief estimate self facing direction.
@@ -88,7 +88,7 @@ public:
     virtual
     bool estimateSelfFace( const VisualSensor & see,
                            double * self_face,
-                           double * self_face_err );
+                           double * self_face_err ) override;
 
     /*!
       \brief localize self position.
@@ -104,7 +104,7 @@ public:
                        const double & self_face,
                        const double & self_face_err,
                        Vector2D * self_pos,
-                       Vector2D * self_pos_err );
+                       Vector2D * self_pos_err ) override;
 
     /*!
       \brief localze ball relative info
@@ -124,7 +124,7 @@ public:
                                Vector2D * rpos,
                                Vector2D * rpos_err,
                                Vector2D * rvel,
-                               Vector2D * rvel_err ) const;
+                               Vector2D * rvel_err ) const override;
 
     /*!
       \brief localze other player
@@ -142,7 +142,7 @@ public:
                          const double & self_face_err,
                          const Vector2D & self_pos,
                          const Vector2D & self_vel,
-                         PlayerT * to ) const;
+                         PlayerT * to ) const override;
 };
 
 }

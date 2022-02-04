@@ -35,11 +35,10 @@
 #include <rcsc/geom/rect_2d.h>
 #include <rcsc/geom/vector_2d.h>
 
-#include <boost/array.hpp>
-
 #include <algorithm>
-#include <map>
+#include <unordered_map>
 #include <vector>
+#include <array>
 
 namespace rcsc {
 
@@ -204,7 +203,7 @@ public:
               //          << std::endl;
               M_vertices[0] = v0;
               M_vertices[1] = v1;
-              std::fill_n( M_triangles, 2, static_cast< Triangle * >( 0 ) );
+              std::fill_n( M_triangles, 2, nullptr );
           }
 
         /*!
@@ -225,14 +224,14 @@ public:
                   //std::cout << "Edge::removeTriangle() edge_id_" << M_id
                   //          << " remove tri_0 " << tri->id() << " "
                   //          << tri << std::endl;
-                  M_triangles[0] = static_cast< Triangle * >( 0 );
+                  M_triangles[0] = nullptr;
               }
               if ( M_triangles[1] == tri )
               {
                   //std::cout << "Edge::removeTriangle() edge_id_" << M_id
                   //          << " remove tri_1 " << tri->id() << " "
                   //          << tri << std::endl;
-                  M_triangles[1] = static_cast< Triangle * >( 0 );
+                  M_triangles[1] = nullptr;
               }
           }
 
@@ -318,9 +317,9 @@ public:
         int M_id; //!< Id number of this triangle
 
         //! vertices of this triangle, but these are pointers to the vertex instance
-        boost::array< const Vertex *, 3 > M_vertices;
+        std::array< const Vertex *, 3 > M_vertices;
         //! edges of this triangle, but these are pointers to the vertex instance
-        boost::array< EdgePtr, 3 > M_edges;
+        std::array< EdgePtr, 3 > M_edges;
 
         Vector2D M_circumcenter; //!< coordinates of the circumcenter.
         double M_circumradius; //!< radius of the circumcircle.
@@ -328,7 +327,7 @@ public:
         Vector2D M_voronoi_vertex; //!< candidate of the voronoi vertex
 
         // not used
-        Triangle();
+        Triangle() = delete;
     public:
 
         /*!
@@ -470,7 +469,7 @@ public:
                       return M_vertices[i];
                   }
               }
-              return static_cast< const Vertex * >( 0 );
+              return nullptr;
           }
 
         /*!
@@ -502,7 +501,7 @@ public:
                       return M_edges[i];
                   }
               }
-              return static_cast< Edge * >( 0 );
+              return nullptr;
           }
 
         /*!
@@ -519,7 +518,7 @@ public:
                       return M_edges[i];
                   }
               }
-              return static_cast< Edge * >( 0 );
+              return nullptr;
           }
 
     };
@@ -527,8 +526,8 @@ public:
     ////////////////////////////////////////////////////////////////
 
     typedef std::vector< Vertex > VertexCont; //!< vertex container type
-    typedef std::map< int, EdgePtr > EdgeCont; //!< edge pointer container type
-    typedef std::map< int, TrianglePtr > TriangleCont; //!< triangle pointer container type
+    typedef std::unordered_map< int, EdgePtr > EdgeCont; //!< edge pointer container type
+    typedef std::unordered_map< int, TrianglePtr > TriangleCont; //!< triangle pointer container type
 
 private:
 
@@ -553,15 +552,14 @@ private:
     TriangleCont M_triangles;
 
     // not used
-    DelaunayTriangulation & operator=( const DelaunayTriangulation & );
+    DelaunayTriangulation & operator=( const DelaunayTriangulation & ) = delete;
 
 public:
 
     /*!
       \brief nothing to do
     */
-    DelaunayTriangulation()
-      { }
+    DelaunayTriangulation() = default;
 
     /*!
       \brief construct with considerable rectangle region

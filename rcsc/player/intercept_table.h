@@ -283,9 +283,9 @@ private:
     std::map< const AbstractPlayerObject *, int > M_player_map;
 
     // not used
-    InterceptTable();
-    InterceptTable( const InterceptTable & );
-    InterceptTable & operator=( const InterceptTable & );
+    InterceptTable() = delete;
+    InterceptTable( const InterceptTable & ) = delete;
+    InterceptTable & operator=( const InterceptTable & ) = delete;
 
 public:
     /*!

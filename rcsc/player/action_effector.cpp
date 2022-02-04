@@ -54,12 +54,12 @@ namespace rcsc {
 */
 ActionEffector::ActionEffector( const PlayerAgent & agent )
     : M_agent( agent ),
-      M_command_body( static_cast< PlayerBodyCommand * >( 0 ) ),
-      M_command_turn_neck( static_cast< PlayerTurnNeckCommand * >( 0 ) ),
-      M_command_change_view( static_cast< PlayerChangeViewCommand * >( 0 ) ),
-      M_command_say( static_cast< PlayerSayCommand * >( 0 ) ),
-      M_command_pointto( static_cast< PlayerPointtoCommand * >( 0 ) ),
-      M_command_attentionto( static_cast< PlayerAttentiontoCommand * >( 0 ) ),
+      M_command_body( nullptr ),
+      M_command_turn_neck( nullptr ),
+      M_command_change_view( nullptr ),
+      M_command_say( nullptr ),
+      M_command_pointto( nullptr ),
+      M_command_attentionto( nullptr ),
       M_last_action_time( 0, 0 ),
       M_done_turn_neck( false ),
       M_kick_accel( 0.0, 0.0 ),
@@ -100,37 +100,37 @@ ActionEffector::~ActionEffector()
     if ( M_command_body )
     {
         delete M_command_body;
-        M_command_body = static_cast< PlayerBodyCommand * >( 0 );
+        M_command_body = nullptr;
     }
 
     if ( M_command_turn_neck )
     {
         delete M_command_turn_neck;
-        M_command_turn_neck = static_cast< PlayerTurnNeckCommand * >( 0 );
+        M_command_turn_neck = nullptr;
     }
 
     if ( M_command_change_view )
     {
         delete M_command_change_view;
-        M_command_change_view = static_cast< PlayerChangeViewCommand * >( 0 );
+        M_command_change_view = nullptr;
     }
 
     if ( M_command_say )
     {
         delete M_command_say;
-        M_command_say = static_cast< PlayerSayCommand * >( 0 );;
+        M_command_say = nullptr;
     }
 
     if ( M_command_pointto )
     {
         delete M_command_pointto;
-        M_command_pointto = static_cast< PlayerPointtoCommand * >( 0 );;
+        M_command_pointto = nullptr;
     }
 
     if ( M_command_attentionto )
     {
         delete M_command_attentionto;
-        M_command_attentionto = static_cast< PlayerAttentiontoCommand * >( 0 );;
+        M_command_attentionto = nullptr;
     }
 }
 
@@ -454,7 +454,7 @@ ActionEffector::makeCommand( std::ostream & to )
         M_command_body->toCommandString( to );
         incCommandCount( M_command_body->type() );
         delete M_command_body;
-        M_command_body = static_cast< PlayerBodyCommand * >( 0 );
+        M_command_body = nullptr;
     }
     else
     {
@@ -479,7 +479,7 @@ ActionEffector::makeCommand( std::ostream & to )
         M_command_turn_neck->toCommandString( to );
         incCommandCount( PlayerCommand::TURN_NECK );
         delete M_command_turn_neck;
-        M_command_turn_neck = static_cast< PlayerTurnNeckCommand * >( 0 );
+        M_command_turn_neck = nullptr;
     }
 
     if ( M_command_change_view )
@@ -487,7 +487,7 @@ ActionEffector::makeCommand( std::ostream & to )
         M_command_change_view->toCommandString( to );
         incCommandCount( PlayerCommand::CHANGE_VIEW );
         delete M_command_change_view;
-        M_command_change_view = static_cast< PlayerChangeViewCommand * >( 0 );
+        M_command_change_view = nullptr;
     }
 
     if ( M_command_pointto )
@@ -495,7 +495,7 @@ ActionEffector::makeCommand( std::ostream & to )
         M_command_pointto->toCommandString( to );
         incCommandCount( PlayerCommand::POINTTO );
         delete M_command_pointto;
-        M_command_pointto = static_cast< PlayerPointtoCommand * >( 0 );
+        M_command_pointto = nullptr;
     }
 
     if ( M_command_attentionto )
@@ -503,7 +503,7 @@ ActionEffector::makeCommand( std::ostream & to )
         M_command_attentionto->toCommandString( to );
         incCommandCount( PlayerCommand::ATTENTIONTO );
         delete M_command_attentionto;
-        M_command_attentionto = static_cast< PlayerAttentiontoCommand * >( 0 );
+        M_command_attentionto = nullptr;
     }
 
     if ( ServerParam::i().synchMode() )
@@ -533,37 +533,37 @@ ActionEffector::clearAllCommands()
     if ( M_command_body )
     {
         delete M_command_body;
-        M_command_body = static_cast< PlayerBodyCommand * >( 0 );
+        M_command_body = nullptr;
     }
 
     if ( M_command_turn_neck )
     {
         delete M_command_turn_neck;
-        M_command_turn_neck = static_cast< PlayerTurnNeckCommand * >( 0 );
+        M_command_turn_neck = nullptr;
     }
 
     if ( M_command_change_view )
     {
         delete M_command_change_view;
-        M_command_change_view = static_cast< PlayerChangeViewCommand * >( 0 );
+        M_command_change_view = nullptr;
     }
 
     if ( M_command_pointto )
     {
         delete M_command_pointto;
-        M_command_pointto = static_cast< PlayerPointtoCommand * >( 0 );
+        M_command_pointto = nullptr;
     }
 
     if ( M_command_attentionto )
     {
         delete M_command_attentionto;
-        M_command_attentionto = static_cast< PlayerAttentiontoCommand * >( 0 );
+        M_command_attentionto = nullptr;
     }
 
     if ( M_command_say )
     {
         delete M_command_say;
-        M_command_say = static_cast< PlayerSayCommand * >( 0 );
+        M_command_say = nullptr;
     }
 
     M_say_message_cont.clear();
@@ -620,7 +620,7 @@ ActionEffector::setKick( const double & power,
     if ( M_command_body )
     {
         delete M_command_body;
-        M_command_body = static_cast< PlayerBodyCommand * >( 0 );
+        M_command_body = nullptr;
     }
     M_command_body = new PlayerKickCommand( command_power, rel_dir.degree() );
 
@@ -812,7 +812,7 @@ ActionEffector::setDash( const double & power,
     if ( M_command_body )
     {
         delete M_command_body;
-        M_command_body = static_cast< PlayerBodyCommand * >( 0 );
+        M_command_body = nullptr;
     }
     M_command_body = new PlayerDashCommand( command_power, command_dir );
 
@@ -917,7 +917,7 @@ ActionEffector::setTurn( const AngleDeg & moment )
     if ( M_command_body )
     {
         delete M_command_body;
-        M_command_body = static_cast< PlayerBodyCommand * >( 0 );
+        M_command_body = nullptr;
     }
 
     // moment is a command param, not a real moment.
@@ -1059,7 +1059,7 @@ ActionEffector::setMove( const double & x,
     if ( M_command_body )
     {
         delete M_command_body;
-        M_command_body = static_cast< PlayerBodyCommand * >( 0 );
+        M_command_body = nullptr;
     }
     M_command_body = new PlayerMoveCommand( command_x, command_y );
 
@@ -1101,7 +1101,7 @@ ActionEffector::setCatch()
     if ( M_command_body )
     {
         delete M_command_body;
-        M_command_body = static_cast< PlayerBodyCommand * >( 0 );
+        M_command_body = nullptr;
     }
     M_command_body = new PlayerCatchCommand( catch_angle.degree() );
 }
@@ -1173,7 +1173,7 @@ ActionEffector::setTackle( const double & power_or_dir,
     if ( M_command_body )
     {
         delete M_command_body;
-        M_command_body = static_cast< PlayerBodyCommand * >( 0 );
+        M_command_body = nullptr;
     }
     M_command_body = new PlayerTackleCommand( actual_power_or_dir, foul );
 
@@ -1262,7 +1262,7 @@ ActionEffector::setTurnNeck( const AngleDeg & moment )
     if ( M_command_turn_neck )
     {
         delete M_command_turn_neck;
-        M_command_turn_neck = static_cast< PlayerTurnNeckCommand * >( 0 );
+        M_command_turn_neck = nullptr;
     }
     M_command_turn_neck = new PlayerTurnNeckCommand( command_moment );
 
@@ -1286,7 +1286,7 @@ ActionEffector::setChangeView( const ViewWidth & width )
     if ( M_command_change_view )
     {
         delete M_command_change_view;
-        M_command_change_view = static_cast< PlayerChangeViewCommand * >( 0 );
+        M_command_change_view = nullptr;
     }
 
     M_command_change_view = new PlayerChangeViewCommand( width,
@@ -1381,7 +1381,7 @@ ActionEffector::setPointto( const double & x,
     if ( M_command_pointto )
     {
         delete M_command_pointto;
-        M_command_pointto = static_cast< PlayerPointtoCommand * >( 0 );
+        M_command_pointto = nullptr;
     }
     M_command_pointto = new PlayerPointtoCommand( target_rel.r(),
                                                   target_rel.th().degree() );
@@ -1405,7 +1405,7 @@ ActionEffector::setPointtoOff()
     if ( M_command_pointto )
     {
         delete M_command_pointto;
-        M_command_pointto = static_cast< PlayerPointtoCommand * >( 0 );
+        M_command_pointto = nullptr;
     }
     M_command_pointto = new PlayerPointtoCommand();
 
@@ -1430,7 +1430,7 @@ ActionEffector::setAttentionto( const SideID side,
     if ( M_command_attentionto )
     {
         delete M_command_attentionto;
-        M_command_attentionto = static_cast< PlayerAttentiontoCommand * >( 0 );
+        M_command_attentionto = nullptr;
     }
 
     M_command_attentionto
@@ -1455,7 +1455,7 @@ ActionEffector::setAttentiontoOff()
     if ( M_command_attentionto )
     {
         delete M_command_attentionto;
-        M_command_attentionto = static_cast< PlayerAttentiontoCommand * >( 0 );
+        M_command_attentionto = nullptr;
     }
     M_command_attentionto = new PlayerAttentiontoCommand();
 }
@@ -1469,12 +1469,9 @@ ActionEffector::getSayMessageLength() const
 {
     int len = 0;
 
-    for ( std::vector< SayMessage::Ptr >::const_iterator it = M_say_message_cont.begin(),
-              end = M_say_message_cont.end();
-          it != end;
-          ++it )
+    for ( const SayMessage::Ptr & i : M_say_message_cont )
     {
-        len += (*it)->length();
+        len += i->length();
     }
 
     return len;
@@ -1490,7 +1487,7 @@ ActionEffector::makeSayCommand()
     if ( M_command_say )
     {
         delete M_command_say;
-        M_command_say = static_cast< PlayerSayCommand * >( 0 );
+        M_command_say = nullptr;
     }
 
     M_say_message.erase();
@@ -1498,17 +1495,14 @@ ActionEffector::makeSayCommand()
     // std::sort( M_say_message_cont.begin(), M_say_message_cont.end(),
     //            SayMessagePtrSorter() );
 
-    for ( std::vector< SayMessage::Ptr >::const_iterator it = M_say_message_cont.begin(),
-              end = M_say_message_cont.end();
-          it != end;
-          ++it )
+    for ( const SayMessage::Ptr & i : M_say_message_cont )
     {
-        if ( ! (*it)->appendTo( M_say_message ) )
+        if ( ! i->appendTo( M_say_message ) )
         {
             std::cerr << M_agent.world().teamName() << ' '
                       << M_agent.world().self().unum() << " : "
                       << M_agent.world().time() << " Error say message builder. type=["
-                      << (*it)->header() << ']'
+                      << i->header() << ']'
                       << std::endl;
             dlog.addText( Logger::ACTION,
                           __FILE__" (makeSayCommand) error occured." );

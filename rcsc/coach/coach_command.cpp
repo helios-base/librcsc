@@ -165,11 +165,9 @@ CoachChangePlayerTypesCommand( const std::vector< std::pair< int, int > > & type
 {
     M_types.reserve( types.size() );
 
-    for ( std::vector< std::pair< int, int > >::const_iterator it = types.begin();
-          it != types.end();
-          ++it )
+    for ( const std::pair< int, int > & v : types )
     {
-        add( it->first, it->second );
+        add( v.first, v.second );
     }
 }
 
@@ -184,7 +182,7 @@ CoachChangePlayerTypesCommand::add( const int unum,
     if ( unum < 1
          || 11 < unum )
     {
-        std::cerr << "CoachChangePlayerTypesCommand::add() Illegal player number "
+        std::cerr << "(CoachChangePlayerTypesCommand::add) Illegal player number "
                   << unum
                   << std::endl;
         return;
@@ -193,22 +191,19 @@ CoachChangePlayerTypesCommand::add( const int unum,
     if ( type < 0
          || PlayerParam::i().playerTypes() <= type )
     {
-        std::cerr << "CoachChangePlayerTypesCommand::add() Illegal player type id "
+        std::cerr << "(CoachChangePlayerTypesCommand::add) Illegal player type id "
                   << type
                   << std::endl;
         return;
     }
 
-    for ( std::vector< std::pair< int, int > >::iterator it = M_types.begin();
-          it != M_types.end();
-          ++it )
+    for ( const std::pair< int, int > & v : M_types )
     {
-        if ( it->first == unum )
+        if ( v.first == unum )
         {
-            std::cerr << "CoachChangePlayerTypesCommand::add() unum "
+            std::cerr << "(CoachChangePlayerTypesCommand::add) unum "
                       << unum << " is already registered. overwritten."
                       << std::endl;
-            it->second = type;
             return;
         }
     }
@@ -232,19 +227,17 @@ CoachChangePlayerTypesCommand::toCommandString( std::ostream & to ) const
 
     to << "(change_player_types ";
 
-    for ( std::vector< std::pair< int, int > >::const_iterator it = M_types.begin();
-          it != M_types.end();
-          ++it )
+    for ( const std::pair< int, int > & v : M_types )
     {
-        if ( it->first < 1
-             || 11 < it->first
-             || it->second < 0
-             || PlayerParam::i().playerTypes() <= it->second )
+        if ( v.first < 1
+             || 11 < v.first
+             || v.second < 0
+             || PlayerParam::i().playerTypes() <= v.second )
         {
             continue;
         }
 
-        to << '(' << it->first << ' ' << it->second << ')';
+        to << '(' << v.first << ' ' << v.second << ')';
     }
 
     return to << ")";
@@ -286,14 +279,12 @@ CoachTeamGraphicCommand( const unsigned int x,
         std::cerr << "team_graphic: xpm over flow" << std::endl;
         M_xpm_lines.erase( M_xpm_lines.begin() + 8, M_xpm_lines.end() );
     }
-    for ( std::vector< std::string >::iterator it = M_xpm_lines.begin();
-          it != M_xpm_lines.end();
-          ++it )
+    for ( std::string & str : M_xpm_lines )
     {
-        if ( it->size() > 8 )
+        if ( str.size() > 8 )
         {
             std::cerr << "team_graphic: xpm line over flow" << std::endl;
-            it->erase( it->begin() + 8, it->end() );
+            str.erase( str.begin() + 8, str.end() );
         }
     }
 }
@@ -307,11 +298,9 @@ CoachTeamGraphicCommand::toCommandString( std::ostream & to ) const
 {
     to << "(team_graphic (" << M_x << " " << M_y;
 
-    for ( std::vector< std::string >::const_iterator it = M_xpm_lines.begin();
-          it != M_xpm_lines.end();
-          ++it )
+    for ( const std::string & str : M_xpm_lines )
     {
-        to << " \"" << *it << "\"";
+        to << " \"" << str << "\"";
     }
     return to << "))";
 }

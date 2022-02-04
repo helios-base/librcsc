@@ -1,8 +1,7 @@
 
 #include "qhull/src/qhull_a.h"
 
-#include <boost/random.hpp>
-
+#include <random>
 #include <cstdio>
 #include <csetjmp>
 #include <iostream>
@@ -110,15 +109,14 @@ main()
 
 #if 0
     {
-        boost::mt19937 engine( 100 );
-        boost::uniform_real<> dst( -100.0, 100.0 );
-        boost::variate_generator< boost::mt19937&, boost::uniform_real<> > rng( engine, dst );
+        std::mt19937 engine( 100 );
+        stdt::uniform_real_distribution<> dst( -100.0, 100.0 );
 
         for ( int i = 0; i < numpoints; ++i )
         {
             for ( int j = 0; j < dim; ++j )
             {
-                points[i*dim + j] = rng();
+                points[i*dim + j] = dst( engine );
             }
         }
     }

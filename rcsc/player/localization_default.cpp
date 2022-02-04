@@ -41,10 +41,10 @@
 #include <rcsc/common/logger.h>
 #include <rcsc/geom/sector_2d.h>
 #include <rcsc/time/timer.h>
-#include <rcsc/random.h>
 #include <rcsc/math_util.h>
 
 #include <algorithm>
+#include <random>
 
 using std::min;
 using std::max;
@@ -54,16 +54,11 @@ using std::max;
 // #define DEBUG_PRINT
 // #define DEBUG_PRINT_SHAPE
 
-// #define DEBUG_PRINT_PARTICLE
-
 namespace {
 static int g_filter_count = 0;
 }
 
 namespace rcsc {
-
-//! type of maerker map container
-typedef std::map< MarkerID, Vector2D > MarkerMap;
 
 /*!
   \struct LocalizeImpl
@@ -244,16 +239,13 @@ LocalizationDefault::Impl::getNearestMarker( const VisualSensor::ObjectType objt
     double mindist2 = 3.0 * 3.0;
     MarkerID candidate = Marker_Unknown;
 
-    const MarkerMap::const_iterator end = objectTable().landmarkMap().end();
-    for ( MarkerMap::const_iterator it = objectTable().landmarkMap().begin();
-          it != end;
-          ++it )
+    for ( const auto & v : objectTable().landmarkMap() )
     {
-        double d2 = pos.dist2( it->second );
+        double d2 = pos.dist2( v.second );
         if ( d2 < mindist2 )
         {
             mindist2 = d2;
-            candidate = it->first;
+            candidate = v.first;
         }
     }
 
@@ -442,8 +434,7 @@ LocalizationDefault::Impl::updatePointsByBehindMarker( const VisualSensor::Marke
         g_filter_count = 0;
 
         int count = 0;
-        const VisualSensor::MarkerCont::const_iterator end = markers.end();
-        for ( VisualSensor::MarkerCont::const_iterator marker = markers.begin();
+        for ( VisualSensor::MarkerCont::const_iterator marker = markers.begin(), end = markers.end();
               marker != end && count < 20;
               ++marker, ++count )
         {
@@ -466,7 +457,7 @@ LocalizationDefault::Impl::updatePointsBy( const VisualSensor::MarkerT & marker,
 {
     ////////////////////////////////////////////////////////////////////
     // get marker global position
-    MarkerMap::const_iterator it = objectTable().landmarkMap().find( id );
+    ObjectTable::MarkerMap::const_iterator it = objectTable().landmarkMap().find( id );
     if ( it == objectTable().landmarkMap().end() )
     {
         std::cerr << __FILE__ << ": " << __LINE__
@@ -558,7 +549,10 @@ LocalizationDefault::Impl::updatePointsBy( const VisualSensor::MarkerT & marker,
 
     M_points.erase( std::remove_if( M_points.begin(),
                                     M_points.end(),
-                                    std::not1( Vector2D::IsWithin< Sector2D >( sector ) ) ),
+                                    [&]( const Vector2D & p )
+                                      {
+                                          return ! sector.contains( p );
+                                      } ),
                     M_points.end() );
 
 #ifdef DEBUG_PROFILE_REMOVE
@@ -611,40 +605,36 @@ LocalizationDefault::Impl::averagePoints( Vector2D * ave_pos,
     max_x = min_x = M_points.front().x;
     max_y = min_y = M_points.front().y;
 
-    int count = 0;
-    const std::vector< Vector2D >::const_iterator end = M_points.end();
-    for ( std::vector< Vector2D >::const_iterator it = M_points.begin();
-          it != end;
-          ++it, ++count )
+    for ( const Vector2D & p : M_points )
     {
-        *ave_pos += *it;
+        *ave_pos += p;
 #ifdef DEBUG_PRINT_SHAPE
         // display points
         dlog.addCircle( Logger::WORLD,
-                        *it, 0.005,
+                        p, 0.005,
                         "#ff0000",
                         true ); // fill
 #endif
-        if ( it->x > max_x )
+        if ( p.x > max_x )
         {
-            max_x = it->x;
+            max_x = p.x;
         }
-        else if ( it->x < min_x )
+        else if ( p.x < min_x )
         {
-            min_x = it->x;
+            min_x = p.x;
         }
 
-        if ( it->y > max_y )
+        if ( p.y > max_y )
         {
-            max_y = it->y;
+            max_y = p.y;
         }
-        else if ( it->y < min_y )
+        else if ( p.y < min_y )
         {
-            min_y = it->y;
+            min_y = p.y;
         }
     }
 
-    *ave_pos /= static_cast< double >( count );
+    *ave_pos /= static_cast< double >( M_points.size() );
 
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::WORLD,
@@ -685,7 +675,7 @@ LocalizationDefault::Impl::generatePoints( const VisualSensor::MarkerT & marker,
     ////////////////////////////////////////////////////////////////////
     // get closest marker info
 
-    MarkerMap::const_iterator marker_it = objectTable().landmarkMap().find( id );
+    ObjectTable::MarkerMap::const_iterator marker_it = objectTable().landmarkMap().find( id );
     if ( marker_it == objectTable().landmarkMap().end() )
     {
         std::cerr << __FILE__ << " (generatePoints) cannot find marker id ??"
@@ -808,7 +798,7 @@ LocalizationDefault::Impl::resamplePoints( const VisualSensor::MarkerT & marker,
                                            const double & self_face,
                                            const double & self_face_err )
 {
-    static boost::mt19937 s_engine( 49827140 );
+    static std::mt19937 s_engine( 49827140 );
     static const size_t max_count = 50;
 
     const std::size_t count = M_points.size();
@@ -832,29 +822,7 @@ LocalizationDefault::Impl::resamplePoints( const VisualSensor::MarkerT & marker,
     // x & y are generated independently.
     // result may not be within current candidate sector
 
-    boost::uniform_real<> xy_dst( -0.01, 0.01 );
-    boost::variate_generator< boost::mt19937&, boost::uniform_real<> > xy_rng( s_engine, xy_dst );
-
-    if ( count == 1 )
-    {
-#ifdef DEBUG_PRINT
-        dlog.addText( Logger::WORLD,
-                      __FILE__" (resamplePoints) only one point. regenerate randomly" );
-#endif
-
-        for ( size_t i = count; i < max_count; ++i )
-        {
-            M_points.push_back( M_points[0]
-                                + Vector2D( xy_rng(), xy_rng() ) );
-#ifdef DEBUG_PRINT_SHAPE
-            dlog.addCircle( Logger::WORLD,
-                            M_points.back(), 0.01,
-                            "#ff0000" );
-#endif
-        }
-
-        return;
-    }
+    std::uniform_real_distribution<> xy_dst( -0.01, 0.01 );
 
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::WORLD,
@@ -862,13 +830,12 @@ LocalizationDefault::Impl::resamplePoints( const VisualSensor::MarkerT & marker,
                   (int)(max_count - count) );
 #endif
 
-    boost::uniform_smallint<> index_dst( 0, count - 1 );
-    boost::variate_generator< boost::mt19937&, boost::uniform_smallint<> > index_rng( s_engine, index_dst );
+    std::uniform_int_distribution<> index_dst( 0, count - 1 );
 
     for ( size_t i = count; i < max_count; ++i )
     {
-        M_points.push_back( M_points[index_rng()]
-                            + Vector2D( xy_rng(), xy_rng() ) );
+        M_points.push_back( M_points[index_dst( s_engine )]
+                            + Vector2D( xy_dst( s_engine ), xy_dst( s_engine ) ) );
 #ifdef DEBUG_PRINT_SHAPE
         dlog.addCircle( Logger::WORLD,
                         M_points.back(), 0.01,
@@ -933,7 +900,7 @@ LocalizationDefault::Impl::getFaceDirByMarkers( const VisualSensor::MarkerCont &
                   __FILE__" (getFaceDirByMarkers) try to get face from 2 markers" );
 #endif
 
-    MarkerMap::const_iterator it1 = objectTable().landmarkMap().find( markers.front().id_ );
+    ObjectTable::MarkerMap::const_iterator it1 = objectTable().landmarkMap().find( markers.front().id_ );
     if ( it1 == objectTable().landmarkMap().end() )
     {
 #ifdef DEBUG_PRINT
@@ -943,7 +910,7 @@ LocalizationDefault::Impl::getFaceDirByMarkers( const VisualSensor::MarkerCont &
         return angle;
     }
 
-    MarkerMap::const_iterator it2 = objectTable().landmarkMap().find( markers.back().id_ );
+    ObjectTable::MarkerMap::const_iterator it2 = objectTable().landmarkMap().find( markers.back().id_ );
     if ( it2 == objectTable().landmarkMap().end() )
     {
 #ifdef DEBUG_PRINT

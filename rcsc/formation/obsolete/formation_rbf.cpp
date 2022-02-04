@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file formation_bpn.cpp
-  \brief BPN formation data classes Source File.
+  \file formation_rbf.cpp
+  \brief RBF formation data classes Source File.
 */
 
 /*
@@ -33,32 +33,30 @@
 #include <config.h>
 #endif
 
-#include "formation_bpn.h"
+#include "formation_rbf.h"
 
 #include <rcsc/math_util.h>
 
-#include <boost/random.hpp>
 #include <sstream>
 #include <algorithm>
-#include <ctime>
 #include <cstdio>
 
 namespace rcsc {
 
 using namespace formation;
 
-const std::string FormationBPN::NAME( "BPN" );
+const std::string FormationRBF::NAME( "RBF" );
 
-const double FormationBPN::Param::PITCH_LENGTH = 105.0 + 10.0;
-const double FormationBPN::Param::PITCH_WIDTH = 68.0 + 10.0;
+const double FormationRBF::Param::PITCH_LENGTH = 105.0 + 10.0;
+const double FormationRBF::Param::PITCH_WIDTH = 68.0 + 10.0;
 
 
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
-FormationBPN::Param::Param()
-    : M_net( 0.3, 0.9 )
+ */
+FormationRBF::Param::Param()
+    : M_net( 2, 2 )
 {
 
 }
@@ -66,47 +64,22 @@ FormationBPN::Param::Param()
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
-void
-FormationBPN::Param::randomize()
-{
-    static boost::mt19937 gen( std::time( 0 ) );
-    boost::uniform_real<> dst( -0.5, 0.5 );
-    boost::variate_generator< boost::mt19937 &, boost::uniform_real<> >
-        rng( gen, dst );
-
-    M_net.randomize( rng );
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
+ */
 Vector2D
-FormationBPN::Param::getPosition( const Vector2D & ball_pos,
-                                  const Formation::SideType type ) const
+FormationRBF::Param::getPosition( const Vector2D & ball_pos,
+                                  const Formation::SideType ) const
 {
-    double msign = 1.0;
-    if ( type == Formation::SYMMETRY ) msign =  -1.0;
-    if ( type == Formation::CENTER && ball_pos.y > 0.0 ) msign = -1.0;
+    RBFNetwork::input_vector input( 2, 0.0 );
 
-    Net::input_array input;
+    input[0] = ball_pos.x;
+    input[1] = ball_pos.y;
 
-    input[0] = std::max( 0.0,
-                         std::min( ball_pos.x / PITCH_LENGTH + 0.5,
-                                   1.0 ) );
-    input[1] = std::max( 0.0,
-                         std::min( (ball_pos.y * msign) / PITCH_WIDTH + 0.5,
-                                   1.0 ) );
-
-    Net::output_array output;
+    RBFNetwork::output_vector output;
 
     M_net.propagate( input, output );
-    //std::cerr << "getPosition. raw output = "
-    //<< output[0] << " ,  " << output[1]
-    //<< std::endl;
-    return Vector2D( ( output[0] - 0.5 ) * PITCH_LENGTH,
-                     ( output[1] - 0.5 ) * PITCH_WIDTH * msign );
+
+    return Vector2D( bound( -PITCH_LENGTH*0.5, output[0], PITCH_LENGTH*0.5 ),
+                     bound( -PITCH_WIDTH*0.5, output[1], PITCH_WIDTH*0.5 ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -114,7 +87,7 @@ FormationBPN::Param::getPosition( const Vector2D & ball_pos,
   Format:  Role <RoleNameStr>
 */
 bool
-FormationBPN::Param::readRoleName( std::istream & is )
+FormationRBF::Param::readRoleName( std::istream & is )
 {
     std::string line_buf;
     if ( ! std::getline( is, line_buf ) )
@@ -154,9 +127,9 @@ FormationBPN::Param::readRoleName( std::istream & is )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 bool
-FormationBPN::Param::readNet( std::istream & is )
+FormationRBF::Param::readParam( std::istream & is )
 {
     std::string line_buf;
     if ( ! std::getline( is, line_buf ) )
@@ -186,9 +159,9 @@ FormationBPN::Param::readNet( std::istream & is )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 bool
-FormationBPN::Param::read( std::istream & is )
+FormationRBF::Param::read( std::istream & is )
 {
     // read role name
     if ( ! readRoleName( is ) )
@@ -198,7 +171,7 @@ FormationBPN::Param::read( std::istream & is )
         return false;
     }
 
-    if ( ! readNet( is ) )
+    if ( ! readParam( is ) )
     {
         std::cerr << __FILE__ << ":" << __LINE__
                   << " Failed to read parameters" << std::endl;
@@ -211,9 +184,9 @@ FormationBPN::Param::read( std::istream & is )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 std::ostream &
-FormationBPN::Param::printRoleName( std::ostream & os ) const
+FormationRBF::Param::printRoleName( std::ostream & os ) const
 {
     if ( M_role_name.empty() )
     {
@@ -229,9 +202,9 @@ FormationBPN::Param::printRoleName( std::ostream & os ) const
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 std::ostream &
-FormationBPN::Param::printNet( std::ostream & os ) const
+FormationRBF::Param::printParam( std::ostream & os ) const
 {
     M_net.print( os ) << '\n';
     return os;
@@ -247,10 +220,10 @@ FormationBPN::Param::printNet( std::ostream & os ) const
 
 */
 std::ostream &
-FormationBPN::Param::print( std::ostream & os ) const
+FormationRBF::Param::print( std::ostream & os ) const
 {
     printRoleName( os );
-    printNet( os );
+    printParam( os );
 
     return os << std::flush;
 }
@@ -262,8 +235,8 @@ FormationBPN::Param::print( std::ostream & os ) const
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
-FormationBPN::FormationBPN()
+ */
+FormationRBF::FormationRBF()
     : Formation()
 {
 
@@ -272,15 +245,10 @@ FormationBPN::FormationBPN()
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 void
-FormationBPN::createDefaultData()
+FormationRBF::createDefaultData()
 {
-    if ( ! M_samples )
-    {
-        M_samples = SampleDataSet::Ptr( new SampleDataSet() );
-    }
-
     // 1: goalie
     // 2: left center back
     // 3(2): right center back
@@ -307,17 +275,17 @@ FormationBPN::createDefaultData()
     SampleData data;
 
     data.ball_.assign( 0.0, 0.0 );
-    data.players_.push_back( Vector2D( -50.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -20.0, -8.0 ) );
-    data.players_.push_back( Vector2D( -20.0, 8.0 ) );
-    data.players_.push_back( Vector2D( -18.0, -18.0 ) );
-    data.players_.push_back( Vector2D( -18.0, 18.0 ) );
-    data.players_.push_back( Vector2D( -15.0, 0.0 ) );
-    data.players_.push_back( Vector2D( 0.0, -12.0 ) );
-    data.players_.push_back( Vector2D( 0.0, 12.0 ) );
-    data.players_.push_back( Vector2D( 10.0, -22.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 22.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 0.0 ) );
+    data.players_.emplace_back( -50.0, 0.0 );
+    data.players_.emplace_back( -20.0, -8.0 );
+    data.players_.emplace_back( -20.0, 8.0 );
+    data.players_.emplace_back( -18.0, -18.0 );
+    data.players_.emplace_back( -18.0, 18.0 );
+    data.players_.emplace_back( -15.0, 0.0 );
+    data.players_.emplace_back( 0.0, -12.0 );
+    data.players_.emplace_back( 0.0, 12.0 );
+    data.players_.emplace_back( 10.0, -22.0 );
+    data.players_.emplace_back( 10.0, 22.0 );
+    data.players_.emplace_back( 10.0, 0.0 );
 
     M_samples->addData( *this, data, false );
 }
@@ -326,12 +294,12 @@ FormationBPN::createDefaultData()
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 void
-FormationBPN::setRoleName( const int unum,
+FormationRBF::setRoleName( const int unum,
                            const std::string & name )
 {
-    boost::shared_ptr< FormationBPN::Param > p = getParam( unum );
+    std::shared_ptr< Param > p = getParam( unum );
 
     if ( ! p )
     {
@@ -348,11 +316,11 @@ FormationBPN::setRoleName( const int unum,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 std::string
-FormationBPN::getRoleName( const int unum ) const
+FormationRBF::getRoleName( const int unum ) const
 {
-    const boost::shared_ptr< const FormationBPN::Param > p = getParam( unum );
+    const std::shared_ptr< const Param > p = param( unum );
     if ( ! p )
     {
         std::cerr << __FILE__ << ":" << __LINE__
@@ -368,9 +336,9 @@ FormationBPN::getRoleName( const int unum ) const
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 void
-FormationBPN::createNewRole( const int unum,
+FormationRBF::createNewRole( const int unum,
                              const std::string & role_name,
                              const Formation::SideType type )
 {
@@ -392,23 +360,18 @@ FormationBPN::createNewRole( const int unum,
     }
     else
     {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** You cannot create a new parameter for symmetry type."
-                  << std::endl;
-        return;
+        // symmetry
     }
 
     // erase old parameter, if exist
-    std::map< int, boost::shared_ptr< FormationBPN::Param > >::iterator it
-        = M_param_map.find( unum );
+    std::map< int, std::shared_ptr< Param > >::iterator it = M_param_map.find( unum );
     if ( it != M_param_map.end() )
     {
         M_param_map.erase( it );
     }
 
-    boost::shared_ptr< FormationBPN::Param > param( new FormationBPN::Param );
+    std::shared_ptr< Param > param( new Param );
     param->setRoleName( role_name );
-    param->randomize();
 
     M_param_map.insert( std::make_pair( unum, param ) );
 }
@@ -416,21 +379,20 @@ FormationBPN::createNewRole( const int unum,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 Vector2D
-FormationBPN::getPosition( const int unum,
+FormationRBF::getPosition( const int unum,
                            const Vector2D & ball_pos ) const
 {
-    const boost::shared_ptr< const FormationBPN::Param > ptr = getParam( unum );
+    const std::shared_ptr< const Param > ptr = param( unum );
     if ( ! ptr )
     {
         std::cerr << __FILE__ << ':' << __LINE__
-                  << " *** ERROR *** FormationBPN::Param not found. unum = "
+                  << " *** ERROR *** FormationRBF::Param not found. unum = "
                   << unum
                   << std::endl;
         return Vector2D::INVALIDATED;
     }
-
     Formation::SideType type = Formation::SIDE;
     if ( M_symmetry_number[unum - 1] > 0 )  type = Formation::SYMMETRY;
     if ( M_symmetry_number[unum - 1] == 0 ) type = Formation::CENTER;
@@ -441,9 +403,9 @@ FormationBPN::getPosition( const int unum,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 void
-FormationBPN::getPositions( const Vector2D & focus_point,
+FormationRBF::getPositions( const Vector2D & focus_point,
                             std::vector< Vector2D > & positions ) const
 {
     positions.clear();
@@ -457,9 +419,9 @@ FormationBPN::getPositions( const Vector2D & focus_point,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 void
-FormationBPN::train()
+FormationRBF::train()
 {
     if ( ! M_samples
          || M_samples->dataCont().empty() )
@@ -467,35 +429,13 @@ FormationBPN::train()
         return;
     }
 
-    const double PITCH_LENGTH = FormationBPN::Param::PITCH_LENGTH;
-    const double PITCH_WIDTH = FormationBPN::Param::PITCH_WIDTH;
-
-    std::cerr << "FormationBPN::train. Started!!" << std::endl;
+    std::cerr << "FormationRBF::train. Started!!" << std::endl;
 
     for ( int unum = 1; unum <= 11; ++unum )
     {
         int number = unum;
-        Formation::SideType type = Formation::SIDE;
-        if ( isSymmetryType( unum ) )
-        {
-            std::cerr << "  Training. player " << unum << " >>> symmetry type "
-                      << std::endl;
-            continue;
-        }
 
-        if ( isCenterType( unum ) )
-        {
-            type = Formation::CENTER;
-            std::cerr << "  Training. player " << unum << " >>> center type "
-                      << std::endl;
-        }
-        else
-        {
-            std::cerr << "  Training. player " << unum << " >>> side type "
-                      << std::endl;
-        }
-
-        boost::shared_ptr< FormationBPN::Param > param = getParam( number );
+        std::shared_ptr< Param > param = getParam( number );
         if ( ! param )
         {
             std::cerr << __FILE__ << ": " << __LINE__
@@ -504,12 +444,45 @@ FormationBPN::train()
             break;
         }
 
-        FormationBPN::Param::Net & net = param->net();
+        RBFNetwork & net = param->getNet();
+        std::cerr << "FormationRBF::train. " << unum
+                  << " current unit size = "
+                  << net.units().size()
+                  << std::endl;
 
-        FormationBPN::Param::Net::input_array input;
-        FormationBPN::Param::Net::output_array teacher;
+        if ( net.units().size() < M_samples->dataCont().size() )
+        {
+            SampleDataSet::DataCont::const_iterator d = M_samples->dataCont().begin();
+            int count = net.units().size();
+            std::cerr << "FormationRBF::train. need to add new center "
+                      << M_samples->dataCont().size() - net.units().size() << std::endl;
+            while ( --count >= 0
+                    && d != M_samples->dataCont().end() )
+            {
+                std::cerr << "FormationRBF::train. skip known data...." << std::endl;
+                ++d;
+            }
 
-        const SampleDataSet::DataCont::const_iterator data_end = M_samples->dataCont().end();
+            while ( d != M_samples->dataCont().end() )
+            {
+                std::cerr << "FormationRBF::train. added new center "
+                          << d->ball_
+                          << std::endl;
+                RBFNetwork::input_vector center( 2, 0.0 );
+                center[0] = d->ball_.x;
+                center[1] = d->ball_.y;
+                net.addCenter( center );
+
+                ++d;
+            }
+        }
+
+        net.printUnits( std::cerr );
+
+        RBFNetwork::input_vector input( 2, 0.0 );
+        RBFNetwork::output_vector teacher( 2, 0.0 );
+
+        const SampleDataSet::DataCont::const_iterator d_end = M_samples->dataCont().end();
         int loop = 0;
         double ave_err = 0.0;
         double max_err = 0.0;
@@ -520,36 +493,21 @@ FormationBPN::train()
             max_err = 0.0;
             double data_count = 1.0;
             for ( SampleDataSet::DataCont::const_iterator d = M_samples->dataCont().begin();
-                  d != data_end;
+                  d != d_end;
                   ++d, data_count += 1.0 )
             {
-                double by = d->ball_.y;
-                double py = d->players_[unum - 1].y;
+                input[0] = d->ball_.x;
+                input[1] = d->ball_.y;
+                teacher[0] = d->players_[unum - 1].x;
+                teacher[1] = d->players_[unum - 1].y;
 
-                if ( type == Formation::CENTER
-                     && by > 0.0 )
+                if ( loop == 2 )
                 {
-                    if ( loop == 2 )
-                    {
-                        std::cerr << "      unum " << unum
-                                  << "  training data Y is reversed"
-                                  << std::endl;
-                    }
-                    by *= -1.0;
-                    py *= -1.0;
+                    std::cerr << "  ----> " << unum
+                              << "  ball = " << input[0] << ", " << input[1]
+                              << "  teacher = " << teacher[0] << ", " << teacher[1]
+                              << std::endl;
                 }
-
-                input[0] = min_max( 0.0,
-                                    d->ball_.x / PITCH_LENGTH + 0.5,
-                                    1.0 );
-                input[1] = min_max( 0.0,
-                                    by / PITCH_WIDTH + 0.5,
-                                    1.0 );
-                teacher[0] = min_max( 0.0,
-                                      d->players_[unum - 1].x / PITCH_LENGTH + 0.5,
-                                      1.0 );
-                teacher[1] = std::max( 0.0,
-                                       std::min( py / PITCH_WIDTH + 0.5, 1.0 ) );
 
                 double err = net.train( input, teacher );
                 if ( max_err < err )
@@ -560,14 +518,8 @@ FormationBPN::train()
                     = ave_err * ( ( data_count - 1.0 ) / data_count )
                     + err / data_count;
             }
-#if 0
-            if ( loop % 500 == 0 )
-            {
-                std::cerr << "      Training. player " << unum
-                          << "  counter " << loop << std::endl;
-            }
-#endif
-            if ( max_err < 0.003 )
+
+            if ( max_err < 0.001 )
             {
                 std::cerr << "  ----> converged. average err=" << ave_err
                           << "  last max err=" << max_err
@@ -586,88 +538,17 @@ FormationBPN::train()
                   << " loop. last average err=" << ave_err
                   << "  last max err=" << max_err
                   << std::endl;
+        net.printUnits( std::cerr );
     }
-    std::cerr << "FormationBPN::train. Ended!!" << std::endl;
+    std::cerr << "FormationRBF::train. Ended!!" << std::endl;
 }
 
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
-boost::shared_ptr< FormationBPN::Param >
-FormationBPN::getParam( const int unum )
-{
-    if ( unum < 1 || 11 < unum )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** invalid unum " << unum
-                  << std::endl;
-        return boost::shared_ptr< FormationBPN::Param >
-            ( static_cast< FormationBPN::Param * >( 0 ) );
-    }
-
-    if ( M_symmetry_number[unum - 1] > 0 )
-    {
-        return boost::shared_ptr< FormationBPN::Param >
-            ( static_cast< FormationBPN::Param * >( 0 ) );
-    }
-
-    std::map< int, boost::shared_ptr< FormationBPN::Param > >::const_iterator
-        it = M_param_map.find( unum );
-
-    if ( it == M_param_map.end() )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** Neteter not found! unum = "
-                  << unum << std::endl;
-        return boost::shared_ptr< FormationBPN::Param >
-            ( static_cast< FormationBPN::Param * >( 0 ) );
-    }
-
-    return it->second;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
-boost::shared_ptr< const FormationBPN::Param >
-FormationBPN::getParam( const int unum ) const
-{
-    if ( unum < 1 || 11 < unum )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** invalid unum " << unum
-                  << std::endl;
-        return boost::shared_ptr< const FormationBPN::Param >
-            ( static_cast< FormationBPN::Param * >( 0 ) );
-    }
-
-    const int player_number = ( M_symmetry_number[unum - 1] <= 0 // center or original
-                                ? unum
-                                : M_symmetry_number[unum - 1] );
-
-    std::map< int, boost::shared_ptr< FormationBPN::Param > >::const_iterator
-        it = M_param_map.find( player_number );
-
-    if ( it == M_param_map.end() )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** Neteter not found! unum = "
-                  << unum << std::endl;
-        return boost::shared_ptr< const FormationBPN::Param >
-            ( static_cast< FormationBPN::Param * >( 0 ) );
-    }
-
-    return it->second;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
+ */
 bool
-FormationBPN::read( std::istream & is )
+FormationRBF::read( std::istream & is )
 {
     if ( ! readHeader( is ) ) return false;
     if ( ! readConf( is ) ) return false;
@@ -683,13 +564,80 @@ FormationBPN::read( std::istream & is )
     return true;
 }
 
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationRBF::print( std::ostream & os ) const
+{
+    if ( os ) printHeader( os );
+    if ( os ) printConf( os );
+    if ( os ) printSamples( os );
+
+    return os;
+}
 
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
+std::shared_ptr< FormationRBF::Param >
+FormationRBF::getParam( const int unum )
+{
+    if ( unum < 1 || 11 < unum )
+    {
+        std::cerr << __FILE__ << ":" << __LINE__
+                  << " *** ERROR *** invalid unum " << unum
+                  << std::endl;
+        return std::shared_ptr< Param >( nullptr );
+    }
+
+    std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
+    if ( it == M_param_map.end() )
+    {
+        std::cerr << __FILE__ << ":" << __LINE__
+                  << " *** ERROR *** Parameter not found! unum = "
+                  << unum << std::endl;
+        return std::shared_ptr< Param >( nullptr );
+    }
+
+    return it->second;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::shared_ptr< const FormationRBF::Param >
+FormationRBF::param( const int unum ) const
+{
+    if ( unum < 1 || 11 < unum )
+    {
+        std::cerr << __FILE__ << ":" << __LINE__
+                  << " *** ERROR *** invalid unum " << unum
+                  << std::endl;
+        return std::shared_ptr< const Param >( nullptr );
+    }
+
+    std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
+    if ( it == M_param_map.end() )
+    {
+        std::cerr << __FILE__ << ":" << __LINE__
+                  << " *** ERROR *** Parameter not found! unum = "
+                  << unum << std::endl;
+        return std::shared_ptr< const Param >( nullptr );
+    }
+
+    return it->second;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
 bool
-FormationBPN::readConf( std::istream & is )
+FormationRBF::readConf( std::istream & is )
 {
     if ( ! readPlayers( is ) )
     {
@@ -702,9 +650,9 @@ FormationBPN::readConf( std::istream & is )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 bool
-FormationBPN::readPlayers( std::istream & is )
+FormationRBF::readPlayers( std::istream & is )
 {
     int player_read = 0;
     std::string line_buf;
@@ -728,7 +676,7 @@ FormationBPN::readPlayers( std::istream & is )
                           &n_read ) != 2
              || n_read == 0 )
         {
-            std::cerr << __FILE__ << ':' << __LINE__<< ':'
+            std::cerr << __FILE__ << ":" << __LINE__
                       << " *** ERROR *** failed to read formation at number "
                       << i + 1
                       << " [" << line_buf << "]"
@@ -737,7 +685,7 @@ FormationBPN::readPlayers( std::istream & is )
         }
         if ( unum != i + 1 )
         {
-            std::cerr << __FILE__ << ':' << __LINE__<< ':'
+            std::cerr << __FILE__ << ":" << __LINE__
                       << " *** ERROR *** failed to read formation "
                       << " Invalid player number.  Expected " << i + 1
                       << "  but read number = " << unum
@@ -746,7 +694,7 @@ FormationBPN::readPlayers( std::istream & is )
         }
         if ( symmetry == unum )
         {
-            std::cerr << __FILE__ << ':' << __LINE__<< ':'
+            std::cerr << __FILE__ << ":" << __LINE__
                       << " *** ERROR *** failed to read formation."
                       << " Invalid symmetry number. at "
                       << i
@@ -757,7 +705,7 @@ FormationBPN::readPlayers( std::istream & is )
         }
         if ( 11 < symmetry )
         {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
+            std::cerr << __FILE__ << ":" << __LINE__
                       << " *** ERROR *** failed to read formation."
                       << " Invalid symmetry number. at "
                       << i
@@ -770,17 +718,19 @@ FormationBPN::readPlayers( std::istream & is )
         M_symmetry_number[i] = symmetry;
 
         // this player is symmetry type
-        if ( symmetry > 0 )
-        {
-            ++player_read;
-            continue;
-        }
+        /*
+          if ( symmetry > 0 )
+          {
+          ++player_read;
+          continue;
+          }
+        */
 
         // read parameters
-        boost::shared_ptr< FormationBPN::Param > param( new FormationBPN::Param );
+        std::shared_ptr< Param > param( new Param() );
         if ( ! param->read( is ) )
         {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
+            std::cerr << __FILE__ << ":" << __LINE__
                       << " *** ERROR *** failed to read formation. at number "
                       << i + 1
                       << " [" << line_buf << "]"
@@ -794,7 +744,7 @@ FormationBPN::readPlayers( std::istream & is )
 
     if ( player_read != 11 )
     {
-        std::cerr << __FILE__ << ':' << __LINE__ << ':'
+        std::cerr << __FILE__ << ':' << __LINE__
                   << " ***ERROR*** Invalid formation format."
                   << " The number of read player is " << player_read
                   << std::endl;
@@ -813,44 +763,28 @@ FormationBPN::readPlayers( std::istream & is )
     return true;
 }
 
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-FormationBPN::print( std::ostream & os ) const
-{
-    if ( os ) printHeader( os );
-    if ( os ) printConf( os );
-    if ( os ) printSamples( os );
-
-    return os;
-}
-
 /*-------------------------------------------------------------------*/
 /*!
 
 */
 std::ostream &
-FormationBPN::printConf( std::ostream & os ) const
+FormationRBF::printConf( std::ostream & os ) const
 {
     for ( int i = 0; i < 11; ++i )
     {
         const int unum = i + 1;
+        os << "player " << unum << " " << M_symmetry_number[i] << '\n';
+        /*
+          if ( M_symmetry_number[i] > 0 )
+          {
+          continue;
+          }
+        */
 
-        os << "player " << unum << ' ' << M_symmetry_number[i] << '\n';
-
-        if ( M_symmetry_number[i] > 0 )
-        {
-            continue;
-        }
-
-        std::map< int, boost::shared_ptr< FormationBPN::Param > >::const_iterator
-            it = M_param_map.find( unum );
+        std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
         if ( it == M_param_map.end() )
         {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
+            std::cerr << __FILE__ << ":" << __LINE__
                       << " *** ERROR *** Invalid player Id at number "
                       << i + 1
                       << ".  No formation param!"
@@ -866,6 +800,7 @@ FormationBPN::printConf( std::ostream & os ) const
     return os;
 }
 
+
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -875,12 +810,12 @@ namespace {
 Formation::Ptr
 create()
 {
-    Formation::Ptr ptr( new FormationBPN() );
+    Formation::Ptr ptr( new FormationRBF() );
     return ptr;
 }
 
 rcss::RegHolder f = Formation::creators().autoReg( &create,
-                                                   FormationBPN::NAME );
+                                                   FormationRBF::NAME );
 
 }
 

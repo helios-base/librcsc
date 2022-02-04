@@ -113,7 +113,7 @@ private:
     CommandCount M_command_count[rcsc::MAX_PLAYER * 2];
 
     // not used
-    TextPrinter();
+    TextPrinter() = delete;
 public:
 
     explicit

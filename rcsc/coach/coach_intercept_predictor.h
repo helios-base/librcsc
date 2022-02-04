@@ -51,9 +51,9 @@ private:
     std::vector< Vector2D > M_ball_cache;
 
     // not used
-    CoachInterceptPredictor();
-    CoachInterceptPredictor( const CoachInterceptPredictor & );
-    CoachInterceptPredictor & operator=( const CoachInterceptPredictor & );
+    CoachInterceptPredictor() = delete;
+    CoachInterceptPredictor( const CoachInterceptPredictor & ) = delete;
+    CoachInterceptPredictor & operator=( const CoachInterceptPredictor & ) = delete;
 
 public:
 

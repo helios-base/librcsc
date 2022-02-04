@@ -49,11 +49,11 @@ class ViewAction;
 class IntentionTimeLimitAction
     : public SoccerIntention {
 private:
-    boost::shared_ptr< BodyAction > M_body_action; //!< intended body action
+    std::shared_ptr< BodyAction > M_body_action; //!< intended body action
 
-    boost::shared_ptr< NeckAction > M_neck_action; //!< intended neck action
+    std::shared_ptr< NeckAction > M_neck_action; //!< intended neck action
 
-    boost::shared_ptr< ViewAction > M_view_action; //!< intended view action
+    std::shared_ptr< ViewAction > M_view_action; //!< intended view action
 
     long M_timer_count; //!< the size of remained queue
 

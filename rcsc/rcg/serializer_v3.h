@@ -61,7 +61,7 @@ public:
       \return serialization result
     */
     virtual
-    std::ostream & serializeHeader( std::ostream & os );
+    std::ostream & serializeHeader( std::ostream & os ) override;
 
     /*!
       \brief write parameter message
@@ -71,7 +71,7 @@ public:
     */
     virtual
     std::ostream & serializeParam( std::ostream & os,
-                                   const std::string & msg );
+                                   const std::string & msg ) override;
 
     /*!
       \brief write server param
@@ -81,7 +81,7 @@ public:
     */
     virtual
     std::ostream & serialize( std::ostream & os,
-                              const server_params_t & param );
+                              const server_params_t & param ) override;
 
     /*!
       \brief write player param
@@ -91,7 +91,7 @@ public:
     */
     virtual
     std::ostream & serialize( std::ostream & os,
-                              const player_params_t & pparam );
+                              const player_params_t & pparam ) override;
 
     /*!
       \brief write player type param
@@ -101,7 +101,7 @@ public:
     */
     virtual
     std::ostream & serialize( std::ostream & os,
-                              const player_type_t & type );
+                              const player_type_t & type ) override;
 
     /*!
       \brief write dispinfo_t.
@@ -111,7 +111,7 @@ public:
      */
     virtual
     std::ostream & serialize( std::ostream & os,
-                              const dispinfo_t & disp );
+                              const dispinfo_t & disp ) override;
 
     /*!
       \brief write showinfo_t.
@@ -121,7 +121,7 @@ public:
      */
     virtual
     std::ostream & serialize( std::ostream & os,
-                              const showinfo_t & show );
+                              const showinfo_t & show ) override;
 
     /*!
       \brief write showinfo_t2
@@ -131,7 +131,7 @@ public:
      */
     virtual
     std::ostream & serialize( std::ostream & os,
-                              const showinfo_t2 & show2 );
+                              const showinfo_t2 & show2 ) override;
 
     /*!
       \brief write short_showinfo_t2.
@@ -141,7 +141,7 @@ public:
      */
     virtual
     std::ostream & serialize( std::ostream & os,
-                              const short_showinfo_t2 & show2 );
+                              const short_showinfo_t2 & show2 ) override;
 
     /*!
       \brief write message info
@@ -151,7 +151,7 @@ public:
     */
     virtual
     std::ostream & serialize( std::ostream & os,
-                              const msginfo_t & msg );
+                              const msginfo_t & msg ) override;
 
     /*!
       \brief write message info
@@ -163,7 +163,7 @@ public:
     virtual
     std::ostream & serialize( std::ostream & os,
                               const Int16 board,
-                              const std::string & msg );
+                              const std::string & msg ) override;
 
    /*!
       \brief write drawinfo_t
@@ -173,7 +173,7 @@ public:
     */
     virtual
     std::ostream & serialize( std::ostream & os,
-                              const drawinfo_t & draw );
+                              const drawinfo_t & draw ) override;
 
     /*!
       \brief write playmode
@@ -183,7 +183,7 @@ public:
     */
     virtual
     std::ostream & serialize( std::ostream & os,
-                              const char playmode );
+                              const char playmode ) override;
 
     /*!
       \brief write team info
@@ -195,7 +195,7 @@ public:
     virtual
     std::ostream & serialize( std::ostream & os,
                               const team_t & team_l,
-                              const team_t & team_r );
+                              const team_t & team_r ) override;
 
     /*!
       \brief write team info
@@ -207,7 +207,7 @@ public:
     virtual
     std::ostream & serialize( std::ostream & os,
                               const TeamT & team_l,
-                              const TeamT & team_r );
+                              const TeamT & team_r ) override;
 
     /*!
       \brief write ShowInfoT
@@ -217,7 +217,7 @@ public:
      */
     virtual
     std::ostream & serialize( std::ostream & os,
-                              const ShowInfoT & show );
+                              const ShowInfoT & show ) override;
 
     /*!
       \brief write DispInfoT
@@ -227,7 +227,7 @@ public:
      */
     virtual
     std::ostream & serialize( std::ostream & os,
-                              const DispInfoT & disp );
+                              const DispInfoT & disp ) override;
 
 private:
 

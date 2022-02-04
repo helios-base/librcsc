@@ -63,8 +63,6 @@
 #include <rcsc/timer.h>
 #include <rcsc/version.h>
 
-#include <boost/lexical_cast.hpp>
-
 #include <sstream>
 #include <cstdio>
 #include <cstring>
@@ -129,13 +127,13 @@ struct PlayerAgent::Impl {
     int see_timings_[11];
 
     //! pointer to reserved action
-    boost::shared_ptr< ArmAction > arm_action_;
+    std::shared_ptr< ArmAction > arm_action_;
 
     //! pointer to reserved action
-    boost::shared_ptr< NeckAction > neck_action_;
+    std::shared_ptr< NeckAction > neck_action_;
 
     //! pointer to reserved action
-    boost::shared_ptr< ViewAction > view_action_;
+    std::shared_ptr< ViewAction > view_action_;
 
     //! intention queue
     SoccerIntention::Ptr intention_;
@@ -674,19 +672,19 @@ PlayerAgent::~PlayerAgent()
 /*!
 
  */
-boost::shared_ptr< AbstractClient >
+std::shared_ptr< AbstractClient >
 PlayerAgent::createConsoleClient()
 {
-    boost::shared_ptr< AbstractClient > ptr;
+    std::shared_ptr< AbstractClient > ptr;
 
     if ( 1 <= config().offlineClientNumber()
          && config().offlineClientNumber() <= 11 )
     {
-        ptr = boost::shared_ptr< AbstractClient >( new OfflineClient() );
+        ptr = std::shared_ptr< AbstractClient >( new OfflineClient() );
     }
     else
     {
-        ptr = boost::shared_ptr< AbstractClient >( new OnlineClient() );
+        ptr = std::shared_ptr< AbstractClient >( new OnlineClient() );
     }
 
     return ptr;
@@ -1008,8 +1006,7 @@ PlayerAgent::handleTimeout( const int timeout_count,
     }
 
     TimeStamp cur_time;
-    cur_time.setCurrent();
-    long msec_from_sense = -1;
+    std::int64_t msec_from_sense = -1;
     /*
       std::cerr << "cur_sec = " << cur_time.sec()
       << "  cur_usec = " << cur_time.usec()
@@ -1017,9 +1014,9 @@ PlayerAgent::handleTimeout( const int timeout_count,
       << "  sense_usec=" << M_impl->body_time_stamp_.usec()
       << std::endl;
     */
-    if ( M_impl->body_time_stamp_.sec() > 0 )
+    if ( M_impl->body_time_stamp_.isValid() )
     {
-        msec_from_sense = cur_time.getMSecDiffFrom( M_impl->body_time_stamp_ );
+        msec_from_sense = cur_time.elapsedSince( M_impl->body_time_stamp_ );
     }
 
     dlog.addText( Logger::SYSTEM,
@@ -1525,11 +1522,12 @@ PlayerAgent::Impl::analyzeCycle( const char * msg,
 void
 PlayerAgent::Impl::analyzeSee( const char * msg )
 {
-    see_time_stamp_.setCurrent();
-    long msec_from_sense = -1;
-    if ( body_time_stamp_.sec() > 0 )
+    std::int64_t msec_from_sense = -1;
+
+    see_time_stamp_.setNow();
+    if ( body_time_stamp_.isValid() )
     {
-        msec_from_sense = see_time_stamp_.getMSecDiffFrom( body_time_stamp_ );
+        msec_from_sense = see_time_stamp_.elapsedSince( body_time_stamp_ );
 #ifdef PROFILE_SEE
         if ( see_state_.isSynch() )
         {
@@ -1605,7 +1603,7 @@ PlayerAgent::Impl::analyzeSee( const char * msg )
 void
 PlayerAgent::Impl::analyzeSenseBody( const char * msg )
 {
-    body_time_stamp_.setCurrent();
+    body_time_stamp_.setNow();
 
     // parse cycle info
     if ( ! analyzeCycle( msg, true ) )
@@ -2307,7 +2305,7 @@ PlayerAgent::Impl::analyzeWarning( const char * msg )
 void
 PlayerAgent::action()
 {
-    MSecTimer timer;
+    Timer timer;
     dlog.addText( Logger::SYSTEM,
                   __FILE__" (action) start" );
 
@@ -3108,7 +3106,7 @@ PlayerAgent::setArmAction( ArmAction * act )
 {
     if ( act )
     {
-        M_impl->arm_action_ = boost::shared_ptr< ArmAction >( act );
+        M_impl->arm_action_ = std::shared_ptr< ArmAction >( act );
     }
     else
     {
@@ -3130,7 +3128,7 @@ PlayerAgent::setNeckAction( NeckAction * act )
             dlog.addText( Logger::ACTION,
                           __FILE__": (setNeckAction) overwrite exsiting neck action." );
         }
-        M_impl->neck_action_ = boost::shared_ptr< NeckAction >( act );
+        M_impl->neck_action_ = std::shared_ptr< NeckAction >( act );
     }
     else
     {
@@ -3147,7 +3145,7 @@ PlayerAgent::setViewAction( ViewAction * act )
 {
     if ( act )
     {
-        M_impl->view_action_ = boost::shared_ptr< ViewAction >( act );
+        M_impl->view_action_ = std::shared_ptr< ViewAction >( act );
     }
     else
     {
@@ -3199,7 +3197,7 @@ PlayerAgent::clearSayMessage()
 void
 PlayerAgent::setIntention( SoccerIntention * intention )
 {
-    M_impl->intention_ = boost::shared_ptr< SoccerIntention >( intention );
+    M_impl->intention_ = std::shared_ptr< SoccerIntention >( intention );
 }
 
 /*-------------------------------------------------------------------*/

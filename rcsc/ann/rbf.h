@@ -69,7 +69,7 @@ public:
 
     private:
         // not used
-        Unit();
+        Unit() = delete;
 
     public:
         /*!
@@ -145,7 +145,7 @@ private:
     std::vector< Unit > M_units; //!< all units
 
     // not used
-    RBFNetwork();
+    RBFNetwork() = delete;
 
 public:
 

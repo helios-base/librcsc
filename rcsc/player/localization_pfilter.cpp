@@ -40,10 +40,10 @@
 #include <rcsc/common/logger.h>
 #include <rcsc/geom/sector_2d.h>
 #include <rcsc/time/timer.h>
-#include <rcsc/random.h>
 #include <rcsc/math_util.h>
 
 #include <algorithm>
+#include <random>
 
 using std::min;
 using std::max;
@@ -287,16 +287,13 @@ LocalizationPFilter::Impl::getNearestMarker( const VisualSensor::ObjectType obj_
     double mindist2 = 3.0 * 3.0;
     MarkerID candidate = Marker_Unknown;
 
-    const MarkerMap::const_iterator end = objectTable().landmarkMap().end();
-    for ( MarkerMap::const_iterator it = objectTable().landmarkMap().begin();
-          it != end;
-          ++it )
+    for ( const auto & v : objectTable().landmarkMap() )
     {
-        double d2 = pos.dist2( it->second );
+        double d2 = pos.dist2( v.second );
         if ( d2 < mindist2 )
         {
             mindist2 = d2;
-            candidate = it->first;
+            candidate = v.first;
         }
     }
 
@@ -480,8 +477,7 @@ LocalizationPFilter::Impl::updatePointsByBehindMarker( const VisualSensor::Marke
         g_filter_count = 0;
 
         int count = 0;
-        const VisualSensor::MarkerCont::const_iterator end = markers.end();
-        for ( VisualSensor::MarkerCont::const_iterator marker = markers.begin();
+        for ( VisualSensor::MarkerCont::const_iterator marker = markers.begin(), end = markers.end();
               marker != end && count < 20;
               ++marker, ++count )
         {
@@ -596,7 +592,10 @@ LocalizationPFilter::Impl::updatePointsBy( const VisualSensor::MarkerT & marker,
 
     M_points.erase( std::remove_if( M_points.begin(),
                                     M_points.end(),
-                                    std::not1( Vector2D::IsWithin< Sector2D >( sector ) ) ),
+                                    [&]( const Vector2D & p )
+                                      {
+                                          return ! sector.contains( p );
+                                      } ),
                     M_points.end() );
 
 #ifdef DEBUG_PROFILE_REMOVE
@@ -650,8 +649,7 @@ LocalizationPFilter::Impl::averagePoints( Vector2D * ave_pos,
     max_y = min_y = M_points.front().y;
 
     int count = 0;
-    const std::vector< Vector2D >::const_iterator end = M_points.end();
-    for ( std::vector< Vector2D >::const_iterator it = M_points.begin();
+    for ( std::vector< Vector2D >::const_iterator it = M_points.begin(), end = M_points.end();
           it != end;
           ++it, ++count )
     {
@@ -846,7 +844,7 @@ LocalizationPFilter::Impl::resamplePoints( const VisualSensor::MarkerT & marker,
                                            const double & self_face,
                                            const double & self_face_err )
 {
-    static boost::mt19937 s_engine( 49827140 );
+    static std::mt19937 s_engine( 49827140 );
     static const size_t max_count = 50;
 
     const std::size_t count = M_points.size();
@@ -870,8 +868,7 @@ LocalizationPFilter::Impl::resamplePoints( const VisualSensor::MarkerT & marker,
     // x & y are generated independently.
     // result may not be within current candidate sector
 
-    boost::uniform_real<> xy_dst( -0.01, 0.01 );
-    boost::variate_generator< boost::mt19937&, boost::uniform_real<> > xy_rng( s_engine, xy_dst );
+    std::uniform_real_distribution<> xy_dst( -0.01, 0.01 );
 
     if ( count == 1 )
     {
@@ -883,7 +880,7 @@ LocalizationPFilter::Impl::resamplePoints( const VisualSensor::MarkerT & marker,
         for ( size_t i = count; i < max_count; ++i )
         {
             M_points.push_back( M_points[0]
-                                + Vector2D( xy_rng(), xy_rng() ) );
+                                + Vector2D( xy_dst( s_engine ), xy_dst( s_engine ) ) );
 #ifdef DEBUG_PRINT_SHAPE
             dlog.addCircle( Logger::WORLD,
                             M_points.back(), 0.01,
@@ -900,13 +897,12 @@ LocalizationPFilter::Impl::resamplePoints( const VisualSensor::MarkerT & marker,
                   (int)(max_count - count) );
 #endif
 
-    boost::uniform_smallint<> index_dst( 0, count - 1 );
-    boost::variate_generator< boost::mt19937&, boost::uniform_smallint<> > index_rng( s_engine, index_dst );
+    std::uniform_int_distribution<> index_dst( 0, count - 1 );
 
     for ( size_t i = count; i < max_count; ++i )
     {
-        M_points.push_back( M_points[index_rng()]
-                            + Vector2D( xy_rng(), xy_rng() ) );
+        M_points.push_back( M_points[index_rng( s_engine )]
+                            + Vector2D( xy_dst( s_engine ), xy_dst( s_engine ) ) );
 #ifdef DEBUG_PRINT_SHAPE
         dlog.addCircle( Logger::WORLD,
                         M_points.back(), 0.01,
@@ -1246,19 +1242,15 @@ LocalizationPFilter::Impl::updateParticles( const Vector2D & last_move,
 
     if ( s_last_update_time == current )
     {
-        for ( std::vector< Vector2D >::iterator p = M_particles.begin();
-              p != M_particles.end();
-              ++p )
+        for ( Vector2D & p : M_particles )
         {
-            *p -= s_last_move;
+            p -= s_last_move;
         }
     }
 
-    for ( std::vector< Vector2D >::iterator p = M_particles.begin();
-          p != M_particles.end();
-          ++p )
+    for ( Vector2D & p : M_particles )
     {
-        *p += last_move;
+        p += last_move;
     }
 
     s_last_move = last_move;
@@ -1442,7 +1434,7 @@ LocalizationPFilter::Impl::filterParticles( const VisualSensor::MarkerT & marker
 void
 LocalizationPFilter::Impl::resampleParticles()
 {
-    static boost::mt19937 s_gen( 281998167 );
+    static std::mt19937 s_gen( 281998167 );
 
     if ( M_particles.empty()
          || M_particles.size() >= 100 )
@@ -1450,13 +1442,12 @@ LocalizationPFilter::Impl::resampleParticles()
         return;
     }
 
-    boost::uniform_smallint<> dst( 0, M_particles.size() - 1 );
-    boost::variate_generator< boost::mt19937&, boost::uniform_smallint<> > rng( s_gen, dst );
+    std::uniform_int_distribution<> dst( 0, M_particles.size() - 1 );
 
     for ( int i = M_particles.size(); i < 100; ++i )
     {
-        int i0 = rng();
-        int i1 = rng();
+        int i0 = dst( s_engine );
+        int i1 = dst( s_engine );
 
         M_particles.push_back( ( M_particles[i0] + M_particles[i1] ) * 0.5 );
 
@@ -1494,35 +1485,32 @@ LocalizationPFilter::Impl::averageParticles( Vector2D * ave_pos,
     max_x = min_x = M_particles.front().x;
     max_y = min_y = M_particles.front().y;
 
-    const std::vector< Vector2D >::const_iterator end = M_particles.end();
-    for ( std::vector< Vector2D >::const_iterator it = M_particles.begin();
-          it != end;
-          ++it )
+    for ( const Vector2D & p : M_particles )
     {
-        *ave_pos += *it;
+        *ave_pos += p;
 #ifdef DEBUG_PRINT_PARTICLE
         // display points
         dlog.addCircle( Logger::WORLD,
-                        *it, 0.01,
+                        p, 0.01,
                         "#00ffff",
                         true ); // fill
 #endif
-        if ( it->x > max_x )
+        if ( p.x > max_x )
         {
-            max_x = it->x;
+            max_x = p.x;
         }
-        else if ( it->x < min_x )
+        else if ( p.x < min_x )
         {
-            min_x = it->x;
+            min_x = p.x;
         }
 
-        if ( it->y > max_y )
+        if ( p.y > max_y )
         {
-            max_y = it->y;
+            max_y = p.y;
         }
-        else if ( it->y < min_y )
+        else if ( p.y < min_y )
         {
-            min_y = it->y;
+            min_y = p.y;
         }
     }
 

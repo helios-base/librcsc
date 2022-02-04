@@ -59,7 +59,7 @@ private:
     std::vector< std::string > M_parsed_option_names;
 
     // not used
-    CmdLineParser();
+    CmdLineParser() = delete;
 public:
 
     /*!
@@ -82,7 +82,7 @@ public:
       \param param_map reference to the parameter container
       \return true if successfully parserd
      */
-    bool parse( ParamMap & param_map );
+    bool parse( ParamMap & param_map ) override;
 
 private:
 

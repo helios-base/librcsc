@@ -201,13 +201,11 @@ debug_print_player_list( const PlayerObject::List & players,
 
 
 {
-    for ( PlayerObject::List::const_iterator p = players.begin();
-          p != players.end();
-          ++p )
+    for ( const PlayerObject & p : players )
     {
         dlog.addText( Logger::WORLD,
                       "%s: %d (%.1f %.1f)",
-                      header, p->unum(), p->pos().x, p->pos().y );
+                      header, p.unum(), p.pos().x, p.pos().y );
     }
 }
 
@@ -242,24 +240,19 @@ debug_print_matching_pairs( const std::list< MatchingPair > & matching_pairs )
 {
     dlog.addText( Logger::WORLD,
                   "debug_print_matching_pairs" );
-    for ( std::list< MatchingPair >::const_iterator it = matching_pairs.begin();
-          it != matching_pairs.end();
-          ++it )
+    for ( const MatchingPair & v = matching_pairs )
     {
-        const PlayerObject * p = it->old_player_;
+        const PlayerObject * p = v.old_player_;
         dlog.addText( Logger::WORLD,
                       "matching_pairs %s %d (%.1f %.1f) candidate %d",
                       side_str( p->side() ), p->unum(), p->pos().x, p->pos().y,
                       it->candidates_.size() );
-        for ( std::list< const Localization::PlayerT * >::const_iterator c = it->candidates_.begin();
-              c != it->candidates_.end();
-              ++c )
+        for ( const Localization::PlayerT * c : v.candidates_ )
         {
             dlog.addText( Logger::WORLD,
                           "__ candidate %zx %s %d (%.1f %.1f) dist=%f",
-                          (size_t)*c, side_str( (*c)->side_ ), (*c)->unum_, (*c)->pos_.x, (*c)->pos_.y,
-                          p->pos().dist( (*c)->pos_ ) );
-
+                          (size_t)c, side_str( c->side_ ), c->unum_, c->pos_.x, c->pos_.y,
+                          p->pos().dist( c->pos_ ) );
         }
     }
 }
@@ -273,14 +266,12 @@ debug_print_result_pairs( const std::vector< ResultPair > & result_pairs )
 {
     dlog.addText( Logger::WORLD,
                   "========== matching result pairs ==========" );
-    for ( std::vector< ResultPair >::const_iterator it = result_pairs.begin();
-          it != result_pairs.end();
-          ++it )
+    for ( const ResultPair & v : result_pairs )
     {
         dlog.addText( Logger::WORLD,
                       "old: %s %d (%.1f %.1f) <==> seen: %s %d (%.1f %.1f)",
-                      side_str( it->first->side() ), it->first->unum(), it->first->pos().x, it->first->pos().y,
-                      side_str( it->second->side_ ), it->second->unum_, it->second->pos_.x, it->second->pos_.y );
+                      side_str( v.first->side() ), v.first->unum(), v.first->pos().x, v.first->pos().y,
+                      side_str( v.second->side_ ), v.second->unum_, v.second->pos_.x, v.second->pos_.y );
     }
 }
 
@@ -295,13 +286,11 @@ create_localized_players_list( const SelfObject & self,
                                const Localization * localize,
                                std::list< Localization::PlayerT > * result )
 {
-    for ( VisualSensor::PlayerCont::const_iterator it = seen_players.begin(), end = seen_players.end();
-          it != end;
-          ++it )
+    for ( const VisualSensor::PlayerT & p : seen_players )
     {
         result->push_back( Localization::PlayerT() );
         result->back().side_ = seen_side;
-        if ( ! localize->localizePlayer( *it,
+        if ( ! localize->localizePlayer( p,
                                          self.face().degree(), self.faceError(),
                                          self.pos(), self.vel(),
                                          &(result->back()) ) )
@@ -462,14 +451,12 @@ add_matching_pairs( PlayerObject::List & old_players,
                       side_str( p->side() ), p->unum(), p->pos().x, p->pos().y,
                       result.candidates_.size() );
 
-        for ( std::list< const Localization::PlayerT * >::const_iterator c = result.candidates_.begin();
-              c != result.candidates_.end();
-              ++c )
+        for ( const Localization::PlayerT * c : result.candidates_ )
         {
             dlog.addText( Logger::WORLD,
                           "__ candidate %s %d (%.1f %.1f) dist=%.3f",
-                          side_str( (*c)->side_ ), (*c)->unum_, (*c)->pos_.x, (*c)->pos_.y,
-                          pos.dist( (*c)->pos_ ) );
+                          side_str( c->side_ ), c->unum_, c->pos_.x, c->pos_.y,
+                          pos.dist( c->pos_ ) );
 
         }
 #endif
@@ -520,14 +507,12 @@ add_matching_pairs( PlayerObject::List & old_players,
                       "add_matching_pairs: %s %d (%.1f %.1f) candidate %zd",
                       side_str( p->side() ), p->unum(), p->pos().x, p->pos().y,
                       result.candidates_.size() );
-        for ( std::list< const Localization::PlayerT * >::const_iterator c = result.candidates_.begin();
-              c != result.candidates_.end();
-              ++c )
+        for ( const Localization::PlayerT * c : result.candidates_ )
         {
             dlog.addText( Logger::WORLD,
                           "__ candidate %s %d (%.1f %.1f) dist=%.3f",
-                          side_str( (*c)->side_ ), (*c)->unum_, (*c)->pos_.x, (*c)->pos_.y,
-                          pos.dist( (*c)->pos_ ) );
+                          side_str( c->side_ ), c->unum_, c->pos_.x, c->pos_.y,
+                          pos.dist( c->pos_ ) );
 
         }
 #endif

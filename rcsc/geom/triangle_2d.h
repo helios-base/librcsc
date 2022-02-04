@@ -53,7 +53,7 @@ private:
     Vector2D M_c; //!< third vertex point
 
     //! not used
-    Triangle2D();
+    Triangle2D() = delete;
 public:
     /*!
       \brief constructor with variables

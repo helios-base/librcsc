@@ -32,8 +32,7 @@
 #ifndef RCSC_ANN_NGNET_H
 #define RCSC_ANN_NGNET_H
 
-#include <boost/array.hpp>
-
+#include <array>
 #include <vector>
 #include <iostream>
 #include <cmath>
@@ -58,9 +57,9 @@ public:
     };
 
     //! typedef of the input array type that uses fixed size
-    typedef boost::array< double, INPUT > input_vector;
+    typedef std::array< double, INPUT > input_vector;
     //! typedef of the output array type that uses fixed size
-    typedef boost::array< double, OUTPUT > output_vector;
+    typedef std::array< double, OUTPUT > output_vector;
 
     /*!
       \struct Unit

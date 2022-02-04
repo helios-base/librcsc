@@ -32,8 +32,7 @@
 #ifndef RCSC_PLAYER_SOCCER_INTENTION_H
 #define RCSC_PLAYER_SOCCER_INTENTION_H
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <string>
 #include <queue>
 
@@ -49,28 +48,26 @@ class SoccerIntention {
 public:
 
     //! smart pointer type.
-    typedef boost::shared_ptr< SoccerIntention > Ptr;
+    typedef std::shared_ptr< SoccerIntention > Ptr;
 
 private:
     //! not used
-    SoccerIntention( const SoccerIntention & );
+    SoccerIntention( const SoccerIntention & ) = delete;
     //! not used
-    SoccerIntention & operator=( const SoccerIntention & );
+    SoccerIntention & operator=( const SoccerIntention & ) = delete;
 
 protected:
     /*!
       \brief constructor is used only from derived class.
      */
-    SoccerIntention()
-      { }
+    SoccerIntention() = default;
 
 public:
     /*!
       \brief virtual destructor
      */
     virtual
-    ~SoccerIntention()
-      { }
+    ~SoccerIntention() = default;
 
     ///////////////////////////////////////////////
 

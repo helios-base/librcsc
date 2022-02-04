@@ -88,14 +88,14 @@ public:
       \return snapshow variable for the initial stat(ball pos=(0,0)).
      */
     virtual
-    void createDefaultData();
+    void createDefaultData() override;
 
     /*!
       \brief get the name of this formation
       \return name string
      */
     virtual
-    std::string methodName() const
+    std::string methodName() const override
       {
           return FormationStatic::name();
       }
@@ -111,7 +111,7 @@ protected:
     virtual
     void createNewRole( const int unum,
                         const std::string & role_name,
-                        const SideType type );
+                        const SideType type ) override;
 
     /*!
       \brief set the role name of the specified player
@@ -120,7 +120,7 @@ protected:
      */
     virtual
     void setRoleName( const int unum,
-                      const std::string & name );
+                      const std::string & name ) override;
 
 public:
 
@@ -131,7 +131,7 @@ public:
       that means no role parameter is assigned for unum.
      */
     virtual
-    std::string getRoleName( const int unum ) const;
+    std::string getRoleName( const int unum ) const override;
 
     /*!
       \brief get position for the current focus point
@@ -140,7 +140,7 @@ public:
      */
     virtual
     Vector2D getPosition( const int unum,
-                          const Vector2D & focus_point ) const;
+                          const Vector2D & focus_point ) const override;
 
     /*!
       \brief get all positions for the current focus point
@@ -149,13 +149,13 @@ public:
      */
     virtual
     void getPositions( const Vector2D & focus_point,
-                       std::vector< Vector2D > & positions ) const;
+                       std::vector< Vector2D > & positions ) const override;
 
     /*!
       \brief update formation paramter using training data set
      */
     virtual
-    void train();
+    void train() override;
 
     /*!
       \brief read formation data from the input stream.
@@ -163,9 +163,9 @@ public:
       \return result status.
     */
     virtual
-    bool read( std::istream & is );
+    bool read( std::istream & is ) override;
     virtual
-    bool readCSV( std::istream & is );
+    bool readCSV( std::istream & is ) override;
 
     /*!
       \brief put formation data to the output stream.
@@ -173,9 +173,9 @@ public:
       \return reference to the output stream
     */
     virtual
-    std::ostream & print( std::ostream & os ) const;
+    std::ostream & print( std::ostream & os ) const override;
     virtual
-    std::ostream & printCSV( std::ostream & os ) const;
+    std::ostream & printCSV( std::ostream & os ) const override;
 
 protected:
 

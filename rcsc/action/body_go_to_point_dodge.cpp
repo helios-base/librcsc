@@ -139,42 +139,36 @@ Body_GoToPointDodge::get_dodge_point( const PlayerAgent * agent,
     double mindist = 100.0;
     bool found = false;
 
-    for ( PlayerObject::Cont::const_iterator t = wm.teammatesFromSelf().begin(),
-              end = wm.teammatesFromSelf().end();
-          t != end;
-          ++t )
+    for ( const PlayerObject * t : wm.teammatesFromSelf() )
     {
-        if ( (*t)->distFromSelf() > consider_dist_max )
+        if ( t->distFromSelf() > consider_dist_max )
         {
             break;
         }
         // this player is near to target trajectry
-        if ( mindist > (*t)->distFromSelf()
-             && line2target.dist2( (*t)->pos() ) < dodge_perpend_dist2
-             && (target_angle - (*t)->angleFromSelf()).abs() < 90.0 )
+        if ( mindist > t->distFromSelf()
+             && line2target.dist2( t->pos() ) < dodge_perpend_dist2
+             && (target_angle - t->angleFromSelf()).abs() < 90.0 )
         {
-            mindist = (*t)->distFromSelf();
-            *sol = (*t)->pos();
+            mindist = t->distFromSelf();
+            *sol = t->pos();
             found = true;
         }
     }
 
-    for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
-              end = wm.opponentsFromSelf().end();
-          o != end;
-          ++o )
+    for ( const PlayerObject * o : wm.opponentsFromSelf() )
     {
-        if ( (*o)->distFromSelf() > consider_dist_max )
+        if ( o->distFromSelf() > consider_dist_max )
         {
             break;
         }
         // this player is near to target trajectry
-        if ( mindist > (*o)->distFromSelf()
-             && line2target.dist2( (*o)->pos() ) < dodge_perpend_dist2
-             && ( target_angle - (*o)->angleFromSelf() ).abs() < 90.0 )
+        if ( mindist > o->distFromSelf()
+             && line2target.dist2( o->pos() ) < dodge_perpend_dist2
+             && ( target_angle - o->angleFromSelf() ).abs() < 90.0 )
         {
-            mindist = (*o)->distFromSelf();
-            *sol = (*o)->pos();
+            mindist = o->distFromSelf();
+            *sol = o->pos();
             found = true;
         }
     }

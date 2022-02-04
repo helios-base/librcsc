@@ -39,8 +39,7 @@
 #include <rcsc/common/soccer_agent.h>
 #include <rcsc/common/team_graphic.h>
 
-#include <boost/scoped_ptr.hpp>
-
+#include <memory>
 #include <string>
 #include <set>
 
@@ -61,11 +60,9 @@ class CoachAgent
 private:
 
     struct Impl; //!< pimpl idiom
-    friend struct Impl;
-
 
     //! internal implementation object
-    boost::scoped_ptr< Impl > M_impl;
+    std::unique_ptr< Impl > M_impl;
 
 protected:
 
@@ -94,7 +91,7 @@ public:
       \return client object pointer.
      */
     virtual
-    boost::shared_ptr< AbstractClient > createConsoleClient();
+    std::shared_ptr< AbstractClient > createConsoleClient();
 
     /*!
       \brief finalize program process

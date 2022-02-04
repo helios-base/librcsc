@@ -54,7 +54,7 @@ class OnlineClient
 private:
 
     //! udp connection
-    boost::shared_ptr< UDPSocket > M_socket;
+    std::shared_ptr< UDPSocket > M_socket;
 
     //! output file for offline logging
     std::ofstream M_offline_out;

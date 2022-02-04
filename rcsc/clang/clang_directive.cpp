@@ -65,14 +65,11 @@ CLangDirectiveCommon::print( std::ostream & os ) const
     }
     else
     {
-        for ( CLangAction::Cont::const_iterator it = M_actions.begin(),
-                  end = M_actions.end();
-              it != end;
-              ++it )
+        for ( const auto & a : M_actions )
         {
-            if ( *it )
+            if ( a )
             {
-                os << ' ' << **it;
+                os << ' ' << *a;
             }
             else
             {

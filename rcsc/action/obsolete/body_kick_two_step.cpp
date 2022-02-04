@@ -424,9 +424,9 @@ Body_KickTwoStep::simulate_two_kick( Vector2D * achieved_vel,
             }
 
             // add element
-            subtargets.push_back( SubTarget( ball_rpos + required_vel,
-                                             required_vel * ServerParam::i().ballDecay(),
-                                             opp_dist2 ) );
+            subtargets.emplace_back( ball_rpos + required_vel,
+                                     required_vel * ServerParam::i().ballDecay(),
+                                     opp_dist2 );
         }
     }
 
@@ -460,9 +460,9 @@ Body_KickTwoStep::simulate_two_kick( Vector2D * achieved_vel,
             if ( ! is_opp_kickable( agent, sub, &opp_dist2 )
                  && (require_vel - ball_vel).r() < max_accel )
             {
-                subtargets.push_back( SubTarget( sub,
-                                                 require_vel * ServerParam::i().ballDecay(),
-                                                 opp_dist2 ) );
+                subtargets.emplace_back( sub,
+                                         require_vel * ServerParam::i().ballDecay(),
+                                         opp_dist2 );
             }
         }
     }

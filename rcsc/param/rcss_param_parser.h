@@ -56,7 +56,7 @@ private:
     StrPairVec M_str_pairs;
 
     //! not used
-    RCSSParamParser();
+    RCSSParamParser() = delete;
 public:
     /*!
       \brief construct with original command line arguments
@@ -71,7 +71,7 @@ public:
       \param param_map reference to the parameter container
       \return true if successfully parserd
      */
-    bool parse( ParamMap & param_map );
+    bool parse( ParamMap & param_map ) override;
 
 private:
 

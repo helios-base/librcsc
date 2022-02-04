@@ -58,32 +58,29 @@ set_team( const rcsc::GlobalVisualSensor::PlayerCont & from,
 {
     to.reserve( from.size() );
 
-    const rcsc::GlobalVisualSensor::PlayerCont::const_iterator end = from.end();
-    for ( rcsc::GlobalVisualSensor::PlayerCont::const_iterator it = from.begin();
-          it != end;
-          ++it )
+    for ( const rcsc::GlobalVisualSensor::PlayerT & v : from )
     {
         to.push_back( rcsc::CycleData::PlayerT() );
 
         rcsc::CycleData::PlayerT & p = to.back();
 
-        p.unum_ = it->unum_;
+        p.unum_ = v.unum_;
 
-        p.pos_ = it->pos_;
-        p.vel_ = it->vel_;
-        p.body_ = it->body_;
-        p.neck_ = it->neck_;
+        p.pos_ = v.pos_;
+        p.vel_ = v.vel_;
+        p.body_ = v.body_;
+        p.neck_ = v.neck_;
 
-        if ( it->pointto_dist_ != 0.0 )
+        if ( v.pointto_dist_ != 0.0 )
         {
             p.pointto_pos_
-                = it->pos_
-                + rcsc::Vector2D::polar2vector( it->pointto_dist_,
-                                                it->pointto_angle_ );
+                = v.pos_
+                + rcsc::Vector2D::polar2vector( v.pointto_dist_,
+                                                v.pointto_angle_ );
         }
 
-        p.goalie_ = it->goalie_;
-        p.tackle_ = it->tackle_;
+        p.goalie_ = v.goalie_;
+        p.tackle_ = v.tackle_;
     }
 }
 
@@ -156,12 +153,9 @@ double
 CycleData::getOffsideLineForLeft() const
 {
     double first_x = 0.0, second_x = 0.0;
-    const PlayerCont::const_iterator end = M_players_right.end();
-    for ( PlayerCont::const_iterator it = M_players_right.begin();
-          it != end;
-          ++it )
+    for ( const PlayerT & p = M_players_right )
     {
-        second_x = std::max( second_x, it->pos_.x );
+        second_x = std::max( second_x, p.pos_.x );
         if ( first_x < second_x )
         {
             std::swap( first_x, second_x );
@@ -179,12 +173,9 @@ double
 CycleData::getOffsideLineForRight() const
 {
     double first_x = 0.0, second_x = 0.0;
-    const PlayerCont::const_iterator end = M_players_left.end();
-    for ( PlayerCont::const_iterator it = M_players_left.begin();
-          it != end;
-          ++it )
+    for ( const PlayerT & p : M_players_left )
     {
-        second_x = std::min( second_x, it->pos_.x );
+        second_x = std::min( second_x, p.pos_.x );
         if ( first_x > second_x )
         {
             std::swap( first_x, second_x );
@@ -271,23 +262,20 @@ CycleData::PlayerT *
 CycleData::getPlayerNearestTo( const PlayerCont & players,
                                const Vector2D & point ) const
 {
-    const PlayerT * p = static_cast< PlayerT * >( 0 );
+    const PlayerT * result = nullptr;
 
     double min_dist = 100000.0;
-    const PlayerCont::const_iterator end = players.end();
-    for ( PlayerCont::const_iterator it = players.begin();
-          it != end;
-          ++it )
+    for ( const PlayerT & p : players )
     {
-        double d2 = it->pos_.dist2( point );
+        double d2 = p.pos_.dist2( point );
         if ( d2 < min_dist )
         {
             min_dist = d2;
-            p = &(*it);
+            result = &p;
         }
     }
 
-    return p;
+    return result;
 }
 
 /*-------------------------------------------------------------------*/
@@ -299,21 +287,17 @@ CycleData::print( std::ostream & os ) const
 {
     os << "(b " << M_ball.pos_ << ' ' << M_ball.vel_ << ")\n";
 
-    for ( PlayerCont::const_iterator it = M_players_left.begin();
-          it != M_players_left.end();
-          ++it )
+    for ( const PlayerT & p : M_players_left )
     {
         os << "l ";
-        it->print( os );
+        p.print( os );
         os << '\n';
     }
 
-    for ( PlayerCont::const_iterator it = M_players_right.begin();
-          it != M_players_right.end();
-          ++it )
+    for ( const PlayerT & p : M_players_right )
     {
         os << "r ";
-        it->print( os );
+        p.print( os );
         os << '\n';
     }
 

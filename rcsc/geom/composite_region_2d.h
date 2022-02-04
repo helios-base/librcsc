@@ -34,7 +34,7 @@
 
 #include <rcsc/geom/region_2d.h>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <vector>
 
 namespace rcsc {
@@ -47,7 +47,7 @@ class UnitedRegion2D
     : public Region2D {
 private:
     //! the set of regions
-    std::vector< boost::shared_ptr< const Region2D > > M_regions;
+    std::vector< std::shared_ptr< const Region2D > > M_regions;
 public:
 
     /*!
@@ -64,8 +64,8 @@ public:
     UnitedRegion2D( const Region2D * r1 ,
                     const Region2D * r2 )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r1 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r2 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r1 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r2 ) );
       }
 
     /*!
@@ -78,9 +78,9 @@ public:
                     const Region2D * r2,
                     const Region2D * r3 )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r1 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r2 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r3 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r1 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r2 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r3 ) );
       }
 
     /*!
@@ -95,10 +95,10 @@ public:
                     const Region2D * r3,
                     const Region2D * r4 )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r1 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r2 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r3 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r4 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r1 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r2 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r3 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r4 ) );
       }
 
     /*!
@@ -115,11 +115,11 @@ public:
                     const Region2D * r4,
                     const Region2D * r5 )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r1 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r2 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r3 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r4 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r5 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r1 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r2 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r3 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r4 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r5 ) );
       }
 
     /*!
@@ -138,12 +138,12 @@ public:
                     const Region2D * r5,
                     const Region2D * r6 )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r1 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r2 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r3 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r4 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r5 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r6 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r1 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r2 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r3 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r4 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r5 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r6 ) );
       }
 
     /*!
@@ -164,13 +164,13 @@ public:
                     const Region2D * r6,
                     const Region2D * r7 )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r1 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r2 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r3 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r4 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r5 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r6 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r7 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r1 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r2 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r3 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r4 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r5 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r6 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r7 ) );
       }
 
     /*!
@@ -193,14 +193,14 @@ public:
                     const Region2D * r7,
                     const Region2D * r8 )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r1 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r2 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r3 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r4 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r5 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r6 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r7 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r8 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r1 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r2 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r3 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r4 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r5 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r6 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r7 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r8 ) );
       }
 
     /*!
@@ -210,7 +210,7 @@ public:
     */
     UnitedRegion2D & add( const Region2D * r )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r ) );
           return *this;
       }
 
@@ -239,7 +239,7 @@ class IntersectedRegion2D
     : public Region2D {
 private:
     //! the set of regions
-    std::vector< boost::shared_ptr< const Region2D > > M_regions;
+    std::vector< std::shared_ptr< const Region2D > > M_regions;
 public:
 
     /*!
@@ -250,8 +250,8 @@ public:
     IntersectedRegion2D( const Region2D * r1 ,
                          const Region2D * r2 )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r1 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r2 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r1 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r2 ) );
       }
 
     /*!
@@ -264,9 +264,9 @@ public:
                          const Region2D * r2,
                          const Region2D * r3 )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r1 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r2 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r3 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r1 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r2 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r3 ) );
       }
 
     /*!
@@ -281,10 +281,10 @@ public:
                          const Region2D * r3,
                          const Region2D * r4 )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r1 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r2 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r3 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r4 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r1 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r2 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r3 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r4 ) );
       }
 
     /*!
@@ -301,11 +301,11 @@ public:
                          const Region2D * r4,
                          const Region2D * r5 )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r1 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r2 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r3 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r4 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r5 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r1 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r2 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r3 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r4 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r5 ) );
       }
 
     /*!
@@ -324,12 +324,12 @@ public:
                          const Region2D * r5,
                          const Region2D * r6 )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r1 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r2 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r3 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r4 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r5 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r6 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r1 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r2 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r3 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r4 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r5 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r6 ) );
       }
 
     /*!
@@ -350,13 +350,13 @@ public:
                          const Region2D * r6,
                          const Region2D * r7 )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r1 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r2 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r3 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r4 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r5 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r6 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r7 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r1 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r2 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r3 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r4 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r5 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r6 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r7 ) );
       }
 
     /*!
@@ -379,14 +379,14 @@ public:
                          const Region2D * r7,
                          const Region2D * r8 )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r1 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r2 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r3 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r4 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r5 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r6 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r7 ) );
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r8 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r1 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r2 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r3 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r4 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r5 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r6 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r7 ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r8 ) );
       }
 
     /*!
@@ -396,7 +396,7 @@ public:
     */
     IntersectedRegion2D & add( const Region2D * r )
       {
-          M_regions.push_back( boost::shared_ptr< const Region2D >( r ) );
+          M_regions.push_back( std::shared_ptr< const Region2D >( r ) );
           return *this;
       }
 

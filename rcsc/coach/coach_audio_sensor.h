@@ -39,10 +39,8 @@
 #include <rcsc/types.h>
 #include <rcsc/geom/vector_2d.h>
 
-#include <boost/shared_ptr.hpp>
-
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <list>
 
 namespace rcsc {
@@ -56,7 +54,7 @@ class CoachAudioSensor {
 private:
 
     //! typedef of the say message parser container
-    typedef std::map< char, SayMessageParser::Ptr > ParserMap;
+    typedef std::unordered_map< char, SayMessageParser::Ptr > ParserMap;
 
     //! my team name
     std::string M_team_name;

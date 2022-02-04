@@ -58,7 +58,7 @@ private:
     AngleDeg M_angle_right_end;
 
     //! not used
-    Sector2D();
+    Sector2D() = delete;
 public:
 
     /*!

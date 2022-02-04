@@ -402,7 +402,7 @@ CoachAgent::CoachAgent()
       M_debug_client(),
       M_worldmodel()
 {
-    boost::shared_ptr< AudioMemory > audio_memory( new AudioMemory );
+    std::shared_ptr< AudioMemory > audio_memory( new AudioMemory );
 
     M_worldmodel.setAudioMemory( audio_memory );
 }
@@ -420,18 +420,18 @@ CoachAgent::~CoachAgent()
 /*!
 
  */
-boost::shared_ptr< AbstractClient >
+std::shared_ptr< AbstractClient >
 CoachAgent::createConsoleClient()
 {
-    boost::shared_ptr< AbstractClient > ptr;
+    std::shared_ptr< AbstractClient > ptr;
 
     if ( config().offlineClientMode() )
     {
-        ptr = boost::shared_ptr< AbstractClient >( new OfflineClient() );
+        ptr = std::shared_ptr< AbstractClient >( new OfflineClient() );
     }
     else
     {
-        ptr = boost::shared_ptr< AbstractClient >( new OnlineClient() );
+        ptr = std::shared_ptr< AbstractClient >( new OnlineClient() );
     }
 
     return ptr;
@@ -680,14 +680,12 @@ CoachAgent::handleTimeout( const int timeout_count,
     }
 
     TimeStamp cur_time;
-    cur_time.setCurrent();
 
-    long msec_from_see = -1;
-    if ( M_impl->see_time_stamp_.sec() > 0 )
+    std::int64_t msec_from_see = -1;
+    if ( M_impl->see_time_stamp_.isValid() )
     {
-        msec_from_see = cur_time.getMSecDiffFrom( M_impl->see_time_stamp_ );
+        msec_from_see = cur_time.elapsedSince( M_impl->see_time_stamp_ );
     }
-
 
     dlog.addText( Logger::SYSTEM,
                   "----- Timeout. msec from see_global = [%ld] ms."
@@ -940,7 +938,7 @@ CoachAgent::action()
         M_client->printOfflineThink();
     }
 
-    MSecTimer timer;
+    Timer timer;
     dlog.addText( Logger::SYSTEM,
                   __FILE__" (action) start" );
 
@@ -1153,7 +1151,7 @@ CoachAgent::Impl::analyzeCycle( const char * msg,
 void
 CoachAgent::Impl::analyzeSeeGlobal( const char * msg )
 {
-    see_time_stamp_.setCurrent();
+    see_time_stamp_.setNow();
 
     if ( ! analyzeCycle( msg, true ) )
     {
@@ -1785,12 +1783,9 @@ CoachAgent::Impl::buildFreeformMessage( std::string & to )
 {
     int len = to.length();
 
-    for ( std::vector< FreeformMessage::Ptr >::const_iterator it = freeform_messages_.begin(),
-              end = freeform_messages_.end();
-          it != end;
-          ++it )
+    for ( const FreeformMessage::Ptr & msg : freeform_messages_ )
     {
-        int new_len = len + (*it)->length();
+        int new_len = len + msg->length();
         if ( new_len > ServerParam::i().coachSayMsgSize() )
         {
             std::cerr << agent_.config().teamName()
@@ -1802,7 +1797,7 @@ CoachAgent::Impl::buildFreeformMessage( std::string & to )
             break;
         }
 
-        (*it)->append( to );
+        msg->append( to );
     }
 }
 
@@ -1935,11 +1930,9 @@ CoachAgent::doChangePlayerTypes( const std::vector< std::pair< int, int > > & ty
     //return sendCommand( com );
 
     bool result = true;
-    for ( std::vector< std::pair< int, int > >::const_iterator it = types.begin();
-          it != types.end();
-          ++it )
+    for ( const std::pair< int, int > & v : types )
     {
-        result = doChangePlayerType( it->first, it->second );
+        result = doChangePlayerType( v.first, v.second );
     }
 
     return result;
@@ -2024,9 +2017,9 @@ CoachAgent::doSayFreeform( const std::string & msg )
 
 */
 void
-CoachAgent::addFreeformMessage( FreeformMessage::Ptr message )
+CoachAgent::addFreeformMessage( FreeformMessage::Ptr new_message )
 {
-    if ( ! message )
+    if ( ! new_message )
     {
         std::cerr << config().teamName()
                   << " coach: "
@@ -2037,25 +2030,22 @@ CoachAgent::addFreeformMessage( FreeformMessage::Ptr message )
         return;
     }
 
-    for ( std::vector< FreeformMessage::Ptr >::const_iterator it = M_impl->freeform_messages_.begin(),
-              end = M_impl->freeform_messages_.end();
-          it != end;
-          ++it )
+    for ( const FreeformMessage::Ptr & msg : M_impl->freeform_messages_ )
     {
-        if ( (*it)->type() == message->type() )
+        if ( msg->type() == new_message->type() )
         {
             std::cerr << config().teamName()
                       << " coach: "
-                      << " ***WARNING*** freeform message type=[" << message->type()
+                      << " ***WARNING*** freeform message type=[" << new_message->type()
                       << "] has already been registered." << std::endl;
             dlog.addText( Logger::ACTION,
                           __FILE__": (addFreeformMessage) duplicated type [%s]",
-                          message->type().c_str() );
+                          new_message->type().c_str() );
             return;
         }
     }
 
-    M_impl->freeform_messages_.push_back( message );
+    M_impl->freeform_messages_.push_back( new_message );
 }
 
 /*-------------------------------------------------------------------*/

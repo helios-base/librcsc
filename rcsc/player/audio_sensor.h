@@ -42,7 +42,7 @@
 #include <rcsc/geom/vector_2d.h>
 
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <list>
 #include <vector>
 
@@ -57,8 +57,8 @@ class AudioSensor {
 private:
 
     //! typedef of the say message parser container
-    typedef std::map< char, SayMessageParser::Ptr > ParserMap;
-    typedef std::map< std::string, FreeformMessageParser::Ptr > FreeformParserMap;
+    typedef std::unordered_map< char, SayMessageParser::Ptr > ParserMap;
+    typedef std::unordered_map< std::string, FreeformMessageParser::Ptr > FreeformParserMap;
 
     //! player message parsers
     ParserMap M_say_message_parsers;

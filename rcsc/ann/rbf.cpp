@@ -35,8 +35,7 @@
 
 #include "rbf.h"
 
-#include <boost/random.hpp>
-
+#include <random>
 #include <algorithm>
 #include <numeric>
 #include <string>
@@ -51,11 +50,11 @@ namespace rcsc {
 */
 RBFNetwork::Unit::Unit( const std::size_t input_dim,
                         const std::size_t output_dim )
-    : center_( input_dim, 0.0 )
-    , weights_( output_dim, 0.0 )
-    , delta_weights_( output_dim, 0.0 )
-    , sigma_( 100.0 )
-    , delta_sigma_( 0.0 )
+    : center_( input_dim, 0.0 ),
+      weights_( output_dim, 0.0 ),
+      delta_weights_( output_dim, 0.0 ),
+      sigma_( 100.0 ),
+      delta_sigma_( 0.0 )
 {
 
 }
@@ -69,7 +68,10 @@ RBFNetwork::Unit::randomize( const double & min_weight,
                              const double & max_weight,
                              const double & initial_sigma )
 {
-    static boost::mt19937 gen( std::time( 0 ) );
+    //static std::mt19937 s_engine( std::random_device()() );
+    // static std::random_device rng;
+    // static std::mt19937 s_engine( rng() );
+    static std::mt19937 s_engine( std::time( 0 ) );
 
     double min_w = min_weight;
     double max_w = max_weight;
@@ -79,13 +81,13 @@ RBFNetwork::Unit::randomize( const double & min_weight,
         max_w = min_weight;
     }
 
-    boost::uniform_real<> dst( min_w, max_w );
-    boost::variate_generator< boost::mt19937 &, boost::uniform_real<> >
-        rng( gen, dst );
+    std::uniform_real_distribution<> dst( min_w, max_w );
 
     std::generate( weights_.begin(),
                    weights_.end(),
-                   rng );
+                   [&]() {
+                       return dst( s_engine );
+                   } );
 
     sigma_ = initial_sigma;
 }
@@ -96,13 +98,13 @@ RBFNetwork::Unit::randomize( const double & min_weight,
 */
 RBFNetwork::RBFNetwork( const std::size_t input_dim,
                         const std::size_t output_dim )
-        : M_input_dim( input_dim )
-        , M_output_dim( output_dim )
-        , M_eta( 0.1 )
-        , M_alpha( 0.5 )
-        , M_min_weight( -100.0 )
-        , M_max_weight( 100.0 )
-        , M_initial_sigma( 100.0 )
+        : M_input_dim( input_dim ),
+          M_output_dim( output_dim ),
+          M_eta( 0.1 ),
+          M_alpha( 0.5 ),
+          M_min_weight( -100.0 ),
+          M_max_weight( 100.0 ),
+          M_initial_sigma( 100.0 )
 {
 
 }
@@ -179,15 +181,12 @@ RBFNetwork::propagate( const input_vector & input,
 
     const std::size_t OUTPUT = M_output_dim;
 
-    const std::vector< Unit >::const_iterator end = M_units.end();
-    for ( std::vector< Unit >::const_iterator it = M_units.begin();
-          it != end;
-          ++it )
+    for ( const Unit & unit : M_units )
     {
-        const double unit_value = it->calc( input );
+        const double unit_value = unit.calc( input );
         for ( std::size_t i = 0; i < OUTPUT; ++i )
         {
-            output[i] += unit_value * it->weights_[i];
+            output[i] += unit_value * unit.weights_[i];
         }
     }
 }
@@ -232,36 +231,33 @@ RBFNetwork::train( const input_vector & input,
     }
 
     // update each unit
-    const std::vector< Unit >::iterator end = M_units.end();
-    for ( std::vector< Unit >::iterator it = M_units.begin();
-          it != end;
-          ++it )
+    for ( Unit & unit : M_units )
     {
-        const double unit_value = it->calc( input );
+        const double unit_value = unit.calc( input );
 #if 0
-        const double dist2 = it->dist2( input );
-        const double sigma3 = std::pow( it->sigma_, 3 );
+        const double dist2 = unit.dist2( input );
+        const double sigma3 = std::pow( unit.sigma_, 3 );
 
         double back_sum = 0.0;
         for ( std::size_t i = 0; i < OUTPUT; ++i )
         {
-            back_sum += output_back[i] * it->weights_[i];
+            back_sum += output_back[i] * unit.weights_[i];
         }
 
         // update sigma (d_gaussian)
-        it->delta_sigma_
+        unit.delta_sigma_
             = M_eta * back_sum * ( dist2 / sigma3 ) * unit_value
-            + M_alpha * it->delta_sigma_;
-        it->sigma_ += it->delta_sigma_;
+            + M_alpha * unit.delta_sigma_;
+        unit.sigma_ += unit.delta_sigma_;
 #endif
         // update weights
         for ( std::size_t i = 0; i < OUTPUT; ++i )
         {
-            it->delta_weights_[i]
+            unit.delta_weights_[i]
                 = M_eta * output_back[i] * unit_value
-                + M_alpha * it->delta_weights_[i];
+                + M_alpha * unit.delta_weights_[i];
 
-            it->weights_[i] += it->delta_weights_[i];
+            unit.weights_[i] += unit.delta_weights_[i];
         }
     }
 
@@ -321,21 +317,18 @@ RBFNetwork::print( std::ostream & os ) const
     os << M_units.size() << " ";
 
     // update each unit
-    const std::vector< Unit >::const_iterator end = M_units.end();
-    for ( std::vector< Unit >::const_iterator it = M_units.begin();
-          it != end;
-          ++it )
+    for ( const Unit & unit : M_units )
     {
         // center
-        std::copy( it->center_.begin(),
-                   it->center_.end(),
+        std::copy( unit.center_.begin(),
+                   unit.center_.end(),
                    std::ostream_iterator< double >( os, " " ) );
         // weights
-        std::copy( it->weights_.begin(),
-                   it->weights_.end(),
+        std::copy( unit.weights_.begin(),
+                   unit.weights_.end(),
                    std::ostream_iterator< double >( os, " " ) );
         // sigma
-        os << it->sigma_ << " ";
+        os << unit.sigma_ << " ";
     }
 
     return os << std::flush;
@@ -350,29 +343,24 @@ RBFNetwork::printUnits( std::ostream & os ) const
 {
     // update each unit
     int count = 0;
-    const std::vector< Unit >::const_iterator end = M_units.end();
-    for ( std::vector< Unit >::const_iterator it = M_units.begin();
-          it != end;
-          ++it )
+    for ( const Unit & unit : M_units )
     {
         os << "unit " << ++count;
         os << ": center = (";
-        for ( input_vector::const_iterator c = it->center_.begin();
-              c != it->center_.end();
-              ++c )
+        for ( const double & c : unit.center_ )
         {
-            os << *c << ' ';
+            os << c << ' ';
         }
         os << ')';
 
-        os << " sigma = " << it->sigma_
-           << " delta = " << it->delta_sigma_;
+        os << " sigma = " << unit.sigma_
+           << " delta = " << unit.delta_sigma_;
 
         os << "  weights(delta) : ";
         for ( std::size_t i = 0; i < M_input_dim; ++i )
         {
-            os << " (" <<it->weights_[i]
-               << ' ' << it->delta_weights_[i] << ')';
+            os << " (" <<unit.weights_[i]
+               << ' ' << unit.delta_weights_[i] << ')';
         }
         os << ')';
         os << '\n';

@@ -228,20 +228,20 @@ GoalieMessage::appendTo( std::string & to ) const
         return false;
     }
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
 
     double x = min_max( 53.0 - 16.0, M_goalie_pos.x, 52.9 ) - ( 53.0 - 16.0 );
     double y = min_max( -19.9, M_goalie_pos.y, 19.9 ) + 20.0;
     double body = M_goalie_body.degree() + 180.0;
 
     // ival *= 160
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( x / 0.1 ), 159.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( x / 0.1 ), 159.0 ) );
 
     ival *= 400;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( y / 0.1 ), 399.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( y / 0.1 ), 399.0 ) );
 
     ival *= 360;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( body ), 359.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( body ), 359.0 ) );
 
     std::string msg;
     msg.reserve( slength() - 1 );
@@ -319,20 +319,20 @@ GoalieAndPlayerMessage::appendTo( std::string & to ) const
                       M_player_number );
     }
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
 
     double goalie_x = bound( 53.0 - 16.0, M_goalie_pos.x, 52.9 ) - ( 53.0 - 16.0 );
     double goalie_y = bound( -19.9, M_goalie_pos.y, 19.9 ) + 20.0;
     double goalie_body = M_goalie_body.degree() + 180.0;
 
     // ival *= 160
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( goalie_x / 0.1 ), 159.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( goalie_x / 0.1 ), 159.0 ) );
 
     ival *= 400;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( goalie_y / 0.1 ), 399.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( goalie_y / 0.1 ), 399.0 ) );
 
     ival *= 360;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( goalie_body ), 359.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( goalie_body ), 359.0 ) );
 
     double player_x = bound( -52.49, M_player_pos.x, 52.49 ) + 52.5;
     double player_y = bound( -33.99, M_player_pos.y, 33.99 ) + 34.0;
@@ -341,10 +341,10 @@ GoalieAndPlayerMessage::appendTo( std::string & to ) const
     ival += M_player_number - 1;
 
     ival *= 191;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( player_x / 0.555 ), 190.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( player_x / 0.555 ), 190.0 ) );
 
     ival *= 124;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( player_y / 0.555 ), 123.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( player_y / 0.555 ), 123.0 ) );
 
 
     std::string msg;
@@ -882,16 +882,16 @@ DribbleMessage::appendTo( std::string & to ) const
     // 10 * 105.0 * 68.0 / 74^3 < prec^2
     // prec > 0.419760459
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
 
     double x = min_max( -52.5, M_target_point.x, 52.5 ) + 52.5;
     double y = min_max( -34.0, M_target_point.y, 34.0 ) + 34.0;
-    boost::int64_t count = min_max( 1, M_queue_count, 10 );
+    std::int64_t count = min_max( 1, M_queue_count, 10 );
 
-    ival += static_cast< boost::int64_t >( rint( x / 0.5 ) );
+    ival += static_cast< std::int64_t >( rint( x / 0.5 ) );
 
-    ival *= static_cast< boost::int64_t >( std::ceil( 68.0 / 0.5 ) );
-    ival += static_cast< boost::int64_t >( rint( y / 0.5 ) );
+    ival *= static_cast< std::int64_t >( std::ceil( 68.0 / 0.5 ) );
+    ival += static_cast< std::int64_t >( rint( y / 0.5 ) );
 
     ival *= 10;
     ival += count - 1;
@@ -974,26 +974,26 @@ BallGoalieMessage::appendTo( std::string & to ) const
     const double max_speed = ServerParam::i().ballSpeedMax() * ServerParam::i().ballDecay();
     const double prec = max_speed * 2.0 / 63.0;
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     double dval = 0.0;
 
     dval = min_max( -52.5, M_ball_pos.x, 52.5 ) + 52.5;
     // ival *= 1050
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / 0.1 ), 1049.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / 0.1 ), 1049.0 ) );
 
     dval = min_max( -34.0, M_ball_pos.y, 34.0 ) + 34.0;
     ival *= 680;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / 0.1 ), 679.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / 0.1 ), 679.0 ) );
 
     if ( M_ball_vel.isValid() )
     {
         dval = min_max( -max_speed, M_ball_vel.x, max_speed ) + max_speed;
         ival *= 63;
-        ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / prec ), 62.0 ) );
+        ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / prec ), 62.0 ) );
 
         dval = min_max( -max_speed, M_ball_vel.y, max_speed ) + max_speed;
         ival *= 63;
-        ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / prec ), 62.0 ) );
+        ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / prec ), 62.0 ) );
     }
     else
     {
@@ -1003,15 +1003,15 @@ BallGoalieMessage::appendTo( std::string & to ) const
 
     dval = min_max( 52.5 - 16.0, M_goalie_pos.x, 52.5 ) - ( 52.5 - 16.0 );
     ival *= 160;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / 0.1 ), 159.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / 0.1 ), 159.0 ) );
 
     dval = min_max( -20.0, M_goalie_pos.y, 20.0 ) + 20.0;
     ival *= 400;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / 0.1 ), 399.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / 0.1 ), 399.0 ) );
 
     dval = M_goalie_body.degree() + 180.0;
     ival *= 360;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval ), 359.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( dval ), 359.0 ) );
 
     std::string msg;
     msg.reserve( slength() - 1 );
@@ -1092,7 +1092,7 @@ OnePlayerMessage::appendTo( std::string & to ) const
         return false;
     }
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     double player_x = min_max( -52.49, M_player_pos.x, 52.49 ) + 52.5;
     double player_y = min_max( -33.99, M_player_pos.y, 33.99 ) + 34.0;
 
@@ -1100,10 +1100,10 @@ OnePlayerMessage::appendTo( std::string & to ) const
     ival += M_unum - 1;
 
     ival *= 168;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( player_x / 0.63 ), 167.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( player_x / 0.63 ), 167.0 ) );
 
     ival *= 109;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( player_y / 0.63 ), 108.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( player_y / 0.63 ), 108.0 ) );
 
     std::string msg;
     msg.reserve( slength() - 1 );
@@ -1183,7 +1183,7 @@ TwoPlayerMessage::appendTo( std::string & to ) const
         return false;
     }
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     double dval = 0.0;
 
     for ( int i = 0; i < 2; ++i )
@@ -1205,11 +1205,11 @@ TwoPlayerMessage::appendTo( std::string & to ) const
 
         dval = min_max( -52.49, M_player_pos[i].x, 52.49 ) + 52.5;
         ival *= 168;
-        ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / 0.63 ), 167.0 ) );
+        ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / 0.63 ), 167.0 ) );
 
         dval = min_max( -33.99, M_player_pos[i].y, 33.99 ) + 34.0;
         ival *= 109;
-        ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / 0.63 ), 108.0 ) );
+        ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / 0.63 ), 108.0 ) );
     }
 
     std::string msg;
@@ -1309,7 +1309,7 @@ ThreePlayerMessage::appendTo( std::string & to ) const
         return false;
     }
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     double dval = 0.0;
 
     for ( int i = 0; i < 3; ++i )
@@ -1331,11 +1331,11 @@ ThreePlayerMessage::appendTo( std::string & to ) const
 
         dval = min_max( -52.49, M_player_pos[i].x, 52.49 ) + 52.5;
         ival *= 168;
-        ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / 0.63 ), 167.0 ) );
+        ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / 0.63 ), 167.0 ) );
 
         dval = min_max( -33.99, M_player_pos[i].y, 33.99 ) + 34.0;
         ival *= 109;
-        ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / 0.63 ), 108.0 ) );
+        ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / 0.63 ), 108.0 ) );
     }
 
     std::string msg;
@@ -1423,24 +1423,24 @@ SelfMessage::appendTo( std::string & to ) const
     // 264 * 171 * 60 * 11 = 29795040
 
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     double dval = 0.0;
 
     dval = min_max( -52.5, M_self_pos.x, 52.5 ) + 52.5;
     //ival *= 264; // 105.0/0.4=262.5
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / 0.4 ), 263.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / 0.4 ), 263.0 ) );
 
     dval = min_max( -34.0, M_self_pos.y, 34.0 ) + 34.0;
     ival *= 171; // = 68/0.4
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / 0.4 ), 170.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / 0.4 ), 170.0 ) );
 
     dval = M_self_body.degree() + 180.0;
     ival *= 60; // = 360/6
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / 6.0 ), 59.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / 6.0 ), 59.0 ) );
 
     dval = min_max( 0.0, M_self_stamina / ServerParam::i().staminaMax(), 1.0 );
     ival *= 11;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval * 10.0 ), 10.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( dval * 10.0 ), 10.0 ) );
 
     std::string msg;
     msg.reserve( slength() - 1 );
@@ -1517,22 +1517,22 @@ TeammateMessage::appendTo( std::string & to ) const
         return false;
     }
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     double dval = 0.0;
 
     ival += M_unum - 1;
 
     dval = bound( -52.49, M_player_pos.x, 52.49 ) + 52.5;
     ival *= 151;
-    ival += static_cast< boost::int64_t >( rint( dval / 0.7 ) );
+    ival += static_cast< std::int64_t >( rint( dval / 0.7 ) );
 
     dval = bound( -33.99, M_player_pos.y, 33.99 ) + 34.0;
     ival *= 98;
-    ival += static_cast< boost::int64_t >( rint( dval / 0.7 ) );
+    ival += static_cast< std::int64_t >( rint( dval / 0.7 ) );
 
     dval = bound( 0.0, M_player_body.degree() + 180.0, 358.9 );
     ival *= 180; // = 360/2
-    ival += static_cast< boost::int64_t >( rint( dval / 2.0 ) );
+    ival += static_cast< std::int64_t >( rint( dval / 2.0 ) );
 
     std::string msg;
     msg.reserve( slength() - 1 );
@@ -1609,22 +1609,22 @@ OpponentMessage::appendTo( std::string & to ) const
         return false;
     }
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     double dval = 0.0;
 
     ival += M_unum - 1;
 
     dval = bound( -52.49, M_player_pos.x, 52.49 ) + 52.5;
     ival *= 151;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / 0.7 ), 150.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / 0.7 ), 150.0 ) );
 
     dval = bound( -33.99, M_player_pos.y, 33.99 ) + 34.0;
     ival *= 98;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / 0.7 ), 99.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / 0.7 ), 99.0 ) );
 
     dval = bound( 0.0, M_player_body.degree() + 180.0, 358.9 );
     ival *= 180; // = 360/2
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / 2.0 ), 179.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / 2.0 ), 179.0 ) );
 
     std::string msg;
     msg.reserve( slength() - 1 );
@@ -1731,22 +1731,22 @@ BallPlayerMessage::appendTo( std::string & to ) const
     //   22 * 106 * 69 * 180 = 28963400
     //
 
-    boost::int64_t ival = 0;
+    std::int64_t ival = 0;
     double dval = 0.0;
 
     ival += M_unum - 1;
 
     dval = bound( -52.49, M_player_pos.x, 52.49 ) + 52.5;
     ival *= 106;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval ), 105.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( dval ), 105.0 ) );
 
     dval = bound( -33.99, M_player_pos.y, 33.99 ) + 34.0;
     ival *= 69;
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval ), 68.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( dval ), 68.0 ) );
 
     dval = bound( 0.0, M_player_body.degree() + 180.0, 359.0 );
     ival *= 180; // = 360/2
-    ival += static_cast< boost::int64_t >( bound( 0.0, rint( dval / 2.0 ), 179.0 ) );
+    ival += static_cast< std::int64_t >( bound( 0.0, rint( dval / 2.0 ), 179.0 ) );
 
     if ( ! AudioCodec::i().encodeInt64ToStr( ival, 4, msg )
          || (int)msg.length() != slength() - 1 )

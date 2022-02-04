@@ -98,17 +98,17 @@ FormationKNN::createDefaultData()
     SampleData data;
 
     data.ball_.assign( 0.0, 0.0 );
-    data.players_.push_back( Vector2D( -50.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -20.0, -8.0 ) );
-    data.players_.push_back( Vector2D( -20.0, 8.0 ) );
-    data.players_.push_back( Vector2D( -18.0, -18.0 ) );
-    data.players_.push_back( Vector2D( -18.0, 18.0 ) );
-    data.players_.push_back( Vector2D( -15.0, 0.0 ) );
-    data.players_.push_back( Vector2D( 0.0, -12.0 ) );
-    data.players_.push_back( Vector2D( 0.0, 12.0 ) );
-    data.players_.push_back( Vector2D( 10.0, -22.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 22.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 0.0 ) );
+    data.players_.emplace_back( -50.0, 0.0 );
+    data.players_.emplace_back( -20.0, -8.0 );
+    data.players_.emplace_back( -20.0, 8.0 );
+    data.players_.emplace_back( -18.0, -18.0 );
+    data.players_.emplace_back( -18.0, 18.0 );
+    data.players_.emplace_back( -15.0, 0.0 );
+    data.players_.emplace_back( 0.0, -12.0 );
+    data.players_.emplace_back( 0.0, 12.0 );
+    data.players_.emplace_back( 10.0, -22.0 );
+    data.players_.emplace_back( 10.0, 22.0 );
+    data.players_.emplace_back( 10.0, 0.0 );
 
 #elif 0
     // 1-3-4-2
@@ -139,17 +139,17 @@ FormationKNN::createDefaultData()
     SampleData data;
 
     data.ball_.assign( 0.0, 0.0 );
-    data.players_.push_back( Vector2D( -50.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -15.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -15.0, -8.0 ) );
-    data.players_.push_back( Vector2D( -15.0, 8.0 ) );
-    data.players_.push_back( Vector2D( -9.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -5.0, -16.0 ) );
-    data.players_.push_back( Vector2D( -5.0, 16.0 ) );
-    data.players_.push_back( Vector2D( 0.0, -25.0 ) );
-    data.players_.push_back( Vector2D( 0.0, 25.0 ) );
-    data.players_.push_back( Vector2D( 10.0, -10.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 10.0 ) );
+    data.players_.emplace_back( -50.0, 0.0 );
+    data.players_.emplace_back( -15.0, 0.0 );
+    data.players_.emplace_back( -15.0, -8.0 );
+    data.players_.emplace_back( -15.0, 8.0 );
+    data.players_.emplace_back( -9.0, 0.0 );
+    data.players_.emplace_back( -5.0, -16.0 );
+    data.players_.emplace_back( -5.0, 16.0 );
+    data.players_.emplace_back( 0.0, -25.0 );
+    data.players_.emplace_back( 0.0, 25.0 );
+    data.players_.emplace_back( 10.0, -10.0 );
+    data.players_.emplace_back( 10.0, 10.0 );
 #else
     // 3-5-2
 
@@ -179,17 +179,17 @@ FormationKNN::createDefaultData()
     SampleData data;
 
     data.ball_.assign( 0.0, 0.0 );
-    data.players_.push_back( Vector2D( -50.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -15.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -15.0, -8.0 ) );
-    data.players_.push_back( Vector2D( -15.0, 8.0 ) );
-    data.players_.push_back( Vector2D( -5.0, -16.0 ) );
-    data.players_.push_back( Vector2D( -5.0, 16.0 ) );
-    data.players_.push_back( Vector2D( -9.0, 0.0 ) );
-    data.players_.push_back( Vector2D( 0.0, -25.0 ) );
-    data.players_.push_back( Vector2D( 0.0, 25.0 ) );
-    data.players_.push_back( Vector2D( 10.0, -10.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 10.0 ) );
+    data.players_.emplace_back( -50.0, 0.0 );
+    data.players_.emplace_back( -15.0, 0.0 );
+    data.players_.emplace_back( -15.0, -8.0 );
+    data.players_.emplace_back( -15.0, 8.0 );
+    data.players_.emplace_back( -5.0, -16.0 );
+    data.players_.emplace_back( -5.0, 16.0 );
+    data.players_.emplace_back( -9.0, 0.0 );
+    data.players_.emplace_back( 0.0, -25.0 );
+    data.players_.emplace_back( 0.0, 25.0 );
+    data.players_.emplace_back( 10.0, -10.0 );
+    data.players_.emplace_back( 10.0, 10.0 );
 #endif
 
     M_samples->addData( *this, data, false );

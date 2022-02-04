@@ -436,7 +436,7 @@ DebugClient::~DebugClient()
     this->close();
 
     delete M_impl;
-    M_impl = static_cast< Impl * >( 0 );
+    M_impl = nullptr;
 }
 
 /*-------------------------------------------------------------------*/
@@ -447,7 +447,7 @@ void
 DebugClient::connect( const std::string & hostname,
                       const int port )
 {
-    M_socket = boost::shared_ptr< UDPSocket >( new UDPSocket( hostname.c_str(), port ) );
+    M_socket = std::shared_ptr< UDPSocket >( new UDPSocket( hostname.c_str(), port ) );
 
     if ( ! M_socket
          || M_socket->fd() == -1 )
@@ -666,12 +666,9 @@ DebugClient::buildString( const WorldModel & world,
     if ( ! effector.getSayMessage().empty() )
     {
         ostr << " (say \"";
-        for ( std::vector< SayMessage::Ptr >::const_iterator it = effector.sayMessageCont().begin(),
-                  end = effector.sayMessageCont().end();
-              it != end;
-              ++it )
+        for ( const SayMessage::Ptr & i : effector.sayMessageCont() )
         {
-            (*it)->printDebug( ostr );
+            i->printDebug( ostr );
         }
         ostr << " {" << effector.getSayMessage() << "}\")";
     }
@@ -878,7 +875,7 @@ DebugClient::addLine( const Vector2D & from,
     {
         if ( M_impl->M_lines.size() < MAX_LINE )
         {
-            M_impl->M_lines.push_back( LineT( Segment2D( from, to ), color ) );
+            M_impl->M_lines.emplace_back( Segment2D( from, to ), color );
         }
     }
 }
@@ -895,7 +892,7 @@ DebugClient::addTriangle( const Triangle2D & tri,
     {
         if ( M_impl->M_triangles.size() < MAX_TRIANGLE )
         {
-            M_impl->M_triangles.push_back( TriangleT( tri, color ) );
+            M_impl->M_triangles.emplace_back( tri, color );
         }
     }
 }
@@ -912,7 +909,7 @@ DebugClient::addRectangle( const Rect2D & rect,
     {
         if ( M_impl->M_rectangles.size() < MAX_RECT )
         {
-            M_impl->M_rectangles.push_back( RectangleT( rect, color ) );
+            M_impl->M_rectangles.emplace_back( rect, color );
         }
     }
 }
@@ -929,7 +926,7 @@ DebugClient::addCircle( const Circle2D & circle,
     {
         if ( M_impl->M_circles.size() < MAX_CIRCLE )
         {
-            M_impl->M_circles.push_back( CircleT( circle, color ) );
+            M_impl->M_circles.emplace_back( circle, color );
         }
     }
 }

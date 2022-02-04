@@ -65,44 +65,6 @@
 
 namespace rcsc {
 
-/*!
-  \struct KeepDribbleCmp
-  \brief function object to evaluate the keep dribble
-*/
-struct KeepDribbleCmp
-    : public std::binary_function< Body_Dribble2008::KeepDribbleInfo,
-                                   Body_Dribble2008::KeepDribbleInfo,
-                                   bool > {
-    /*!
-      \brief compare operator
-      \param lhs left hand side argument
-      \param rhs right hand side argument
-    */
-    result_type operator()( const first_argument_type & lhs,
-                            const second_argument_type & rhs ) const
-      {
-          if ( lhs.dash_count_ > rhs.dash_count_ )
-          {
-              return true;
-          }
-
-          if ( lhs.dash_count_ == rhs.dash_count_ )
-          {
-              if ( lhs.min_opp_dist_ > 5.0
-                   && rhs.min_opp_dist_ > 5.0 )
-              {
-                  return lhs.ball_forward_travel_ > rhs.ball_forward_travel_;
-                  //return lhs.ball_forward_travel_ < rhs.ball_forward_travel_;
-                  ///return lhs.last_ball_rel_.absX() < rhs.last_ball_rel_.absX();
-              }
-
-              return lhs.min_opp_dist_ > rhs.min_opp_dist_;
-          }
-
-          return false;
-      }
-};
-
 /*-------------------------------------------------------------------*/
 /*!
   execute action
@@ -782,43 +744,40 @@ Body_Dribble2008::doKickTurnsDashes( PlayerAgent * agent,
 
         const int dribble_step = 1 + n_turn + n_dash;
 
-        for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
-                  end = wm.opponentsFromSelf().end();
-              o != end;
-              ++o )
+        for ( const PlayerObject * o : wm.opponentsFromSelf() )
         {
-            if ( (*o)->distFromSelf() > 30.0 ) break;
+            if ( o->distFromSelf() > 30.0 ) break;
 
-            double control_area = (*o)->playerTypePtr()->kickableArea();
-            if ( (*o)->goalie()
+            double control_area = o->playerTypePtr()->kickableArea();
+            if ( o->goalie()
                  && ball_trap_pos.x > ServerParam::i().theirPenaltyAreaLineX()
                  && ball_trap_pos.absY() < ServerParam::i().penaltyAreaHalfWidth() )
             {
                 control_area = ServerParam::i().catchableArea();
             }
 
-            const Vector2D & opos = ( (*o)->seenPosCount() <= (*o)->posCount()
-                                      ? (*o)->seenPos()
-                                      : (*o)->pos() );
-            const int vel_count = std::min( (*o)->seenVelCount(), (*o)->velCount() );
-            const Vector2D & ovel = ( (*o)->seenVelCount() <= (*o)->velCount()
-                                      ? (*o)->seenVel()
-                                      : (*o)->vel() );
+            const Vector2D & opos = ( o->seenPosCount() <= o->posCount()
+                                      ? o->seenPos()
+                                      : o->pos() );
+            const int vel_count = std::min( o->seenVelCount(), o->velCount() );
+            const Vector2D & ovel = ( o->seenVelCount() <= o->velCount()
+                                      ? o->seenVel()
+                                      : o->vel() );
 
-            Vector2D opp_pos = ( (*o)->velCount() <= 1
+            Vector2D opp_pos = ( o->velCount() <= 1
                                  ? inertia_n_step_point( opos, ovel, dribble_step,
-                                                         (*o)->playerTypePtr()->playerDecay() )
+                                                         o->playerTypePtr()->playerDecay() )
                                  : opos + ovel );
             Vector2D opp_to_pos = ball_trap_pos - opp_pos;
 
             double opp_dist = opp_to_pos.r();
             int opp_turn_step = 0;
 
-            if ( (*o)->bodyCount() <= 5
+            if ( o->bodyCount() <= 5
                  || vel_count <= 5 )
             {
-                double angle_diff = ( (*o)->bodyCount() <= 1
-                                      ? ( opp_to_pos.th() - (*o)->body() ).abs()
+                double angle_diff = ( o->bodyCount() <= 1
+                                      ? ( opp_to_pos.th() - o->body() ).abs()
                                       : ( opp_to_pos.th() - ovel.th() ).abs() );
 
                 double turn_margin = 180.0;
@@ -831,31 +790,31 @@ Body_Dribble2008::doKickTurnsDashes( PlayerAgent * agent,
                 double opp_speed = ovel.r();
                 while ( angle_diff > turn_margin )
                 {
-                    double max_turn = (*o)->playerTypePtr()->effectiveTurn( max_moment, opp_speed );
+                    double max_turn = o->playerTypePtr()->effectiveTurn( max_moment, opp_speed );
                     angle_diff -= max_turn;
-                    opp_speed *= (*o)->playerTypePtr()->playerDecay();
+                    opp_speed *= o->playerTypePtr()->playerDecay();
                     ++opp_turn_step;
                 }
             }
 
             opp_dist -= control_area;
             opp_dist -= 0.2;
-            //opp_dist -= (*o)->distFromSelf() * 0.05;
+            //opp_dist -= o->distFromSelf() * 0.05;
 
             if ( opp_dist < 0.0 )
             {
                 dlog.addText( Logger::DRIBBLE,
                               "__xx step=%d opponent %d(%.1f %.1f) is already at receive point",
                               dribble_step,
-                              (*o)->unum(),
-                              (*o)->pos().x, (*o)->pos().y );
+                              o->unum(),
+                              o->pos().x, o->pos().y );
                 failed = true;
                 break;
             }
 
-            int opp_reach_step = (*o)->playerTypePtr()->cyclesToReachDistance( opp_dist );
+            int opp_reach_step = o->playerTypePtr()->cyclesToReachDistance( opp_dist );
             opp_reach_step += opp_turn_step;
-            opp_reach_step -= bound( 0, (*o)->posCount(), 10 );
+            opp_reach_step -= bound( 0, o->posCount(), 10 );
 
             if ( opp_reach_step <= dribble_step )
             {
@@ -863,8 +822,8 @@ Body_Dribble2008::doKickTurnsDashes( PlayerAgent * agent,
                               "__xx step=%d opponent %d (%.1f %.1f) can reach faster then self."
                               " opp_step=%d(turn=%d)",
                               dribble_step,
-                              (*o)->unum(),
-                              (*o)->pos().x, (*o)->pos().y,
+                              o->unum(),
+                              o->pos().x, o->pos().y,
                               opp_reach_step,
                               opp_turn_step );
                 failed = true;
@@ -875,8 +834,8 @@ Body_Dribble2008::doKickTurnsDashes( PlayerAgent * agent,
                           "__ok step=%d opponent %d (%.1f %.1f)"
                           " opp_step=%d(turn=%d)",
                           dribble_step,
-                          (*o)->unum(),
-                          (*o)->pos().x, (*o)->pos().y,
+                          o->unum(),
+                          o->pos().x, o->pos().y,
                           opp_reach_step,
                           opp_turn_step );
         }
@@ -1185,7 +1144,7 @@ Body_Dribble2008::doKickDashesWithBall( PlayerAgent * agent,
 
     const WorldModel & wm = agent->world();
 
-    MSecTimer timer;
+    Timer timer;
 
     // estimate my move positions
     createSelfCache( agent,
@@ -1275,7 +1234,22 @@ Body_Dribble2008::doKickDashesWithBall( PlayerAgent * agent,
     std::vector< KeepDribbleInfo >::const_iterator dribble
         = std::min_element( dribble_info.begin(),
                             dribble_info.end(),
-                            KeepDribbleCmp() );
+                            []( const KeepDribbleInfo & lhs, const KeepDribbleInfo & rhs )
+                              {
+                                  if ( lhs.dash_count_ > rhs.dash_count_ ) return true;
+                                  if ( lhs.dash_count_ == rhs.dash_count_ )
+                                  {
+                                       if ( lhs.min_opp_dist_ > 5.0
+                                            && rhs.min_opp_dist_ > 5.0 )
+                                       {
+                                           return lhs.ball_forward_travel_ > rhs.ball_forward_travel_;
+                                           //return lhs.ball_forward_travel_ < rhs.ball_forward_travel_;
+                                           ///return lhs.last_ball_rel_.absX() < rhs.last_ball_rel_.absX();
+                                       }
+                                       return lhs.min_opp_dist_ > rhs.min_opp_dist_;
+                                  }
+                                  return false;
+                              });
 
     if ( dodge_mode
          && dash_count > dribble->dash_count_ )
@@ -1490,9 +1464,8 @@ Body_Dribble2008::simulateKickDashes( const WorldModel & wm,
     Vector2D last_ball_rel( 0.0, 0.0 );
 
     // future state loop
-    const std::vector< Vector2D >::const_iterator my_end = self_cache.end();
-    for ( std::vector< Vector2D >::const_iterator my_pos = self_cache.begin() + 1;
-          my_pos != my_end;
+    for ( std::vector< Vector2D >::const_iterator my_pos = self_cache.begin() + 1, end = self_cache.end();
+          my_pos != end;
           ++my_pos )
     {
         ball_pos += ball_vel;
@@ -1583,28 +1556,25 @@ Body_Dribble2008::existKickableOpponent( const WorldModel & wm,
 {
     static const double kickable_area = ServerParam::i().defaultKickableArea() + 0.2;
 
-    for ( PlayerObject::Cont::const_iterator it = wm.opponentsFromSelf().begin(),
-              end = wm.opponentsFromSelf().end();
-          it != end;
-          ++it )
+    for ( const PlayerObject * o : wm.opponentsFromSelf() )
     {
-        if ( (*it)->posCount() > 5 )
+        if ( o->posCount() > 5 )
         {
             continue;
         }
 
-        if ( (*it)->distFromSelf() > 30.0 )
+        if ( o->distFromSelf() > 30.0 )
         {
             break;
         }
 
         // goalie's catchable check
-        if ( (*it)->goalie() )
+        if ( o->goalie() )
         {
             if ( ball_pos.x > ServerParam::i().theirPenaltyAreaLineX()
                  && ball_pos.absY() < ServerParam::i().penaltyAreaHalfWidth() )
             {
-                double d = (*it)->pos().dist( ball_pos );
+                double d = o->pos().dist( ball_pos );
                 if ( d < ServerParam::i().catchableArea() )
                 {
                     return true;
@@ -1619,7 +1589,7 @@ Body_Dribble2008::existKickableOpponent( const WorldModel & wm,
         }
 
         // normal kickable check
-        double d = (*it)->pos().dist( ball_pos );
+        double d = o->pos().dist( ball_pos );
         if ( d < kickable_area )
         {
             return true;
@@ -1664,21 +1634,18 @@ Body_Dribble2008::doDodge( PlayerAgent * agent,
 
     const PlayerObject::Cont & opponents = wm.opponentsFromSelf();
 
-    for ( PlayerObject::Cont::const_iterator it = opponents.begin(),
-              end = opponents.end();
-          it != end;
-          ++it )
+    for ( const PlayerObject * o : opponents )
     {
-        if ( (*it)->posCount() >= 5 ) break;
-        if ( (*it)->isGhost() ) break;
-        if ( (*it)->distFromSelf() > 3.0 ) break;
+        if ( o->posCount() >= 5 ) break;
+        if ( o->isGhost() ) break;
+        if ( o->distFromSelf() > 3.0 ) break;
 
-        if ( ( (*it)->angleFromSelf() - avoid_angle ).abs() > 90.0 )
+        if ( ( o->angleFromSelf() - avoid_angle ).abs() > 90.0 )
         {
             continue;
         }
 
-        if ( (*it)->distFromSelf()
+        if ( o->distFromSelf()
              < ServerParam::i().defaultKickableArea() + 0.3 )
         {
             dlog.addText( Logger::DRIBBLE,
@@ -1895,39 +1862,36 @@ Body_Dribble2008::isDodgeSituation( const PlayerAgent * agent,
         dodge_consider_dist = 10.0;
     }
 
-    for ( PlayerObject::Cont::const_iterator it = wm.opponentsFromSelf().begin(),
-              end = wm.opponentsFromSelf().end();
-          it != end;
-          ++it )
+    for ( const PlayerObject * o : wm.opponentsFromSelf() )
     {
-        if ( (*it)->posCount() >= 10 ) continue;
-        if ( (*it)->isGhost() ) continue;
+        if ( o->posCount() >= 10 ) continue;
+        if ( o->isGhost() ) continue;
 
-        if ( sector.contains( (*it)->pos() ) )
+        if ( sector.contains( o->pos() ) )
         {
             dlog.addText( Logger::DRIBBLE,
                           __FILE__": exist opp on dir" );
             return true;
         }
 
-        const double dir_diff = ( (*it)->angleFromSelf() - target_angle ).abs();
+        const double dir_diff = ( o->angleFromSelf() - target_angle ).abs();
         double add_buf = 0.0;
-        if ( (*it)->distFromSelf() < dodge_consider_dist
-             && (*it)->distFromSelf() > 3.0 )
+        if ( o->distFromSelf() < dodge_consider_dist
+             && o->distFromSelf() > 3.0 )
         {
-            add_buf = 30.0 / (*it)->distFromSelf();
+            add_buf = 30.0 / o->distFromSelf();
         }
 
-        if ( (*it)->distFromSelf() < 1.0
-             || ( (*it)->distFromSelf() < 1.5 && dir_diff < 120.0 )
-             || ( (*it)->distFromSelf() < dodge_consider_dist
+        if ( o->distFromSelf() < 1.0
+             || ( o->distFromSelf() < 1.5 && dir_diff < 120.0 )
+             || ( o->distFromSelf() < dodge_consider_dist
                   && dir_diff < base_safety_dir_diff + add_buf ) )
         {
             dlog.addText( Logger::DRIBBLE,
                           __FILE__": exist obstacle (%.1f, %.1f) dist=%.2f"
                           " dir_diff=%.1f dir_buf=%.1f",
-                          (*it)->pos().x, (*it)->pos().y,
-                          (*it)->distFromSelf(),
+                          o->pos().x, o->pos().y,
+                          o->distFromSelf(),
                           dir_diff, base_safety_dir_diff + add_buf );
             return true;
         }
@@ -2017,25 +1981,22 @@ Body_Dribble2008::canKickAfterDash( const PlayerAgent * agent,
         }
     }
 
-    for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromBall().begin(),
-              end = wm.opponentsFromBall().begin();
-          o != end;
-          ++o )
+    for ( const PlayerObject * o : wm.opponentsFromBall() )
     {
-        if ( (*o)->distFromSelf() > 8.0 ) break;
-        if ( (*o)->posCount() > 5 ) continue;
-        if ( (*o)->isGhost() ) continue;
-        if ( (*o)->isTackling() ) continue;
+        if ( o->distFromSelf() > 8.0 ) break;
+        if ( o->posCount() > 5 ) continue;
+        if ( o->isGhost() ) continue;
+        if ( o->isTackling() ) continue;
 
-        const PlayerType * player_type = (*o)->playerTypePtr();
-        const double control_area = ( ( (*o)->goalie()
-                                        && penalty_area.contains( (*o)->pos() )
+        const PlayerType * player_type = o->playerTypePtr();
+        const double control_area = ( ( o->goalie()
+                                        && penalty_area.contains( o->pos() )
                                         && penalty_area.contains( ball_next ) )
                                       ? ServerParam::i().catchableArea()
                                       : player_type->kickableArea() );
-        const Vector2D opp_next = (*o)->pos() + (*o)->vel();
-        const AngleDeg opp_body =  ( (*o)->bodyCount() <= 1
-                                     ? (*o)->body()
+        const Vector2D opp_next = o->pos() + o->vel();
+        const AngleDeg opp_body =  ( o->bodyCount() <= 1
+                                     ? o->body()
                                      : ( ball_next - opp_next ).th() );
         const Vector2D opp_2_ball = ( ball_next - opp_next ).rotatedVector( - opp_body );
 
@@ -2053,8 +2014,8 @@ Body_Dribble2008::canKickAfterDash( const PlayerAgent * agent,
             {
                 dlog.addText( Logger::DRIBBLE,
                               __FILE__": canKickAfterDash. exist tackle opp %d(%.1f %.1f)",
-                              (*o)->unum(),
-                              (*o)->pos().x, (*o)->pos().y );
+                              o->unum(),
+                              o->pos().x, o->pos().y );
                 return false;
             }
         }
@@ -2071,8 +2032,8 @@ Body_Dribble2008::canKickAfterDash( const PlayerAgent * agent,
         {
             dlog.addText( Logger::DRIBBLE,
                           __FILE__": canKickAfterDash. exist kickable opp after dash %d(%.1f %.1f)",
-                          (*o)->unum(),
-                          (*o)->pos().x, (*o)->pos().y );
+                          o->unum(),
+                          o->pos().x, o->pos().y );
             return false;
         }
         else if ( opp_2_ball.absY() < ServerParam::i().tackleWidth()
@@ -2082,8 +2043,8 @@ Body_Dribble2008::canKickAfterDash( const PlayerAgent * agent,
 
             dlog.addText( Logger::DRIBBLE,
                           __FILE__": canKickAfterDash. exist tackle opp after dash %d(%.1f %.1f)",
-                          (*o)->unum(),
-                          (*o)->pos().x, (*o)->pos().y );
+                          o->unum(),
+                          o->pos().x, o->pos().y );
             return false;
         }
 
@@ -2204,31 +2165,28 @@ Body_Dribble2008::getAvoidAngle( const PlayerAgent * agent,
             }
 
             bool success = true;
-            for ( PlayerObject::Cont::const_iterator it = opponents.begin(),
-                      end = opponents.end();
-                  it != end;
-                  ++it )
+            for ( const PlayerObject * o : opponents )
             {
-                if ( (*it)->posCount() >= 10 ) continue;
+                if ( o->posCount() >= 10 ) continue;
 
-                if ( (*it)->distFromSelf() > 20.0 )
+                if ( o->distFromSelf() > 20.0 )
                 {
                     break;
                 }
 
-                if ( (*it)->distFromSelf() < safety_opp_dist
-                     && ((*it)->angleFromSelf() - new_target_angle).abs() < 30.0 )
+                if ( o->distFromSelf() < safety_opp_dist
+                     && (o->angleFromSelf() - new_target_angle).abs() < 30.0 )
                 {
                     dlog.addText( Logger::DRIBBLE,
                                   "____ body line dir=%.1f"
                                   " exist near opp(%.1f, %.1f)",
                                   new_target_angle.degree(),
-                                  (*it)->pos().x, (*it)->pos().y );
+                                  o->pos().x, o->pos().y );
                     success = false;
                     break;
                 }
 
-                if ( sub_target.dist2( (*it)->pos() )
+                if ( sub_target.dist2( o->pos() )
                      < safety_space_body_ang_radius2 )
                 {
                     dlog.addText( Logger::DRIBBLE,
@@ -2236,7 +2194,7 @@ Body_Dribble2008::getAvoidAngle( const PlayerAgent * agent,
                                   " exist opp(%.1f, %.1f) "
                                   "close to subtarget(%.1f, %.1f)",
                                   new_target_angle.degree(),
-                                  (*it)->pos().x, (*it)->pos().y,
+                                  o->pos().x, o->pos().y,
                                   sub_target.x, sub_target.y );
                     success = false;
                     break;
@@ -2309,19 +2267,16 @@ Body_Dribble2008::getAvoidAngle( const PlayerAgent * agent,
                       sub_target.x, sub_target.y );
 
         bool success = true;
-        for ( PlayerObject::Cont::const_iterator it = opponents.begin(),
-                  end = opponents.end();
-              it != end;
-              ++it )
+        for ( const PlayerObject * o : opponents )
         {
-            if ( (*it)->posCount() >= 10 ) continue;
+            if ( o->posCount() >= 10 ) continue;
 
-            if ( (*it)->distFromSelf() > 20.0 ) break;
+            if ( o->distFromSelf() > 20.0 ) break;
 
-            double add_dir = 5.8 / (*it)->distFromSelf();
+            double add_dir = 5.8 / o->distFromSelf();
             add_dir = std::min( 180.0 - safety_angle, add_dir );
-            if ( (*it)->distFromSelf() < safety_opp_dist
-                 && ( ( (*it)->angleFromSelf() - new_target_angle ).abs()
+            if ( o->distFromSelf() < safety_opp_dist
+                 && ( ( o->angleFromSelf() - new_target_angle ).abs()
                       < safety_angle + add_dir ) )
             {
                 dlog.addText( Logger::DRIBBLE,
@@ -2331,7 +2286,7 @@ Body_Dribble2008::getAvoidAngle( const PlayerAgent * agent,
                 break;
             }
 
-            if ( sub_target.dist2( (*it)->pos() ) < safety_space_radius2 )
+            if ( sub_target.dist2( o->pos() ) < safety_space_radius2 )
             {
                 dlog.addText( Logger::DRIBBLE,
                               "____ opp dist close. cannot avoid to %.1f",
@@ -2383,12 +2338,9 @@ Body_Dribble2008::getAvoidAngle( const PlayerAgent * agent,
             }
 
             double tmp_score = 0.0;
-            for ( PlayerObject::Cont::const_iterator it = opponents.begin(),
-                      end = opponents.end();
-                  it != end;
-                  ++it )
+            for ( const PlayerObject * o : opponents )
             {
-                double d2 = (*it)->pos().dist2( candidate );
+                double d2 = o->pos().dist2( candidate );
 
                 if ( d2 > 15.0 * 15.0 ) continue;
 

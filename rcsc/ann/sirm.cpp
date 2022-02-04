@@ -30,8 +30,6 @@
 
 #include "sirm.h"
 
-#include <boost/lexical_cast.hpp>
-
 #include <cmath>
 #include <iostream>
 #include <cstdlib>

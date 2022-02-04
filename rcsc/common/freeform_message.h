@@ -32,8 +32,7 @@
 #ifndef RCSC_COMMON_FREEFORM_MESSAGE_H
 #define RCSC_COMMON_FREEFORM_MESSAGE_H
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <string>
 #include <iostream>
 
@@ -48,16 +47,16 @@ class FreeformMessage {
 public:
 
     //! pointer type
-    typedef boost::shared_ptr< const FreeformMessage > Ptr;
+    typedef std::shared_ptr< const FreeformMessage > Ptr;
 
 private:
 
     const std::string M_type;
 
     // not used
-    FreeformMessage();
-    FreeformMessage( const FreeformMessage & );
-    FreeformMessage & operator=( const FreeformMessage & );
+    FreeformMessage() = delete;
+    FreeformMessage( const FreeformMessage & ) = delete;
+    FreeformMessage & operator=( const FreeformMessage & ) = delete;
 
 protected:
 
@@ -74,8 +73,7 @@ public:
       \brief virtual destructor.
     */
     virtual
-    ~FreeformMessage()
-      { }
+    ~FreeformMessage() = default;
 
     /*!
       \brief pure virtual method. get the message type strring.

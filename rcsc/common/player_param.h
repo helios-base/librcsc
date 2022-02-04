@@ -34,7 +34,7 @@
 
 #include <rcsc/rcg/types.h>
 
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 
 namespace rcsc {
 
@@ -51,7 +51,7 @@ class PlayerParam {
 private:
 
     //! parameter map implementation
-    boost::scoped_ptr< ParamMap > M_param_map;
+    std::unique_ptr< ParamMap > M_param_map;
 
     static const int DEFAULT_PLAYER_TYPES; //!< default number of player types
     static const int DEFAULT_SUBS_MAX; //!< default max number of substitution oppotunity

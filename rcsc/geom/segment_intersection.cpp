@@ -58,7 +58,7 @@ BruteForceSegmentIntersectionDetector::execute( const std::vector< Segment2D > &
         {
             if ( s_i.intersects( segments[j] ) )
             {
-                intersections->push_back( SegmentIntersection( s_i, segments[j] ) );
+                intersections->emplace_back( s_i, segments[j] );
             }
         }
     }

@@ -37,7 +37,7 @@
 #include <rcsc/soccer_math.h>
 #include <rcsc/types.h>
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <iostream>
 
@@ -635,7 +635,7 @@ public:
 class PlayerTypeSet {
 public:
     //! typedef of the player type contaier. key: id, value: player type
-    typedef std::map< int, PlayerType > Map;
+    typedef std::unordered_map< int, PlayerType > Map;
 private:
 
     //! heterogeneous player type container

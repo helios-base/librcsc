@@ -35,7 +35,6 @@
 
 #include "formation_static.h"
 
-#include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <algorithm>
@@ -79,17 +78,17 @@ FormationStatic::createDefaultData()
     SampleData data;
 
     data.ball_.assign( 0.0, 0.0 );
-    data.players_.push_back( Vector2D( -50.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -20.0, -8.0 ) );
-    data.players_.push_back( Vector2D( -20.0, 8.0 ) );
-    data.players_.push_back( Vector2D( -18.0, -18.0 ) );
-    data.players_.push_back( Vector2D( -18.0, 18.0 ) );
-    data.players_.push_back( Vector2D( -15.0, 0.0 ) );
-    data.players_.push_back( Vector2D( 0.0, -12.0 ) );
-    data.players_.push_back( Vector2D( 0.0, 12.0 ) );
-    data.players_.push_back( Vector2D( 10.0, -22.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 22.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 0.0 ) );
+    data.players_.emplace_back( -50.0, 0.0 );
+    data.players_.emplace_back( -20.0, -8.0 );
+    data.players_.emplace_back( -20.0, 8.0 );
+    data.players_.emplace_back( -18.0, -18.0 );
+    data.players_.emplace_back( -18.0, 18.0 );
+    data.players_.emplace_back( -15.0, 0.0 );
+    data.players_.emplace_back( 0.0, -12.0 );
+    data.players_.emplace_back( 0.0, 12.0 );
+    data.players_.emplace_back( 10.0, -22.0 );
+    data.players_.emplace_back( 10.0, 22.0 );
+    data.players_.emplace_back( 10.0, 0.0 );
 
     M_samples->addData( *this, data, false );
 }
@@ -408,11 +407,12 @@ FormationStatic::readCSV( std::istream & is )
             {
                 try
                 {
-                    role_numbers.push_back( boost::lexical_cast< int >( values[i] ) );
+                    role_numbers.push_back( std::stoi( values[i] ) );
                 }
-                catch ( const boost::bad_lexical_cast & e )
+                catch ( const std::exception & e )
                 {
-                    std::cerr << __FILE__ << " (readCSV) ERROR read role numbers. " << e.what() << std::endl;
+                    std::cerr << __FILE__ << ' ' << e.what() << '\n'
+                              << "(readCSV) ERROR read role numbers. "  << std::endl;
                     return false;
                 }
             }
@@ -439,12 +439,13 @@ FormationStatic::readCSV( std::istream & is )
             {
                 try
                 {
-                    M_pos[i].x = boost::lexical_cast< double >( values[ i*2 + 1 ] );
-                    M_pos[i].y = boost::lexical_cast< double >( values[ i*2 + 2 ] );
+                    M_pos[i].x = std::stod( values[ i*2 + 1 ] );
+                    M_pos[i].y = std::stod( values[ i*2 + 2 ] );
                 }
-                catch ( const boost::bad_lexical_cast & e )
+                catch ( const std::exception & e )
                 {
-                    std::cerr << __FILE__ << " (readCSV) ERROR read position valuess. " << e.what() << std::endl;
+                    std::cerr << __FILE__ << ' ' << e.what() << '\n'
+                              << "(readCSV) ERROR read position valuess. " << std::endl;
                     return false;
                 }
             }

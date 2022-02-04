@@ -35,8 +35,7 @@
 #include <rcsc/clang/clang_directive.h>
 #include <rcsc/clang/clang_condition.h>
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <vector>
 #include <iostream>
 
@@ -50,7 +49,7 @@ class CLangToken {
 public:
 
     //! smart pointer type
-    typedef boost::shared_ptr< const CLangToken > ConstPtr;
+    typedef std::shared_ptr< const CLangToken > ConstPtr;
 
     // container type
     typedef std::vector< ConstPtr > Cont;

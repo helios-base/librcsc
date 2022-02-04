@@ -37,8 +37,6 @@
 
 namespace rcsc {
 
-struct gzfilterstreambuf_impl;
-
 /////////////////////////////////////////////////////////////////////
 
 /*!
@@ -94,7 +92,10 @@ private:
     char_type * M_write_buf;
 
     //! Pimpl ideom.
-    boost::scoped_ptr< gzfilterstreambuf_impl > M_impl;
+    struct Impl;
+
+    //! Pimpl ideom.
+    std::unique_ptr< Impl > M_impl;
     /*!
       current level of compression/decompression.
       -1 means that data is handled without modification.
@@ -102,9 +103,9 @@ private:
     int M_level;
 
     //! not used
-    gzfilterstreambuf( const gzfilterstreambuf & );
+    gzfilterstreambuf( const gzfilterstreambuf & ) = delete;
     //! not used
-    gzfilterstreambuf & operator=( const gzfilterstreambuf & );
+    gzfilterstreambuf & operator=( const gzfilterstreambuf & ) = delete;
 
 public:
 
@@ -114,7 +115,7 @@ public:
       \param level gzip compression level
       \param buf_size allocated buffer size (default: 8192)
 
-      Default constructor creates an internal file buffer using boost::scoped_ptr.
+      Default constructor creates an internal file buffer using unique_ptr.
       This buffer is deleted automatically.
     */
     explicit
@@ -196,9 +197,9 @@ private:
     gzfilterstreambuf M_filter_buf;
 
     //! not used
-    gzfilterstream( const gzfilterstream & );
+    gzfilterstream( const gzfilterstream & ) = delete;
     //! not used
-    gzfilterstream & operator=( const gzfilterstream & );
+    gzfilterstream & operator=( const gzfilterstream & ) = delete;
 
 public:
     /*!
@@ -250,9 +251,9 @@ private:
     gzfilterstreambuf M_filter_buf;
 
     //! not used
-    gzifilterstream( const gzifilterstream & );
+    gzifilterstream( const gzifilterstream & ) = delete;
     //! not used
-    gzifilterstream & operator=( const gzifilterstream & );
+    gzifilterstream & operator=( const gzifilterstream & ) = delete;
 
 public:
     /*!
@@ -304,9 +305,9 @@ private:
     gzfilterstreambuf M_filter_buf;
 
     //! not used.
-    gzofilterstream( const gzofilterstream & );
+    gzofilterstream( const gzofilterstream & ) = delete;
     //! not used.
-    gzofilterstream & operator=( const gzofilterstream & );
+    gzofilterstream & operator=( const gzofilterstream & ) = delete;
 public:
 
     /*!

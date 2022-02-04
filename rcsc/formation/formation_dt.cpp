@@ -39,7 +39,6 @@
 #include <rcsc/geom/line_2d.h>
 #include <rcsc/math_util.h>
 
-#include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <vector>
@@ -133,17 +132,17 @@ FormationDT::createDefaultData()
     SampleData data;
 
     data.ball_.assign( 0.0, 0.0 );
-    data.players_.push_back( Vector2D( -50.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -20.0, -8.0 ) );
-    data.players_.push_back( Vector2D( -20.0, 8.0 ) );
-    data.players_.push_back( Vector2D( -18.0, -18.0 ) );
-    data.players_.push_back( Vector2D( -18.0, 18.0 ) );
-    data.players_.push_back( Vector2D( -15.0, 0.0 ) );
-    data.players_.push_back( Vector2D( 0.0, -12.0 ) );
-    data.players_.push_back( Vector2D( 0.0, 12.0 ) );
-    data.players_.push_back( Vector2D( 10.0, -22.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 22.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 0.0 ) );
+    data.players_.emplace_back( -50.0, 0.0 );
+    data.players_.emplace_back( -20.0, -8.0 );
+    data.players_.emplace_back( -20.0, 8.0 );
+    data.players_.emplace_back( -18.0, -18.0 );
+    data.players_.emplace_back( -18.0, 18.0 );
+    data.players_.emplace_back( -15.0, 0.0 );
+    data.players_.emplace_back( 0.0, -12.0 );
+    data.players_.emplace_back( 0.0, 12.0 );
+    data.players_.emplace_back( 10.0, -22.0 );
+    data.players_.emplace_back( 10.0, 22.0 );
+    data.players_.emplace_back( 10.0, 0.0 );
 
 #elif 0
     // 1-3-4-2
@@ -174,17 +173,17 @@ FormationDT::createDefaultData()
     SampleData data;
 
     data.ball_.assign( 0.0, 0.0 );
-    data.players_.push_back( Vector2D( -50.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -15.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -15.0, -8.0 ) );
-    data.players_.push_back( Vector2D( -15.0, 8.0 ) );
-    data.players_.push_back( Vector2D( -9.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -5.0, -16.0 ) );
-    data.players_.push_back( Vector2D( -5.0, 16.0 ) );
-    data.players_.push_back( Vector2D( 0.0, -25.0 ) );
-    data.players_.push_back( Vector2D( 0.0, 25.0 ) );
-    data.players_.push_back( Vector2D( 10.0, -10.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 10.0 ) );
+    data.players_.emplace_back( -50.0, 0.0 );
+    data.players_.emplace_back( -15.0, 0.0 );
+    data.players_.emplace_back( -15.0, -8.0 );
+    data.players_.emplace_back( -15.0, 8.0 );
+    data.players_.emplace_back( -9.0, 0.0 );
+    data.players_.emplace_back( -5.0, -16.0 );
+    data.players_.emplace_back( -5.0, 16.0 );
+    data.players_.emplace_back( 0.0, -25.0 );
+    data.players_.emplace_back( 0.0, 25.0 );
+    data.players_.emplace_back( 10.0, -10.0 );
+    data.players_.emplace_back( 10.0, 10.0 );
 #else
     // 3-5-2
 
@@ -214,17 +213,17 @@ FormationDT::createDefaultData()
     SampleData data;
 
     data.ball_.assign( 0.0, 0.0 );
-    data.players_.push_back( Vector2D( -50.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -15.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -15.0, -8.0 ) );
-    data.players_.push_back( Vector2D( -15.0, 8.0 ) );
-    data.players_.push_back( Vector2D( -5.0, -16.0 ) );
-    data.players_.push_back( Vector2D( -5.0, 16.0 ) );
-    data.players_.push_back( Vector2D( -9.0, 0.0 ) );
-    data.players_.push_back( Vector2D( 0.0, -25.0 ) );
-    data.players_.push_back( Vector2D( 0.0, 25.0 ) );
-    data.players_.push_back( Vector2D( 10.0, -10.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 10.0 ) );
+    data.players_.emplace_back( -50.0, 0.0 );
+    data.players_.emplace_back( -15.0, 0.0 );
+    data.players_.emplace_back( -15.0, -8.0 );
+    data.players_.emplace_back( -15.0, 8.0 );
+    data.players_.emplace_back( -5.0, -16.0 );
+    data.players_.emplace_back( -5.0, 16.0 );
+    data.players_.emplace_back( -9.0, 0.0 );
+    data.players_.emplace_back( 0.0, -25.0 );
+    data.players_.emplace_back( 0.0, 25.0 );
+    data.players_.emplace_back( 10.0, -10.0 );
+    data.players_.emplace_back( 10.0, 10.0 );
 #endif
 
     M_samples->addData( *this, data, false );
@@ -463,13 +462,10 @@ FormationDT::train()
     M_triangulation.init( pitch );
     M_sample_vector.clear();
 
-    const SampleDataSet::DataCont::const_iterator end = M_samples->dataCont().end();
-    for ( SampleDataSet::DataCont::const_iterator it = M_samples->dataCont().begin();
-          it != end;
-          ++it )
+    for ( const SampleData & data : M_samples->dataCont() )
     {
-        M_triangulation.addVertex( it->ball_ );
-        M_sample_vector.push_back( *it );
+        M_triangulation.addVertex( data.ball_ );
+        M_sample_vector.push_back( data );
     }
 
     M_triangulation.compute();
@@ -581,7 +577,16 @@ FormationDT::readCSV( std::istream & is )
 
             for ( int i = 1; i <= 11; ++i )
             {
-                role_numbers.push_back( boost::lexical_cast< int >( values[i] ) );
+                try
+                {
+                    role_numbers.push_back( std::stoi( values[i] ) );
+                }
+                catch ( std::exception & e )
+                {
+                    std::cerr << __FILE__ << ' ' << e.what() << '\n'
+                              <<" (readCSV) ERROR Illegal # of role number." << std::endl;
+                    return false;
+                }
             }
         }
         else if ( values.front() == "RoleName" )
@@ -612,7 +617,16 @@ FormationDT::readCSV( std::istream & is )
 
             for ( int i = 1; i <= 11; ++i )
             {
-                symmetry_numbers.push_back( boost::lexical_cast< int >( values[i] ) );
+                try
+                {
+                    symmetry_numbers.push_back( std::stoi( values[i] ) );
+                }
+                catch ( std::exception & e )
+                {
+                    std::cerr << __FILE__ << ' ' << e.what() << '\n'
+                              <<" (readCSV) ERROR Illegal symmetry number." << std::endl;
+                    return false;
+                }
             }
 
         }
@@ -626,7 +640,16 @@ FormationDT::readCSV( std::istream & is )
 
             for ( int i = 1; i <= 11; ++i )
             {
-                marker_flags.push_back( boost::lexical_cast< int >( values[i] ) );
+                try
+                {
+                    marker_flags.push_back( std::stoi( values[i] ) );
+                }
+                catch ( std::exception & e )
+                {
+                    std::cerr << __FILE__ << ' ' << e.what() << '\n'
+                              <<" (readCSV) ERROR Illegal marker flag." << std::endl;
+                    return false;
+                }
             }
         }
         else if ( values.front() == "SetplayMarker" )
@@ -639,7 +662,16 @@ FormationDT::readCSV( std::istream & is )
 
             for ( int i = 1; i <= 11; ++i )
             {
-                setplay_marker_flags.push_back( boost::lexical_cast< int >( values[i] ) );
+                try
+                {
+                    setplay_marker_flags.push_back( std::stoi( values[i] ) );
+                }
+                catch ( std::exception & e )
+                {
+                    std::cerr << __FILE__ << ' ' << e.what() << '\n'
+                              <<" (readCSV) ERROR Illegal setplay marker." << std::endl;
+                    return false;
+                }
             }
         }
         else if ( values.front() == "SampleData" )

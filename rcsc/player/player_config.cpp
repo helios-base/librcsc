@@ -62,7 +62,7 @@ PlayerConfig::PlayerConfig()
 PlayerConfig::~PlayerConfig()
 {
     delete M_param_map;
-    M_param_map = static_cast< ParamMap * >( 0 );
+    M_param_map = nullptr;
 }
 
 /*-------------------------------------------------------------------*/

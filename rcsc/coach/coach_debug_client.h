@@ -37,8 +37,7 @@
 #include <rcsc/geom/rect_2d.h>
 #include <rcsc/geom/circle_2d.h>
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <fstream>
 #include <string>
 
@@ -69,7 +68,7 @@ private:
     bool M_connected;
 
     //! connection to a debug server
-    boost::shared_ptr< UDPSocket > M_socket;
+    std::shared_ptr< UDPSocket > M_socket;
 
     //! output file stream
     std::ofstream M_server_log;

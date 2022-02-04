@@ -55,7 +55,7 @@ private:
     const std::string M_realm;
 
     //! not used
-    ConfFileParser();
+    ConfFileParser() = delete;
 public:
     /*!
       \brief construct with file path and delimiters
@@ -73,7 +73,7 @@ public:
       \param param_map reference to the parameter container
       \return true if successfully parserd
      */
-    bool parse( ParamMap & param_map );
+    bool parse( ParamMap & param_map ) override;
 };
 
 }

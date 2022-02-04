@@ -32,10 +32,9 @@
 #ifndef RCSC_CLANG_MESSAGE_H
 #define RCSC_CLANG_MESSAGE_H
 
-#include <boost/shared_ptr.hpp>
-
 #include <rcsc/clang/types.h>
 
+#include <memory>
 #include <iosfwd>
 
 namespace rcsc {
@@ -48,16 +47,16 @@ class CLangMessage {
 public:
 
     //! smart pointer type
-    typedef boost::shared_ptr< CLangMessage > Ptr;
+    typedef std::shared_ptr< CLangMessage > Ptr;
 
     //! const smart pointer type
-    typedef boost::shared_ptr< const CLangMessage > ConstPtr;
+    typedef std::shared_ptr< const CLangMessage > ConstPtr;
 
 private:
 
     // not used
-    CLangMessage( const CLangMessage & );
-    CLangMessage & operator=( const CLangMessage & );
+    CLangMessage( const CLangMessage & ) = delete;
+    CLangMessage & operator=( const CLangMessage & ) = delete;
 
 protected:
 

@@ -48,7 +48,7 @@ class UDPSocket
     : public AbstractSocket {
 private:
     //! not used
-    UDPSocket();
+    UDPSocket() = delete;
 public:
     /*!
       \brief constructor for server socket

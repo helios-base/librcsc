@@ -41,10 +41,7 @@
 #include <rcsc/timer.h>
 #include <rcsc/types.h>
 
-#include <boost/scoped_ptr.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/function.hpp>
-
+#include <memory>
 #include <vector>
 
 namespace rcsc {
@@ -71,10 +68,9 @@ class PlayerAgent
 private:
 
     struct Impl; //!< pimpl idiom
-    friend struct Impl;
 
     //! internal implementation object
-    boost::scoped_ptr< Impl > M_impl;
+    std::unique_ptr< Impl > M_impl;
 
 protected:
 
@@ -112,7 +108,7 @@ public:
       \return client object pointer.
      */
     virtual
-    boost::shared_ptr< AbstractClient > createConsoleClient();
+    std::shared_ptr< AbstractClient > createConsoleClient();
 
     /*!
       \brief finalize all things when the process exits

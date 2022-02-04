@@ -34,8 +34,7 @@
 
 #include <rcsc/factory.h>
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <istream>
 
 namespace rcsc {
@@ -52,7 +51,7 @@ class Handler;
 class Parser {
 public:
 
-    typedef boost::shared_ptr< Parser > Ptr; //!< rcg parser pointer type
+    typedef std::shared_ptr< Parser > Ptr; //!< rcg parser pointer type
     typedef Ptr (*Creator)(); //!< rcg parser creator function
     typedef rcss::Factory< Creator, int > Creators; //!< creator function holder
 
@@ -78,8 +77,7 @@ protected:
     /*!
       \brief constructor is accessible only from the derived classes.
      */
-    Parser()
-      { }
+    Parser() = default;
 
 public:
 

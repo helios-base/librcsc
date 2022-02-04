@@ -50,7 +50,7 @@ public:
       \brief get supported rcg version
       \return version number
      */
-    int version() const
+    int version() const override
       {
           return REC_OLD_VERSION;
       }
@@ -63,7 +63,7 @@ public:
       \retval false, if incorrect format is detected.
     */
     bool parse( std::istream & is,
-                Handler & handler ) const;
+                Handler & handler ) const override;
 };
 
 } // end of namespace

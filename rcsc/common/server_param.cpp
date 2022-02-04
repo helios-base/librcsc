@@ -1545,8 +1545,7 @@ ServerParam::toServerString() const
 
     os << "(server_param ";
 
-    for ( std::map< std::string, ParamEntity::Ptr >::const_iterator it = M_param_map->longNameMap().begin(),
-              end = M_param_map->longNameMap().end();
+    for ( std::map< std::string, ParamEntity::Ptr >::const_iterator it = M_param_map->longNameMap().begin(), end = M_param_map->longNameMap().end();
           it != end;
           ++it )
     {
