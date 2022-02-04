@@ -61,7 +61,7 @@ public:
       \param tp time point
      */
     explicit
-    TimeStamp( const std::chrono::system_clock::time_point & tp )
+    TimeStamp( const value_type & tp )
         : M_time_point( tp )
       { }
 
@@ -82,15 +82,16 @@ public:
       \brief get the time point value
       \return const reference to the time_point instance
      */
-    const std::chrono::system_clock::time_point & timePoint() const
+    const value_type & timePoint() const
       {
           return M_time_point;
       }
 
     /*!
       \brief get the milliseconds value since the given time stamp
+      \return count value in the order of millisecond
      */
-    std::int64_t msecFrom( const TimeStamp & other ) const
+    std::int64_t elapsedSince( const TimeStamp & other ) const
       {
           return std::chrono::duration_cast< std::chrono::milliseconds >( other.timePoint() - this->timePoint() ).count();
       }

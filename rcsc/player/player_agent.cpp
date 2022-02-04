@@ -1006,7 +1006,7 @@ PlayerAgent::handleTimeout( const int timeout_count,
     }
 
     TimeStamp cur_time;
-    long msec_from_sense = -1;
+    std::int64_t msec_from_sense = -1;
     /*
       std::cerr << "cur_sec = " << cur_time.sec()
       << "  cur_usec = " << cur_time.usec()
@@ -1016,7 +1016,7 @@ PlayerAgent::handleTimeout( const int timeout_count,
     */
     if ( M_impl->body_time_stamp_.isValid() )
     {
-        msec_from_sense = cur_time.msecFrom( M_impl->body_time_stamp_ );
+        msec_from_sense = cur_time.elapsedSince( M_impl->body_time_stamp_ );
     }
 
     dlog.addText( Logger::SYSTEM,
@@ -1527,7 +1527,7 @@ PlayerAgent::Impl::analyzeSee( const char * msg )
     see_time_stamp_.setNow();
     if ( body_time_stamp_.isValid() )
     {
-        msec_from_sense = see_time_stamp_.msecFrom( body_time_stamp_ );
+        msec_from_sense = see_time_stamp_.elapsedSince( body_time_stamp_ );
 #ifdef PROFILE_SEE
         if ( see_state_.isSynch() )
         {

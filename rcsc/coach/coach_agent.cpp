@@ -684,7 +684,7 @@ CoachAgent::handleTimeout( const int timeout_count,
     std::int64_t msec_from_see = -1;
     if ( M_impl->see_time_stamp_.isValid() )
     {
-        msec_from_see = cur_time.msecFrom( M_impl->see_time_stamp_ );
+        msec_from_see = cur_time.elapsedSince( M_impl->see_time_stamp_ );
     }
 
     dlog.addText( Logger::SYSTEM,

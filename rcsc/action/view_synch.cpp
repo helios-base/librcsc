@@ -136,7 +136,7 @@ View_Synch::doTimerSynchView( PlayerAgent * agent )
         return agent->doChangeView( ViewWidth::NARROW );
     }
 
-    double msec_diff_real = agent->seeTimeStamp().msecFrom( agent->bodyTimeStamp() );
+    double msec_diff_real = agent->seeTimeStamp().elapsedSince( agent->bodyTimeStamp() );
     msec_diff_real /= static_cast< double >( ServerParam::i().slowDownFactor() );
 
     const long msec_diff = static_cast< long >( rint( msec_diff_real ) );
