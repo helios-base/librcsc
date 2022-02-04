@@ -49,7 +49,7 @@ public:
       \brief get supported rcg version
       \return version number
      */
-    int version() const
+    int version() const override
       {
           return REC_VERSION_5;
       }
@@ -63,7 +63,7 @@ public:
     */
     virtual
     bool parse( std::istream & is,
-                Handler & handler ) const;
+                Handler & handler ) const override;
 
 private:
 
@@ -78,7 +78,7 @@ private:
     virtual
     bool parseShow( const int n_line,
                     const std::string & line,
-                    Handler & handler ) const;
+                    Handler & handler ) const override;
 
 };
 

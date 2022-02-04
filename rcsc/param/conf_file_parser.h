@@ -73,7 +73,7 @@ public:
       \param param_map reference to the parameter container
       \return true if successfully parserd
      */
-    bool parse( ParamMap & param_map );
+    bool parse( ParamMap & param_map ) override;
 };
 
 }

@@ -53,7 +53,7 @@ public:
       \return version number
      */
     virtual
-    int version() const
+    int version() const override
       {
           return REC_VERSION_4;
       }
@@ -67,7 +67,7 @@ public:
     */
     virtual
     bool parse( std::istream & is,
-                Handler & handler ) const;
+                Handler & handler ) const override;
 
     /*!
       \brief parse data line.

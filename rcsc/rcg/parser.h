@@ -77,8 +77,7 @@ protected:
     /*!
       \brief constructor is accessible only from the derived classes.
      */
-    Parser()
-      { }
+    Parser() = default;
 
 public:
 

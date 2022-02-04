@@ -64,7 +64,7 @@ public:
       \return serialization result
     */
     virtual
-    std::ostream & serializeHeader( std::ostream & os );
+    std::ostream & serializeHeader( std::ostream & os ) override;
 
     /*!
       \brief write ShowInfoT
@@ -74,7 +74,7 @@ public:
      */
     virtual
     std::ostream & serialize( std::ostream & os,
-                              const ShowInfoT & show );
+                              const ShowInfoT & show ) override;
 
 };
 
