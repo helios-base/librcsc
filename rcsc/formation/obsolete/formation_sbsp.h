@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file formation_ngnet.h
-  \brief formation data classes using NGNet Header File.
+  \file formation_sbsp.h
+  \brief simple SBSP formation Header File.
 */
 
 /*
@@ -29,153 +29,168 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_FORMATION_FORMATION_NGNET_H
-#define RCSC_FORMATION_FORMATION_NGNET_H
+#ifndef RCSC_FORMATION_FORMATION_SBSP_H
+#define RCSC_FORMATION_FORMATION_SBSP_H
 
 #include <rcsc/formation/formation.h>
-#include <rcsc/ann/ngnet.h>
+#include <rcsc/geom/rect_2d.h>
 
-#include <boost/shared_ptr.hpp>
-
-#include <map>
+#include <array>
 
 namespace rcsc {
 
 /*!
-  \class FormationNGNet
-  \brief formation implementation using NGNet
+  \class FormationSBSP
+  \brief formation implementation using SBSP method
 */
-class FormationNGNet
+class FormationSBSP
     : public Formation {
 public:
 
     static const std::string NAME; //!< type name
 
     /*!
-      \brief formation parameter using NGNet
-      one Param instance realizes just one player's position.
-    */
-    class Param {
-    public:
-        static const double PITCH_LENGTH; //!< field length
-        static const double PITCH_WIDTH; //!< field width
-
-    private:
-        std::string M_role_name; //!< role name string
-        NGNet M_net; //!< NGnet instance
-
-    public:
+      \struct Role
+      \brief role parameter
+     */
+    struct Role {
+        int number_; //!< player number
+        int symmetry_; //!< mirror reference nuber. =0:center, -1:side, >0:refered number
+        std::string name_; //!< role name string
+        Vector2D pos_; //!< basic position
+        Vector2D attract_; //!< attraction parameter
+        Rect2D region_; //!< movable area
+        bool behind_ball_; //!< defensive flag
 
         /*!
-          \brief just set a learning parameter
-        */
-        Param();
+          \brief default constructor
+         */
+        Role();
 
         /*!
-          \brief get assigned role name
-          \return role name string const reference
-        */
-        const
-        std::string & roleName() const
-          {
-              return M_role_name;
-          }
+          \brief construct with parameters
+          \param attract attraction parameter vector
+          \param region movable region
+          \param behind_ball behind flag
+         */
+        Role( const Vector2D & attract,
+              const Rect2D & region,
+              const bool behind_ball );
 
         /*!
-          \brief get RBF network
-          \return reference to the RBF network
-        */
-        NGNet & getNet()
-          {
-              return M_net;
-          }
+          \brief create random parameters
+         */
+        void randomize();
 
         /*!
-          \brief get RBF network
-          \return const reference to the RBF network
-        */
-        const
-        NGNet & net() const
-          {
-              return M_net;
-          }
-
-        /*!
-          \brief get strategic position
-          \param ball_pos focus point, usually ball position.
-          \param type side type, if this is symmetry type, the refered param is used.
-          \return coordinate value
-        */
-        Vector2D getPosition( const Vector2D & ball_pos,
-                              const Formation::SideType type ) const;
-
-        /*!
-          \brief set role name
-          \param name role name string
-        */
-        void setRoleName( const std::string & name )
-          {
-              M_role_name = name;
-          }
-
-        /*!
-          \brief restore RBF network from the input stream
-          \param is reference to the input stream
-          \return result status of parsing
-        */
+          \brief read data from an input stream
+          \return parsing result
+         */
         bool read( std::istream & is );
 
         /*!
-          \brief put  structure to the output stream
+          \brief write data to an output stream
           \param os reference to the output stream
           \return reference to the output stream
-        */
+         */
         std::ostream & print( std::ostream & os ) const;
+    };
 
+    /*!
+      \class Param
+      \brief the set of role
+     */
+    class Param {
     private:
-        /*!
-          \brief called from read();
-          \param is reference to the input stream
-          \return result status of parsing
-        */
-        bool readRoleName( std::istream & is );
+        std::string M_name; //!< formation name
+        std::array< Role, 11 > M_roles; //!< role set
+
+        Param() = delete; // not used
+    public:
 
         /*!
-          \brief called from read();
-          \param is reference to the input stream
-          \return result status of parsing
-        */
-        bool readParam( std::istream & is );
+          \brief construct with formation name
+          \param name formation name
+         */
+        explicit
+        Param( const std::string & name )
+            : M_name( name )
+          { }
 
         /*!
-          \brief called from print();
+          \brief get the symmetry information of the specified player
+          \param unum target player number
+         */
+        int getSymmetry( const int unum ) const
+          {
+              return M_roles.at( unum - 1 ).symmetry_;
+          }
+
+        /*!
+          \brief get the role of the specified number
+          \param unum target player number
+         */
+        Role & getRole( const int unum )
+          {
+              return M_roles.at( unum - 1 );
+          }
+
+        /*!
+          \brief get the role of the specified number
+          \param unum target player number
+         */
+        const
+        Role & getRole( const int unum ) const
+          {
+              return M_roles.at( unum - 1 );
+          }
+
+        /*!
+          \brief get the position for the input
+          \param unum target player number
+          \param ball_pos input ball position
+          \return player's move position
+         */
+        Vector2D getPosition( const int unum,
+                              const Vector2D & ball_pos ) const;
+
+        /*!
+          \brief check the validity of this formation
+          \return true if this is valid formation.
+         */
+        bool check();
+
+        /*!
+          \brief set synmetric parameters
+         */
+        void createSymmetryParam();
+
+        /*!
+          \brief read data from an input stream
+          \return parsing result
+         */
+        bool read( std::istream & is );
+
+        /*!
+          \brief write data to an output stream
           \param os reference to the output stream
           \return reference to the output stream
-        */
-        std::ostream & printRoleName( std::ostream & os ) const;
-
-        /*!
-          \brief called from print();
-          \param os reference to the output stream
-          \return reference to the output stream
-        */
-        std::ostream & printParam( std::ostream & os ) const;
+         */
+        std::ostream & print( std::ostream & os ) const;
 
     };
 
 
 private:
 
-    //! key: unum. but size is not always 11 if symmetric player exists.
-    std::map< int, boost::shared_ptr< Param > > M_param_map;
+    Param M_param;
 
 public:
 
     /*!
       \brief just call the base class constructor
     */
-    FormationNGNet();
-
+    FormationSBSP();
 
     /*!
       \brief static method. get the type name of this formation
@@ -184,7 +199,7 @@ public:
     static
     std::string name()
       {
-          //return std::string( "NGNet" );
+          //return std::string( "SBSP" );
           return NAME;
       }
 
@@ -195,7 +210,7 @@ public:
     static
     Formation::Ptr create()
       {
-          return Formation::Ptr( new FormationNGNet() );
+          return Formation::Ptr( new FormationSBSP() );
       }
 
     //--------------------------------------------------------------
@@ -214,10 +229,19 @@ public:
     virtual
     std::string methodName() const
       {
-          return FormationNGNet::name();
+          return FormationSBSP::name();
       }
 
 protected:
+
+    /*!
+      \brief set the role name of the specified player
+      \param unum target player's number
+      \param name role name string.
+    */
+    virtual
+    void setRoleName( const int unum,
+                      const std::string & name );
 
     /*!
       \brief create new role parameter.
@@ -229,15 +253,6 @@ protected:
     void createNewRole( const int unum,
                         const std::string & role_name,
                         const SideType type );
-
-    /*!
-      \brief set the role name of the specified player
-      \param unum target player's number
-      \param name role name string.
-    */
-    virtual
-    void setRoleName( const int unum,
-                      const std::string & name );
 
 public:
 
@@ -253,11 +268,11 @@ public:
     /*!
       \brief get position for the current focus point
       \param unum player number
-      \param focus_point current focus point, usually ball position.
+      \param ball_pos current focus point, usually ball position.
     */
     virtual
     Vector2D getPosition( const int unum,
-                          const Vector2D & focus_point ) const;
+                          const Vector2D & ball_pos ) const;
 
     /*!
       \brief get all positions for the current focus point
@@ -290,6 +305,7 @@ public:
     virtual
     std::ostream & print( std::ostream & os ) const;
 
+
 protected:
 
     /*!
@@ -311,26 +327,14 @@ protected:
 private:
 
     /*!
-      \brief restore player from the input stream
-      \param is reference to the input stream.
-      \return parsing result
+      \brief get the current formation parameter
+      \return const reference to the current formation parameter
     */
-    bool readPlayers( std::istream & is );
-
-    /*!
-      \brief get pointer to the specifed player's parameter
-      \param unum player's number
-      \return smart pointer to the parameter
-    */
-    boost::shared_ptr< Param > getParam( const int unum );
-
-    /*!
-      \brief get const pointer to the specifed player's parameter
-      \param unum player's number
-      \return smart const pointer to the parameter
-    */
-    boost::shared_ptr< const Param > param( const int unum ) const;
-
+    const
+    Param & param() const
+      {
+          return M_param;
+      }
 };
 
 }

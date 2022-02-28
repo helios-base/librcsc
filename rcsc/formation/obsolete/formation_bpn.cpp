@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file formation_ngnet.cpp
-  \brief NGNet formation data classes Source File.
+  \file formation_bpn.cpp
+  \brief BPN formation data classes Source File.
 */
 
 /*
@@ -33,31 +33,32 @@
 #include <config.h>
 #endif
 
-#include "formation_ngnet.h"
+#include "formation_bpn.h"
 
 #include <rcsc/math_util.h>
 
-#include <boost/random.hpp>
+#include <random>
 #include <sstream>
 #include <algorithm>
+#include <ctime>
 #include <cstdio>
 
 namespace rcsc {
 
 using namespace formation;
 
-const std::string FormationNGNet::NAME( "NGNet" );
+const std::string FormationBPN::NAME( "BPN" );
 
-const double FormationNGNet::Param::PITCH_LENGTH = 105.0 + 10.0;
-const double FormationNGNet::Param::PITCH_WIDTH = 68.0 + 10.0;
+const double FormationBPN::Param::PITCH_LENGTH = 105.0 + 10.0;
+const double FormationBPN::Param::PITCH_WIDTH = 68.0 + 10.0;
 
 
 /*-------------------------------------------------------------------*/
 /*!
 
- */
-FormationNGNet::Param::Param()
-    : M_net()
+*/
+FormationBPN::Param::Param()
+    : M_net( 0.3, 0.9 )
 {
 
 }
@@ -65,22 +66,45 @@ FormationNGNet::Param::Param()
 /*-------------------------------------------------------------------*/
 /*!
 
- */
-Vector2D
-FormationNGNet::Param::getPosition( const Vector2D & ball_pos,
-                                    const Formation::SideType ) const
+*/
+void
+FormationBPN::Param::randomize()
 {
-    NGNet::input_vector input;
+    static std::mt19937 s_engine( std::time( 0 ) );
+    std::uniform_real_distribution<> dst( -0.5, 0.5 );
 
-    input[0] = ball_pos.x;
-    input[1] = ball_pos.y;
+    M_net.randomize( [&](){ return dst( s_engine ); } );
+}
 
-    NGNet::output_vector output;
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+Vector2D
+FormationBPN::Param::getPosition( const Vector2D & ball_pos,
+                                  const Formation::SideType type ) const
+{
+    double msign = 1.0;
+    if ( type == Formation::SYMMETRY ) msign =  -1.0;
+    if ( type == Formation::CENTER && ball_pos.y > 0.0 ) msign = -1.0;
+
+    Net::input_array input;
+
+    input[0] = std::max( 0.0,
+                         std::min( ball_pos.x / PITCH_LENGTH + 0.5,
+                                   1.0 ) );
+    input[1] = std::max( 0.0,
+                         std::min( (ball_pos.y * msign) / PITCH_WIDTH + 0.5,
+                                   1.0 ) );
+
+    Net::output_array output;
 
     M_net.propagate( input, output );
-
-    return Vector2D( bound( -PITCH_LENGTH*0.5, output[0], PITCH_LENGTH*0.5 ),
-                     bound( -PITCH_WIDTH*0.5, output[1], PITCH_WIDTH*0.5 ) );
+    //std::cerr << "getPosition. raw output = "
+    //<< output[0] << " ,  " << output[1]
+    //<< std::endl;
+    return Vector2D( ( output[0] - 0.5 ) * PITCH_LENGTH,
+                     ( output[1] - 0.5 ) * PITCH_WIDTH * msign );
 }
 
 /*-------------------------------------------------------------------*/
@@ -88,7 +112,7 @@ FormationNGNet::Param::getPosition( const Vector2D & ball_pos,
   Format:  Role <RoleNameStr>
 */
 bool
-FormationNGNet::Param::readRoleName( std::istream & is )
+FormationBPN::Param::readRoleName( std::istream & is )
 {
     std::string line_buf;
     if ( ! std::getline( is, line_buf ) )
@@ -128,9 +152,9 @@ FormationNGNet::Param::readRoleName( std::istream & is )
 /*-------------------------------------------------------------------*/
 /*!
 
- */
+*/
 bool
-FormationNGNet::Param::readParam( std::istream & is )
+FormationBPN::Param::readNet( std::istream & is )
 {
     std::string line_buf;
     if ( ! std::getline( is, line_buf ) )
@@ -160,9 +184,9 @@ FormationNGNet::Param::readParam( std::istream & is )
 /*-------------------------------------------------------------------*/
 /*!
 
- */
+*/
 bool
-FormationNGNet::Param::read( std::istream & is )
+FormationBPN::Param::read( std::istream & is )
 {
     // read role name
     if ( ! readRoleName( is ) )
@@ -172,7 +196,7 @@ FormationNGNet::Param::read( std::istream & is )
         return false;
     }
 
-    if ( ! readParam( is ) )
+    if ( ! readNet( is ) )
     {
         std::cerr << __FILE__ << ":" << __LINE__
                   << " Failed to read parameters" << std::endl;
@@ -185,9 +209,9 @@ FormationNGNet::Param::read( std::istream & is )
 /*-------------------------------------------------------------------*/
 /*!
 
- */
+*/
 std::ostream &
-FormationNGNet::Param::printRoleName( std::ostream & os ) const
+FormationBPN::Param::printRoleName( std::ostream & os ) const
 {
     if ( M_role_name.empty() )
     {
@@ -203,23 +227,28 @@ FormationNGNet::Param::printRoleName( std::ostream & os ) const
 /*-------------------------------------------------------------------*/
 /*!
 
- */
+*/
 std::ostream &
-FormationNGNet::Param::printParam( std::ostream & os ) const
+FormationBPN::Param::printNet( std::ostream & os ) const
 {
     M_net.print( os ) << '\n';
     return os;
 }
 
 /*-------------------------------------------------------------------*/
-/*!
+/*
+  Role <role name>
+  <bko.x> <bkoy>
+  <offense playon>
+  <defense playon>
+  ...
 
 */
 std::ostream &
-FormationNGNet::Param::print( std::ostream & os ) const
+FormationBPN::Param::print( std::ostream & os ) const
 {
     printRoleName( os );
-    printParam( os );
+    printNet( os );
 
     return os << std::flush;
 }
@@ -231,8 +260,8 @@ FormationNGNet::Param::print( std::ostream & os ) const
 /*-------------------------------------------------------------------*/
 /*!
 
- */
-FormationNGNet::FormationNGNet()
+*/
+FormationBPN::FormationBPN()
     : Formation()
 {
 
@@ -241,10 +270,15 @@ FormationNGNet::FormationNGNet()
 /*-------------------------------------------------------------------*/
 /*!
 
- */
+*/
 void
-FormationNGNet::createDefaultData()
+FormationBPN::createDefaultData()
 {
+    if ( ! M_samples )
+    {
+        M_samples = SampleDataSet::Ptr( new SampleDataSet() );
+    }
+
     // 1: goalie
     // 2: left center back
     // 3(2): right center back
@@ -271,17 +305,17 @@ FormationNGNet::createDefaultData()
     SampleData data;
 
     data.ball_.assign( 0.0, 0.0 );
-    data.players_.push_back( Vector2D( -50.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -20.0, -8.0 ) );
-    data.players_.push_back( Vector2D( -20.0, 8.0 ) );
-    data.players_.push_back( Vector2D( -18.0, -18.0 ) );
-    data.players_.push_back( Vector2D( -18.0, 18.0 ) );
-    data.players_.push_back( Vector2D( -15.0, 0.0 ) );
-    data.players_.push_back( Vector2D( 0.0, -12.0 ) );
-    data.players_.push_back( Vector2D( 0.0, 12.0 ) );
-    data.players_.push_back( Vector2D( 10.0, -22.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 22.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 0.0 ) );
+    data.players_.emplace_back( -50.0, 0.0 );
+    data.players_.emplace_back( -20.0, -8.0 );
+    data.players_.emplace_back( -20.0, 8.0 );
+    data.players_.emplace_back( -18.0, -18.0 );
+    data.players_.emplace_back( -18.0, 18.0 );
+    data.players_.emplace_back( -15.0, 0.0 );
+    data.players_.emplace_back( 0.0, -12.0 );
+    data.players_.emplace_back( 0.0, 12.0 );
+    data.players_.emplace_back( 10.0, -22.0 );
+    data.players_.emplace_back( 10.0, 22.0 );
+    data.players_.emplace_back( 10.0, 0.0 );
 
     M_samples->addData( *this, data, false );
 }
@@ -290,12 +324,12 @@ FormationNGNet::createDefaultData()
 /*-------------------------------------------------------------------*/
 /*!
 
- */
+*/
 void
-FormationNGNet::setRoleName( const int unum,
-                             const std::string & name )
+FormationBPN::setRoleName( const int unum,
+                           const std::string & name )
 {
-    boost::shared_ptr< FormationNGNet::Param > p = getParam( unum );
+    std::shared_ptr< Param > p = getParam( unum );
 
     if ( ! p )
     {
@@ -312,11 +346,11 @@ FormationNGNet::setRoleName( const int unum,
 /*-------------------------------------------------------------------*/
 /*!
 
- */
+*/
 std::string
-FormationNGNet::getRoleName( const int unum ) const
+FormationBPN::getRoleName( const int unum ) const
 {
-    const boost::shared_ptr< const FormationNGNet::Param > p = param( unum );
+    const std::shared_ptr< const Param > p = getParam( unum );
     if ( ! p )
     {
         std::cerr << __FILE__ << ":" << __LINE__
@@ -332,11 +366,11 @@ FormationNGNet::getRoleName( const int unum ) const
 /*-------------------------------------------------------------------*/
 /*!
 
- */
+*/
 void
-FormationNGNet::createNewRole( const int unum,
-                               const std::string & role_name,
-                               const Formation::SideType type )
+FormationBPN::createNewRole( const int unum,
+                             const std::string & role_name,
+                             const Formation::SideType type )
 {
     if ( unum < 1 || 11 < unum )
     {
@@ -356,19 +390,22 @@ FormationNGNet::createNewRole( const int unum,
     }
     else
     {
-        // symmetry
+        std::cerr << __FILE__ << ":" << __LINE__
+                  << " *** ERROR *** You cannot create a new parameter for symmetry type."
+                  << std::endl;
+        return;
     }
 
     // erase old parameter, if exist
-    std::map< int, boost::shared_ptr< FormationNGNet::Param > >::iterator it
-        = M_param_map.find( unum );
+    std::map< int, std::shared_ptr< Param > >::iterator it = M_param_map.find( unum );
     if ( it != M_param_map.end() )
     {
         M_param_map.erase( it );
     }
 
-    boost::shared_ptr< FormationNGNet::Param > param( new FormationNGNet::Param );
+    std::shared_ptr< Param > param( new Param() );
     param->setRoleName( role_name );
+    param->randomize();
 
     M_param_map.insert( std::make_pair( unum, param ) );
 }
@@ -376,20 +413,21 @@ FormationNGNet::createNewRole( const int unum,
 /*-------------------------------------------------------------------*/
 /*!
 
- */
+*/
 Vector2D
-FormationNGNet::getPosition( const int unum,
-                             const Vector2D & ball_pos ) const
+FormationBPN::getPosition( const int unum,
+                           const Vector2D & ball_pos ) const
 {
-    const boost::shared_ptr< const FormationNGNet::Param > ptr = param( unum );
+    const std::shared_ptr< const Param > ptr = getParam( unum );
     if ( ! ptr )
     {
         std::cerr << __FILE__ << ':' << __LINE__
-                  << " *** ERROR *** FormationNGNet::Param not found. unum = "
+                  << " *** ERROR *** FormationBPN::Param not found. unum = "
                   << unum
                   << std::endl;
-        return Vector2D( 0.0, 0.0 );
+        return Vector2D::INVALIDATED;
     }
+
     Formation::SideType type = Formation::SIDE;
     if ( M_symmetry_number[unum - 1] > 0 )  type = Formation::SYMMETRY;
     if ( M_symmetry_number[unum - 1] == 0 ) type = Formation::CENTER;
@@ -400,10 +438,10 @@ FormationNGNet::getPosition( const int unum,
 /*-------------------------------------------------------------------*/
 /*!
 
- */
+*/
 void
-FormationNGNet::getPositions( const Vector2D & focus_point,
-                              std::vector< Vector2D > & positions ) const
+FormationBPN::getPositions( const Vector2D & focus_point,
+                            std::vector< Vector2D > & positions ) const
 {
     positions.clear();
 
@@ -416,9 +454,9 @@ FormationNGNet::getPositions( const Vector2D & focus_point,
 /*-------------------------------------------------------------------*/
 /*!
 
- */
+*/
 void
-FormationNGNet::train()
+FormationBPN::train()
 {
     if ( ! M_samples
          || M_samples->dataCont().empty() )
@@ -426,13 +464,35 @@ FormationNGNet::train()
         return;
     }
 
-    std::cerr << "FormationNGNet::train. Started!!" << std::endl;
+    const double PITCH_LENGTH = FormationBPN::Param::PITCH_LENGTH;
+    const double PITCH_WIDTH = FormationBPN::Param::PITCH_WIDTH;
+
+    std::cerr << "FormationBPN::train. Started!!" << std::endl;
 
     for ( int unum = 1; unum <= 11; ++unum )
     {
         int number = unum;
+        Formation::SideType type = Formation::SIDE;
+        if ( isSymmetryType( unum ) )
+        {
+            std::cerr << "  Training. player " << unum << " >>> symmetry type "
+                      << std::endl;
+            continue;
+        }
 
-        boost::shared_ptr< FormationNGNet::Param > param = getParam( number );
+        if ( isCenterType( unum ) )
+        {
+            type = Formation::CENTER;
+            std::cerr << "  Training. player " << unum << " >>> center type "
+                      << std::endl;
+        }
+        else
+        {
+            std::cerr << "  Training. player " << unum << " >>> side type "
+                      << std::endl;
+        }
+
+        std::shared_ptr< Param > param = getParam( number );
         if ( ! param )
         {
             std::cerr << __FILE__ << ": " << __LINE__
@@ -441,51 +501,12 @@ FormationNGNet::train()
             break;
         }
 
-        NGNet & net = param->getNet();
-        std::cerr << "---------- FormationNGNet::train. " << unum
-                  << " current unit size = "
-                  << net.units().size()
-                  << std::endl;
+        FormationBPN::Param::Net & net = param->net();
 
-        if ( net.units().size() < M_samples->dataCont().size() )
-        {
-            SampleDataSet::DataCont::const_iterator d = M_samples->dataCont().begin();
-            int count = net.units().size();
-            std::cerr << "FormationNGNet::train. need to add new center "
-                      << M_samples->dataCont().size() - net.units().size() << std::endl;
-            while ( --count >= 0
-                    && d != M_samples->dataCont().end() )
-            {
-                std::cerr << "FormationNGNet::train. skip known data...." << std::endl;
-                ++d;
-            }
+        FormationBPN::Param::Net::input_array input;
+        FormationBPN::Param::Net::output_array teacher;
 
-            while ( d != M_samples->dataCont().end() )
-            {
-                std::cerr << "FormationNGNet::train. added new center "
-                          << d->ball_
-                          << std::endl;
-                NGNet::input_vector center;
-                //center[0] = bound( 0.0,
-                //                   d->ball_.x / PITCH_LENGTH + 0.5,
-                //                   1.0 );
-                center[0] = d->ball_.x;
-                //center[1] = bound( 0.0,
-                //                   d->ball_.y / PITCH_WIDTH + 0.5,
-                //                   1.0 );
-                center[1] = d->ball_.y;
-                net.addCenter( center );
-
-                ++d;
-            }
-        }
-
-        net.printUnits( std::cerr );
-
-        NGNet::input_vector input;
-        NGNet::output_vector teacher;
-
-        const SampleDataSet::DataCont::const_iterator d_end = M_samples->dataCont().end();
+        const SampleDataSet::DataCont::const_iterator data_end = M_samples->dataCont().end();
         int loop = 0;
         double ave_err = 0.0;
         double max_err = 0.0;
@@ -496,35 +517,36 @@ FormationNGNet::train()
             max_err = 0.0;
             double data_count = 1.0;
             for ( SampleDataSet::DataCont::const_iterator d = M_samples->dataCont().begin();
-                  d != d_end;
+                  d != data_end;
                   ++d, data_count += 1.0 )
             {
-                /*
-                  input[0] = bound( 0.0,
-                  snap->ball_.x / PITCH_LENGTH + 0.5,
-                  1.0 );
-                  input[1] = bound( 0.0,
-                  snap->ball_.y / PITCH_WIDTH + 0.5,
-                  1.0 );
-                  teacher[0] = bound( 0.0,
-                  snap->players_[unum - 1].x / PITCH_LENGTH + 0.5,
-                  1.0 );
-                  teacher[1] = bound( 0.0,
-                  snap->players_[unum - 1].y / PITCH_WIDTH + 0.5,
-                  1.0 );
-                */
-                input[0] = d->ball_.x;
-                input[1] = d->ball_.y;
-                teacher[0] = d->players_[unum - 1].x;
-                teacher[1] = d->players_[unum - 1].y;
+                double by = d->ball_.y;
+                double py = d->players_[unum - 1].y;
 
-                if ( loop == 2 )
+                if ( type == Formation::CENTER
+                     && by > 0.0 )
                 {
-                    std::cerr << "  ----> " << unum
-                              << "  ball = " << input[0] << ", " << input[1]
-                              << "  teacher = " << teacher[0] << ", " << teacher[1]
-                              << std::endl;
+                    if ( loop == 2 )
+                    {
+                        std::cerr << "      unum " << unum
+                                  << "  training data Y is reversed"
+                                  << std::endl;
+                    }
+                    by *= -1.0;
+                    py *= -1.0;
                 }
+
+                input[0] = min_max( 0.0,
+                                    d->ball_.x / PITCH_LENGTH + 0.5,
+                                    1.0 );
+                input[1] = min_max( 0.0,
+                                    by / PITCH_WIDTH + 0.5,
+                                    1.0 );
+                teacher[0] = min_max( 0.0,
+                                      d->players_[unum - 1].x / PITCH_LENGTH + 0.5,
+                                      1.0 );
+                teacher[1] = std::max( 0.0,
+                                       std::min( py / PITCH_WIDTH + 0.5, 1.0 ) );
 
                 double err = net.train( input, teacher );
                 if ( max_err < err )
@@ -535,8 +557,14 @@ FormationNGNet::train()
                     = ave_err * ( ( data_count - 1.0 ) / data_count )
                     + err / data_count;
             }
-
-            if ( max_err < 0.001 )
+#if 0
+            if ( loop % 500 == 0 )
+            {
+                std::cerr << "      Training. player " << unum
+                          << "  counter " << loop << std::endl;
+            }
+#endif
+            if ( max_err < 0.003 )
             {
                 std::cerr << "  ----> converged. average err=" << ave_err
                           << "  last max err=" << max_err
@@ -555,17 +583,79 @@ FormationNGNet::train()
                   << " loop. last average err=" << ave_err
                   << "  last max err=" << max_err
                   << std::endl;
-        net.printUnits( std::cerr );
     }
-    std::cerr << "FormationNGNet::train. Ended!!" << std::endl;
+    std::cerr << "FormationBPN::train. Ended!!" << std::endl;
 }
 
 /*-------------------------------------------------------------------*/
 /*!
 
- */
+*/
+std::shared_ptr< FormationBPN::Param >
+FormationBPN::getParam( const int unum )
+{
+    if ( unum < 1 || 11 < unum )
+    {
+        std::cerr << __FILE__ << ":" << __LINE__
+                  << " *** ERROR *** invalid unum " << unum
+                  << std::endl;
+        return std::shared_ptr< FormationBPN::Param >( nullptr );
+    }
+
+    if ( M_symmetry_number[unum - 1] > 0 )
+    {
+        return std::shared_ptr< FormationBPN::Param >( nullptr );
+    }
+
+    std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
+    if ( it == M_param_map.end() )
+    {
+        std::cerr << __FILE__ << ":" << __LINE__
+                  << " *** ERROR *** Neteter not found! unum = "
+                  << unum << std::endl;
+        return std::shared_ptr< Param >( nullptr );
+    }
+
+    return it->second;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+std::shared_ptr< const FormationBPN::Param >
+FormationBPN::getParam( const int unum ) const
+{
+    if ( unum < 1 || 11 < unum )
+    {
+        std::cerr << __FILE__ << ":" << __LINE__
+                  << " *** ERROR *** invalid unum " << unum
+                  << std::endl;
+        return std::shared_ptr< const FormationBPN::Param >( nullptr );
+    }
+
+    const int player_number = ( M_symmetry_number[unum - 1] <= 0 // center or original
+                                ? unum
+                                : M_symmetry_number[unum - 1] );
+
+    std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( player_number );
+    if ( it == M_param_map.end() )
+    {
+        std::cerr << __FILE__ << ":" << __LINE__
+                  << " *** ERROR *** Neteter not found! unum = "
+                  << unum << std::endl;
+        return std::shared_ptr< const FormationBPN::Param >( nullptr );
+    }
+
+    return it->second;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
 bool
-FormationNGNet::read( std::istream & is )
+FormationBPN::read( std::istream & is )
 {
     if ( ! readHeader( is ) ) return false;
     if ( ! readConf( is ) ) return false;
@@ -581,88 +671,13 @@ FormationNGNet::read( std::istream & is )
     return true;
 }
 
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-FormationNGNet::print( std::ostream & os ) const
-{
-    if ( os ) printHeader( os );
-    if ( os ) printConf( os );
-    if ( os ) printSamples( os );
-
-    return os;
-}
 
 /*-------------------------------------------------------------------*/
 /*!
 
- */
-boost::shared_ptr< FormationNGNet::Param >
-FormationNGNet::getParam( const int unum )
-{
-    if ( unum < 1 || 11 < unum )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** invalid unum " << unum
-                  << std::endl;
-        return boost::shared_ptr< FormationNGNet::Param >
-            ( static_cast< FormationNGNet::Param * >( 0 ) );
-    }
-
-    std::map< int, boost::shared_ptr< FormationNGNet::Param > >::const_iterator
-        it = M_param_map.find( unum );
-
-    if ( it == M_param_map.end() )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** Parameter not found! unum = "
-                  << unum << std::endl;
-        return boost::shared_ptr< FormationNGNet::Param >
-            ( static_cast< FormationNGNet::Param * >( 0 ) );
-    }
-
-    return it->second;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-boost::shared_ptr< const FormationNGNet::Param >
-FormationNGNet::param( const int unum ) const
-{
-    if ( unum < 1 || 11 < unum )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** invalid unum " << unum
-                  << std::endl;
-        return boost::shared_ptr< const FormationNGNet::Param >
-            ( static_cast< FormationNGNet::Param * >( 0 ) );
-    }
-
-    std::map< int, boost::shared_ptr< FormationNGNet::Param > >::const_iterator
-        it = M_param_map.find( unum );
-
-    if ( it == M_param_map.end() )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** Parameter not found! unum = "
-                  << unum << std::endl;
-        return boost::shared_ptr< const FormationNGNet::Param >
-            ( static_cast< FormationNGNet::Param * >( 0 ) );
-    }
-
-    return it->second;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
+*/
 bool
-FormationNGNet::readConf( std::istream & is )
+FormationBPN::readConf( std::istream & is )
 {
     if ( ! readPlayers( is ) )
     {
@@ -675,9 +690,9 @@ FormationNGNet::readConf( std::istream & is )
 /*-------------------------------------------------------------------*/
 /*!
 
- */
+*/
 bool
-FormationNGNet::readPlayers( std::istream & is )
+FormationBPN::readPlayers( std::istream & is )
 {
     int player_read = 0;
     std::string line_buf;
@@ -701,7 +716,7 @@ FormationNGNet::readPlayers( std::istream & is )
                           &n_read ) != 2
              || n_read == 0 )
         {
-            std::cerr << __FILE__ << ":" << __LINE__
+            std::cerr << __FILE__ << ':' << __LINE__<< ':'
                       << " *** ERROR *** failed to read formation at number "
                       << i + 1
                       << " [" << line_buf << "]"
@@ -710,7 +725,7 @@ FormationNGNet::readPlayers( std::istream & is )
         }
         if ( unum != i + 1 )
         {
-            std::cerr << __FILE__ << ":" << __LINE__
+            std::cerr << __FILE__ << ':' << __LINE__<< ':'
                       << " *** ERROR *** failed to read formation "
                       << " Invalid player number.  Expected " << i + 1
                       << "  but read number = " << unum
@@ -719,7 +734,7 @@ FormationNGNet::readPlayers( std::istream & is )
         }
         if ( symmetry == unum )
         {
-            std::cerr << __FILE__ << ":" << __LINE__
+            std::cerr << __FILE__ << ':' << __LINE__<< ':'
                       << " *** ERROR *** failed to read formation."
                       << " Invalid symmetry number. at "
                       << i
@@ -730,7 +745,7 @@ FormationNGNet::readPlayers( std::istream & is )
         }
         if ( 11 < symmetry )
         {
-            std::cerr << __FILE__ << ":" << __LINE__
+            std::cerr << __FILE__ << ':' << __LINE__ << ':'
                       << " *** ERROR *** failed to read formation."
                       << " Invalid symmetry number. at "
                       << i
@@ -743,19 +758,17 @@ FormationNGNet::readPlayers( std::istream & is )
         M_symmetry_number[i] = symmetry;
 
         // this player is symmetry type
-        /*
-          if ( symmetry > 0 )
-          {
-          ++player_read;
-          continue;
-          }
-        */
+        if ( symmetry > 0 )
+        {
+            ++player_read;
+            continue;
+        }
 
         // read parameters
-        boost::shared_ptr< FormationNGNet::Param > param( new FormationNGNet::Param );
+        std::shared_ptr< FormationBPN::Param > param( new Param() );
         if ( ! param->read( is ) )
         {
-            std::cerr << __FILE__ << ":" << __LINE__
+            std::cerr << __FILE__ << ':' << __LINE__ << ':'
                       << " *** ERROR *** failed to read formation. at number "
                       << i + 1
                       << " [" << line_buf << "]"
@@ -769,13 +782,12 @@ FormationNGNet::readPlayers( std::istream & is )
 
     if ( player_read != 11 )
     {
-        std::cerr << __FILE__ << ':' << __LINE__
+        std::cerr << __FILE__ << ':' << __LINE__ << ':'
                   << " ***ERROR*** Invalid formation format."
                   << " The number of read player is " << player_read
                   << std::endl;
         return false;
     }
-
 
     if ( ! std::getline( is, line_buf )
          || line_buf != "End" )
@@ -789,29 +801,43 @@ FormationNGNet::readPlayers( std::istream & is )
     return true;
 }
 
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+std::ostream &
+FormationBPN::print( std::ostream & os ) const
+{
+    if ( os ) printHeader( os );
+    if ( os ) printConf( os );
+    if ( os ) printSamples( os );
+
+    return os;
+}
+
 /*-------------------------------------------------------------------*/
 /*!
 
 */
 std::ostream &
-FormationNGNet::printConf( std::ostream & os ) const
+FormationBPN::printConf( std::ostream & os ) const
 {
     for ( int i = 0; i < 11; ++i )
     {
         const int unum = i + 1;
-        os << "player " << unum << " " << M_symmetry_number[i] << '\n';
-        /*
-          if ( M_symmetry_number[i] > 0 )
-          {
-           continue;
-          }
-        */
 
-        std::map< int, boost::shared_ptr< FormationNGNet::Param > >::const_iterator
-            it = M_param_map.find( unum );
+        os << "player " << unum << ' ' << M_symmetry_number[i] << '\n';
+
+        if ( M_symmetry_number[i] > 0 )
+        {
+            continue;
+        }
+
+        std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
         if ( it == M_param_map.end() )
         {
-            std::cerr << __FILE__ << ":" << __LINE__
+            std::cerr << __FILE__ << ':' << __LINE__ << ':'
                       << " *** ERROR *** Invalid player Id at number "
                       << i + 1
                       << ".  No formation param!"
@@ -827,7 +853,6 @@ FormationNGNet::printConf( std::ostream & os ) const
     return os;
 }
 
-
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -837,12 +862,12 @@ namespace {
 Formation::Ptr
 create()
 {
-    Formation::Ptr ptr( new FormationNGNet() );
+    Formation::Ptr ptr( new FormationBPN() );
     return ptr;
 }
 
 rcss::RegHolder f = Formation::creators().autoReg( &create,
-                                                   FormationNGNet::NAME );
+                                                   FormationBPN::NAME );
 
 }
 

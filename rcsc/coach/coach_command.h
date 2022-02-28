@@ -596,9 +596,9 @@ private:
     const std::string & M_message;
 
     // not used
-    CoachFreeformCommand();
-    CoachFreeformCommand( const CoachCommand & );
-    CoachFreeformCommand & operator=( const CoachCommand & );
+    CoachFreeformCommand() = delete;
+    CoachFreeformCommand( const CoachCommand & ) = delete;
+    CoachFreeformCommand & operator=( const CoachCommand & ) = delete;
 public:
     /*!
       \brief construct with message string.

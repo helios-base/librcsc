@@ -46,7 +46,7 @@ class TCPSocket
     : public AbstractSocket {
 private:
     //! not used
-    TCPSocket();
+    TCPSocket() = delete;
 
 public:
     /*!

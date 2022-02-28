@@ -63,8 +63,6 @@
 #include <rcsc/timer.h>
 #include <rcsc/version.h>
 
-#include <boost/lexical_cast.hpp>
-
 #include <sstream>
 #include <cstdio>
 #include <cstring>
@@ -129,13 +127,13 @@ struct PlayerAgent::Impl {
     int see_timings_[11];
 
     //! pointer to reserved action
-    boost::shared_ptr< ArmAction > arm_action_;
+    std::shared_ptr< ArmAction > arm_action_;
 
     //! pointer to reserved action
-    boost::shared_ptr< NeckAction > neck_action_;
+    std::shared_ptr< NeckAction > neck_action_;
 
     //! pointer to reserved action
-    boost::shared_ptr< ViewAction > view_action_;
+    std::shared_ptr< ViewAction > view_action_;
 
     //! intention queue
     SoccerIntention::Ptr intention_;
@@ -574,9 +572,9 @@ PlayerAgent::Impl::isDecisionTiming( const long & msec_from_sense,
         return true;
     }
 
-    int wait_thr = ( see_state_.isSynch()
-                     ? agent_.config().waitTimeThrSynchView()
-                     : agent_.config().waitTimeThrNoSynchView() );
+    const int wait_thr = ( see_state_.isSynch()
+                           ? agent_.config().waitTimeThrSynchView()
+                           : agent_.config().waitTimeThrNoSynchView() );
 
     // already done in sense_body received cycle.
     // When referee message is sent before sense_body,
@@ -594,6 +592,17 @@ PlayerAgent::Impl::isDecisionTiming( const long & msec_from_sense,
                       agent_.world().senseBodyTime().cycle(),
                       agent_.world().senseBodyTime().stopped() );
         return false;
+    }
+
+    // synch_see mode, and big see_offset
+    if ( SeeState::synch_see_mode()
+         && ServerParam::i().synchSeeOffset() > wait_thr
+         && msec_from_sense >= 0 )
+    {
+        dlog.addText( Logger::SYSTEM,
+                      __FILE__" (isDicisionTiming) [true] synch_see mode. offset(%d) > threshold(%d)",
+                      ServerParam::i().synchSeeOffset(), wait_thr );
+        return true;
     }
 
     // no see info during the current cycle.
@@ -663,19 +672,19 @@ PlayerAgent::~PlayerAgent()
 /*!
 
  */
-boost::shared_ptr< AbstractClient >
+std::shared_ptr< AbstractClient >
 PlayerAgent::createConsoleClient()
 {
-    boost::shared_ptr< AbstractClient > ptr;
+    std::shared_ptr< AbstractClient > ptr;
 
     if ( 1 <= config().offlineClientNumber()
          && config().offlineClientNumber() <= 11 )
     {
-        ptr = boost::shared_ptr< AbstractClient >( new OfflineClient() );
+        ptr = std::shared_ptr< AbstractClient >( new OfflineClient() );
     }
     else
     {
-        ptr = boost::shared_ptr< AbstractClient >( new OnlineClient() );
+        ptr = std::shared_ptr< AbstractClient >( new OnlineClient() );
     }
 
     return ptr;
@@ -969,7 +978,7 @@ PlayerAgent::handleMessageOffline()
     if ( M_impl->think_received_ )
     {
         dlog.addText( Logger::SYSTEM,
-                      __FILE__" (handleMessaegOffline) Got think message: decide action" );
+                      __FILE__" (handleMessageOffline) Got think message: decide action" );
 #if 0
         std::cout << world().teamName() << ' '
                   << world().self().unum() << ": "
@@ -997,8 +1006,7 @@ PlayerAgent::handleTimeout( const int timeout_count,
     }
 
     TimeStamp cur_time;
-    cur_time.setCurrent();
-    long msec_from_sense = -1;
+    std::int64_t msec_from_sense = -1;
     /*
       std::cerr << "cur_sec = " << cur_time.sec()
       << "  cur_usec = " << cur_time.usec()
@@ -1006,9 +1014,9 @@ PlayerAgent::handleTimeout( const int timeout_count,
       << "  sense_usec=" << M_impl->body_time_stamp_.usec()
       << std::endl;
     */
-    if ( M_impl->body_time_stamp_.sec() > 0 )
+    if ( M_impl->body_time_stamp_.isValid() )
     {
-        msec_from_sense = cur_time.getMSecDiffFrom( M_impl->body_time_stamp_ );
+        msec_from_sense = cur_time.elapsedSince( M_impl->body_time_stamp_ );
     }
 
     dlog.addText( Logger::SYSTEM,
@@ -1030,17 +1038,14 @@ PlayerAgent::handleTimeout( const int timeout_count,
     }
 
     // check alarm count etc...
-    if ( ! M_impl->isDecisionTiming( msec_from_sense, timeout_count ) )
+    if ( M_impl->isDecisionTiming( msec_from_sense, timeout_count ) )
     {
-        return;
+        // start decision
+        dlog.addText( Logger::SYSTEM,
+                      "----- TIMEOUT DECISION !! [%ld]ms from sense_body",
+                      msec_from_sense / ServerParam::i().slowDownFactor() );
+        action();
     }
-
-    // start decision
-    dlog.addText( Logger::SYSTEM,
-                  "----- TIMEOUT DECISION !! [%ld]ms from sense_body",
-                  msec_from_sense / ServerParam::i().slowDownFactor() );
-
-    action();
 }
 
 /*-------------------------------------------------------------------*/
@@ -1517,11 +1522,12 @@ PlayerAgent::Impl::analyzeCycle( const char * msg,
 void
 PlayerAgent::Impl::analyzeSee( const char * msg )
 {
-    see_time_stamp_.setCurrent();
-    long msec_from_sense = -1;
-    if ( body_time_stamp_.sec() > 0 )
+    std::int64_t msec_from_sense = -1;
+
+    see_time_stamp_.setNow();
+    if ( body_time_stamp_.isValid() )
     {
-        msec_from_sense = see_time_stamp_.getMSecDiffFrom( body_time_stamp_ );
+        msec_from_sense = see_time_stamp_.elapsedSince( body_time_stamp_ );
 #ifdef PROFILE_SEE
         if ( see_state_.isSynch() )
         {
@@ -1597,7 +1603,7 @@ PlayerAgent::Impl::analyzeSee( const char * msg )
 void
 PlayerAgent::Impl::analyzeSenseBody( const char * msg )
 {
-    body_time_stamp_.setCurrent();
+    body_time_stamp_.setNow();
 
     // parse cycle info
     if ( ! analyzeCycle( msg, true ) )
@@ -2299,7 +2305,7 @@ PlayerAgent::Impl::analyzeWarning( const char * msg )
 void
 PlayerAgent::action()
 {
-    MSecTimer timer;
+    Timer timer;
     dlog.addText( Logger::SYSTEM,
                   __FILE__" (action) start" );
 
@@ -2314,15 +2320,23 @@ PlayerAgent::action()
          && M_impl->see_state_.cyclesTillNextSee() == 0
          && world().seeTime() != M_impl->current_time_ )
     {
-        dlog.addText( Logger::SYSTEM,
-                      __FILE__" (action) missed see synch. action without see" );
-        std::cout << world().teamName() << ' '
-                  << world().self().unum() << ": "
-                  << world().time()
-                  << " missed see synch. action without see" << std::endl;
+        if ( SeeState::synch_see_mode()
+             && ServerParam::i().synchSeeOffset() > ServerParam::i().synchOffset() )
+        {
+            // no problem?
+        }
+        else
+        {
+            dlog.addText( Logger::SYSTEM,
+                          __FILE__" (action) missed see synch. action without see" );
+            std::cout << world().teamName() << ' '
+                      << world().self().unum() << ": "
+                      << world().time()
+                      << " missed see synch. action without see" << std::endl;
 
-        // set synch timing to illegal.
-        M_impl->see_state_.setLastSeeTiming( SeeState::TIME_NOSYNCH );
+            // set synch timing to illegal.
+            M_impl->see_state_.setLastSeeTiming( SeeState::TIME_NOSYNCH );
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -2432,7 +2446,7 @@ PlayerAgent::Impl::doViewAction()
          && agent_.world().gameMode().type() != GameMode::PlayOn )
     {
         dlog.addText( Logger::SYSTEM,
-                      __FILE__" (doViewAction) not play_on. system must be adjust see synch..." );
+                      __FILE__" (doViewAction) *no sync and no play_on* agent need to synchronize see message." );
         return;
     }
 
@@ -2899,11 +2913,10 @@ PlayerAgent::doChangeView( const ViewWidth & width )
 {
     if ( M_impl->see_state_.isSynch() )
     {
-        if ( ! M_impl->see_state_.canChangeViewTo( width,
-                                                   world().time() ) )
+        if ( ! M_impl->see_state_.canSendChangeView( width, world().time() ) )
         {
             dlog.addText( Logger::ACTION,
-                          __FILE__": agent->doChangeView. width(%d) will break see synch... ",
+                          __FILE__" (doChangeView) width(%d) will break see synch... ",
                           width.type() );
             return false;
         }
@@ -2913,7 +2926,7 @@ PlayerAgent::doChangeView( const ViewWidth & width )
         if ( world().gameMode().type() != GameMode::PlayOn )
         {
             dlog.addText( Logger::ACTION,
-                          __FILE__": agent->doChangeView. no synch. not play on."
+                          __FILE__" (doChangeView) no synch. not play on."
                           " should try to adjust. " );
             return false;
         }
@@ -2922,7 +2935,7 @@ PlayerAgent::doChangeView( const ViewWidth & width )
     if ( width == M_effector.queuedNextViewWidth() )
     {
         dlog.addText( Logger::ACTION,
-                      __FILE__": agent->doChangeView. already same view mode %d",
+                      __FILE__" (doChangeView) already same view mode %d",
                       width.type() );
         return false;
     }
@@ -3093,7 +3106,7 @@ PlayerAgent::setArmAction( ArmAction * act )
 {
     if ( act )
     {
-        M_impl->arm_action_ = boost::shared_ptr< ArmAction >( act );
+        M_impl->arm_action_ = std::shared_ptr< ArmAction >( act );
     }
     else
     {
@@ -3115,7 +3128,7 @@ PlayerAgent::setNeckAction( NeckAction * act )
             dlog.addText( Logger::ACTION,
                           __FILE__": (setNeckAction) overwrite exsiting neck action." );
         }
-        M_impl->neck_action_ = boost::shared_ptr< NeckAction >( act );
+        M_impl->neck_action_ = std::shared_ptr< NeckAction >( act );
     }
     else
     {
@@ -3132,7 +3145,7 @@ PlayerAgent::setViewAction( ViewAction * act )
 {
     if ( act )
     {
-        M_impl->view_action_ = boost::shared_ptr< ViewAction >( act );
+        M_impl->view_action_ = std::shared_ptr< ViewAction >( act );
     }
     else
     {
@@ -3184,7 +3197,7 @@ PlayerAgent::clearSayMessage()
 void
 PlayerAgent::setIntention( SoccerIntention * intention )
 {
-    M_impl->intention_ = boost::shared_ptr< SoccerIntention >( intention );
+    M_impl->intention_ = std::shared_ptr< SoccerIntention >( intention );
 }
 
 /*-------------------------------------------------------------------*/

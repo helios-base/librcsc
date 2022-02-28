@@ -54,7 +54,7 @@ AbstractPlayerObject::AbstractPlayerObject( const int id )
       M_unum( Unum_Unknown ),
       M_unum_count( 1000 ),
       M_goalie( false ),
-      M_player_type( static_cast< const PlayerType * >( 0 ) ),
+      M_player_type( nullptr ),
       M_card( NO_CARD ),
       M_pos( Vector2D::INVALIDATED ),
       M_pos_count( 1000 ),
@@ -94,7 +94,7 @@ AbstractPlayerObject::AbstractPlayerObject( const int id,
       M_unum( p.unum_ ),
       M_unum_count( 1000 ),
       M_goalie( p.goalie_ ),
-      M_player_type( static_cast< const PlayerType * >( 0 ) ),
+      M_player_type( nullptr ),
       M_pos( p.pos_ ),
       M_pos_count( 0 ),
       M_seen_pos( p.pos_ ),
@@ -155,12 +155,9 @@ AbstractPlayerObject::get_minimum_evaluation( const AbstractPlayerObject::Cont &
 {
     double min_value = std::numeric_limits< double >::max();
 
-    for ( AbstractPlayerObject::Cont::const_iterator it = cont.begin(),
-              end = cont.end();
-          it != end;
-          ++it )
+    for ( const AbstractPlayerObject * p : cont )
     {
-        double value = (*evaluator)( **it );
+        double value = (*evaluator)( *p );
 
         if ( value < min_value )
         {
@@ -182,12 +179,9 @@ AbstractPlayerObject::get_maximum_evaluation( const AbstractPlayerObject::Cont &
 {
     double max_value = -std::numeric_limits< double >::max();
 
-    for ( AbstractPlayerObject::Cont::const_iterator it = cont.begin(),
-              end = cont.end();
-          it != end;
-          ++it )
+    for ( const AbstractPlayerObject * p : cont )
     {
-        double value = (*evaluator)( **it );
+        double value = (*evaluator)( *p );
 
         if ( value > max_value )
         {

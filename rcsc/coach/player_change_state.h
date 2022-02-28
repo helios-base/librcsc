@@ -32,7 +32,7 @@
 #ifndef RCSC_COACH_PLAYER_CHANGE_STATE_H
 #define RCSC_COACH_PLAYER_CHANGE_STATE_H
 
-#include <map>
+#include <unordered_map>
 
 namespace rcsc {
 
@@ -51,7 +51,7 @@ private:
       player type holder for teammate
       key: type id, value: used count of that type
     */
-    std::map< int, int > M_teammate_type_count;
+    std::unordered_map< int, int > M_teammate_type_count;
 
     int M_teammate_types[11]; //!< teammate player type table
     bool M_opponent_changed[11]; //!< opponent player type flags

@@ -76,32 +76,30 @@ Neck_TurnToLowConfTeammate::execute( PlayerAgent * agent )
 
     const double max_dist = 40.0;
 
-    for ( PlayerObject::Cont::const_iterator it = teammates.begin(), end = teammates.end();
-          it != end;
-          ++it )
+    for ( const PlayerObject * t : teammates )
     {
-        if ( (*it)->isGhost() )
+        if ( t->isGhost() )
         {
             continue;
         }
 
-        if ( (*it)->distFromSelf() > max_dist )
+        if ( t->distFromSelf() > max_dist )
         {
             break;
         }
 
-        if ( (*it)->posCount() >= pos_count
-             && candidate_point.x < (*it)->pos().x )
+        if ( t->posCount() >= pos_count
+             && candidate_point.x < t->pos().x )
         {
-            Vector2D pos = (*it)->pos() + (*it)->vel();
+            Vector2D pos = t->pos() + t->vel();
             AngleDeg angle = ( pos - next_self_pos ).th();
 
             if ( ( angle - next_self_body ).abs() < next_neck_half_range - 5.0 )
             {
                 // can face
-                candidate_unum = (*it)->unum();
+                candidate_unum = t->unum();
                 candidate_point = pos;
-                pos_count = (*it)->posCount();
+                pos_count = t->posCount();
             }
         }
     }
@@ -165,14 +163,11 @@ Neck_TurnToLowConfTeammate::execute( PlayerAgent * agent )
             double score = 0.0;
             double angle_diff = 180.0;
 
-            for ( AbstractPlayerObject::Cont::const_iterator p = wm.allPlayers().begin(),
-                      end = wm.allPlayers().end();
-                  p != end;
-                  ++p )
+            for ( const AbstractPlayerObject * p : wm.allPlayers() )
             {
-                if ( (*p)->isSelf() ) continue;
-                //if ( (*p)->isGhost() ) continue;
-                Vector2D pos = (*p)->pos() + (*p)->vel();
+                if ( p->isSelf() ) continue;
+                //if ( p->isGhost() ) continue;
+                Vector2D pos = p->pos() + p->vel();
                 if ( pos.dist( next_self_pos ) > 35.0 ) continue; // XXX magic number XXX
 
                 AngleDeg angle = ( pos - next_self_pos ).th();
@@ -181,29 +176,29 @@ Neck_TurnToLowConfTeammate::execute( PlayerAgent * agent )
                 {
 #if 1
 
-                    int pos_count = (*p)->seenPosCount();
-                    if ( (*p)->isGhost() ) pos_count = std::min( 2, pos_count );
+                    int pos_count = p->seenPosCount();
+                    if ( p->isGhost() ) pos_count = std::min( 2, pos_count );
 
                     double base_val = ( pos_count + 1 ) * 2.0;
-                    //double rate = std::exp( - std::pow( (*p)->distFromBall(), 2 )
-                    double rate = std::exp( - std::pow( (*p)->distFromSelf(), 2 )
+                    //double rate = std::exp( - std::pow( p->distFromBall(), 2 )
+                    double rate = std::exp( - std::pow( p->distFromSelf(), 2 )
                                             / ( 2.0 * std::pow( 40.0, 2 ) ) ); // Magic Number: variance = 40.0
                     score += base_val * rate;
 
 
 #else
-                    if ( (*p)->goalie()
+                    if ( p->goalie()
                          && next_self_pos.x > 33.0 )
                     {
-                        score += (*p)->posCount() * 2 + 20;
+                        score += p->posCount() * 2 + 20;
                     }
                     else if ( pos.x > next_self_pos.x - 5.0 )
                     {
-                        score += (*p)->posCount() * 2 + 1;
+                        score += p->posCount() * 2 + 1;
                     }
                     else
                     {
-                        score += (*p)->posCount();
+                        score += p->posCount();
                     }
 #endif
 

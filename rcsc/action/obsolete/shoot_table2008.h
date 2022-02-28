@@ -113,14 +113,13 @@ private:
     ShotCont M_shots;
 
     // not used
-    ShootTable2008( const ShootTable2008 & );
-    const ShootTable2008 & operator=( const ShootTable2008 & );
+    ShootTable2008( const ShootTable2008 & ) = delete;
+    const ShootTable2008 & operator=( const ShootTable2008 & ) = delete;
 public:
     /*!
       \brief accessible from global.
      */
-    ShootTable2008()
-      { }
+    ShootTable2008() = default;e
 
     /*!
       \brief calculate the shoot and return the container

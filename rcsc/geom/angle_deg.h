@@ -527,22 +527,6 @@ public:
           return os << rint( degree() / step ) * step;
       }
 
-    ////////////////////////////////////////////////////////
-    /*!
-      \brief predicate function object.
-      this compares two angles by degree value
-    */
-    class DegreeCmp
-        : public std::binary_function< AngleDeg, AngleDeg, bool > {
-    public:
-        //! operator method
-        result_type operator()( const first_argument_type & lhs,
-                                const second_argument_type & rhs ) const
-          {
-              return lhs.degree() < rhs.degree();
-          }
-    };
-
 };
 
 } // end of namespace

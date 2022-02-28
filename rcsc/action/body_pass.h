@@ -95,26 +95,6 @@ public:
           { }
     };
 
-    /*!
-      \class PassRouteScoreComp
-      \brief function object to evaluate the pass
-     */
-    class PassRouteScoreComp
-        : public std::binary_function< PassRoute, PassRoute, bool > {
-    public:
-        /*!
-          \brief compare operator
-          \param lhs left hand side argument
-          \param rhs right hand side argument
-          \return compared result
-         */
-        result_type operator()( const first_argument_type & lhs,
-                                const second_argument_type & rhs ) const
-          {
-              return lhs.score_ < rhs.score_;
-          }
-    };
-
 private:
 
     //! cached calculated pass data

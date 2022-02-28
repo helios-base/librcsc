@@ -32,8 +32,7 @@
 #ifndef RCSC_CLANG_CONDITION_H
 #define RCSC_CLANG_CONDITION_H
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <iosfwd>
 
 namespace rcsc {
@@ -65,21 +64,20 @@ public:
     };
 
     //! smart pointer type
-    typedef boost::shared_ptr< CLangCondition > Ptr;
+    typedef std::shared_ptr< CLangCondition > Ptr;
 
 private:
 
     // not used
-    CLangCondition( const CLangCondition & );
-    CLangCondition & operator=( const CLangCondition & );
+    CLangCondition( const CLangCondition & ) = delete;
+    CLangCondition & operator=( const CLangCondition & ) = delete;
 
 protected:
 
     /*!
       \brief protected constructor
      */
-    CLangCondition()
-      { }
+    CLangCondition() = default;
 
 public:
 
@@ -87,8 +85,7 @@ public:
       \brief virtual destructor
      */
     virtual
-    ~CLangCondition()
-      { }
+    ~CLangCondition() = default;
 
     /*!
       \brief get type id.
@@ -131,7 +128,7 @@ private:
     const bool M_value; //!< condition value
 
     // not used
-    CLangConditionBool();
+    CLangConditionBool() = delete;
 
 public:
 

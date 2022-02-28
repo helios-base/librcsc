@@ -94,9 +94,9 @@ private:
     ViewQuality M_view_quality; //!< current view quality
 
     //! not used
-    SeeState( const SeeState & );
+    SeeState( const SeeState & ) = delete;
     //! not used
-    SeeState & operator=( const SeeState & );
+    SeeState & operator=( const SeeState & ) = delete;
 public:
     /*!
       \brief init member variables
@@ -230,8 +230,8 @@ public:
       \param current current game time
       \return true if player can change to next_width
     */
-    bool canChangeViewTo( const ViewWidth & next_width,
-                          const GameTime & current ) const;
+    bool canSendChangeView( const ViewWidth & next_width,
+                            const GameTime & current ) const;
 
     /*!
       \brief get cycles to get next see info

@@ -36,7 +36,7 @@
 #include <rcsc/geom/rect_2d.h>
 #include <rcsc/math_util.h>
 
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 
 #include <string>
 
@@ -55,7 +55,7 @@ class ServerParam {
 private:
 
     //! parameter map implementation
-    boost::scoped_ptr< ParamMap > M_param_map;
+    std::unique_ptr< ParamMap > M_param_map;
 
 public:
     //////////////////////////////////////////////////////

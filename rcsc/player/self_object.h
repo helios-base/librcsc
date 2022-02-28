@@ -112,9 +112,9 @@ private:
     double M_foul_probability; //!< estimated tackle success probability
 
     //! not used
-    SelfObject( const SelfObject & self );
+    SelfObject( const SelfObject & self ) = delete;
     //! not used
-    SelfObject & operator=( const SelfObject & self );
+    SelfObject & operator=( const SelfObject & self ) = delete;
 
 public:
 
@@ -125,8 +125,7 @@ public:
     /*!
       \brief destructor. nothing to do
     */
-    ~SelfObject()
-      { }
+    ~SelfObject() = default;
 
     /*!
       \brief set accuracy count threshold values.

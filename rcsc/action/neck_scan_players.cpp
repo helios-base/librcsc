@@ -250,14 +250,11 @@ Neck_ScanPlayers::calculate_score( const WorldModel & wm,
     const AngleDeg reduced_left_angle = left_angle + 5.0;
     const AngleDeg reduced_right_angle = right_angle - 5.0;
 
-    for ( AbstractPlayerObject::Cont::const_iterator p = wm.allPlayers().begin(),
-              end = wm.allPlayers().end();
-          p != end;
-          ++p )
+    for ( const AbstractPlayerObject * p : wm.allPlayers() )
     {
-        if ( (*p)->isSelf() ) continue;
+        if ( p->isSelf() ) continue;
 
-        Vector2D pos = (*p)->pos() + (*p)->vel();
+        Vector2D pos = p->pos() + p->vel();
         AngleDeg angle = ( pos - next_self_pos ).th();
 
         if ( ! angle.isRightOf( reduced_left_angle )
@@ -266,11 +263,11 @@ Neck_ScanPlayers::calculate_score( const WorldModel & wm,
             continue;
         }
 
-        if ( (*p)->ghostCount() >= 5 ) continue;
+        if ( p->ghostCount() >= 5 ) continue;
 
-        double pos_count = (*p)->seenPosCount();
-        if ( (*p)->isGhost()
-             && (*p)->ghostCount() % 2 == 1 )
+        double pos_count = p->seenPosCount();
+        if ( p->isGhost()
+             && p->ghostCount() % 2 == 1 )
         {
             pos_count = std::min( 2.0, pos_count );
         }
@@ -278,16 +275,16 @@ Neck_ScanPlayers::calculate_score( const WorldModel & wm,
 
         if ( our_ball )
         {
-            if ( (*p)->side() == wm.ourSide()
-                 && ( (*p)->pos().x > wm.ball().pos().x - 10.0
-                      || (*p)->pos().x > 30.0 ) )
+            if ( p->side() == wm.ourSide()
+                 && ( p->pos().x > wm.ball().pos().x - 10.0
+                      || p->pos().x > 30.0 ) )
             {
                 pos_count *= 2.0;
             }
         }
 
         double base_val = std::pow( pos_count, 2 );
-        double rate = std::exp( - std::pow( (*p)->distFromSelf(), 2 )
+        double rate = std::exp( - std::pow( p->distFromSelf(), 2 )
                                 / ( 2.0 * std::pow( 20.0, 2 ) ) ); // Magic Number
         score += base_val * rate;
 
@@ -296,10 +293,10 @@ Neck_ScanPlayers::calculate_score( const WorldModel & wm,
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::ACTION,
                       "__ %c_%d (%.2f %.2f) count=%d base=%f rate=%f +%f buf=%.1f",
-                      (*p)->side() == LEFT ? 'L' : (*p)->side() == RIGHT ? 'R' : 'N',
-                      (*p)->unum(),
-                      (*p)->pos().x, (*p)->pos().y,
-                      (*p)->posCount(),
+                      p->side() == LEFT ? 'L' : p->side() == RIGHT ? 'R' : 'N',
+                      p->unum(),
+                      p->pos().x, p->pos().y,
+                      p->posCount(),
                       base_val, rate, base_val * rate,
                       buf );
 #endif

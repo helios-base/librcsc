@@ -27,7 +27,7 @@ private:
     rcsc::rcg::Serializer::Ptr M_serializer;
 
     // not used
-    Reverser();
+    Reverser() = delete;
 public:
 
     explicit

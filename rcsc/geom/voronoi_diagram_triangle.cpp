@@ -57,7 +57,7 @@ namespace rcsc {
 
  */
 VoronoiDiagramTriangle::VoronoiDiagramTriangle()
-    : M_bounding_rect( static_cast< Rect2D * >( 0 ) ),
+    : M_bounding_rect( nullptr ),
       M_input_points(),
       M_vertices(),
       M_segments(),
@@ -71,7 +71,7 @@ VoronoiDiagramTriangle::VoronoiDiagramTriangle()
 
  */
 VoronoiDiagramTriangle::VoronoiDiagramTriangle( const std::vector< Vector2D > & v )
-    : M_bounding_rect( static_cast< Rect2D * >( 0 ) ),
+    : M_bounding_rect( nullptr ),
       M_input_points( v ),
       M_vertices(),
       M_segments(),
@@ -122,7 +122,7 @@ VoronoiDiagramTriangle::clearBoundingRect()
     if ( M_bounding_rect )
     {
         delete M_bounding_rect;
-        M_bounding_rect = static_cast< Rect2D * >( 0 );
+        M_bounding_rect = nullptr;
     }
 }
 
@@ -178,13 +178,13 @@ VoronoiDiagramTriangle::compute()
     // set attribute
     //
     in.numberofpointattributes = 0;
-    in.pointattributelist = static_cast< REAL * >( 0 );
+    in.pointattributelist = nullptr;
 
 
     //
     // set marker
     //
-    in.pointmarkerlist = static_cast< int * >( 0 );
+    in.pointmarkerlist = nullptr;
 
 
     //
@@ -193,7 +193,7 @@ VoronoiDiagramTriangle::compute()
     in.numberofsegments = 0;
     in.numberofholes = 0;
     in.numberofregions = 0;
-    in.regionlist = static_cast< REAL * >( 0 );
+    in.regionlist = nullptr;
 
 
     //
@@ -274,12 +274,12 @@ VoronoiDiagramTriangle::compute()
                     if ( rect.contains( segment.origin() ) )
                     {
                         M_vertices.insert( intersect0 );
-                        M_segments.push_back( Segment2D( segment.origin(), intersect0 ) );
+                        M_segments.emplace_back( segment.origin(), intersect0 );
                     }
                     else if ( rect.contains( segment.terminal() ) )
                     {
                         M_vertices.insert( intersect0 );
-                        M_segments.push_back( Segment2D( segment.terminal(), intersect0 ) );
+                        M_segments.emplace_back( segment.terminal(), intersect0 );
                     }
                     else
                     {
@@ -292,7 +292,7 @@ VoronoiDiagramTriangle::compute()
                 {
                     M_vertices.insert( intersect0 );
                     M_vertices.insert( intersect1 );
-                    M_segments.push_back( Segment2D( intersect0, intersect1 ) );
+                    M_segments.emplace_back( intersect0, intersect1 );
                 }
             }
             else
@@ -319,7 +319,7 @@ VoronoiDiagramTriangle::compute()
                                                 out.normlist[ i * 2 ] ) );
 
                 Vector2D terminal;
-                if ( rect.intersection( ray, &terminal, static_cast< Vector2D * >( 0 ) ) != 1 )
+                if ( rect.intersection( ray, &terminal, nullptr ) != 1 )
                 {
                     std::cerr << __FILE__ << ':' << __LINE__ << ':'
                               << "Unexpected reach." << std::endl;
@@ -327,7 +327,7 @@ VoronoiDiagramTriangle::compute()
                 }
 
                 M_vertices.insert( terminal );
-                M_segments.push_back( Segment2D( origin, terminal ) );
+                M_segments.emplace_back( origin, terminal );
             }
         }
     }
@@ -363,7 +363,7 @@ VoronoiDiagramTriangle::compute()
 
                 if ( ! p0.equalsWeakly( p1 ) )
                 {
-                    M_segments.push_back( Segment2D( p0, p1 ) );
+                    M_segments.emplace_back( p0, p1 );
                 }
             }
             else
@@ -379,10 +379,10 @@ VoronoiDiagramTriangle::compute()
                 }
 
                 // ray
-                M_rays.push_back( Ray2D( Vector2D( out.pointlist[ start_point_index * 2 ],
-                                                          out.pointlist[ start_point_index * 2 + 1] ),
-                                                AngleDeg::atan2_deg( out.normlist[ i * 2 + 1],
-                                                                     out.normlist[ i * 2 ] ) ) );
+                M_rays.emplace_back( Vector2D( out.pointlist[ start_point_index * 2 ],
+                                               out.pointlist[ start_point_index * 2 + 1] ),
+                                     AngleDeg::atan2_deg( out.normlist[ i * 2 + 1],
+                                                          out.normlist[ i * 2 ] ) );
             }
         }
     }

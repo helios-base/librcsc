@@ -68,8 +68,8 @@ private:
 
 
     // not used
-    ConvexHull( const ConvexHull & );
-    ConvexHull & operator=( const ConvexHull & );
+    ConvexHull( const ConvexHull & ) = delete;
+    ConvexHull & operator=( const ConvexHull & ) = delete;
 
 public:
 

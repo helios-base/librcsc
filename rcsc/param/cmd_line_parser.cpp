@@ -238,11 +238,9 @@ CmdLineParser::count( const std::string & option_name ) const
 std::ostream &
 CmdLineParser::print( std::ostream & os ) const
 {
-    for ( std::list< std::string >::const_iterator it = M_args.begin();
-          it != M_args.end();
-          ++it )
+    for ( const std::string & v : M_args )
     {
-        os << *it << ' ';
+        os << v << ' ';
     }
 
     return os;
@@ -256,16 +254,14 @@ std::ostream &
 CmdLineParser::printOptionNameArgs( std::ostream & os,
                                     const char sep ) const
 {
-    for ( std::list< std::string >::const_iterator it = M_args.begin();
-          it != M_args.end();
-          ++it )
+    for ( const std::string & v : M_args )
     {
-        if ( ! it->compare( 0, 2, "--" )
-             || ( it->length() > 1
-                  && it->at( 0 ) == '-' )
+        if ( ! v.compare( 0, 2, "--" )
+             || ( v.length() > 1
+                  && v.at( 0 ) == '-' )
              )
         {
-            os << *it << sep;
+            os << v << sep;
         }
     }
 

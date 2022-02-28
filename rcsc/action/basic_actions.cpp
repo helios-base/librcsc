@@ -247,18 +247,16 @@ Neck_TurnToPoint::execute( PlayerAgent * agent )
     const AngleDeg next_body = agent->effector().queuedNextSelfBody();
     const double next_view_width = agent->effector().queuedNextViewWidth().width() * 0.5;
 
-    for ( std::vector< Vector2D >::const_iterator p = M_points.begin();
-          p != M_points.end();
-          ++p )
+    for ( const Vector2D & p : M_points )
     {
-        Vector2D rel_pos = *p - next_pos;
+        Vector2D rel_pos = p - next_pos;
         AngleDeg rel_angle = rel_pos.th() - next_body;
 
         if ( rel_angle.abs() < ServerParam::i().maxNeckAngle() + next_view_width - 5.0 )
         {
             dlog.addText( Logger::ACTION,
                           __FILE__": Neck_TurnToPoint (%.1f %.1f) rel_angle = %.1f",
-                          p->x, p->y, rel_angle.degree() );
+                          p.x, p.y, rel_angle.degree() );
             return agent->doTurnNeck( rel_angle - agent->world().self().neck() );
         }
     }

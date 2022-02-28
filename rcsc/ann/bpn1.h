@@ -32,8 +32,7 @@
 #ifndef RCSC_ANN_BPN1_H
 #define RCSC_ANN_BPN1_H
 
-#include <boost/array.hpp>
-
+#include <array>
 #include <algorithm>
 #include <numeric> // inner_product
 #include <iostream>
@@ -157,9 +156,9 @@ public:
     typedef double value_type; //!< typedef of the value type
 
     //! typedef of the input array type that uses template parameter.
-    typedef boost::array< value_type, INPUT > input_array;
+    typedef std::array< value_type, INPUT > input_array;
     //! typedef of the output array type that uses template parameter.
-    typedef boost::array< value_type, OUTPUT > output_array;
+    typedef std::array< value_type, OUTPUT > output_array;
 
 private:
 
@@ -169,20 +168,20 @@ private:
     const value_type M_alpha;
 
     //! connection between input and hidden layer. bias weight is included.
-    boost::array< value_type, INPUT + 1 > M_weight_i_to_h[HIDDEN];
+    std::array< value_type, INPUT + 1 > M_weight_i_to_h[HIDDEN];
     //! delta weight between input and hidden layer. bias weight is included.
-    boost::array< value_type, INPUT + 1 > M_delta_weight_i_to_h[HIDDEN];
+    std::array< value_type, INPUT + 1 > M_delta_weight_i_to_h[HIDDEN];
 
     //! connection between hidden and output layer. bias weight is included.
-    boost::array< value_type, HIDDEN + 1 > M_weight_h_to_o[OUTPUT];
+    std::array< value_type, HIDDEN + 1 > M_weight_h_to_o[OUTPUT];
     //! delta weight between hidden and output layer. bias weight is included.
-    boost::array< value_type, HIDDEN + 1 > M_delta_weight_h_to_o[OUTPUT];
+    std::array< value_type, HIDDEN + 1 > M_delta_weight_h_to_o[OUTPUT];
 
     /*!
       internal value holder.
       last point value is used as bias input, so back value must be 1.
     */
-    mutable boost::array< value_type, HIDDEN + 1 > M_hidden_layer;
+    mutable std::array< value_type, HIDDEN + 1 > M_hidden_layer;
 
 public:
     /*!
@@ -323,7 +322,7 @@ public:
           }
 
           // caluculate hidden layer error back
-          boost::array< value_type, HIDDEN > hidden_back;
+          std::array< value_type, HIDDEN > hidden_back;
           FuncH func_h;
           for ( std::size_t i = 0; i < HIDDEN; ++i )
           {

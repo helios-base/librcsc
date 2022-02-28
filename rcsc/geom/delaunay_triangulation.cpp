@@ -214,8 +214,7 @@ int
 DelaunayTriangulation::addVertex( const double x,
                                   const double y )
 {
-    for ( VertexCont::iterator it = M_vertices.begin(),
-              end = M_vertices.end();
+    for ( VertexCont::iterator it = M_vertices.begin(), end = M_vertices.end();
           it != end;
           ++it )
     {
@@ -227,7 +226,7 @@ DelaunayTriangulation::addVertex( const double x,
     }
 
     int id = M_vertices.size();
-    M_vertices.push_back( Vertex( id, x, y ) );
+    M_vertices.emplace_back( id, x, y );
     return id;
 }
 
@@ -242,12 +241,10 @@ DelaunayTriangulation::addVertices( const std::vector< Vector2D > & v )
 
     int id = M_vertices.size();
 
-    const std::vector< Vector2D >::const_iterator end = v.end();
-    for ( std::vector< Vector2D >::const_iterator it = v.begin();
-          it != end;
-          ++it, ++id )
+    for ( const Vector2D & d : v )
     {
-        M_vertices.push_back( Vertex( id, it->x, it->y ) );
+        M_vertices.emplace_back( id, d.x, d.y );
+        ++id;
     }
 }
 
@@ -351,9 +348,8 @@ DelaunayTriangulation::removeInitialVertices()
     std::vector< EdgePtr > removed_edges;
 
     // search removed edges that has initial vertex
-    const EdgeCont::iterator map_end = M_edges.end();
-    for ( EdgeCont::iterator it = M_edges.begin();
-          it != map_end;
+    for ( EdgeCont::iterator it = M_edges.begin(), end = M_edges.end();
+          it != end;
           ++it )
     {
         for ( std::size_t i = 0; i < 3; ++i )
@@ -368,9 +364,8 @@ DelaunayTriangulation::removeInitialVertices()
     }
 
     // remove edges and triangles
-    const std::vector< EdgePtr >::iterator edge_end = removed_edges.end();
-    for ( std::vector< EdgePtr >::iterator it = removed_edges.begin();
-          it != edge_end;
+    for ( std::vector< EdgePtr >::iterator it = removed_edges.begin(), end = removed_edges.end();
+          it != end;
           ++it )
     {
         removeTriangle( (*it)->triangle( 0 ) );
@@ -392,7 +387,7 @@ DelaunayTriangulation::getVertex( const int id ) const
          || id < 0
          || static_cast< int >( M_vertices.size() ) < id )
     {
-        return static_cast< Vertex * >( 0 );
+        return nullptr;
     }
     return &M_vertices[id];
 }
@@ -405,7 +400,7 @@ const
 DelaunayTriangulation::Triangle *
 DelaunayTriangulation::findTriangleContains( const Vector2D & pos ) const
 {
-    Triangle * tri = static_cast< TrianglePtr >( 0 );
+    Triangle * tri = nullptr;
     findTriangleContains( pos, &tri );
     return tri;
 }
@@ -418,11 +413,10 @@ const
 DelaunayTriangulation::Vertex *
 DelaunayTriangulation::findNearestVertex( const Vector2D & pos ) const
 {
-    const Vertex * candidate = static_cast< Vertex * >( 0 );
+    const Vertex * candidate = nullptr;
 
     double min_dist2 = 10000000.0;
-    const VertexCont::const_iterator end = M_vertices.end();
-    for ( VertexCont::const_iterator it = M_vertices.begin();
+    for ( VertexCont::const_iterator it = M_vertices.begin(), end = M_vertices.end();
           it != end;
           ++it )
     {
@@ -464,8 +458,7 @@ DelaunayTriangulation::compute()
     //           << std::endl;
 
     int loop = 0;
-    for ( VertexCont::iterator vit = M_vertices.begin(),
-              end = M_vertices.end();
+    for ( VertexCont::iterator vit = M_vertices.begin(), end = M_vertices.end();
           vit != end;
           ++vit )
     {
@@ -473,7 +466,7 @@ DelaunayTriangulation::compute()
         //std::cout << "compute() ********** vertex loop " << loop
         //          << vit->pos() << std::endl;
         // find triangle that contains 'vertex'
-        TrianglePtr tri = static_cast< TrianglePtr >( 0 );
+        TrianglePtr tri = nullptr;
         ContainedType type = findTriangleContains( vit->pos(), &tri );
 
         ////////////////////////////////////////////////////
@@ -564,8 +557,7 @@ DelaunayTriangulation::compute()
 void
 DelaunayTriangulation::updateVoronoiVertex()
 {
-    for ( TriangleCont::iterator it = M_triangles.begin(),
-              end = M_triangles.end();
+    for ( TriangleCont::iterator it = M_triangles.begin(), end = M_triangles.end();
           it != end;
           ++it )
     {
@@ -671,7 +663,7 @@ DelaunayTriangulation::updateOnlineVertex( const Vertex * new_vertex,
 
     // find edge that vertex is on-line
     int online_count = 0;
-    EdgePtr online_edge = static_cast< EdgePtr >( 0 );
+    EdgePtr online_edge = nullptr;
     for ( std::size_t i = 0; i < 3; ++i )
     {
         Vector2D rel0( tri->edge( i )->vertex( 0 )->pos() - new_vertex->pos() );
@@ -1052,8 +1044,7 @@ DelaunayTriangulation::ContainedType
 DelaunayTriangulation::findTriangleContains( const Vector2D & pos,
                                              TrianglePtr * sol ) const
 {
-    const TriangleCont::const_iterator end = M_triangles.end();
-    for ( TriangleCont::const_iterator it = M_triangles.begin();
+    for ( TriangleCont::const_iterator it = M_triangles.begin(), end = M_triangles.end();
           it != end;
           ++it )
     {

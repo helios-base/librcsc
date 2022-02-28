@@ -91,7 +91,7 @@ private:
     const AngleDeg M_ball_move_angle;
 
     // not used
-    PlayerIntercept();
+    PlayerIntercept() = delete;
 
 public:
 

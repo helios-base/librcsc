@@ -32,8 +32,7 @@
 #ifndef RCSC_COMMON_SAY_MESSAGE_H
 #define RCSC_COMMON_SAY_MESSAGE_H
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <string>
 #include <iostream>
 
@@ -48,21 +47,20 @@ class SayMessage {
 public:
 
     //! definition of the smart pointer type.
-    typedef boost::shared_ptr< const SayMessage > Ptr;
+    typedef std::shared_ptr< const SayMessage > Ptr;
 
 private:
 
     // not used
-    SayMessage( const SayMessage & );
-    SayMessage & operator=( const SayMessage & );
+    SayMessage( const SayMessage & ) = delete;
+    SayMessage & operator=( const SayMessage & ) = delete;
 
 protected:
 
     /*!
       \brief protected constructer
     */
-    SayMessage()
-      { }
+    SayMessage() = default;
 
 public:
 
@@ -70,8 +68,7 @@ public:
       \brief virtual destruct. do nothing.
     */
     virtual
-    ~SayMessage()
-      { }
+    ~SayMessage() = default;
 
     /*!
       \brief pure virtual method. get the header character of this message

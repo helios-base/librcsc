@@ -32,8 +32,7 @@
 #ifndef RCSC_COMMON_FREEFORM_MESSAGE_PARSER_H
 #define RCSC_COMMON_FREEFORM_MESSAGE_PARSER_H
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <string>
 
 namespace rcsc {
@@ -46,16 +45,16 @@ class FreeformMessageParser {
 public:
 
     //! pointer type
-    typedef boost::shared_ptr< FreeformMessageParser > Ptr;
+    typedef std::shared_ptr< FreeformMessageParser > Ptr;
 
 private:
 
     const std::string M_type;
 
     // not used
-    FreeformMessageParser();
-    FreeformMessageParser( const FreeformMessageParser & );
-    FreeformMessageParser & operator=( const FreeformMessageParser & );
+    FreeformMessageParser() = delete;
+    FreeformMessageParser( const FreeformMessageParser & ) = delete;
+    FreeformMessageParser & operator=( const FreeformMessageParser & ) = delete;
 
 protected:
 
@@ -72,8 +71,7 @@ public:
       \brief virtual destructor.
      */
     virtual
-    ~FreeformMessageParser()
-      { }
+    ~FreeformMessageParser() = default;
 
     /*!
       \brief get the message type string.

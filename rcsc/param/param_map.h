@@ -32,9 +32,9 @@
 #ifndef RCSC_PARAM_PARAM_MAP_H
 #define RCSC_PARAM_PARAM_MAP_H
 
-#include <boost/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include <memory>
 #include <vector>
 #include <map>
 #include <string>
@@ -63,7 +63,7 @@ struct NegateBool {
 
 private:
     // not used
-    NegateBool();
+    NegateBool() = delete;
 };
 
 /*!
@@ -86,7 +86,7 @@ struct BoolSwitch {
 
 private:
     // not used
-    BoolSwitch();
+    BoolSwitch() = delete;
 };
 
 
@@ -121,7 +121,7 @@ struct NegateSwitch {
 
 private:
     // not used
-    NegateSwitch();
+    NegateSwitch() = delete;
 };
 
 /*-------------------------------------------------------------------*/
@@ -133,7 +133,7 @@ class ParamEntity {
 public:
 
     //! ParamEntity smart pointer type
-    typedef boost::shared_ptr< ParamEntity > Ptr;
+    typedef std::shared_ptr< ParamEntity > Ptr;
 
 private:
     //! long parameter name
@@ -144,7 +144,7 @@ private:
     std::string M_description;
 
     //! not used
-    ParamEntity();
+    ParamEntity() = delete;
 
 protected:
 
@@ -493,7 +493,7 @@ private:
         //! reference to parameter container
         ParamMap & M_param_map;
         //! not used
-        Registrar();
+        Registrar() = delete;
     public:
         /*!
           \brief construct with parameter map
@@ -524,7 +524,7 @@ private:
                   return *this;
               }
 
-              if ( value_ptr == static_cast< ValueType * >( 0 ) )
+              if ( ! value_ptr )
               {
                   std::cerr << "***ERROR*** detected null pointer for the option "
                             << long_name << std::endl;

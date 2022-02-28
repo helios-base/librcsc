@@ -34,6 +34,7 @@
 #endif
 
 #include "logger.h"
+
 #include <rcsc/game_time.h>
 
 #include <string>
@@ -65,8 +66,8 @@ Logger dlog;
 
  */
 Logger::Logger()
-    : M_time( static_cast< GameTime * >( 0 ) ),
-      M_fout( NULL ),
+    : M_time( nullptr ),
+      M_fout( nullptr ),
       M_flags( 0 )
 {
     g_str.reserve( 8192 * 4 );
@@ -88,7 +89,7 @@ Logger::~Logger()
  */
 void
 Logger::setLogFlag( const GameTime * time,
-                    const boost::int32_t level,
+                    const std::int32_t level,
                     const bool on )
 {
     M_time = time;
@@ -189,7 +190,7 @@ Logger::clear()
 
  */
 void
-Logger::addText( const boost::int32_t level,
+Logger::addText( const std::int32_t level,
                  const char * msg,
                  ... )
 {
@@ -223,7 +224,7 @@ Logger::addText( const boost::int32_t level,
 
  */
 void
-Logger::addPoint( const boost::int32_t level,
+Logger::addPoint( const std::int32_t level,
                   const double x,
                   const double y,
                   const char * color )
@@ -252,7 +253,7 @@ Logger::addPoint( const boost::int32_t level,
 
  */
 void
-Logger::addPoint( const boost::int32_t level,
+Logger::addPoint( const std::int32_t level,
                   const double x,
                   const double y,
                   const int r, const int g, const int b )
@@ -278,7 +279,7 @@ Logger::addPoint( const boost::int32_t level,
 
  */
 void
-Logger::addLine( const boost::int32_t level,
+Logger::addLine( const std::int32_t level,
                  const double x1,
                  const double y1,
                  const double x2,
@@ -309,7 +310,7 @@ Logger::addLine( const boost::int32_t level,
 
  */
 void
-Logger::addLine( const boost::int32_t level,
+Logger::addLine( const std::int32_t level,
                  const double x1,
                  const double y1,
                  const double x2,
@@ -337,7 +338,7 @@ Logger::addLine( const boost::int32_t level,
 
  */
 void
-Logger::addArc( const boost::int32_t level,
+Logger::addArc( const std::int32_t level,
                 const double x,
                 const double y,
                 const double radius,
@@ -372,7 +373,7 @@ Logger::addArc( const boost::int32_t level,
 
  */
 void
-Logger::addArc( const boost::int32_t level,
+Logger::addArc( const std::int32_t level,
                 const double x,
                 const double y,
                 const double radius,
@@ -401,7 +402,7 @@ Logger::addArc( const boost::int32_t level,
 
  */
 void
-Logger::addCircle( const boost::int32_t level,
+Logger::addCircle( const std::int32_t level,
                    const double x,
                    const double y,
                    const double radius,
@@ -433,7 +434,7 @@ Logger::addCircle( const boost::int32_t level,
 
  */
 void
-Logger::addCircle( const boost::int32_t level,
+Logger::addCircle( const std::int32_t level,
                    const double x,
                    const double y,
                    const double radius,
@@ -462,7 +463,7 @@ Logger::addCircle( const boost::int32_t level,
 
  */
 void
-Logger::addTriangle( const boost::int32_t level,
+Logger::addTriangle( const std::int32_t level,
                      const double x1,
                      const double y1,
                      const double x2,
@@ -497,7 +498,7 @@ Logger::addTriangle( const boost::int32_t level,
 
  */
 void
-Logger::addTriangle( const boost::int32_t level,
+Logger::addTriangle( const std::int32_t level,
                      const double x1,
                      const double y1,
                      const double x2,
@@ -529,7 +530,7 @@ Logger::addTriangle( const boost::int32_t level,
 
  */
 void
-Logger::addRect( const boost::int32_t level,
+Logger::addRect( const std::int32_t level,
                  const double left,
                  const double top,
                  const double length,
@@ -562,7 +563,7 @@ Logger::addRect( const boost::int32_t level,
 
  */
 void
-Logger::addRect( const boost::int32_t level,
+Logger::addRect( const std::int32_t level,
                  const double left,
                  const double top,
                  const double length,
@@ -592,7 +593,7 @@ Logger::addRect( const boost::int32_t level,
 
  */
 void
-Logger::addSector( const boost::int32_t level,
+Logger::addSector( const std::int32_t level,
                    const double x,
                    const double y,
                    const double min_radius,
@@ -628,7 +629,7 @@ Logger::addSector( const boost::int32_t level,
 
  */
 void
-Logger::addSector( const boost::int32_t level,
+Logger::addSector( const std::int32_t level,
                    const double x,
                    const double y,
                    const double min_radius,
@@ -661,7 +662,7 @@ Logger::addSector( const boost::int32_t level,
 
  */
 void
-Logger::addSector( const boost::int32_t level,
+Logger::addSector( const std::int32_t level,
                    const Sector2D & sector,
                    const char * color,
                    const bool fill )
@@ -696,7 +697,7 @@ Logger::addSector( const boost::int32_t level,
 
  */
 void
-Logger::addSector( const boost::int32_t level,
+Logger::addSector( const std::int32_t level,
                    const Sector2D & sector,
                    const int r, const int g, const int b,
                    const bool fill )
@@ -728,7 +729,7 @@ Logger::addSector( const boost::int32_t level,
 
  */
 void
-Logger::addMessage( const boost::int32_t level,
+Logger::addMessage( const std::int32_t level,
                     const double x,
                     const double y,
                     const char * msg,
@@ -763,7 +764,7 @@ Logger::addMessage( const boost::int32_t level,
 
  */
 void
-Logger::addMessage( const boost::int32_t level,
+Logger::addMessage( const std::int32_t level,
                     const double x,
                     const double y,
                     const char * msg,

@@ -114,28 +114,25 @@ CLangParserTest::testInfoMessage()
     std::cout << '\n';
     std::cout << msg << '\n';
 
-    rcsc::MSecTimer timer;
+    rcsc::Timer timer;
     CPPUNIT_ASSERT( parser.parse( msg ) );
     std::cout << "elapsed " << timer.elapsedReal() << " [ms]" << std::endl;
 
 
-    boost::shared_ptr< const rcsc::CLangInfoMessage > info;
+    std::shared_ptr< const rcsc::CLangInfoMessage > info;
 
     try
     {
-        info = boost::dynamic_pointer_cast< const rcsc::CLangInfoMessage >( parser.message() );
+        info = std::dynamic_pointer_cast< const rcsc::CLangInfoMessage >( parser.message() );
         if ( ! info )
         {
             std::cerr << "Failed dynamic_pointer_cast " << std::endl;
         }
 
         std::cout << "parsed tokens:\n";
-        for ( rcsc::CLangToken::Cont::const_iterator tok = info->tokens().begin(),
-                  end = info->tokens().end();
-              tok != end;
-              ++tok )
+        for ( const rcsc::CLangToken & tok = info->tokens() )
         {
-            std::cout << "    " << **tok << std::endl;
+            std::cout << "    " << *tok << std::endl;
         }
     }
     catch ( std::exception & e )

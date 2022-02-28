@@ -34,12 +34,11 @@
 
 #include <rcsc/geom/vector_2d.h>
 
-#include <boost/cstdint.hpp>
-
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <string>
 #include <cmath>
+#include <cstdint>
 
 namespace rcsc {
 
@@ -49,7 +48,7 @@ namespace rcsc {
 */
 class AudioCodec {
 public:
-    typedef std::map< char, int > CharToIntCont; //!< map from char to int
+    typedef std::unordered_map< char, int > CharToIntCont; //!< map from char to int
     typedef std::vector< char > IntToCharCont; //!< map from int to char
 
     //! constant error value (= std::numeric_limits< double >::max())
@@ -93,14 +92,14 @@ private:
       \param pos position to be converted
       \return converted integer
     */
-    boost::int32_t posToBit18( const Vector2D & pos ) const;
+    std::int32_t posToBit18( const Vector2D & pos ) const;
 
     /*!
       \brief decode 18 bits info to position and velocity
       \param val 32bits integer value to be analyzed
       \param pos variable pointer to store the converted position
     */
-    void bit18ToPos( const boost::int32_t & val,
+    void bit18ToPos( const std::int32_t & val,
                      Vector2D * pos ) const;
 
     /*!
@@ -108,14 +107,14 @@ private:
       \param pos position to be converted
       \return converted integer
     */
-    boost::int32_t posToBit19( const Vector2D & pos ) const;
+    std::int32_t posToBit19( const Vector2D & pos ) const;
 
     /*!
       \brief decode 19 bits info to position and velocity
       \param val 32bits integer value to be analyzed
       \param pos variable pointer to store the converted position
     */
-    void bit19ToPos( const boost::int32_t & val,
+    void bit19ToPos( const std::int32_t & val,
                      Vector2D * pos ) const;
 
     /*!
@@ -124,7 +123,7 @@ private:
       \param vel velocity to be converted
       \return converted integer
     */
-    boost::int32_t posVelToBit31( const Vector2D & pos,
+    std::int32_t posVelToBit31( const Vector2D & pos,
                                   const Vector2D & vel ) const;
 
     /*!
@@ -133,7 +132,7 @@ private:
       \param pos variable pointer to store the converted position
       \param vel variable pointer to store the converted velocity
     */
-    void bit31ToPosVel( const boost::int32_t & val,
+    void bit31ToPosVel( const std::int32_t & val,
                         Vector2D * pos,
                         Vector2D * vel ) const;
 
@@ -164,7 +163,7 @@ public:
       \param to reference to the result instance
       \return encode status
      */
-    bool encodeInt64ToStr( const boost::int64_t & ival,
+    bool encodeInt64ToStr( const std::int64_t & ival,
                            const int len,
                            std::string & to ) const;
 
@@ -175,7 +174,7 @@ public:
       \return decode status
      */
     bool decodeStrToInt64( const std::string & from,
-                           boost::int64_t * to ) const;
+                           std::int64_t * to ) const;
 
 
     /*!

@@ -32,7 +32,7 @@
 #ifndef RCSC_PLAYER_VIEW_GRID_MAP_H
 #define RCSC_PLAYER_VIEW_GRID_MAP_H
 
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 
 namespace rcsc {
 
@@ -49,7 +49,7 @@ private:
 
     struct Impl;
 
-    boost::scoped_ptr< Impl > M_impl;
+    std::unique_ptr< Impl > M_impl;
 
 public:
 

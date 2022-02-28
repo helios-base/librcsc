@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file formation_bpn.h
-  \brief formation data classes using BPN Header File.
+  \file formation_ngnet.h
+  \brief formation data classes using NGNet Header File.
 */
 
 /*
@@ -29,31 +29,28 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_FORMATION_FORMATION_BPN_H
-#define RCSC_FORMATION_FORMATION_BPN_H
+#ifndef RCSC_FORMATION_FORMATION_NGNET_H
+#define RCSC_FORMATION_FORMATION_NGNET_H
 
 #include <rcsc/formation/formation.h>
-#include <rcsc/ann/bpn1.h>
-
-#include <boost/shared_ptr.hpp>
+#include <rcsc/ann/ngnet.h>
 
 #include <map>
 
 namespace rcsc {
 
 /*!
-  \class FormationBPN
-  \brief formation implementation using Neural Network
+  \class FormationNGNet
+  \brief formation implementation using NGNet
 */
-class FormationBPN
+class FormationNGNet
     : public Formation {
 public:
 
     static const std::string NAME; //!< type name
 
     /*!
-      \class Param
-      \brief formation parameter using BPN.
+      \brief formation parameter using NGNet
       one Param instance realizes just one player's position.
     */
     class Param {
@@ -61,17 +58,9 @@ public:
         static const double PITCH_LENGTH; //!< field length
         static const double PITCH_WIDTH; //!< field width
 
-        //typedef BPNetwork1< 2, 4, 2 > Net;  // bad
-        //typedef BPNetwork1< 2, 5, 2 > Net;  // not bad
-        //typedef BPNetwork1< 2, 6, 2 > Net;   // not bad
-        //typedef BPNetwork1< 2, 7, 2 > Net;   // good?
-        //typedef BPNetwork1< 2, 8, 2 > Net;   // good?
-        typedef BPNetwork1< 2, 10, 2 > Net; //!< alias for convenience // good
-        //typedef BPNetwork1< 2, 12, 2 > Net;   // good
     private:
-
-        std::string M_role_name; //!< player's role name.
-        Net M_net; //!< bpn object.
+        std::string M_role_name; //!< role name string
+        NGNet M_net; //!< NGnet instance
 
     public:
 
@@ -79,11 +68,6 @@ public:
           \brief just set a learning parameter
         */
         Param();
-
-        /*!
-          \brief  initialize BPN randomly
-        */
-        void randomize();
 
         /*!
           \brief get assigned role name
@@ -96,20 +80,20 @@ public:
           }
 
         /*!
-          \brief get BPN object
-          \return reference to the BPN object
+          \brief get RBF network
+          \return reference to the RBF network
         */
-        Net & net()
+        NGNet & getNet()
           {
               return M_net;
           }
 
         /*!
-          \brief get BPN object
-          \return const reference to the BPN object
+          \brief get RBF network
+          \return const reference to the RBF network
         */
         const
-        Net & net() const
+        NGNet & net() const
           {
               return M_net;
           }
@@ -133,14 +117,14 @@ public:
           }
 
         /*!
-          \brief restore BPN from the input stream
+          \brief restore RBF network from the input stream
           \param is reference to the input stream
           \return result status of parsing
         */
         bool read( std::istream & is );
 
         /*!
-          \brief put BPN structure to the output stream
+          \brief put  structure to the output stream
           \param os reference to the output stream
           \return reference to the output stream
         */
@@ -148,32 +132,32 @@ public:
 
     private:
         /*!
-          \brief read role name, called from read();
+          \brief called from read();
           \param is reference to the input stream
           \return result status of parsing
         */
         bool readRoleName( std::istream & is );
 
         /*!
-          \brief read BPN structure, called from read();
+          \brief called from read();
           \param is reference to the input stream
           \return result status of parsing
         */
-        bool readNet( std::istream & is );
+        bool readParam( std::istream & is );
 
         /*!
-          \brief print role name, called from print();
+          \brief called from print();
           \param os reference to the output stream
           \return reference to the output stream
         */
         std::ostream & printRoleName( std::ostream & os ) const;
 
         /*!
-          \brief print BPN structure, called from print();
+          \brief called from print();
           \param os reference to the output stream
           \return reference to the output stream
         */
-        std::ostream & printNet( std::ostream & os ) const;
+        std::ostream & printParam( std::ostream & os ) const;
 
     };
 
@@ -181,14 +165,14 @@ public:
 private:
 
     //! key: unum. but size is not always 11 if symmetric player exists.
-    std::map< int, boost::shared_ptr< Param > > M_param_map;
+    std::map< int, std::shared_ptr< Param > > M_param_map;
 
 public:
 
     /*!
       \brief just call the base class constructor
     */
-    FormationBPN();
+    FormationNGNet();
 
 
     /*!
@@ -198,7 +182,7 @@ public:
     static
     std::string name()
       {
-          //return std::string( "BPN" );
+          //return std::string( "NGNet" );
           return NAME;
       }
 
@@ -209,7 +193,7 @@ public:
     static
     Formation::Ptr create()
       {
-          return Formation::Ptr( new FormationBPN );
+          return Formation::Ptr( new FormationNGNet() );
       }
 
     //--------------------------------------------------------------
@@ -228,7 +212,7 @@ public:
     virtual
     std::string methodName() const
       {
-          return FormationBPN::name();
+          return FormationNGNet::name();
       }
 
 protected:
@@ -289,35 +273,33 @@ public:
     void train();
 
     /*!
-      \brief read all data from the input stream.
+      \brief read formation data from the input stream.
       \param is reference to the input stream.
       \return result status.
     */
     virtual
     bool read( std::istream & is );
 
-
     /*!
-      \brief put data to the output stream.
+      \brief put formation data to the output stream.
       \param os reference to the output stream
       \return reference to the output stream
     */
     virtual
     std::ostream & print( std::ostream & os ) const;
 
-
 protected:
 
     /*!
       \brief restore conf data from the input stream.
       \param is reference to the input stream.
-      \return parsing result
+      \return pasing result.
     */
     virtual
     bool readConf( std::istream & is );
 
     /*!
-      \brief put conf data to the output stream.
+      \brief put data to the output stream.
       \param os reference to the output stream
       \return reference to the output stream
     */
@@ -338,14 +320,14 @@ private:
       \param unum player's number
       \return smart pointer to the parameter
     */
-    boost::shared_ptr< Param > getParam( const int unum );
+    std::shared_ptr< Param > getParam( const int unum );
 
     /*!
       \brief get const pointer to the specifed player's parameter
       \param unum player's number
       \return smart const pointer to the parameter
     */
-    boost::shared_ptr< const Param > getParam( const int unum ) const;
+    std::shared_ptr< const Param > param( const int unum ) const;
 
 };
 

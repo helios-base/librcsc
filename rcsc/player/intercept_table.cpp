@@ -86,10 +86,10 @@ InterceptTable::clear()
     M_opponent_reach_step = 1000;
     M_second_opponent_reach_step = 1000;
 
-    M_fastest_teammate = static_cast< PlayerObject * >( 0 );
-    M_second_teammate = static_cast< PlayerObject * >( 0 );
-    M_fastest_opponent = static_cast< PlayerObject * >( 0 );
-    M_second_opponent = static_cast< PlayerObject * >( 0 );
+    M_fastest_teammate = nullptr;
+    M_second_teammate = nullptr;
+    M_fastest_opponent = nullptr;
+    M_second_opponent = nullptr;
 
     M_self_cache.clear();
 
@@ -112,7 +112,7 @@ InterceptTable::update()
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::INTERCEPT,
                   __FILE__" (update)" );
-    MSecTimer timer;
+    Timer timer;
 #endif
 
     // clear all data
@@ -235,25 +235,22 @@ InterceptTable::hearTeammate( const int unum,
         return;
     }
 
-    const PlayerObject * p = static_cast< const PlayerObject * >( 0 );
-
-    for ( PlayerObject::Cont::const_iterator it = M_world.teammates().begin(), end = M_world.teammates().end();
-          it != end;
-          ++it )
+    const PlayerObject * target = nullptr;
+    for ( const PlayerObject * t : M_world.teammates() )
     {
-        if ( (*it)->unum() == unum )
+        if ( t->unum() == unum )
         {
-            p = *it;
+            target = t;
             break;
         }
     }
 
-    if ( p )
+    if ( target )
     {
-        M_fastest_teammate = p;
+        M_fastest_teammate = target;
         M_teammate_reach_step = step;
 
-        M_player_map[ p ] = step;
+        M_player_map[ target ] = step;
 
         dlog.addText( Logger::INTERCEPT,
                       "<----- Hear Intercept Teammate  fastest reach step = %d."
@@ -297,15 +294,13 @@ InterceptTable::hearOpponent( const int unum,
         }
     }
 
-    const PlayerObject * p = static_cast< const PlayerObject * >( 0 );
+    const PlayerObject * p = nullptr;
 
-    for ( PlayerObject::Cont::const_iterator it = M_world.opponents().begin(), end = M_world.opponents().end();
-          it != end;
-          ++it )
+    for ( const PlayerObject * i : M_world.opponents() )
     {
-        if ( (*it)->unum() == unum )
+        if ( i->unum() == unum )
         {
-            p = *it;
+            p = i;
             break;
         }
     }
@@ -425,23 +420,20 @@ InterceptTable::predictSelf()
     int min_step = M_self_reach_step;
     int exhaust_min_step = M_self_exhaust_reach_step;
 
-    for ( std::vector< InterceptInfo >::iterator it = M_self_cache.begin(),
-              end = M_self_cache.end();
-          it != end;
-          ++it )
+    for ( const InterceptInfo & i : M_self_cache )
     {
-        if ( it->staminaType() == InterceptInfo::NORMAL )
+        if ( i.staminaType() == InterceptInfo::NORMAL )
         {
-            if ( it->reachStep() < min_step )
+            if ( i.reachStep() < min_step )
             {
-                min_step = it->reachStep();
+                min_step = i.reachStep();
             }
         }
-        else if ( it->staminaType() == InterceptInfo::EXHAUST )
+        else if ( i.staminaType() == InterceptInfo::EXHAUST )
         {
-            if ( it->reachStep() < exhaust_min_step )
+            if ( i.reachStep() < exhaust_min_step )
             {
-                exhaust_min_step = it->reachStep();
+                exhaust_min_step = i.reachStep();
             }
         }
     }
@@ -482,32 +474,29 @@ InterceptTable::predictTeammate()
 
     PlayerIntercept predictor( M_world, M_ball_cache );
 
-    for ( PlayerObject::Cont::const_iterator it = M_world.teammatesFromBall().begin(),
-              end = M_world.teammatesFromBall().end();
-          it != end;
-          ++it )
+    for ( const PlayerObject * t : M_world.teammatesFromBall() )
     {
-        if ( *it == M_world.kickableTeammate() )
+        if ( t == M_world.kickableTeammate() )
         {
-            M_player_map[ *it ] = 0;
+            M_player_map[ t ] = 0;
             continue;
         }
 
-        if ( (*it)->posCount() >= 10 )
+        if ( t->posCount() >= 10 )
         {
             dlog.addText( Logger::INTERCEPT,
                           "Intercept Teammate %d.(%.1f %.1f) Low accuracy %d. skip...",
-                          (*it)->unum(),
-                          (*it)->pos().x, (*it)->pos().y,
-                          (*it)->posCount() );
+                          t->unum(),
+                          t->pos().x, t->pos().y,
+                          t->posCount() );
             continue;
         }
 
-        int step = predictor.predict( **it, false );
+        int step = predictor.predict( *t, false );
         int goalie_step = 1000;
-        if ( (*it)->goalie() )
+        if ( t->goalie() )
         {
-            goalie_step = predictor.predict( **it, true );
+            goalie_step = predictor.predict( *t, true );
             if ( step > goalie_step )
             {
                 step = goalie_step;
@@ -516,11 +505,11 @@ InterceptTable::predictTeammate()
 
         dlog.addText( Logger::INTERCEPT,
                       "---> Teammate %d.(%.1f %.1f) step=%d",
-                      (*it)->unum(),
-                      (*it)->pos().x, (*it)->pos().y,
+                      t->unum(),
+                      t->pos().x, t->pos().y,
                       step );
 
-        if ( (*it)->goalie() )
+        if ( t->goalie() )
         {
             M_goalie_reach_step = goalie_step;
         }
@@ -528,7 +517,7 @@ InterceptTable::predictTeammate()
         if ( step < second_min_step )
         {
             second_min_step = step;
-            M_second_teammate = *it;
+            M_second_teammate = t;
 
             if ( second_min_step < min_step )
             {
@@ -537,7 +526,7 @@ InterceptTable::predictTeammate()
             }
         }
 
-        M_player_map[ *it ] = step;
+        M_player_map[ t ] = step;
     }
 
     if ( M_second_teammate && second_min_step < 1000 )
@@ -577,31 +566,28 @@ InterceptTable::predictOpponent()
 
     PlayerIntercept predictor( M_world, M_ball_cache );
 
-    for ( PlayerObject::Cont::const_iterator it = M_world.opponentsFromBall().begin(),
-              end = M_world.opponentsFromBall().end();
-          it != end;
-          ++it )
+    for ( const PlayerObject * o : M_world.opponentsFromBall() )
     {
-        if ( *it == M_world.kickableOpponent() )
+        if ( o == M_world.kickableOpponent() )
         {
-            M_player_map[ *it ] = 0;
+            M_player_map[ o ] = 0;
             continue;
         }
 
-        if ( (*it)->posCount() >= 15 )
+        if ( o->posCount() >= 15 )
         {
             dlog.addText( Logger::INTERCEPT,
                           "Intercept Opponent %d.(%.1f %.1f) Low accuracy %d. skip...",
-                          (*it)->unum(),
-                          (*it)->pos().x, (*it)->pos().y,
-                          (*it)->posCount() );
+                          o->unum(),
+                          o->pos().x, o->pos().y,
+                          o->posCount() );
             continue;
         }
 
-        int step = predictor.predict( **it, false );
-        if ( (*it)->goalie() )
+        int step = predictor.predict( *o, false );
+        if ( o->goalie() )
         {
-            int goalie_step = predictor.predict( **it, true );
+            int goalie_step = predictor.predict( *o, true );
             if ( goalie_step > 0
                  && step > goalie_step )
             {
@@ -611,14 +597,14 @@ InterceptTable::predictOpponent()
 
         dlog.addText( Logger::INTERCEPT,
                       "---> Opponent.%d (%.1f %.1f) step=%d",
-                      (*it)->unum(),
-                      (*it)->pos().x, (*it)->pos().y,
+                      o->unum(),
+                      o->pos().x, o->pos().y,
                       step );
 
         if ( step < second_min_step )
         {
             second_min_step = step;
-            M_second_opponent = *it;
+            M_second_opponent = o;
 
             if ( second_min_step < min_step )
             {
@@ -627,7 +613,7 @@ InterceptTable::predictOpponent()
             }
         }
 
-        M_player_map[ *it ] = step;
+        M_player_map[ o ] = step;
     }
 
     if ( M_second_opponent && second_min_step < 1000 )

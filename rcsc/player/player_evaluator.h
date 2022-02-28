@@ -38,8 +38,7 @@
 #include <rcsc/geom/vector_2d.h>
 #include <rcsc/common/server_param.h>
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <cmath>
 
 namespace rcsc {
@@ -50,8 +49,8 @@ namespace rcsc {
  */
 class PlayerEvaluator {
 public:
-    typedef boost::shared_ptr< PlayerEvaluator > Ptr;
-    typedef boost::shared_ptr< const PlayerEvaluator > ConstPtr;
+    typedef std::shared_ptr< PlayerEvaluator > Ptr;
+    typedef std::shared_ptr< const PlayerEvaluator > ConstPtr;
 
 protected:
     /*!
@@ -87,7 +86,7 @@ private:
     const Vector2D M_point;
 
     // not used
-    AbsYDiffPlayerEvaluator();
+    AbsYDiffPlayerEvaluator() = delete;
 public:
     /*!
       \brief construct with base point
@@ -121,7 +120,7 @@ private:
     const AngleDeg M_base_angle;
 
     // not used
-    AbsAngleDiffPlayerEvaluator();
+    AbsAngleDiffPlayerEvaluator() = delete;
 public:
     /*!
       \brief construct with base point & angle
@@ -130,8 +129,8 @@ public:
      */
     AbsAngleDiffPlayerEvaluator( const Vector2D & base_point,
                                  const AngleDeg & base_angle )
-        : M_base_point( base_point )
-        , M_base_angle( base_angle )
+        : M_base_point( base_point ),
+          M_base_angle( base_angle )
       { }
 
     /*!
@@ -263,8 +262,6 @@ public:
       }
 };
 
-
-
 /*!
   \class PlayerEvaluatorComparator
   \brief compare evaluated values of two player objects
@@ -275,7 +272,7 @@ private:
     PlayerEvaluator::ConstPtr M_evaluator;
 
     // not used
-    PlayerEvaluatorComparator();
+    PlayerEvaluatorComparator() = delete;
 public:
     /*!
       \brief constructor

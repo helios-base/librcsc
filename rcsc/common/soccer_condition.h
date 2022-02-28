@@ -32,8 +32,7 @@
 #ifndef RCSC_PLAYER_SOCCER_CONDITION_H
 #define RCSC_PLAYER_SOCCER_CONDITION_H
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <vector>
 
 namespace rcsc {
@@ -48,25 +47,23 @@ class Condition {
 private:
 
     //! not used
-    Condition( const Condition & );
+    Condition( const Condition & ) = delete;
     //! not used
-    Condition & operator=( const Condition & );
+    Condition & operator=( const Condition & ) = delete;
 
 protected:
     /*!
       \brief nothing to do. but accessible only from derived
       classes.
      */
-    Condition()
-      { }
+    Condition() = default;
 
 public:
     /*!
       \brief nothing to do, but should be virtual.
      */
     virtual
-    ~Condition()
-      { }
+    ~Condition() = default;
 
     /*!
       \brief get the value of this condition.
@@ -84,77 +81,77 @@ class AndCondition
     : public Condition {
 private:
     //! container of condition object
-    std::vector< boost::shared_ptr< const Condition > > M_condition_set;
+    std::vector< std::shared_ptr< const Condition > > M_condition_set;
 
 public:
 
     /*!
       \brief construct with 2 conditions
      */
-    AndCondition( const boost::shared_ptr< const Condition > & p1,
-                  const boost::shared_ptr< const Condition > & p2 );
+    AndCondition( const std::shared_ptr< const Condition > & p1,
+                  const std::shared_ptr< const Condition > & p2 );
 
     /*!
       \brief construct with 3 conditions
      */
-    AndCondition( const boost::shared_ptr< const Condition > & p1,
-                  const boost::shared_ptr< const Condition > & p2,
-                  const boost::shared_ptr< const Condition > & p3 );
+    AndCondition( const std::shared_ptr< const Condition > & p1,
+                  const std::shared_ptr< const Condition > & p2,
+                  const std::shared_ptr< const Condition > & p3 );
 
     /*!
       \brief construct with 4 conditions
      */
-    AndCondition( const boost::shared_ptr< const Condition > & p1,
-                  const boost::shared_ptr< const Condition > & p2,
-                  const boost::shared_ptr< const Condition > & p3,
-                  const boost::shared_ptr< const Condition > & p4 );
+    AndCondition( const std::shared_ptr< const Condition > & p1,
+                  const std::shared_ptr< const Condition > & p2,
+                  const std::shared_ptr< const Condition > & p3,
+                  const std::shared_ptr< const Condition > & p4 );
 
     /*!
       \brief construct with 5 conditions
      */
-    AndCondition( const boost::shared_ptr< const Condition > & p1,
-                  const boost::shared_ptr< const Condition > & p2,
-                  const boost::shared_ptr< const Condition > & p3,
-                  const boost::shared_ptr< const Condition > & p4,
-                  const boost::shared_ptr< const Condition > & p5 );
+    AndCondition( const std::shared_ptr< const Condition > & p1,
+                  const std::shared_ptr< const Condition > & p2,
+                  const std::shared_ptr< const Condition > & p3,
+                  const std::shared_ptr< const Condition > & p4,
+                  const std::shared_ptr< const Condition > & p5 );
 
     /*!
       \brief construct with 6 conditions
      */
-    AndCondition( const boost::shared_ptr< const Condition > & p1,
-                  const boost::shared_ptr< const Condition > & p2,
-                  const boost::shared_ptr< const Condition > & p3,
-                  const boost::shared_ptr< const Condition > & p4,
-                  const boost::shared_ptr< const Condition > & p5,
-                  const boost::shared_ptr< const Condition > & p6 );
+    AndCondition( const std::shared_ptr< const Condition > & p1,
+                  const std::shared_ptr< const Condition > & p2,
+                  const std::shared_ptr< const Condition > & p3,
+                  const std::shared_ptr< const Condition > & p4,
+                  const std::shared_ptr< const Condition > & p5,
+                  const std::shared_ptr< const Condition > & p6 );
 
     /*!
       \brief construct with 7 conditions
      */
-    AndCondition( const boost::shared_ptr< const Condition > & p1,
-                  const boost::shared_ptr< const Condition > & p2,
-                  const boost::shared_ptr< const Condition > & p3,
-                  const boost::shared_ptr< const Condition > & p4,
-                  const boost::shared_ptr< const Condition > & p5,
-                  const boost::shared_ptr< const Condition > & p6,
-                  const boost::shared_ptr< const Condition > & p7 );
+    AndCondition( const std::shared_ptr< const Condition > & p1,
+                  const std::shared_ptr< const Condition > & p2,
+                  const std::shared_ptr< const Condition > & p3,
+                  const std::shared_ptr< const Condition > & p4,
+                  const std::shared_ptr< const Condition > & p5,
+                  const std::shared_ptr< const Condition > & p6,
+                  const std::shared_ptr< const Condition > & p7 );
 
     /*!
       \brief construct with 8 conditions
      */
-    AndCondition( const boost::shared_ptr< const Condition > & p1,
-                  const boost::shared_ptr< const Condition > & p2,
-                  const boost::shared_ptr< const Condition > & p3,
-                  const boost::shared_ptr< const Condition > & p4,
-                  const boost::shared_ptr< const Condition > & p5,
-                  const boost::shared_ptr< const Condition > & p6,
-                  const boost::shared_ptr< const Condition > & p7,
-                  const boost::shared_ptr< const Condition > & p8 );
+    AndCondition( const std::shared_ptr< const Condition > & p1,
+                  const std::shared_ptr< const Condition > & p2,
+                  const std::shared_ptr< const Condition > & p3,
+                  const std::shared_ptr< const Condition > & p4,
+                  const std::shared_ptr< const Condition > & p5,
+                  const std::shared_ptr< const Condition > & p6,
+                  const std::shared_ptr< const Condition > & p7,
+                  const std::shared_ptr< const Condition > & p8 );
 
     /*!
       \brief append new condition.
      */
-    void append( const boost::shared_ptr< const Condition > & p )
+    void append( const std::shared_ptr< const Condition > & p )
       {
           M_condition_set.push_back( p );
       }
@@ -176,77 +173,77 @@ class OrCondition
     : public Condition {
 private:
     //! container of condition object
-    std::vector< boost::shared_ptr< const Condition > > M_condition_set;
+    std::vector< std::shared_ptr< const Condition > > M_condition_set;
 
 public:
 
     /*!
       \brief construct with 2 conditions
      */
-    OrCondition( const boost::shared_ptr< const Condition > & p1,
-                 const boost::shared_ptr< const Condition > & p2 );
+    OrCondition( const std::shared_ptr< const Condition > & p1,
+                 const std::shared_ptr< const Condition > & p2 );
 
     /*!
       \brief construct with 3 conditions
      */
-    OrCondition( const boost::shared_ptr< const Condition > & p1,
-                 const boost::shared_ptr< const Condition > & p2,
-                 const boost::shared_ptr< const Condition > & p3 );
+    OrCondition( const std::shared_ptr< const Condition > & p1,
+                 const std::shared_ptr< const Condition > & p2,
+                 const std::shared_ptr< const Condition > & p3 );
 
     /*!
       \brief construct with 4 conditions
      */
-    OrCondition( const boost::shared_ptr< const Condition > & p1,
-                 const boost::shared_ptr< const Condition > & p2,
-                 const boost::shared_ptr< const Condition > & p3,
-                 const boost::shared_ptr< const Condition > & p4 );
+    OrCondition( const std::shared_ptr< const Condition > & p1,
+                 const std::shared_ptr< const Condition > & p2,
+                 const std::shared_ptr< const Condition > & p3,
+                 const std::shared_ptr< const Condition > & p4 );
 
     /*!
       \brief construct with 5 conditions
      */
-    OrCondition( const boost::shared_ptr< const Condition > & p1,
-                 const boost::shared_ptr< const Condition > & p2,
-                 const boost::shared_ptr< const Condition > & p3,
-                 const boost::shared_ptr< const Condition > & p4,
-                 const boost::shared_ptr< const Condition > & p5 );
+    OrCondition( const std::shared_ptr< const Condition > & p1,
+                 const std::shared_ptr< const Condition > & p2,
+                 const std::shared_ptr< const Condition > & p3,
+                 const std::shared_ptr< const Condition > & p4,
+                 const std::shared_ptr< const Condition > & p5 );
 
     /*!
       \brief construct with 6 conditions
      */
-    OrCondition( const boost::shared_ptr< const Condition > & p1,
-                 const boost::shared_ptr< const Condition > & p2,
-                 const boost::shared_ptr< const Condition > & p3,
-                 const boost::shared_ptr< const Condition > & p4,
-                 const boost::shared_ptr< const Condition > & p5,
-                 const boost::shared_ptr< const Condition > & p6 );
+    OrCondition( const std::shared_ptr< const Condition > & p1,
+                 const std::shared_ptr< const Condition > & p2,
+                 const std::shared_ptr< const Condition > & p3,
+                 const std::shared_ptr< const Condition > & p4,
+                 const std::shared_ptr< const Condition > & p5,
+                 const std::shared_ptr< const Condition > & p6 );
 
     /*!
       \brief construct with 7 conditions
      */
-    OrCondition( const boost::shared_ptr< const Condition > & p1,
-                 const boost::shared_ptr< const Condition > & p2,
-                 const boost::shared_ptr< const Condition > & p3,
-                 const boost::shared_ptr< const Condition > & p4,
-                 const boost::shared_ptr< const Condition > & p5,
-                 const boost::shared_ptr< const Condition > & p6,
-                 const boost::shared_ptr< const Condition > & p7 );
+    OrCondition( const std::shared_ptr< const Condition > & p1,
+                 const std::shared_ptr< const Condition > & p2,
+                 const std::shared_ptr< const Condition > & p3,
+                 const std::shared_ptr< const Condition > & p4,
+                 const std::shared_ptr< const Condition > & p5,
+                 const std::shared_ptr< const Condition > & p6,
+                 const std::shared_ptr< const Condition > & p7 );
 
     /*!
       \brief construct with 8 conditions
      */
-    OrCondition( const boost::shared_ptr< const Condition > & p1,
-                 const boost::shared_ptr< const Condition > & p2,
-                 const boost::shared_ptr< const Condition > & p3,
-                 const boost::shared_ptr< const Condition > & p4,
-                 const boost::shared_ptr< const Condition > & p5,
-                 const boost::shared_ptr< const Condition > & p6,
-                 const boost::shared_ptr< const Condition > & p7,
-                 const boost::shared_ptr< const Condition > & p8 );
+    OrCondition( const std::shared_ptr< const Condition > & p1,
+                 const std::shared_ptr< const Condition > & p2,
+                 const std::shared_ptr< const Condition > & p3,
+                 const std::shared_ptr< const Condition > & p4,
+                 const std::shared_ptr< const Condition > & p5,
+                 const std::shared_ptr< const Condition > & p6,
+                 const std::shared_ptr< const Condition > & p7,
+                 const std::shared_ptr< const Condition > & p8 );
 
     /*!
       \brief append new condition.
      */
-    void append( const boost::shared_ptr< const Condition > & p )
+    void append( const std::shared_ptr< const Condition > & p )
       {
           M_condition_set.push_back( p );
       }
@@ -268,14 +265,14 @@ class NotCondition {
 private:
 
     //! target condition
-    boost::shared_ptr< const Condition > M_condition;
+    std::shared_ptr< const Condition > M_condition;
 
 public:
 
     /*!
       \brief construct with target condition
      */
-    NotCondition( const boost::shared_ptr< const Condition >  & p )
+    NotCondition( const std::shared_ptr< const Condition >  & p )
         : M_condition( p )
       { }
 

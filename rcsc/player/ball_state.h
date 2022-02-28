@@ -49,7 +49,7 @@ private:
     Vector2D M_vel; //!< estimated velocity
 
     // not used
-    BallState( const BallState & );
+    BallState( const BallState & ) = delete;
 
 public:
     /*!

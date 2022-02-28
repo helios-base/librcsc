@@ -245,7 +245,7 @@ private:
     double M_x; //!< drop point x
     double M_y; //!< drop point y
 
-    MonitorDropBallCommand(); // not used
+    MonitorDropBallCommand() = delete; // not used
 public:
     /*!
       \brief construct with real coordinate
@@ -297,7 +297,7 @@ private:
     double M_y; //!< free kick point y
     SideID M_side; //!< free kick awarded side. NEUTRAL means drop ball.
 
-    MonitorFreeKickCommand(); // not used
+    MonitorFreeKickCommand() = delete; // not used
 public:
     /*!
       \brief construct with real coordinate
@@ -351,7 +351,7 @@ private:
     double M_y; //!< move target point y
     double M_angle; //!< player's body angle after move. *degree*
 
-    MonitorMovePlayerCommand(); // not used
+    MonitorMovePlayerCommand() = delete; // not used
 public:
     /*!
       \brief construct with all needed info
@@ -404,7 +404,7 @@ private:
     SideID M_side; //!< target player's side id
     int M_unum; //!< target player's uniform number
 
-    MonitorDiscardPlayerCommand(); // not used
+    MonitorDiscardPlayerCommand() = delete; // not used
 public:
     /*!
       \brief construct with all info
@@ -452,7 +452,7 @@ private:
     int M_unum; //!< target player's uniform number
     Card M_card; //!< card type
 
-    MonitorCardCommand(); // not used
+    MonitorCardCommand() = delete; // not used
 public:
     /*!
       \brief construct with all info
@@ -500,7 +500,7 @@ private:
     //! gzip compression level
     int M_level;
 
-    MonitorCompressionCommand(); // not used
+    MonitorCompressionCommand() = delete; // not used
 public:
     /*!
       \brief construct with compression level

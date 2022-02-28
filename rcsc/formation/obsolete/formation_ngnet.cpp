@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file formation_rbf.cpp
-  \brief RBF formation data classes Source File.
+  \file formation_ngnet.cpp
+  \brief NGNet formation data classes Source File.
 */
 
 /*
@@ -33,11 +33,10 @@
 #include <config.h>
 #endif
 
-#include "formation_rbf.h"
+#include "formation_ngnet.h"
 
 #include <rcsc/math_util.h>
 
-#include <boost/random.hpp>
 #include <sstream>
 #include <algorithm>
 #include <cstdio>
@@ -46,18 +45,18 @@ namespace rcsc {
 
 using namespace formation;
 
-const std::string FormationRBF::NAME( "RBF" );
+const std::string FormationNGNet::NAME( "NGNet" );
 
-const double FormationRBF::Param::PITCH_LENGTH = 105.0 + 10.0;
-const double FormationRBF::Param::PITCH_WIDTH = 68.0 + 10.0;
+const double FormationNGNet::Param::PITCH_LENGTH = 105.0 + 10.0;
+const double FormationNGNet::Param::PITCH_WIDTH = 68.0 + 10.0;
 
 
 /*-------------------------------------------------------------------*/
 /*!
 
  */
-FormationRBF::Param::Param()
-    : M_net( 2, 2 )
+FormationNGNet::Param::Param()
+    : M_net()
 {
 
 }
@@ -67,15 +66,15 @@ FormationRBF::Param::Param()
 
  */
 Vector2D
-FormationRBF::Param::getPosition( const Vector2D & ball_pos,
-                                  const Formation::SideType ) const
+FormationNGNet::Param::getPosition( const Vector2D & ball_pos,
+                                    const Formation::SideType ) const
 {
-    RBFNetwork::input_vector input( 2, 0.0 );
+    NGNet::input_vector input;
 
     input[0] = ball_pos.x;
     input[1] = ball_pos.y;
 
-    RBFNetwork::output_vector output;
+    NGNet::output_vector output;
 
     M_net.propagate( input, output );
 
@@ -88,7 +87,7 @@ FormationRBF::Param::getPosition( const Vector2D & ball_pos,
   Format:  Role <RoleNameStr>
 */
 bool
-FormationRBF::Param::readRoleName( std::istream & is )
+FormationNGNet::Param::readRoleName( std::istream & is )
 {
     std::string line_buf;
     if ( ! std::getline( is, line_buf ) )
@@ -130,7 +129,7 @@ FormationRBF::Param::readRoleName( std::istream & is )
 
  */
 bool
-FormationRBF::Param::readParam( std::istream & is )
+FormationNGNet::Param::readParam( std::istream & is )
 {
     std::string line_buf;
     if ( ! std::getline( is, line_buf ) )
@@ -162,7 +161,7 @@ FormationRBF::Param::readParam( std::istream & is )
 
  */
 bool
-FormationRBF::Param::read( std::istream & is )
+FormationNGNet::Param::read( std::istream & is )
 {
     // read role name
     if ( ! readRoleName( is ) )
@@ -187,7 +186,7 @@ FormationRBF::Param::read( std::istream & is )
 
  */
 std::ostream &
-FormationRBF::Param::printRoleName( std::ostream & os ) const
+FormationNGNet::Param::printRoleName( std::ostream & os ) const
 {
     if ( M_role_name.empty() )
     {
@@ -205,23 +204,18 @@ FormationRBF::Param::printRoleName( std::ostream & os ) const
 
  */
 std::ostream &
-FormationRBF::Param::printParam( std::ostream & os ) const
+FormationNGNet::Param::printParam( std::ostream & os ) const
 {
     M_net.print( os ) << '\n';
     return os;
 }
 
 /*-------------------------------------------------------------------*/
-/*
-  Role <role name>
-  <bko.x> <bkoy>
-  <offense playon>
-  <defense playon>
-  ...
+/*!
 
 */
 std::ostream &
-FormationRBF::Param::print( std::ostream & os ) const
+FormationNGNet::Param::print( std::ostream & os ) const
 {
     printRoleName( os );
     printParam( os );
@@ -237,7 +231,7 @@ FormationRBF::Param::print( std::ostream & os ) const
 /*!
 
  */
-FormationRBF::FormationRBF()
+FormationNGNet::FormationNGNet()
     : Formation()
 {
 
@@ -248,7 +242,7 @@ FormationRBF::FormationRBF()
 
  */
 void
-FormationRBF::createDefaultData()
+FormationNGNet::createDefaultData()
 {
     // 1: goalie
     // 2: left center back
@@ -276,17 +270,17 @@ FormationRBF::createDefaultData()
     SampleData data;
 
     data.ball_.assign( 0.0, 0.0 );
-    data.players_.push_back( Vector2D( -50.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -20.0, -8.0 ) );
-    data.players_.push_back( Vector2D( -20.0, 8.0 ) );
-    data.players_.push_back( Vector2D( -18.0, -18.0 ) );
-    data.players_.push_back( Vector2D( -18.0, 18.0 ) );
-    data.players_.push_back( Vector2D( -15.0, 0.0 ) );
-    data.players_.push_back( Vector2D( 0.0, -12.0 ) );
-    data.players_.push_back( Vector2D( 0.0, 12.0 ) );
-    data.players_.push_back( Vector2D( 10.0, -22.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 22.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 0.0 ) );
+    data.players_.emplace_back( -50.0, 0.0 );
+    data.players_.emplace_back( -20.0, -8.0 );
+    data.players_.emplace_back( -20.0, 8.0 );
+    data.players_.emplace_back( -18.0, -18.0 );
+    data.players_.emplace_back( -18.0, 18.0 );
+    data.players_.emplace_back( -15.0, 0.0 );
+    data.players_.emplace_back( 0.0, -12.0 );
+    data.players_.emplace_back( 0.0, 12.0 );
+    data.players_.emplace_back( 10.0, -22.0 );
+    data.players_.emplace_back( 10.0, 22.0 );
+    data.players_.emplace_back( 10.0, 0.0 );
 
     M_samples->addData( *this, data, false );
 }
@@ -297,10 +291,10 @@ FormationRBF::createDefaultData()
 
  */
 void
-FormationRBF::setRoleName( const int unum,
-                           const std::string & name )
+FormationNGNet::setRoleName( const int unum,
+                             const std::string & name )
 {
-    boost::shared_ptr< FormationRBF::Param > p = getParam( unum );
+    std::shared_ptr< Param > p = getParam( unum );
 
     if ( ! p )
     {
@@ -319,9 +313,9 @@ FormationRBF::setRoleName( const int unum,
 
  */
 std::string
-FormationRBF::getRoleName( const int unum ) const
+FormationNGNet::getRoleName( const int unum ) const
 {
-    const boost::shared_ptr< const FormationRBF::Param > p = param( unum );
+    const std::shared_ptr< const Param > p = param( unum );
     if ( ! p )
     {
         std::cerr << __FILE__ << ":" << __LINE__
@@ -339,9 +333,9 @@ FormationRBF::getRoleName( const int unum ) const
 
  */
 void
-FormationRBF::createNewRole( const int unum,
-                             const std::string & role_name,
-                             const Formation::SideType type )
+FormationNGNet::createNewRole( const int unum,
+                               const std::string & role_name,
+                               const Formation::SideType type )
 {
     if ( unum < 1 || 11 < unum )
     {
@@ -365,14 +359,13 @@ FormationRBF::createNewRole( const int unum,
     }
 
     // erase old parameter, if exist
-    std::map< int, boost::shared_ptr< FormationRBF::Param > >::iterator it
-        = M_param_map.find( unum );
+    std::map< int, std::shared_ptr< Param > >::iterator it = M_param_map.find( unum );
     if ( it != M_param_map.end() )
     {
         M_param_map.erase( it );
     }
 
-    boost::shared_ptr< FormationRBF::Param > param( new FormationRBF::Param );
+    std::shared_ptr< FormationNGNet::Param > param( new Param() );
     param->setRoleName( role_name );
 
     M_param_map.insert( std::make_pair( unum, param ) );
@@ -383,17 +376,17 @@ FormationRBF::createNewRole( const int unum,
 
  */
 Vector2D
-FormationRBF::getPosition( const int unum,
-                           const Vector2D & ball_pos ) const
+FormationNGNet::getPosition( const int unum,
+                             const Vector2D & ball_pos ) const
 {
-    const boost::shared_ptr< const FormationRBF::Param > ptr = param( unum );
+    const std::shared_ptr< const Param > ptr = param( unum );
     if ( ! ptr )
     {
         std::cerr << __FILE__ << ':' << __LINE__
-                  << " *** ERROR *** FormationRBF::Param not found. unum = "
+                  << " *** ERROR *** FormationNGNet::Param not found. unum = "
                   << unum
                   << std::endl;
-        return Vector2D::INVALIDATED;
+        return Vector2D( 0.0, 0.0 );
     }
     Formation::SideType type = Formation::SIDE;
     if ( M_symmetry_number[unum - 1] > 0 )  type = Formation::SYMMETRY;
@@ -407,8 +400,8 @@ FormationRBF::getPosition( const int unum,
 
  */
 void
-FormationRBF::getPositions( const Vector2D & focus_point,
-                            std::vector< Vector2D > & positions ) const
+FormationNGNet::getPositions( const Vector2D & focus_point,
+                              std::vector< Vector2D > & positions ) const
 {
     positions.clear();
 
@@ -423,7 +416,7 @@ FormationRBF::getPositions( const Vector2D & focus_point,
 
  */
 void
-FormationRBF::train()
+FormationNGNet::train()
 {
     if ( ! M_samples
          || M_samples->dataCont().empty() )
@@ -431,13 +424,13 @@ FormationRBF::train()
         return;
     }
 
-    std::cerr << "FormationRBF::train. Started!!" << std::endl;
+    std::cerr << "FormationNGNet::train. Started!!" << std::endl;
 
     for ( int unum = 1; unum <= 11; ++unum )
     {
         int number = unum;
 
-        boost::shared_ptr< FormationRBF::Param > param = getParam( number );
+        std::shared_ptr< Param > param = getParam( number );
         if ( ! param )
         {
             std::cerr << __FILE__ << ": " << __LINE__
@@ -446,8 +439,8 @@ FormationRBF::train()
             break;
         }
 
-        RBFNetwork & net = param->getNet();
-        std::cerr << "FormationRBF::train. " << unum
+        NGNet & net = param->getNet();
+        std::cerr << "---------- FormationNGNet::train. " << unum
                   << " current unit size = "
                   << net.units().size()
                   << std::endl;
@@ -456,22 +449,28 @@ FormationRBF::train()
         {
             SampleDataSet::DataCont::const_iterator d = M_samples->dataCont().begin();
             int count = net.units().size();
-            std::cerr << "FormationRBF::train. need to add new center "
+            std::cerr << "FormationNGNet::train. need to add new center "
                       << M_samples->dataCont().size() - net.units().size() << std::endl;
             while ( --count >= 0
                     && d != M_samples->dataCont().end() )
             {
-                std::cerr << "FormationRBF::train. skip known data...." << std::endl;
+                std::cerr << "FormationNGNet::train. skip known data...." << std::endl;
                 ++d;
             }
 
             while ( d != M_samples->dataCont().end() )
             {
-                std::cerr << "FormationRBF::train. added new center "
+                std::cerr << "FormationNGNet::train. added new center "
                           << d->ball_
                           << std::endl;
-                RBFNetwork::input_vector center( 2, 0.0 );
+                NGNet::input_vector center;
+                //center[0] = bound( 0.0,
+                //                   d->ball_.x / PITCH_LENGTH + 0.5,
+                //                   1.0 );
                 center[0] = d->ball_.x;
+                //center[1] = bound( 0.0,
+                //                   d->ball_.y / PITCH_WIDTH + 0.5,
+                //                   1.0 );
                 center[1] = d->ball_.y;
                 net.addCenter( center );
 
@@ -481,8 +480,8 @@ FormationRBF::train()
 
         net.printUnits( std::cerr );
 
-        RBFNetwork::input_vector input( 2, 0.0 );
-        RBFNetwork::output_vector teacher( 2, 0.0 );
+        NGNet::input_vector input;
+        NGNet::output_vector teacher;
 
         const SampleDataSet::DataCont::const_iterator d_end = M_samples->dataCont().end();
         int loop = 0;
@@ -498,6 +497,20 @@ FormationRBF::train()
                   d != d_end;
                   ++d, data_count += 1.0 )
             {
+                /*
+                  input[0] = bound( 0.0,
+                  snap->ball_.x / PITCH_LENGTH + 0.5,
+                  1.0 );
+                  input[1] = bound( 0.0,
+                  snap->ball_.y / PITCH_WIDTH + 0.5,
+                  1.0 );
+                  teacher[0] = bound( 0.0,
+                  snap->players_[unum - 1].x / PITCH_LENGTH + 0.5,
+                  1.0 );
+                  teacher[1] = bound( 0.0,
+                  snap->players_[unum - 1].y / PITCH_WIDTH + 0.5,
+                  1.0 );
+                */
                 input[0] = d->ball_.x;
                 input[1] = d->ball_.y;
                 teacher[0] = d->players_[unum - 1].x;
@@ -542,7 +555,7 @@ FormationRBF::train()
                   << std::endl;
         net.printUnits( std::cerr );
     }
-    std::cerr << "FormationRBF::train. Ended!!" << std::endl;
+    std::cerr << "FormationNGNet::train. Ended!!" << std::endl;
 }
 
 /*-------------------------------------------------------------------*/
@@ -550,7 +563,7 @@ FormationRBF::train()
 
  */
 bool
-FormationRBF::read( std::istream & is )
+FormationNGNet::read( std::istream & is )
 {
     if ( ! readHeader( is ) ) return false;
     if ( ! readConf( is ) ) return false;
@@ -571,7 +584,7 @@ FormationRBF::read( std::istream & is )
 
  */
 std::ostream &
-FormationRBF::print( std::ostream & os ) const
+FormationNGNet::print( std::ostream & os ) const
 {
     if ( os ) printHeader( os );
     if ( os ) printConf( os );
@@ -584,28 +597,24 @@ FormationRBF::print( std::ostream & os ) const
 /*!
 
  */
-boost::shared_ptr< FormationRBF::Param >
-FormationRBF::getParam( const int unum )
+std::shared_ptr< FormationNGNet::Param >
+FormationNGNet::getParam( const int unum )
 {
     if ( unum < 1 || 11 < unum )
     {
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** invalid unum " << unum
                   << std::endl;
-        return boost::shared_ptr< FormationRBF::Param >
-            ( static_cast< FormationRBF::Param * >( 0 ) );
+        return std::shared_ptr< FormationNGNet::Param >( nullptr );
     }
 
-    std::map< int, boost::shared_ptr< FormationRBF::Param > >::const_iterator
-        it = M_param_map.find( unum );
-
+    std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
     if ( it == M_param_map.end() )
     {
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** Parameter not found! unum = "
                   << unum << std::endl;
-        return boost::shared_ptr< FormationRBF::Param >
-            ( static_cast< FormationRBF::Param * >( 0 ) );
+        return std::shared_ptr< Param >( nullptr );
     }
 
     return it->second;
@@ -615,28 +624,24 @@ FormationRBF::getParam( const int unum )
 /*!
 
  */
-boost::shared_ptr< const FormationRBF::Param >
-FormationRBF::param( const int unum ) const
+std::shared_ptr< const FormationNGNet::Param >
+FormationNGNet::param( const int unum ) const
 {
     if ( unum < 1 || 11 < unum )
     {
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** invalid unum " << unum
                   << std::endl;
-        return boost::shared_ptr< const FormationRBF::Param >
-            ( static_cast< FormationRBF::Param * >( 0 ) );
+        return std::shared_ptr< const Param >( nullptr );
     }
 
-    std::map< int, boost::shared_ptr< FormationRBF::Param > >::const_iterator
-        it = M_param_map.find( unum );
-
+    std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
     if ( it == M_param_map.end() )
     {
         std::cerr << __FILE__ << ":" << __LINE__
                   << " *** ERROR *** Parameter not found! unum = "
                   << unum << std::endl;
-        return boost::shared_ptr< const FormationRBF::Param >
-            ( static_cast< FormationRBF::Param * >( 0 ) );
+        return std::shared_ptr< const Param >( nullptr );
     }
 
     return it->second;
@@ -647,7 +652,7 @@ FormationRBF::param( const int unum ) const
 
  */
 bool
-FormationRBF::readConf( std::istream & is )
+FormationNGNet::readConf( std::istream & is )
 {
     if ( ! readPlayers( is ) )
     {
@@ -662,7 +667,7 @@ FormationRBF::readConf( std::istream & is )
 
  */
 bool
-FormationRBF::readPlayers( std::istream & is )
+FormationNGNet::readPlayers( std::istream & is )
 {
     int player_read = 0;
     std::string line_buf;
@@ -737,7 +742,7 @@ FormationRBF::readPlayers( std::istream & is )
         */
 
         // read parameters
-        boost::shared_ptr< FormationRBF::Param > param( new FormationRBF::Param );
+        std::shared_ptr< Param > param( new Param() );
         if ( ! param->read( is ) )
         {
             std::cerr << __FILE__ << ":" << __LINE__
@@ -761,6 +766,7 @@ FormationRBF::readPlayers( std::istream & is )
         return false;
     }
 
+
     if ( ! std::getline( is, line_buf )
          || line_buf != "End" )
     {
@@ -778,7 +784,7 @@ FormationRBF::readPlayers( std::istream & is )
 
 */
 std::ostream &
-FormationRBF::printConf( std::ostream & os ) const
+FormationNGNet::printConf( std::ostream & os ) const
 {
     for ( int i = 0; i < 11; ++i )
     {
@@ -787,12 +793,11 @@ FormationRBF::printConf( std::ostream & os ) const
         /*
           if ( M_symmetry_number[i] > 0 )
           {
-          continue;
+           continue;
           }
         */
 
-        std::map< int, boost::shared_ptr< FormationRBF::Param > >::const_iterator
-            it = M_param_map.find( unum );
+        std::map< int, std::shared_ptr< Param > >::const_iterator it = M_param_map.find( unum );
         if ( it == M_param_map.end() )
         {
             std::cerr << __FILE__ << ":" << __LINE__
@@ -821,12 +826,12 @@ namespace {
 Formation::Ptr
 create()
 {
-    Formation::Ptr ptr( new FormationRBF() );
+    Formation::Ptr ptr( new FormationNGNet() );
     return ptr;
 }
 
 rcss::RegHolder f = Formation::creators().autoReg( &create,
-                                                   FormationRBF::NAME );
+                                                   FormationNGNet::NAME );
 
 }
 

@@ -149,16 +149,15 @@ public:
 private:
 
     // not used
-    Localization( const Localization & );
-    Localization & operator=( const Localization & );
+    Localization( const Localization & ) = delete;
+    Localization & operator=( const Localization & ) = delete;
 
 protected:
 
     /*!
       \brief default constructor (protected)
     */
-    Localization()
-      { }
+    Localization() = default;
 
 public:
 
@@ -166,8 +165,7 @@ public:
       \brief destructor
     */
     virtual
-    ~Localization()
-      { }
+    ~Localization() = default;
 
    /*!
       \brief update internal state using received sense_body information

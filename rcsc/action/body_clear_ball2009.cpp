@@ -67,12 +67,9 @@ get_minimum_evaluation( const AbstractPlayerObject::Cont & container,
 {
     double min_value = std::numeric_limits< double >::max();
 
-    for ( AbstractPlayerObject::Cont::const_iterator it = container.begin(),
-              end = container.end();
-          it != end;
-          ++it )
+    for ( const AbstractPlayerObject * p : container )
     {
-        double value = (*evaluator)( **it );
+        double value = (*evaluator)( *p );
 
         if ( value < min_value )
         {
@@ -97,14 +94,11 @@ get_free_angle( const WorldModel & wm,
     //                  360.0 );
 
     double min_diff = 360.0;
-    for ( AbstractPlayerObject::Cont::const_iterator p = wm.theirPlayers().begin(),
-              end = wm.theirPlayers().end();
-          p != end;
-          ++p )
+    for ( const AbstractPlayerObject * p : wm.theirPlayers() )
     {
-        if ( (*p)->distFromBall() > 35.0 ) continue;
+        if ( p->distFromBall() > 35.0 ) continue;
 
-        double angle_diff = ( angle - (*p)->angleFromBall() ).abs();
+        double angle_diff = ( angle - p->angleFromBall() ).abs();
         if ( angle_diff < min_diff )
         {
             min_diff = angle_diff;
@@ -315,7 +309,7 @@ get_clear_course( const WorldModel & wm )
     s_update_time = wm.time();
 
 #ifdef DEBUG_PROFILE
-    MSecTimer timer;
+    Timer timer;
 #endif
     s_last_angle = get_clear_course_recursive( wm,
                                                25.0, /* safe angle */

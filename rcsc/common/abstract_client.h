@@ -32,8 +32,7 @@
 #ifndef RCSC_COMMON_ABSTRACT_CLIENT_H
 #define RCSC_COMMON_ABSTRACT_CLIENT_H
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <string>
 
 namespace rcsc {
@@ -62,10 +61,10 @@ private:
     int M_interval_msec;
 
     //! send message compressor
-    boost::shared_ptr< GZCompressor > M_compressor;
+    std::shared_ptr< GZCompressor > M_compressor;
 
     //! receive message decompressor
-    boost::shared_ptr< GZDecompressor > M_decompressor;
+    std::shared_ptr< GZDecompressor > M_decompressor;
 
     //! gzip compression level
     int M_compression_level;

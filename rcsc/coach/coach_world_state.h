@@ -37,8 +37,7 @@
 #include <rcsc/game_time.h>
 #include <rcsc/game_mode.h>
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <iostream>
 #include <list>
 #include <map>
@@ -59,8 +58,8 @@ struct DispInfoT;
 class CoachWorldState {
 public:
 
-    typedef boost::shared_ptr< CoachWorldState > Ptr; //!< smart pointer type
-    typedef boost::shared_ptr< const CoachWorldState > ConstPtr; //!< smart const pointer type
+    typedef std::shared_ptr< CoachWorldState > Ptr; //!< smart pointer type
+    typedef std::shared_ptr< const CoachWorldState > ConstPtr; //!< smart const pointer type
 
     typedef std::list< ConstPtr > List;
     typedef std::map< GameTime, ConstPtr, GameTime::Less > Map;
@@ -97,8 +96,8 @@ private:
     const CoachPlayerObject * M_fastest_intercept_opponent; //!< the opponent that the smallest ball reach step in opponents.
 
     // not used
-    CoachWorldState( const CoachWorldState & );
-    CoachWorldState & operator=( const CoachWorldState & );
+    CoachWorldState( const CoachWorldState & ) = delete;
+    CoachWorldState & operator=( const CoachWorldState & ) = delete;
 
 public:
 
@@ -302,7 +301,7 @@ public:
      */
     const CoachPlayerObject * teammate( const int unum ) const
       {
-          if ( unum < 1 || 11 < unum ) return static_cast< const CoachPlayerObject * >( 0 );
+          if ( unum < 1 || 11 < unum ) return nullptr;
           return M_teammate_array[unum-1];
       }
 
@@ -313,7 +312,7 @@ public:
      */
     const CoachPlayerObject * opponent( const int unum ) const
       {
-          if ( unum < 1 || 11 < unum ) return static_cast< const CoachPlayerObject * >( 0 );
+          if ( unum < 1 || 11 < unum ) return nullptr;
           return M_opponent_array[unum-1];
       }
 

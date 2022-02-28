@@ -139,10 +139,10 @@ void
 Polygon2DTest::testGetBoundingBox()
 {
     std::vector< rcsc::Vector2D > rect;
-    rect.push_back( rcsc::Vector2D( +200.0, +100.0 ) );
-    rect.push_back( rcsc::Vector2D( -200.0, +100.0 ) );
-    rect.push_back( rcsc::Vector2D( -200.0, -100.0 ) );
-    rect.push_back( rcsc::Vector2D( +200.0, -100.0 ) );
+    rect.emplace_back( +200.0, +100.0 );
+    rect.emplace_back( -200.0, +100.0 );
+    rect.emplace_back( -200.0, -100.0 );
+    rect.emplace_back( +200.0, -100.0 );
 
     const rcsc::Polygon2D rectangle( rect );
 
@@ -166,10 +166,10 @@ void
 Polygon2DTest::testContains1()
 {
     std::vector< rcsc::Vector2D > rect;
-    rect.push_back( rcsc::Vector2D( +200.0, +100.0 ) );
-    rect.push_back( rcsc::Vector2D( -200.0, +100.0 ) );
-    rect.push_back( rcsc::Vector2D( -200.0, -100.0 ) );
-    rect.push_back( rcsc::Vector2D( +200.0, -100.0 ) );
+    rect.emplace_back( +200.0, +100.0 );
+    rect.emplace_back( -200.0, +100.0 );
+    rect.emplace_back( -200.0, -100.0 );
+    rect.emplace_back( +200.0, -100.0 );
 
     const rcsc::Polygon2D rectangle( rect );
 
@@ -197,9 +197,9 @@ Polygon2DTest::testContains2()
     // contains 2
     //
     std::vector< rcsc::Vector2D > tri;
-    tri.push_back( rcsc::Vector2D( -200.0, -100.0 ) );
-    tri.push_back( rcsc::Vector2D(    0.0, +100.0 ) );
-    tri.push_back( rcsc::Vector2D( +200.0, -100.0 ) );
+    tri.emplace_back( -200.0, -100.0 );
+    tri.emplace_back(    0.0, +100.0 );
+    tri.emplace_back( +200.0, -100.0 );
 
     const rcsc::Polygon2D triangle( tri );
 
@@ -219,9 +219,9 @@ Polygon2DTest::testContains3()
     // contains 3
     //
     std::vector< rcsc::Vector2D > tri2;
-    tri2.push_back( rcsc::Vector2D(   0.0,   0.0 ) );
-    tri2.push_back( rcsc::Vector2D( 100.0, 100.0 ) );
-    tri2.push_back( rcsc::Vector2D(   0.0, 200.0 ) );
+    tri2.emplace_back(   0.0,   0.0 );
+    tri2.emplace_back( 100.0, 100.0 );
+    tri2.emplace_back(   0.0, 200.0 );
 
     const rcsc::Polygon2D triangle2( tri2 );
 
@@ -240,10 +240,10 @@ Polygon2DTest::testContains4()
     // contains 4
     //
     std::vector< rcsc::Vector2D > tri3;
-    tri3.push_back( rcsc::Vector2D(   0.0,   0.0 ) );
-    tri3.push_back( rcsc::Vector2D( 100.0, 100.0 ) );
-    tri3.push_back( rcsc::Vector2D( 100.0, 100.0 ) );
-    tri3.push_back( rcsc::Vector2D(   0.0, 200.0 ) );
+    tri3.emplace_back(   0.0,   0.0 );
+    tri3.emplace_back( 100.0, 100.0 );
+    tri3.emplace_back( 100.0, 100.0 );
+    tri3.emplace_back(   0.0, 200.0 );
 
     const rcsc::Polygon2D triangle3( tri3 );
 
@@ -262,11 +262,11 @@ Polygon2DTest::testContains5()
     // contains 5
     //
     std::vector< rcsc::Vector2D > tri4;
-    tri4.push_back( rcsc::Vector2D(   0.0,   0.0 ) );
-    tri4.push_back( rcsc::Vector2D( 100.0, 100.0 ) );
-    tri4.push_back( rcsc::Vector2D( 100.0, 100.0 ) );
-    tri4.push_back( rcsc::Vector2D( 100.0, 100.0 ) );
-    tri4.push_back( rcsc::Vector2D(   0.0, 200.0 ) );
+    tri4.emplace_back(   0.0,   0.0 );
+    tri4.emplace_back( 100.0, 100.0 );
+    tri4.emplace_back( 100.0, 100.0 );
+    tri4.emplace_back( 100.0, 100.0 );
+    tri4.emplace_back(   0.0, 200.0 );
 
     const rcsc::Polygon2D triangle4( tri4 );
 
@@ -284,10 +284,10 @@ Polygon2DTest::testContains6()
     // contains 6
     //
     std::vector< rcsc::Vector2D > rect;
-    rect.push_back( rcsc::Vector2D(  0,  0 ) );
-    rect.push_back( rcsc::Vector2D( 10,  0 ) );
-    rect.push_back( rcsc::Vector2D( 10, 10 ) );
-    rect.push_back( rcsc::Vector2D(  0, 10 ) );
+    rect.emplace_back(  0,  0 );
+    rect.emplace_back( 10,  0 );
+    rect.emplace_back( 10, 10 );
+    rect.emplace_back(  0, 10 );
 
     const rcsc::Polygon2D r( rect );
 
@@ -306,10 +306,10 @@ Polygon2DTest::testContains7()
     // contains (grid)
     //
     std::vector< rcsc::Vector2D > rect;
-    rect.push_back( rcsc::Vector2D(  0,  0 ) );
-    rect.push_back( rcsc::Vector2D( 10,  0 ) );
-    rect.push_back( rcsc::Vector2D( 10, 10 ) );
-    rect.push_back( rcsc::Vector2D(  0, 10 ) );
+    rect.emplace_back(  0,  0 );
+    rect.emplace_back( 10,  0 );
+    rect.emplace_back( 10, 10 );
+    rect.emplace_back(  0, 10 );
 
     const rcsc::Polygon2D r( rect );
 
@@ -346,9 +346,9 @@ Polygon2DTest::testContains8()
     // contains
     //
     std::vector< rcsc::Vector2D > v;
-    v.push_back( rcsc::Vector2D( 100, 100 ) );
-    v.push_back( rcsc::Vector2D( 200, 100 ) );
-    v.push_back( rcsc::Vector2D( 200, 500 ) );
+    v.emplace_back( 100, 100 );
+    v.emplace_back( 200, 100 );
+    v.emplace_back( 200, 500 );
 
     const rcsc::Polygon2D tri( v );
 
@@ -432,15 +432,15 @@ Polygon2DTest::testEmptyArea()
     // empty area
     //
     std::vector< rcsc::Vector2D > a0;
-    a0.push_back( rcsc::Vector2D( 100.0, 100.0 ) );
-    a0.push_back( rcsc::Vector2D( 100.0, 100.0 ) );
-    a0.push_back( rcsc::Vector2D( 100.0, 100.0 ) );
-    a0.push_back( rcsc::Vector2D( 100.0, 100.0 ) );
-    a0.push_back( rcsc::Vector2D( 100.0, 100.0 ) );
+    a0.emplace_back( 100.0, 100.0 );
+    a0.emplace_back( 100.0, 100.0 );
+    a0.emplace_back( 100.0, 100.0 );
+    a0.emplace_back( 100.0, 100.0 );
+    a0.emplace_back( 100.0, 100.0 );
 
     const rcsc::Polygon2D area_1( a0 );
 
-    a0.push_back( rcsc::Vector2D( 100.0, 100.0 ) );
+    a0.emplace_back( 100.0, 100.0 );
     const rcsc::Polygon2D area_2( a0 );
 
 
@@ -484,11 +484,11 @@ Polygon2DTest::testScissoring()
     //                         //
 
     std::vector< rcsc::Vector2D > v;
-    v.push_back( rcsc::Vector2D(   0,   0 ) );
-    v.push_back( rcsc::Vector2D( 200,   0 ) );
-    v.push_back( rcsc::Vector2D( 200, 200 ) );
-    v.push_back( rcsc::Vector2D(   0, 200 ) );
-    v.push_back( rcsc::Vector2D(   0,   0 ) );
+    v.emplace_back(   0,   0 );
+    v.emplace_back( 200,   0 );
+    v.emplace_back( 200, 200 );
+    v.emplace_back(   0, 200 );
+    v.emplace_back(   0,   0 );
 
     const rcsc::Polygon2D polygon( v );
 
@@ -515,10 +515,10 @@ Polygon2DTest::testGetDistance()
     // get_distance
     //
     std::vector< rcsc::Vector2D > rect;
-    rect.push_back( rcsc::Vector2D(  0,  0 ) );
-    rect.push_back( rcsc::Vector2D( 10,  0 ) );
-    rect.push_back( rcsc::Vector2D( 10, 10 ) );
-    rect.push_back( rcsc::Vector2D(  0, 10 ) );
+    rect.emplace_back(  0,  0 );
+    rect.emplace_back( 10,  0 );
+    rect.emplace_back( 10, 10 );
+    rect.emplace_back(  0, 10 );
 
     const rcsc::Polygon2D r( rect );
 
@@ -543,10 +543,10 @@ Polygon2DTest::testXYCenter()
     // area, xyCenter
     //
     std::vector< rcsc::Vector2D > rect;
-    rect.push_back( rcsc::Vector2D( 10, 10 ) );
-    rect.push_back( rcsc::Vector2D( 20, 10 ) );
-    rect.push_back( rcsc::Vector2D( 20, 20 ) );
-    rect.push_back( rcsc::Vector2D( 10, 20 ) );
+    rect.emplace_back( 10, 10 );
+    rect.emplace_back( 20, 10 );
+    rect.emplace_back( 20, 20 );
+    rect.emplace_back( 10, 20 );
 
     const rcsc::Polygon2D r( rect );
 
@@ -569,16 +569,16 @@ Polygon2DTest::testSignedArea2()
     std::vector< rcsc::Vector2D > points;
     const rcsc::Polygon2D empty(points);
 
-    points.push_back( rcsc::Vector2D( 10, 10 ) );
+    points.emplace_back( 10, 10 );
     const rcsc::Polygon2D point(points);
 
-    points.push_back( rcsc::Vector2D( 20, 10 ) );
+    points.emplace_back( 20, 10 );
     const rcsc::Polygon2D line(points);
 
-    points.push_back( rcsc::Vector2D( 20, 20 ) );
+    points.emplace_back( 20, 20 );
     const rcsc::Polygon2D triangle(points);
 
-    points.push_back( rcsc::Vector2D( 10, 20 ) );
+    points.emplace_back( 10, 20 );
     const rcsc::Polygon2D rectangle(points);
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL(    0.0 - empty    .doubleSignedArea(), 0.0, EPS );
@@ -605,12 +605,12 @@ Polygon2DTest::testSignedArea2()
 
 
     std::vector< rcsc::Vector2D > r_points;
-    r_points.push_back( rcsc::Vector2D( 10, 20 ) );
-    r_points.push_back( rcsc::Vector2D( 20, 20 ) );
-    r_points.push_back( rcsc::Vector2D( 20, 10 ) );
+    r_points.emplace_back( 10, 20 );
+    r_points.emplace_back( 20, 20 );
+    r_points.emplace_back( 20, 10 );
     const rcsc::Polygon2D r_triangle(r_points);
 
-    r_points.push_back( rcsc::Vector2D( 10, 10 ) );
+    r_points.emplace_back( 10, 10 );
     const rcsc::Polygon2D r_rectangle(r_points);
 
     CPPUNIT_ASSERT_DOUBLES_EQUAL( -100.0 - r_triangle .doubleSignedArea(), 0.0, EPS );

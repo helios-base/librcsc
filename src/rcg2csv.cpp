@@ -79,7 +79,7 @@ private:
     CommandCount M_command_count[rcsc::MAX_PLAYER * 2];
 
     // not used
-    CSVPrinter();
+    CSVPrinter() = delete;
 public:
 
     explicit

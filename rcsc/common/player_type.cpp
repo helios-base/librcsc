@@ -41,8 +41,7 @@
 
 #include <rcsc/rcg/util.h>
 
-#include <boost/random.hpp>
-
+#include <random>
 #include <sstream>
 #include <iostream>
 #include <algorithm>
@@ -56,7 +55,7 @@ namespace {
 
 class HeteroDelta {
 private:
-    boost::mt19937 M_engine;
+    std::mt19937 M_engine;
 
 public:
 
@@ -71,9 +70,10 @@ public:
           }
           else
           {
-              int seed = static_cast< int >( std::time( 0 ) );
-              std::cout << "Hetero Player Seed: " << seed << std::endl;
-              M_engine.seed( seed );
+              std::random_device seed_gen;
+              std::random_device::result_type s = seed_gen();
+              std::cout << "Hetero Player Seed: " << s << std::endl;
+              M_engine.seed( s );
           }
       }
 
@@ -90,9 +90,9 @@ public:
               std::swap( min, max );
           }
 
-          boost::uniform_real< double > rng( min, max );
-          boost::variate_generator< boost::mt19937&, boost::uniform_real<> > gen( M_engine, rng );
-          return gen();
+          // std::uniform_real_distribution< double > dst( min, max );
+          // return dst( M_engine );
+          return std::uniform_real_distribution< double >( min, max )( M_engine );
       }
 };
 
@@ -1093,7 +1093,7 @@ PlayerTypeSet::get( const int id ) const
 
     std::cerr << __FILE__ << ":(PlayerTypeSet::get) "
               << "ERROR: type " << id << " is not registered."<< std::endl;
-    return static_cast< PlayerType * >( 0 );
+    return nullptr;
 }
 
 /*-------------------------------------------------------------------*/
@@ -1105,8 +1105,7 @@ PlayerTypeSet::print( std::ostream & os ) const
 {
     os << "All Player Types: n";
 
-    for ( Map::const_iterator it = M_player_type_map.begin(),
-              end = M_player_type_map.end();
+    for ( Map::const_iterator it = M_player_type_map.begin(), end = M_player_type_map.end();
           it != end;
           ++it )
     {

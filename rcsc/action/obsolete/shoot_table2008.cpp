@@ -86,7 +86,7 @@ ShootTable2008::search( const PlayerAgent * agent )
     }
 
 #ifdef DEBUG_PROFILE
-    MSecTimer timer;
+    Timer timer;
 #endif
 
     Vector2D goal_l( ServerParam::i().pitchHalfLength(),

@@ -44,16 +44,15 @@ private:
     std::vector< RGBColor > M_colors;
 
     // not used
-    GradationColorProvider( const GradationColorProvider & );
-    GradationColorProvider & operator=( const GradationColorProvider & );
+    GradationColorProvider( const GradationColorProvider & ) = delete;
+    GradationColorProvider & operator=( const GradationColorProvider & ) = delete;
 
 protected:
 
     /*!
       \brief protected constructor
      */
-    GradationColorProvider()
-      { }
+    GradationColorProvider() = default;
 
     /*!
       \brief add new color that means the highest value.
@@ -67,8 +66,7 @@ public:
       \brief virtual destructor.
      */
     virtual
-    ~GradationColorProvider()
-      { }
+    ~GradationColorProvider() = default;
 
     /*
       \brief convert [0.0, 1.0] value to a color

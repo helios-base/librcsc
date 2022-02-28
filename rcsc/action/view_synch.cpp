@@ -111,7 +111,7 @@ View_Synch::doTimerSynchView( PlayerAgent * agent )
         return agent->doChangeView( ViewWidth::NARROW );
     }
 
-    if ( agent->bodyTimeStamp().sec() <= 0 )
+    if ( ! agent->bodyTimeStamp().isValid() )
     {
         // have not received sense_body.
         dlog.addText( Logger::SYSTEM,
@@ -136,13 +136,10 @@ View_Synch::doTimerSynchView( PlayerAgent * agent )
         return agent->doChangeView( ViewWidth::NARROW );
     }
 
-    double msec_diff_real
-        = agent->seeTimeStamp().getRealMSecDiffFrom( agent->bodyTimeStamp() );
-    msec_diff_real
-        /= static_cast< double >( ServerParam::i().slowDownFactor() );
+    double msec_diff_real = agent->seeTimeStamp().elapsedSince( agent->bodyTimeStamp() );
+    msec_diff_real /= static_cast< double >( ServerParam::i().slowDownFactor() );
 
-    const long msec_diff
-        = static_cast< long >( rint( msec_diff_real ) );
+    const long msec_diff = static_cast< long >( rint( msec_diff_real ) );
 
     // adjust see step depending on time diffrence between sense_body & see
     //if ( msec_diff < 15 ) // msec + 150 + 10 < 100 * 2 - 25

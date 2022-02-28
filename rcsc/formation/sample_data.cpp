@@ -39,9 +39,6 @@
 
 #include <rcsc/geom/segment_2d.h>
 
-//#include <boost/tokenizer.hpp>
-//#include <boost/lexical_cast.hpp>
-
 #include <iterator>
 #include <algorithm>
 #include <limits>
@@ -108,7 +105,7 @@ SampleDataSet::data( const size_t idx ) const
     if ( M_data_cont.empty()
          || M_data_cont.size() < idx )
     {
-        return static_cast< const SampleData * >( 0 );
+        return nullptr;
     }
 
     SampleDataSet::DataCont::const_iterator it = M_data_cont.begin();
@@ -132,9 +129,8 @@ SampleDataSet::nearestData( const Vector2D & pos,
     size_t index = 0;
     double min_dist2 = std::numeric_limits< double >::max();
 
-    const DataCont::const_iterator p_end = M_data_cont.end();
-    for ( DataCont::const_iterator p = M_data_cont.begin();
-          p != p_end;
+    for ( DataCont::const_iterator p = M_data_cont.begin(), end = M_data_cont.end();
+          p != end;
           ++p, ++index )
     {
         double d2 = p->ball_.dist2( pos );
@@ -160,12 +156,9 @@ SampleDataSet::existTooNearData( const SampleData & data ) const
 {
     const double dist_thr2 = NEAR_DIST_THR * NEAR_DIST_THR;
 
-    const DataCont::const_iterator end = M_data_cont.end();
-    for ( DataCont::const_iterator d = M_data_cont.begin();
-          d != end;
-          ++d )
+    for ( const SampleData & d : M_data_cont )
     {
-        if ( d->ball_.dist2( data.ball_ ) < dist_thr2 )
+        if ( d.ball_.dist2( data.ball_ ) < dist_thr2 )
         {
             return true;
         }
@@ -182,11 +175,10 @@ void
 SampleDataSet::updateDataIndex()
 {
     int index = 0;
-    for ( DataCont::iterator d = M_data_cont.begin();
-          d != M_data_cont.end();
-          ++d, ++index )
+    for ( SampleData & data : M_data_cont )
     {
-        d->index_ = index;
+        data.index_ = index;
+        ++index;
     }
 }
 
@@ -197,11 +189,9 @@ SampleDataSet::updateDataIndex()
 bool
 SampleDataSet::existIntersectedConstraint( const Vector2D & pos ) const
 {
-    for ( Constraints::const_iterator c = M_constraints.begin();
-          c != M_constraints.end();
-          ++c )
+    for ( const Constraint & c : M_constraints )
     {
-        const Segment2D s( c->first->ball_, c->second->ball_ );
+        const Segment2D s( c.first->ball_, c.second->ball_ );
 
         if ( s.onSegmentWeakly( pos ) )
         {
@@ -406,8 +396,7 @@ SampleDataSet::replaceData( const Formation & formation,
     //
     {
         const double dist_thr2 = NEAR_DIST_THR * NEAR_DIST_THR;
-        const DataCont::iterator end = M_data_cont.end();
-        for ( DataCont::iterator it = M_data_cont.begin();
+        for ( DataCont::iterator it = M_data_cont.begin(), end = M_data_cont.end();
               it != end;
               ++it )
         {
@@ -483,8 +472,7 @@ SampleDataSet::replaceSymmetryData( const Formation & formation,
         const Vector2D pos( original_data.ball_.x, - original_data.ball_.y );
         const double dist_thr2 = NEAR_DIST_THR * NEAR_DIST_THR;
 
-        const DataCont::iterator end = M_data_cont.end();
-        for ( DataCont::iterator it = M_data_cont.begin();
+        for ( DataCont::iterator it = M_data_cont.begin(), end = M_data_cont.end();
               it != end;
               ++it )
         {
@@ -676,17 +664,15 @@ SampleDataSet::addConstraint( const size_t origin_idx,
 
     const Segment2D constraint( origin->ball_, terminal->ball_ );
 
-    for ( Constraints::const_iterator c = M_constraints.begin();
-          c != M_constraints.end();
-          ++c )
+    for ( const Constraint & c : M_constraints )
     {
-        if ( constraint.existIntersectionExceptEndpoint( Segment2D( c->first->ball_,
-                                                                    c->second->ball_ ) ) )
+        if ( constraint.existIntersectionExceptEndpoint( Segment2D( c.first->ball_,
+                                                                    c.second->ball_ ) ) )
         {
             std::cerr << __FILE__ << ':' << __LINE__ << ':'
                       << " addConstraint() the input constraint intersects with existing constraint. "
                       << " input:" << origin->ball_ << '-' << terminal->ball_
-                      << " intersected:" << c->first->ball_ << '-' << c->second ->ball_
+                      << " intersected:" << c.first->ball_ << '-' << c.second ->ball_
                       << std::endl;
             return INTERSECTS_CONSTRAINT;
         }
@@ -1449,17 +1435,13 @@ std::ostream &
 SampleDataSet::printV1( std::ostream & os ) const
 {
     // put data to the stream
-    for ( DataCont::const_iterator it = M_data_cont.begin();
-          it != M_data_cont.end();
-          ++it )
+    for ( const SampleData & data : M_data_cont )
     {
-        os << round_coord( it->ball_.x ) << ' ' << round_coord( it->ball_.y ) << ' ';
+        os << round_coord( data.ball_.x ) << ' ' << round_coord( data.ball_.y ) << ' ';
 
-        for ( std::vector< Vector2D >::const_iterator p = it->players_.begin();
-              p != it->players_.end();
-              ++p )
+        for ( const Vector2D & p : data.players_ )
         {
-            os << round_coord( p->x ) << ' ' << round_coord( p->y ) << ' ';
+            os << round_coord( p.x ) << ' ' << round_coord( p.y ) << ' ';
         }
         os << '\n';
     }
@@ -1478,18 +1460,16 @@ SampleDataSet::printV2( std::ostream & os ) const
 
     // put data to the stream
     int idx = 0;
-    for ( DataCont::const_iterator it = M_data_cont.begin();
-          it != M_data_cont.end();
-          ++it, ++idx )
+    for ( const SampleData & d : M_data_cont )
     {
         os << "----- " << idx << " -----\n";
-        os << "Ball " << round_coord( it->ball_.x ) << ' ' << round_coord( it->ball_.y ) << '\n';
+        ++idx;
+        os << "Ball " << round_coord( d.ball_.x ) << ' ' << round_coord( d.ball_.y ) << '\n';
         int unum = 1;
-        for ( std::vector< Vector2D >::const_iterator p = it->players_.begin();
-              p != it->players_.end();
-              ++p, ++unum )
+        for ( const Vector2D & p : d.players_ )
         {
-            os << unum << ' ' << round_coord( p->x ) << ' ' << round_coord( p->y ) << '\n';
+            os << unum << ' ' << round_coord( p.x ) << ' ' << round_coord( p.y ) << '\n';
+            ++unum;
         }
     }
 
@@ -1515,11 +1495,9 @@ SampleDataSet::printConstraints( std::ostream & os ) const
 
     os << "Begin Constraints " << M_constraints.size() << '\n';
 
-    for ( Constraints::const_iterator it = M_constraints.begin();
-          it != M_constraints.end();
-          ++it )
+    for ( const Constraint & c : M_constraints )
     {
-        os << it->first->index_ << ' ' << it->second->index_ << '\n';
+        os << c.first->index_ << ' ' << c.second->index_ << '\n';
     }
 
     os << "End Constraints\n";
@@ -1545,17 +1523,14 @@ SampleDataSet::printCSV( std::ostream & os ) const
     os << '\n';
 
     int idx = 0;
-    for ( DataCont::const_iterator it = M_data_cont.begin();
-          it != M_data_cont.end();
-          ++it, ++idx )
+    for ( const SampleData & data : M_data_cont )
     {
         os << idx << ',';
-        os << round_coord( it->ball_.x ) << ',' << round_coord( it->ball_.y );
-        for ( std::vector< Vector2D >::const_iterator p = it->players_.begin();
-              p != it->players_.end();
-              ++p )
+        ++idx;
+        os << round_coord( data.ball_.x ) << ',' << round_coord( data.ball_.y );
+        for ( const Vector2D & p : data.players_ )
         {
-            os << ',' << round_coord( p->x ) << ',' << round_coord( p->y );
+            os << ',' << round_coord( p.x ) << ',' << round_coord( p.y );
         }
         os << '\n';
     }
@@ -1564,11 +1539,9 @@ SampleDataSet::printCSV( std::ostream & os ) const
     {
          os << "Constraints," << M_constraints.size() << '\n';
 
-         for ( Constraints::const_iterator it = M_constraints.begin();
-               it != M_constraints.end();
-               ++it )
+         for ( const Constraint & c : M_constraints )
          {
-             os << it->first->index_ << ',' << it->second->index_ << '\n';
+             os << c.first->index_ << ',' << c.second->index_ << '\n';
          }
     }
 

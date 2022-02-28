@@ -38,13 +38,13 @@
 #include <rcsc/player/view_area.h>
 #include <rcsc/player/view_grid_map.h>
 
+#include <rcsc/time/timer.h>
 #include <rcsc/geom/vector_2d.h>
 #include <rcsc/game_mode.h>
 #include <rcsc/game_time.h>
 #include <rcsc/types.h>
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <string>
 
 namespace rcsc {
@@ -80,7 +80,7 @@ private:
 
     Localization * M_localize; //!< localization module
     InterceptTable * M_intercept_table; //!< interception info table
-    boost::shared_ptr< AudioMemory > M_audio_memory; //!< heard deqinfo memory
+    std::shared_ptr< AudioMemory > M_audio_memory; //!< heard deqinfo memory
     PenaltyKickState * M_penalty_kick_state; //!< penalty kick mode status
 
     //////////////////////////////////////////////////
@@ -96,6 +96,10 @@ private:
     GameTime M_sense_body_time; //!< sense_body updated time
     GameTime M_see_time; //!< see updated time
     GameTime M_fullstate_time; //!< fullstate update time
+    GameTime M_decision_time; //!< action performed time
+
+    TimeStamp M_see_time_stamp; //! time stamp when see received
+    TimeStamp M_decision_time_stamp; //! time stamp when action performed
 
     GameTime M_last_set_play_start_time; //!< SetPlay started time
     int M_setplay_count; //!< setplay counter
@@ -194,9 +198,9 @@ private:
     //////////////////////////////////////////////////
 
     //! not used
-    WorldModel( const WorldModel & );
+    WorldModel( const WorldModel & ) = delete;
     //! not used
-    WorldModel & operator=( const WorldModel & );
+    WorldModel & operator=( const WorldModel & ) = delete;
 
 public:
     /*!
@@ -262,7 +266,7 @@ public:
       \param memory pointer to the memory instance. This must be
       a dynamically allocated object.
      */
-    void setAudioMemory( boost::shared_ptr< AudioMemory > memory );
+    void setAudioMemory( std::shared_ptr< AudioMemory > memory );
 
     /*!
       \brief set server param. this method have to be called only once just after server_param message received.
@@ -684,8 +688,19 @@ public:
     const GameTime & fullstateTime() const { return M_fullstate_time; }
 
     /*!
-      \brief get last time updated by fullstate
+      \brief get the time value when the last action performed
      */
+    const GameTime & decisionTime() const { return M_decision_time; }
+
+    /*!
+      \brief get the time stamp when see received
+    */
+    const TimeStamp & seeTimeStamp() const { return M_see_time_stamp; }
+
+    /*!
+      \brief get the time stamp when action performed
+    */
+    const TimeStamp & decisionTimeStamp() const { return M_decision_time_stamp; }
 
     /*!
       \brief get last setplay type playmode start time
@@ -856,23 +871,21 @@ private:
                                          const int count_thr,
                                          const bool with_goalie ) const
       {
-          for ( PlayerObject::Cont::const_iterator p = players.begin(), end = players.end();
-                p != end;
-                ++p )
+          for ( PlayerObject::Cont::const_reference p : players )
           {
               if ( ! with_goalie
-                   && (*p)->goalie() )
+                   && p->goalie() )
               {
                   continue;
               }
 
-              if ( ! (*p)->isGhost()
-                   && (*p)->posCount() <= count_thr )
+              if ( ! p->isGhost()
+                   && p->posCount() <= count_thr )
               {
-                  return *p;
+                  return p;
               }
           }
-          return static_cast< PlayerObject * >( 0 );
+          return nullptr;
       }
 
 public:
@@ -1247,7 +1260,7 @@ public:
       \param predicate predicate object for the player condition matching.
       \return container of AbstractPlayer pointer.
      */
-    AbstractPlayerObject::Cont getPlayers( boost::shared_ptr< const PlayerPredicate > predicate ) const;
+    AbstractPlayerObject::Cont getPlayers( std::shared_ptr< const PlayerPredicate > predicate ) const;
 
     /*!
       \brief get the new container of AbstractPlayer matched with the predicate.
@@ -1263,7 +1276,7 @@ public:
       \param predicate predicate object for the player condition matching.
      */
     void getPlayers( AbstractPlayerObject::Cont & result,
-                     boost::shared_ptr< const PlayerPredicate > predicate ) const;
+                     std::shared_ptr< const PlayerPredicate > predicate ) const;
 
     /*!
       \brief get the number of players that satisfy an input predicate.
@@ -1277,7 +1290,7 @@ public:
       \param predicate predicate predicate object for the player condition matching.
       \return number of players.
      */
-    size_t countPlayer( boost::shared_ptr< const PlayerPredicate > predicate ) const;
+    size_t countPlayer( std::shared_ptr< const PlayerPredicate > predicate ) const;
 
     /*!
       \brief get a goalie teammate (include self)
@@ -1380,7 +1393,7 @@ public:
                                                const int count_thr,
                                                double * dist_to_point ) const
       {
-          if ( ! p ) return static_cast< const PlayerObject * >( 0 );
+          if ( ! p ) return nullptr;
           return getTeammateNearestTo( p->pos(), count_thr, dist_to_point );
       }
 
@@ -1411,7 +1424,7 @@ public:
                                          const int count_thr,
                                          double * dist_to_point ) const
       {
-          if ( ! p ) return static_cast< const PlayerObject * >( 0 );
+          if ( ! p ) return nullptr;
           return getOpponentNearestTo( p->pos(), count_thr, dist_to_point );
       }
 
@@ -1430,20 +1443,18 @@ private:
                         const int count_thr,
                         const bool with_goalie ) const
       {
-          for ( PlayerObject::Cont::const_iterator it = players.begin(), end = players.end();
-                it != end;
-                ++it )
+          for ( PlayerObject::Cont::const_reference p : players )
           {
-              if ( (*it)->posCount() > count_thr
-                   || (*it)->isGhost() )
+              if ( p->posCount() > count_thr
+                   || p->isGhost() )
               {
                   continue;
               }
-              if ( (*it)->goalie() && ! with_goalie )
+              if ( p->goalie() && ! with_goalie )
               {
                   continue;
               }
-              if ( region.contains( (*it)->pos() ) )
+              if ( region.contains( p->pos() ) )
               {
                   return true;
               }
@@ -1499,18 +1510,16 @@ private:
                            const bool with_goalie ) const
       {
           size_t count = 0;
-          for ( PlayerObject::Cont::const_iterator it = players.begin(), end = players.end();
-                it != end;
-                ++it )
+          for ( PlayerObject::Cont::const_reference p : players )
           {
-              if ( (*it)->posCount() > count_thr
-                   || (*it)->isGhost()
-                   || ( (*it)->goalie() && ! with_goalie )
+              if ( p->posCount() > count_thr
+                   || p->isGhost()
+                   || ( p->goalie() && ! with_goalie )
                    )
               {
                   continue;
               }
-              if ( region.contains( (*it)->pos() ) )
+              if ( region.contains( p->pos() ) )
               {
                   ++count;
               }

@@ -50,7 +50,7 @@ CoachPlayerObject::CoachPlayerObject()
       M_unum( Unum_Unknown ),
       M_goalie( false ),
       M_type( Hetero_Unknown ),
-      M_player_type( static_cast< PlayerType * >( 0 ) ),
+      M_player_type( nullptr ),
       M_pos( Vector2D::INVALIDATED ),
       M_vel( 0.0, 0.0 ),
       M_body( 0.0 ),

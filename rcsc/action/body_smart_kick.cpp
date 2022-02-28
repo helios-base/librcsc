@@ -93,11 +93,9 @@ Body_SmartKick::execute( PlayerAgent * agent )
     {
         agent->debugClient().addMessage( "SmartKick%d", (int)M_sequence.pos_list_.size() );
 #ifdef DEBUG_PRINT
-        for ( std::vector< Vector2D >::const_iterator p = M_sequence.pos_list_.begin();
-              p != M_sequence.pos_list_.end();
-              ++p )
+        for ( const Vector2D & p : M_sequence.pos_list_ )
         {
-            agent->debugClient().addCircle( *p, 0.05 );
+            agent->debugClient().addCircle( p, 0.05 );
         }
 #endif
         dlog.addText( Logger::KICK,

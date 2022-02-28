@@ -38,8 +38,7 @@
 #include <rcsc/factory.h>
 #include <rcsc/types.h>
 
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <string>
 #include <list>
 #include <vector>
@@ -54,8 +53,8 @@ namespace rcsc {
 class Formation {
 public:
 
-    typedef boost::shared_ptr< Formation > Ptr; //<! pointer type
-    typedef boost::shared_ptr< const Formation > ConstPtr; //<! const pointer type
+    typedef std::shared_ptr< Formation > Ptr; //<! pointer type
+    typedef std::shared_ptr< const Formation > ConstPtr; //<! const pointer type
     typedef Ptr (*Creator)(); //!< creator function
     typedef rcss::Factory< Creator, std::string > Creators; //!< creator function holder
 

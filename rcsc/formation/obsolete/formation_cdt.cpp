@@ -115,17 +115,17 @@ FormationCDT::createDefaultData()
     SampleData data;
 
     data.ball_.assign( 0.0, 0.0 );
-    data.players_.push_back( Vector2D( -50.0, 0.0 ) );
-    data.players_.push_back( Vector2D( -20.0, -8.0 ) );
-    data.players_.push_back( Vector2D( -20.0, 8.0 ) );
-    data.players_.push_back( Vector2D( -18.0, -18.0 ) );
-    data.players_.push_back( Vector2D( -18.0, 18.0 ) );
-    data.players_.push_back( Vector2D( -15.0, 0.0 ) );
-    data.players_.push_back( Vector2D( 0.0, -12.0 ) );
-    data.players_.push_back( Vector2D( 0.0, 12.0 ) );
-    data.players_.push_back( Vector2D( 10.0, -22.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 22.0 ) );
-    data.players_.push_back( Vector2D( 10.0, 0.0 ) );
+    data.players_.emplace_back( -50.0, 0.0 );
+    data.players_.emplace_back( -20.0, -8.0 );
+    data.players_.emplace_back( -20.0, 8.0 );
+    data.players_.emplace_back( -18.0, -18.0 );
+    data.players_.emplace_back( -18.0, 18.0 );
+    data.players_.emplace_back( -15.0, 0.0 );
+    data.players_.emplace_back( 0.0, -12.0 );
+    data.players_.emplace_back( 0.0, 12.0 );
+    data.players_.emplace_back( 10.0, -22.0 );
+    data.players_.emplace_back( 10.0, 22.0 );
+    data.players_.emplace_back( 10.0, 0.0 );
 
     M_samples->addData( *this, data, false );
 }
@@ -360,22 +360,16 @@ FormationCDT::train()
     M_triangulation.clear();
     M_sample_vector.clear();
 
-    const SampleDataSet::DataCont::const_iterator d_end = M_samples->dataCont().end();
-    for ( SampleDataSet::DataCont::const_iterator d = M_samples->dataCont().begin();
-          d != d_end;
-          ++d )
+    for ( SampleDataSet::DataCont::const_refernce d : M_samples->dataCont() )
     {
-        M_triangulation.addPoint( d->ball_ );
-        M_sample_vector.push_back( *d );
+        M_triangulation.addPoint( d.ball_ );
+        M_sample_vector.push_back( d );
     }
 
-    const SampleDataSet::Constraints::const_iterator c_end = M_samples->constraints().end();
-    for ( SampleDataSet::Constraints::const_iterator c = M_samples->constraints().begin();
-          c != c_end;
-          ++c )
+    for ( SampleDataSet::Constraints::const_reference c : M_samples->constraints() )
     {
-        M_triangulation.addConstraint( static_cast< size_t >( c->first->index_ ),
-                                       static_cast< size_t >( c->second->index_ ) );
+        M_triangulation.addConstraint( static_cast< size_t >( c.first->index_ ),
+                                       static_cast< size_t >( c.second->index_ ) );
     }
 
 
