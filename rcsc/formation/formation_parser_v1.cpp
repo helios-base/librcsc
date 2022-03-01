@@ -37,7 +37,6 @@
 
 #include "sample_data.h"
 
-#include <fstream>
 #include <sstream>
 
 namespace rcsc {
@@ -46,12 +45,13 @@ namespace rcsc {
 Formation::Ptr
 FormationParserV1::parse( std::istream & is )
 {
+    if ( ! parseHeader( is ) ) return Formation::Ptr();
+    if ( ! parseRoles( is ) ) return Formation::Ptr();
+    if ( ! parseData( is ) ) return Formation::Ptr();
+
+    if ( ! checkPositionPair() ) return Formation::Ptr();
+
     Formation::Ptr ptr;
-
-    if ( ! parseHeader( is ) ) return ptr;
-    if ( ! parseRoles( is ) ) return ptr;
-    if ( ! parseData( is ) ) return ptr;
-
     return ptr;
 }
 
@@ -91,7 +91,7 @@ FormationParserV1::parseHeader( std::istream & is )
 
         if ( istr >> ver )
         {
-            if ( ver < 0 )
+            if ( ver != 1 )
             {
                 std::cerr << "(FormationParserV1::parseHeader) Illegas format version " << ver << std::endl;
                 return false;

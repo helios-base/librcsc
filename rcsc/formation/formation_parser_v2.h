@@ -63,6 +63,13 @@ public:
      */
     Formation::Ptr parse( std::istream & is ) override;
 
+private:
+
+    bool parseHeader( std::istream & is );
+    bool parseRoles( std::istream & is );
+    bool parseData( std::istream & is );
+    bool parseEnd( std::istream & is );
+
 };
 
 }

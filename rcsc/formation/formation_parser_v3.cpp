@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file formation_parser_v2.cpp
-  \brief v2 formation parser class Source File.
+  \file formation_parser_v3.cpp
+  \brief v3 formation parser class Source File.
 */
 
 /*
@@ -33,7 +33,7 @@
 #include <config.h>
 #endif
 
-#include "formation_parser_v2.h"
+#include "formation_parser_v3.h"
 
 #include "sample_data.h"
 
@@ -43,7 +43,7 @@ namespace rcsc {
 
 /*-------------------------------------------------------------------*/
 Formation::Ptr
-FormationParserV2::parse( std::istream & is )
+FormationParserV3::parse( std::istream & is )
 {
     if ( ! parseHeader( is ) ) return Formation::Ptr();
     if ( ! parseRoles( is ) ) return Formation::Ptr();
@@ -60,7 +60,7 @@ FormationParserV2::parse( std::istream & is )
 
 /*-------------------------------------------------------------------*/
 bool
-FormationParserV2::parseHeader( std::istream & is )
+FormationParserV3::parseHeader( std::istream & is )
 {
     std::string line;
     while ( std::getline( is, line ) )
@@ -81,22 +81,22 @@ FormationParserV2::parseHeader( std::istream & is )
         istr >> tag;
         if ( tag != "Formation" )
         {
-            std::cerr << "(FormationParserV2::parseHeader) unknown tag [" << tag << "]" << std::endl;
+            std::cerr << "(FormationParserV3::parseHeader) unknown tag [" << tag << "]" << std::endl;
             return false;
         }
 
         istr >> method_name;
         if ( ! istr )
         {
-            std::cerr << "(FormationParserV2::parseHeader) No method name" << std::endl;
+            std::cerr << "(FormationParserV3::parseHeader) No method name" << std::endl;
             return false;
         }
 
         if ( istr >> ver )
         {
-            if ( ver != 2 )
+            if ( ver != 3 )
             {
-                std::cerr << "(FormationParserV2::parseHeader) Illegas format version " << ver << std::endl;
+                std::cerr << "(FormationParserV3::parseHeader) Illegas format version " << ver << std::endl;
                 return false;
             }
         }
@@ -110,14 +110,78 @@ FormationParserV2::parseHeader( std::istream & is )
 
 /*-------------------------------------------------------------------*/
 bool
-FormationParserV2::parseRoles( std::istream & is )
+FormationParserV3::parseRoles( std::istream & is )
 {
-    std::string line;
-
     //
     // read Begin tag
     //
 
+    if ( ! parseBeginRolesTag( is ) )
+    {
+        return false;
+    }
+
+
+    //
+    // read role data
+    //
+
+    for ( int unum = 1; unum <= 11; ++unum )
+    {
+        std::string line;
+        while ( std::getline( is, line ) )
+        {
+            if ( line.empty()
+                 || line[0] == '#'
+                 || ! line.compare( 0, 2, "//" ) )
+            {
+                continue;
+            }
+
+            break;
+        }
+
+        int read_unum = 0;
+        char role_name[128];
+        int position_pair = 0;
+        char role_type[4];
+        char marker[32];
+        char smarker[32];
+
+        if ( std::sscanf( line.c_str(),
+                          " %d %3s %127s %d %31s %31s ",
+                          &read_unum, role_type, role_name, &position_pair, marker, smarker ) != 6
+             || read_unum != unum )
+        {
+            std::cerr << "(FormationParserV3::parseRoles). Illegal role data [" << line << "]" << std::endl;
+            return false;
+        }
+
+        // createRoleOrSetSymmetry( unum, role_name, position_pair );
+        // setRoleType( unum, role_type );
+        // setMarker( unum, marker, smarker );
+    }
+
+    //
+    // read End tag
+    //
+    if ( ! parseEndRolesTag( is ) )
+    {
+        return false;
+    }
+
+    return true;
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationParserV3::parseBeginRolesTag( std::istream & is )
+{
+    std::string line;
     while ( std::getline( is, line ) )
     {
         if ( line.empty()
@@ -129,76 +193,25 @@ FormationParserV2::parseRoles( std::istream & is )
 
         if ( line != "Begin Roles" )
         {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " *** ERROR *** readRolesV2(). Illegal header ["
-                      << line << ']'
-                      << std::endl;
+            std::cerr << "(FormationParserV3::parseBeginRolesTag) unexpected string [" << line << ']' << std::endl;
             return false;
         }
 
-        break;
+        return true;
     }
 
-    //
-    // read role data
-    //
+    std::cerr << "(FormationParserV3::parseBeginRolesTag) 'End Roles' not found" << std::endl;
+    return false;
+}
 
-    for ( int unum = 1; unum <= 11; ++unum )
-    {
-        while ( std::getline( is, line ) )
-        {
-            if ( line.empty()
-                 || line[0] == '#'
-                 || ! line.compare( 0, 2, "//" ) )
-            {
-                continue;
-            }
-            break;
-        }
+/*-------------------------------------------------------------------*/
+/*!
 
-        int read_unum = 0;
-        char role_name[128];
-        int position_pair = 0;
-
-        if ( std::sscanf( line.c_str(),
-                          " %d %127s %d ",
-                          &read_unum, role_name, &position_pair ) != 3
-             || read_unum != unum )
-        {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " *** ERROR *** readRolesV2(). Illegal role data. num="
-                      << unum
-                      << " [" << line << "]"
-                      << std::endl;
-            return false;
-        }
-
-        //
-        // create role or set position pair.
-        //
-        // const Formation::SideType type = ( position_pair == 0
-        //                                    ? Formation::CENTER
-        //                                    : position_pair < 0
-        //                                    ? Formation::SIDE
-        //                                    : Formation::SYMMETRY );
-        // if ( type == Formation::CENTER )
-        // {
-        //     createNewRole( unum, role_name, type );
-        // }
-        // else if ( type == Formation::SIDE )
-        // {
-        //     createNewRole( unum, role_name, type );
-        // }
-        // else
-        // {
-        //     setSymmetryType( unum, position_pair, role_name );
-        // }
-    }
-
-    //
-    // read End tag
-    //
-
+ */
+bool
+FormationParserV3::parseEndRolesTag( std::istream & is )
+{
+    std::string line;
     while ( std::getline( is, line ) )
     {
         if ( line.empty()
@@ -210,22 +223,21 @@ FormationParserV2::parseRoles( std::istream & is )
 
         if ( line != "End Roles" )
         {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " *** ERROR *** readRolesV2(). Failed getline "
-                      << std::endl;
+            std::cerr << "(FormationParserV3::parseEndRolesTag) unexpected string [" << line << ']' << std::endl;
             return false;
         }
 
-        break;
+        // found
+        return true;
     }
 
-    return true;
+    std::cerr << "(FormationParserV3::parseendRolesTag) 'End Roles' not found" << std::endl;
+    return false;
 }
-
 
 /*-------------------------------------------------------------------*/
 bool
-FormationParserV2::parseData( std::istream & is )
+FormationParserV3::parseData( std::istream & is )
 {
     formation::SampleDataSet::Ptr samples( new formation::SampleDataSet() );
 
@@ -242,7 +254,7 @@ FormationParserV2::parseData( std::istream & is )
 
  */
 bool
-FormationParserV2::parseEnd( std::istream & is )
+FormationParserV3::parseEnd( std::istream & is )
 {
     std::string line;
     while ( std::getline( is, line ) )
@@ -256,7 +268,7 @@ FormationParserV2::parseEnd( std::istream & is )
 
         if ( line != "End" )
         {
-            std::cerr << "(FormationParserV2::parseEnd) unexpected string [" << line << ']' << std::endl;
+            std::cerr << "(FormationParserV3::parseEnd) unexpected string [" << line << ']' << std::endl;
             return false;
         }
 
@@ -264,10 +276,10 @@ FormationParserV2::parseEnd( std::istream & is )
         return true;
     }
 
-    std::cerr << "(FormationParserV2::parseEnd) 'End' not found" << std::endl;
+    std::cerr << "(FormationParserV3::parseEnd) 'End' not found" << std::endl;
     if ( is.eof() )
     {
-        std::cerr << "(FormationParserV2::parseEnd) Input stream reaches EOF" << std::endl;
+        std::cerr << "(FormationParserV3::parseEnd) Input stream reaches EOF" << std::endl;
     }
 
     return false;

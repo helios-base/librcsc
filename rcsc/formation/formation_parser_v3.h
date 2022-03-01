@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file formation_parser.h
-  \brief abstract formation parser Header File.
+  \file formation_parser_v3.h
+  \brief v3 formation parser Header File.
 */
 
 /*
@@ -29,62 +29,48 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_FORMATION_FORMATION_PARSER_H
-#define RCSC_FORMATION_FORMATION_PARSER_H
+#ifndef RCSC_FORMATION_FORMATION_PARSER_V3_H
+#define RCSC_FORMATION_FORMATION_PARSER_V3_H
 
-#include <rcsc/formation/formation.h>
-
-#include <string>
-#include <iosfwd>
+#include <rcsc/formation/formation_parser.h>
 
 namespace rcsc {
 
 /*!
-  \class FormationParser
-  \brief abstarct formation parser interface
+  \class FormationParserV3
+  \brief v3 formation parser interface
 */
-class FormationParser {
-private:
-
-    FormationParser( FormationParser & ) = delete;
-    FormationParser & operator=( FormationParser & ) = delete;
-
-protected:
-
-    /*!
-      \brief default constructor
-     */
-    FormationParser() = default;
+class FormationParserV3
+    : public FormationParser {
 
 public:
 
     /*!
-      \brief virtual default destructor
+      \brief default constructor
      */
-    virtual
-    ~FormationParser() = default;
+    FormationParserV3();
 
     /*!
-      \brief parse the given file
-      \param filepath the file path to be parsed
-      \return formation instance
+      \brief virtual default destructor
      */
-    Formation::Ptr parse( const std::string & filepath );
+    ~FormationParserV3() override
+    { }
 
     /*!
       \brief parse the input stream
       \param is reference to the input stream to be parsed
       \return formation instance
      */
-    virtual
-    Formation::Ptr parse( std::istream & is ) = 0;
+    Formation::Ptr parse( std::istream & is ) override;
 
-protected:
+private:
 
-    /*!
-      \brief check the consistency of position pairs
-     */
-    bool checkPositionPair();
+    bool parseHeader( std::istream & is );
+    bool parseRoles( std::istream & is );
+    bool parseBeginRolesTag( std::istream & is );
+    bool parseEndRolesTag( std::istream & is );
+    bool parseData( std::istream & is );
+    bool parseEnd( std::istream & is );
 
 };
 

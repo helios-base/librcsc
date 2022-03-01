@@ -48,5 +48,12 @@ FormationParser::parse( const std::string & filepath )
     return parse( fin );
 }
 
+/*-------------------------------------------------------------------*/
+bool
+FormationParser::checkPositionPair()
+{
+    return true;
+}
+
 
 }
