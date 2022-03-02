@@ -134,6 +134,10 @@ private:
     DataCont M_data_cont; //!< data container.
     Constraints M_constraints; //!< constraint container.
 
+    // not used
+    SampleDataSet( const SampleDataSet & other ) = delete;
+    const SampleDataSet & operator=( const SampleDataSet & other ) = delete;
+
 public:
 
     /*!
@@ -141,26 +145,6 @@ public:
      */
     SampleDataSet();
 
-    /*!
-      \brief copy constructor.
-      \param other source object.
-     */
-    SampleDataSet( const SampleDataSet & other )
-        : M_data_cont( other.dataCont() )
-      { }
-
-    /*!
-      \brief substitution operator.
-      \param other source object.
-     */
-    const SampleDataSet & operator=( const SampleDataSet & other )
-      {
-          if ( this != &other )
-          {
-              M_data_cont = other.dataCont();
-          }
-          return *this;
-      }
 
     /*!
       \brief virtual destructor.
