@@ -118,33 +118,30 @@ SampleDataSet::data( const size_t idx ) const
 /*!
 
  */
-SampleDataSet::IndexData
-SampleDataSet::nearestData( const Vector2D & pos,
-                            const double & thr ) const
+int
+SampleDataSet::nearestDataIndex( const Vector2D & pos,
+                                 const double & thr ) const
 {
-    const double dist_thr2 = thr * thr;
+    const double dist_thr2 = std::pow( thr, 2 );
 
-    std::pair< size_t, const SampleData * > rval( size_t( -1 ), static_cast< SampleData * >( 0 ) );
-
-    size_t index = 0;
+    const SampleData * result = nullptr;
     double min_dist2 = std::numeric_limits< double >::max();
 
-    for ( DataCont::const_iterator p = M_data_cont.begin(), end = M_data_cont.end();
-          p != end;
-          ++p, ++index )
+    for ( const SampleData & d : M_data_cont )
     {
-        double d2 = p->ball_.dist2( pos );
+        double d2 = d.ball_.dist2( pos );
+
         if ( d2 < dist_thr2
              && d2 < min_dist2 )
         {
             min_dist2 = d2;
-            rval.first = index;
-            rval.second = &(*p);
-            break;
+            result = &d;
         }
     }
 
-    return rval;
+    return ( result
+             ? result->index_
+             : -1 );
 }
 
 /*-------------------------------------------------------------------*/

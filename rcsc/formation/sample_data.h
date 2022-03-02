@@ -179,13 +179,13 @@ public:
     const SampleData * data( const size_t idx ) const;
 
     /*!
-      \brief get the data nearest to the input point.
+      \brief get the data index nearest to the input point.
       \param pos input point.
       \param dist_thr distance threshold
-      \return data nearest to the input point
+      \return index of the result data. -1 if no result
      */
-    IndexData nearestData( const Vector2D & pos,
-                           const double & dist_thr ) const;
+    int nearestDataIndex( const Vector2D & pos,
+                          const double & dist_thr ) const;
 
     /*!
       \brief check if there are exsiting data near to input data.
