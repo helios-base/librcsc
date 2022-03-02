@@ -227,7 +227,7 @@ FormationParserV2::parseRoles( std::istream & is )
 bool
 FormationParserV2::parseData( std::istream & is )
 {
-    formation::SampleDataSet::Ptr samples( new formation::SampleDataSet() );
+    FormationData::Ptr samples( new FormationData() );
 
     if ( ! samples->readOld( is ) )
     {

@@ -43,67 +43,58 @@
 
 namespace rcsc {
 
-namespace formation {
-
 /*!
-  \struct SampleData
-  \brief training data type.
-*/
-struct SampleData {
-
-    static const double PRECISION; //!< coordinates value precision
-    typedef std::vector< Vector2D > PlayerCont; //!< player data container type
-
-    int index_;
-    Vector2D ball_; //!< ball position
-    PlayerCont players_; //!< players' position
-
-    /*!
-      \brief default constructor
-    */
-    SampleData()
-        : index_( -1 )
-      {
-          players_.reserve( 11 );
-      }
-
-    /*!
-      \brief construct with all data
-      \param ball ball position
-      \param players players' position
-    */
-    SampleData( const Vector2D & ball,
-                const PlayerCont & players )
-        : index_( -1 )
-        , ball_( ball )
-        , players_( players )
-      { }
-
-    /*!
-      \brief get the position of specified player.
-      \param unum player number [1..11].
-      \return position value.
-    */
-    Vector2D getPosition( const int unum ) const
-      {
-          return players_.at( unum - 1 );
-      }
-};
-
-
-/*!
-  \class SampleDataSet
-  \brief sample data set for formation training
+  \class FormationData
+  \brief data to construct the formation
  */
-class SampleDataSet {
+class FormationData {
 public:
 
-    typedef std::shared_ptr< SampleDataSet > Ptr; //!< shared pointer type.
-    typedef std::shared_ptr< const SampleDataSet > ConstPtr; //!< shared const pointer type.
+    /*!
+      \struct SampleData
+      \brief training data type.
+    */
+    struct Data {
+        int index_;
+        Vector2D ball_; //!< ball position
+        std::vector< Vector2D > players_; //!< players' position
 
-    typedef std::list< SampleData > DataCont; //!< data container type.
-    typedef std::pair< size_t, const SampleData * > IndexData; //!< index & data pair type.
-    typedef std::pair< const SampleData *, const SampleData * > Constraint; //!< constraint type
+        /*!
+          \brief default constructor
+        */
+        Data()
+            : index_( -1 )
+        {
+            players_.reserve( 11 );
+        }
+
+        /*!
+          \brief construct with all data
+          \param ball ball position
+          \param players players' position
+        */
+        Data( const Vector2D & ball,
+              const std::vector< Vector2D > & players )
+            : index_( -1 ),
+              ball_( ball ),
+              players_( players )
+        { }
+
+        /*!
+          \brief get the position of specified player.
+          \param unum player number [1..11].
+          \return position value.
+        */
+        Vector2D getPosition( const int unum ) const
+        {
+            return players_.at( unum - 1 );
+        }
+    };
+
+    typedef std::shared_ptr< FormationData > Ptr;
+    typedef std::shared_ptr< const FormationData > ConstPtr;
+    typedef std::list< Data > DataCont; //!< data container type.
+    typedef std::pair< const Data *, const Data * > Constraint; //!< constraint type
     typedef std::vector< Constraint > Constraints; //!< constraint container type.
 
     /*!
@@ -124,6 +115,7 @@ public:
         NO_ERROR,
     };
 
+    static const double PRECISION; //!< coordinates value precision
     static const size_t MAX_DATA_SIZE; //!< max data size
     static const double NEAR_DIST_THR; //!< data distance threshold
 
@@ -133,22 +125,22 @@ private:
     Constraints M_constraints; //!< constraint container.
 
     // not used
-    SampleDataSet( const SampleDataSet & other ) = delete;
-    const SampleDataSet & operator=( const SampleDataSet & other ) = delete;
+    FormationData( const FormationData & other ) = delete;
+    const FormationData & operator=( const FormationData & other ) = delete;
 
 public:
 
     /*!
       \brief default constructor.
      */
-    SampleDataSet();
+    FormationData();
 
 
     /*!
       \brief virtual destructor.
      */
     virtual
-    ~SampleDataSet()
+    ~FormationData()
       { }
 
     /*!
@@ -174,7 +166,7 @@ public:
       \brief get the specified index data.
       \return const pointer to the data. if no matched data, NULL is returned.
      */
-    const SampleData * data( const size_t idx ) const;
+    const Data * data( const size_t idx ) const;
 
     /*!
       \brief get the data index nearest to the input point.
@@ -190,7 +182,7 @@ public:
       \param data input data.
       \return checked result.
      */
-    bool existTooNearData( const SampleData & data ) const;
+    bool existTooNearData( const Data & data ) const;
 
 private:
     /*!
@@ -218,7 +210,7 @@ public:
       \param data new data.
       \return error code.
      */
-    ErrorType addData( const SampleData & data );
+    ErrorType addData( const Data & data );
 
     /*!
       \brief insert new data just before the input index.
@@ -227,7 +219,7 @@ public:
       \return error code.
      */
     ErrorType insertData( const size_t idx,
-                          const SampleData & data );
+                          const Data & data );
 
     /*!
       \brief replace exsiting data at input index with input data.
@@ -236,7 +228,7 @@ public:
       \return error code.
      */
     ErrorType replaceData( const size_t idx,
-                           const SampleData & data );
+                           const Data & data );
 
     /*!
       \brief delete exsiting data at input index.
@@ -342,8 +334,6 @@ private:
     std::ostream & printConstraints( std::ostream & os ) const;
 
 };
-
-}
 }
 
 #endif

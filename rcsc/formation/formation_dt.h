@@ -54,7 +54,7 @@ private:
     std::string M_role_names[11];
 
     //! set of desired positins used by delaunay triangulation & linear interpolation
-    std::vector< formation::SampleData > M_sample_vector;
+    std::vector< FormationData::Data > M_sample_vector;
 
     //! delaunay triangulation
     DelaunayTriangulation M_triangulation;
@@ -92,7 +92,7 @@ public:
       \brief get the sample data array
       \return sample data array
      */
-    const std::vector< formation::SampleData > & sampleVector() const
+    const std::vector< FormationData::Data > & sampleVector() const
       {
           return M_sample_vector;
       }

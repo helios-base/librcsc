@@ -51,8 +51,6 @@
 
 namespace rcsc {
 
-using namespace formation;
-
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -137,7 +135,7 @@ Formation::create( std::istream & is )
  */
 Formation::Formation()
     : M_version( 0 ),
-      M_samples( new SampleDataSet() )
+      M_data( new FormationData() )
 {
     for ( int i = 0; i < 11; ++i )
     {
@@ -550,11 +548,11 @@ Formation::readMethodName( std::istream & is )
 bool
 Formation::readSamplesOld( std::istream & is )
 {
-    M_samples = SampleDataSet::Ptr( new SampleDataSet() );
+    M_data = FormationData::Ptr( new FormationData() );
 
-    if ( ! M_samples->readOld( is ) )
+    if ( ! M_data->readOld( is ) )
     {
-        M_samples.reset();
+        M_data.reset();
         return false;
     }
 
@@ -568,11 +566,11 @@ Formation::readSamplesOld( std::istream & is )
 bool
 Formation::readSamplesCSV( std::istream & is )
 {
-    M_samples = SampleDataSet::Ptr( new SampleDataSet() );
+    M_data = FormationData::Ptr( new FormationData() );
 
-    if ( ! M_samples->readCSV( is ) )
+    if ( ! M_data->readCSV( is ) )
     {
-        M_samples.reset();
+        M_data.reset();
         return false;
     }
 
@@ -630,9 +628,9 @@ Formation::printMethodName( std::ostream & os ) const
 std::ostream &
 Formation::printSamplesOld( std::ostream & os ) const
 {
-    if ( M_samples )
+    if ( M_data )
     {
-        M_samples->printOld( os );
+        M_data->printOld( os );
     }
 
     return os;
@@ -645,9 +643,9 @@ Formation::printSamplesOld( std::ostream & os ) const
 std::ostream &
 Formation::printSamplesCSV( std::ostream & os ) const
 {
-    if ( M_samples )
+    if ( M_data )
     {
-        M_samples->printCSV( os );
+        M_data->printCSV( os );
     }
 
     return os;

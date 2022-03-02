@@ -47,8 +47,6 @@
 
 namespace rcsc {
 
-using namespace formation;
-
 const std::string FormationDT::NAME( "DelaunayTriangulation" );
 
 namespace {
@@ -61,7 +59,7 @@ inline
 double
 round_coord( const double & val )
 {
-    return rint( val / SampleData::PRECISION ) * SampleData::PRECISION;
+    return rint( val / FormationData::PRECISION ) * FormationData::PRECISION;
 }
 
 /*-------------------------------------------------------------------*/
@@ -129,7 +127,7 @@ FormationDT::createDefaultData()
     setSymmetryType( 10, 9, "SideForward" );
     createNewRole( 11, "CenterForward", Formation::CENTER );
 
-    SampleData data;
+    FormationData::Data data;
 
     data.ball_.assign( 0.0, 0.0 );
     data.players_.emplace_back( -50.0, 0.0 );
@@ -226,7 +224,7 @@ FormationDT::createDefaultData()
     data.players_.emplace_back( 10.0, 10.0 );
 #endif
 
-    M_samples->addData( data );
+    M_data->addData( data );
 }
 
 /*-------------------------------------------------------------------*/
@@ -452,7 +450,7 @@ FormationDT::interpolate( const int unum,
 void
 FormationDT::train()
 {
-    if ( ! M_samples )
+    if ( ! M_data )
     {
         return;
     }
@@ -462,7 +460,7 @@ FormationDT::train()
     M_triangulation.init( pitch );
     M_sample_vector.clear();
 
-    for ( const SampleData & data : M_samples->dataCont() )
+    for ( const FormationData::Data & data : M_data->dataCont() )
     {
         M_triangulation.addVertex( data.ball_ );
         M_sample_vector.push_back( data );
@@ -1334,11 +1332,11 @@ FormationDT::readRolesV2( std::istream & is )
 bool
 FormationDT::readVerticesV2( std::istream & is )
 {
-    M_samples = SampleDataSet::Ptr( new SampleDataSet() );
+    M_data = FormationData::Ptr( new FormationData() );
 
-    if ( ! M_samples->readOld( is ) )
+    if ( ! M_data->readOld( is ) )
     {
-        M_samples.reset();
+        M_data.reset();
         return false;
     }
 

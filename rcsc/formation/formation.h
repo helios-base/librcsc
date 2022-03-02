@@ -116,7 +116,7 @@ protected:
     /*!
       \brief training data holder.
      */
-    formation::SampleDataSet::Ptr M_samples;
+    FormationData::Ptr M_data;
 
 public:
 
@@ -156,30 +156,30 @@ public:
     std::string methodName() const = 0;
 
     /*!
-      \brief get sample point set.
-      \return shared pointer to the training data object.
+      \brief get the training data instance.
+      \return shared pointer to the training data.
      */
-    formation::SampleDataSet::Ptr samples()
+    FormationData::Ptr data()
       {
-          return M_samples;
+          return M_data;
       }
 
     /*!
-      \brief get sample point set.
-      \return shared pointer to the training data object.
+      \brief get training data instance.
+      \return shared pointer to the training data.
      */
-    formation::SampleDataSet::ConstPtr samples() const
+    FormationData::ConstPtr data() const
       {
-          return M_samples;
+          return M_data;
       }
 
     /*!
-      \brief set new sample point set.
-      \param samples pointer to the new data instance.
+      \brief set new training data instance.
+      \param data shared pointer to the new data instance.
      */
-    void setSamples( formation::SampleDataSet::Ptr samples )
+    void setData( FormationData::Ptr data )
       {
-          M_samples = samples;
+          M_data = data;
       }
 
     //

@@ -42,8 +42,6 @@
 
 namespace rcsc {
 
-using namespace formation;
-
 const std::string FormationStatic::NAME( "Static" );
 
 /*-------------------------------------------------------------------*/
@@ -75,7 +73,7 @@ FormationStatic::createDefaultData()
     setSymmetryType( 10, 9, "SideForward" );
     createNewRole( 11, "CenterForward", Formation::CENTER );
 
-    SampleData data;
+    FormationData::Data data;
 
     data.ball_.assign( 0.0, 0.0 );
     data.players_.emplace_back( -50.0, 0.0 );
@@ -90,7 +88,7 @@ FormationStatic::createDefaultData()
     data.players_.emplace_back( 10.0, 22.0 );
     data.players_.emplace_back( 10.0, 0.0 );
 
-    M_samples->addData( data );
+    M_data->addData( data );
 }
 
 /*-------------------------------------------------------------------*/

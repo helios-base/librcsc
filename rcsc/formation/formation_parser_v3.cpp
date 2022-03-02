@@ -239,9 +239,9 @@ FormationParserV3::parseEndRolesTag( std::istream & is )
 bool
 FormationParserV3::parseData( std::istream & is )
 {
-    formation::SampleDataSet::Ptr samples( new formation::SampleDataSet() );
+    FormationData::Ptr data( new FormationData() );
 
-    if ( ! samples->readOld( is ) )
+    if ( ! data->readOld( is ) )
     {
         return false;
     }

@@ -45,12 +45,10 @@
 #include <cstring>
 
 namespace rcsc {
-namespace formation {
 
-const double SampleData::PRECISION = 0.01;
-
-const size_t SampleDataSet::MAX_DATA_SIZE = 128;
-const double SampleDataSet::NEAR_DIST_THR = 0.5;
+const double FormationData::PRECISION = 0.01;
+const size_t FormationData::MAX_DATA_SIZE = 128;
+const double FormationData::NEAR_DIST_THR = 0.5;
 
 namespace {
 
@@ -58,7 +56,7 @@ inline
 double
 round_coord( const double & val )
 {
-    return rint( val / SampleData::PRECISION ) * SampleData::PRECISION;
+    return rint( val / FormationData::PRECISION ) * FormationData::PRECISION;
 }
 
 inline
@@ -66,8 +64,8 @@ Vector2D
 round_coordinates( const double & x,
                    const double & y )
 {
-    return Vector2D( rint( x / SampleData::PRECISION ) * SampleData::PRECISION,
-                     rint( y / SampleData::PRECISION ) * SampleData::PRECISION );
+    return Vector2D( rint( x / FormationData::PRECISION ) * FormationData::PRECISION,
+                     rint( y / FormationData::PRECISION ) * FormationData::PRECISION );
 }
 
 }
@@ -76,7 +74,7 @@ round_coordinates( const double & x,
 /*!
 
  */
-SampleDataSet::SampleDataSet()
+FormationData::FormationData()
     : M_data_cont()
 {
 
@@ -87,7 +85,7 @@ SampleDataSet::SampleDataSet()
 
 */
 void
-SampleDataSet::clear()
+FormationData::clear()
 {
     M_data_cont.clear();
     M_constraints.clear();
@@ -98,8 +96,8 @@ SampleDataSet::clear()
 
  */
 const
-SampleData *
-SampleDataSet::data( const size_t idx ) const
+FormationData::Data *
+FormationData::data( const size_t idx ) const
 {
     if ( M_data_cont.empty()
          || M_data_cont.size() < idx )
@@ -107,7 +105,7 @@ SampleDataSet::data( const size_t idx ) const
         return nullptr;
     }
 
-    SampleDataSet::DataCont::const_iterator it = M_data_cont.begin();
+    FormationData::DataCont::const_iterator it = M_data_cont.begin();
     std::advance( it, idx );
 
     return &(*it);
@@ -118,15 +116,15 @@ SampleDataSet::data( const size_t idx ) const
 
  */
 int
-SampleDataSet::nearestDataIndex( const Vector2D & pos,
+FormationData::nearestDataIndex( const Vector2D & pos,
                                  const double & thr ) const
 {
     const double dist_thr2 = std::pow( thr, 2 );
 
-    const SampleData * result = nullptr;
+    const FormationData::Data * result = nullptr;
     double min_dist2 = std::numeric_limits< double >::max();
 
-    for ( const SampleData & d : M_data_cont )
+    for ( const FormationData::Data & d : M_data_cont )
     {
         double d2 = d.ball_.dist2( pos );
 
@@ -148,11 +146,11 @@ SampleDataSet::nearestDataIndex( const Vector2D & pos,
 
  */
 bool
-SampleDataSet::existTooNearData( const SampleData & data ) const
+FormationData::existTooNearData( const FormationData::Data & data ) const
 {
     const double dist_thr2 = NEAR_DIST_THR * NEAR_DIST_THR;
 
-    for ( const SampleData & d : M_data_cont )
+    for ( const FormationData::Data & d : M_data_cont )
     {
         if ( d.ball_.dist2( data.ball_ ) < dist_thr2 )
         {
@@ -168,10 +166,10 @@ SampleDataSet::existTooNearData( const SampleData & data ) const
 
  */
 void
-SampleDataSet::updateDataIndex()
+FormationData::updateDataIndex()
 {
     int index = 0;
-    for ( SampleData & data : M_data_cont )
+    for ( FormationData::Data & data : M_data_cont )
     {
         data.index_ = index;
         ++index;
@@ -183,7 +181,7 @@ SampleDataSet::updateDataIndex()
 
  */
 bool
-SampleDataSet::existIntersectedConstraint( const Vector2D & pos ) const
+FormationData::existIntersectedConstraint( const Vector2D & pos ) const
 {
     for ( const Constraint & c : M_constraints )
     {
@@ -204,7 +202,7 @@ SampleDataSet::existIntersectedConstraint( const Vector2D & pos ) const
 
  */
 bool
-SampleDataSet::existIntersectedConstraints() const
+FormationData::existIntersectedConstraints() const
 {
     if ( M_constraints.empty() )
     {
@@ -245,8 +243,8 @@ SampleDataSet::existIntersectedConstraints() const
 /*!
 
  */
-SampleDataSet::ErrorType
-SampleDataSet::addData( const SampleData & data )
+FormationData::ErrorType
+FormationData::addData( const FormationData::Data & data )
 {
     if ( M_data_cont.size() >= MAX_DATA_SIZE )
     {
@@ -284,9 +282,9 @@ SampleDataSet::addData( const SampleData & data )
 /*!
 
  */
-SampleDataSet::ErrorType
-SampleDataSet::insertData( const size_t idx,
-                           const SampleData & data )
+FormationData::ErrorType
+FormationData::insertData( const size_t idx,
+                           const FormationData::Data & data )
 {
     if ( M_data_cont.size() >= MAX_DATA_SIZE )
     {
@@ -334,9 +332,9 @@ SampleDataSet::insertData( const size_t idx,
 /*!
 
  */
-SampleDataSet::ErrorType
-SampleDataSet::replaceData( const size_t idx,
-                            const SampleData & data )
+FormationData::ErrorType
+FormationData::replaceData( const size_t idx,
+                            const FormationData::Data & data )
 {
     if ( M_data_cont.size() < idx )
     {
@@ -363,7 +361,7 @@ SampleDataSet::replaceData( const size_t idx,
         }
     }
 
-    SampleData original_data = *replaced;
+    FormationData::Data original_data = *replaced;
     *replaced = data;
 
     //
@@ -389,8 +387,8 @@ SampleDataSet::replaceData( const size_t idx,
 /*!
 
  */
-SampleDataSet::ErrorType
-SampleDataSet::removeData( const size_t idx )
+FormationData::ErrorType
+FormationData::removeData( const size_t idx )
 {
     if ( M_data_cont.size() < idx )
     {
@@ -403,7 +401,7 @@ SampleDataSet::removeData( const size_t idx )
     //
     // remove constraints connected to the sample
     //
-    const SampleData * d = &(*it);
+    const FormationData::Data * d = &(*it);
 
     Constraints::iterator c = M_constraints.begin();
     while ( c != M_constraints.end() )
@@ -434,8 +432,8 @@ SampleDataSet::removeData( const size_t idx )
 /*!
 
  */
-SampleDataSet::ErrorType
-SampleDataSet::changeDataIndex( const size_t old_idx,
+FormationData::ErrorType
+FormationData::changeDataIndex( const size_t old_idx,
                                 const size_t new_idx )
 {
     if ( old_idx == new_idx
@@ -464,8 +462,8 @@ SampleDataSet::changeDataIndex( const size_t old_idx,
 /*!
 
  */
-SampleDataSet::ErrorType
-SampleDataSet::addConstraint( const size_t origin_idx,
+FormationData::ErrorType
+FormationData::addConstraint( const size_t origin_idx,
                               const size_t terminal_idx )
 {
     //
@@ -581,8 +579,8 @@ SampleDataSet::addConstraint( const size_t origin_idx,
 /*!
 
  */
-SampleDataSet::ErrorType
-SampleDataSet::replaceConstraint( const size_t idx,
+FormationData::ErrorType
+FormationData::replaceConstraint( const size_t idx,
                                   const size_t origin_idx,
                                   const size_t terminal_idx )
 {
@@ -624,8 +622,8 @@ SampleDataSet::replaceConstraint( const size_t idx,
 /*!
 
  */
-SampleDataSet::ErrorType
-SampleDataSet::removeConstraint( const size_t idx )
+FormationData::ErrorType
+FormationData::removeConstraint( const size_t idx )
 {
     if ( M_constraints.size() < idx + 1 )
     {
@@ -648,8 +646,8 @@ SampleDataSet::removeConstraint( const size_t idx )
 /*!
 
  */
-SampleDataSet::ErrorType
-SampleDataSet::removeConstraint( const size_t origin_idx,
+FormationData::ErrorType
+FormationData::removeConstraint( const size_t origin_idx,
                                  const size_t terminal_idx )
 {
     if ( M_data_cont.size() < origin_idx + 1
@@ -700,7 +698,7 @@ SampleDataSet::removeConstraint( const size_t origin_idx,
 
  */
 bool
-SampleDataSet::open( const std::string & filepath )
+FormationData::open( const std::string & filepath )
 {
     std::ifstream fin( filepath.c_str() );
     if ( ! fin.is_open() )
@@ -727,7 +725,7 @@ SampleDataSet::open( const std::string & filepath )
 
  */
 bool
-SampleDataSet::read( std::istream & is )
+FormationData::read( std::istream & is )
 {
     //return readOld( is );
     return readCSV( is );
@@ -738,7 +736,7 @@ SampleDataSet::read( std::istream & is )
 
  */
 bool
-SampleDataSet::readOld( std::istream & is )
+FormationData::readOld( std::istream & is )
 {
     M_data_cont.clear();
 
@@ -807,7 +805,7 @@ SampleDataSet::readOld( std::istream & is )
 
  */
 bool
-SampleDataSet::readCSV( std::istream & is )
+FormationData::readCSV( std::istream & is )
 {
     M_data_cont.clear();
 
@@ -869,7 +867,7 @@ SampleDataSet::readCSV( std::istream & is )
         }
         buf += n_read;
 
-        SampleData new_data;
+        FormationData::Data new_data;
         double read_x, read_y;
 
         // read ball
@@ -913,7 +911,7 @@ SampleDataSet::readCSV( std::istream & is )
 
  */
 bool
-SampleDataSet::readV1( std::istream & is )
+FormationData::readV1( std::istream & is )
 {
     std::string line_buf;
 
@@ -925,7 +923,7 @@ SampleDataSet::readV1( std::istream & is )
         std::istringstream istr( line_buf );
         double x, y;
 
-        SampleData new_data;
+        FormationData::Data new_data;
 
         istr >> x >> y;
         new_data.ball_ = round_coordinates( x, y );
@@ -957,7 +955,7 @@ SampleDataSet::readV1( std::istream & is )
 
  */
 bool
-SampleDataSet::readV2( std::istream & is,
+FormationData::readV2( std::istream & is,
                        const int data_size )
 {
     if ( data_size < 0 )
@@ -1013,7 +1011,7 @@ SampleDataSet::readV2( std::istream & is,
 
  */
 bool
-SampleDataSet::readSample( std::istream & is,
+FormationData::readSample( std::istream & is,
                            const int index )
 {
     std::string line_buf;
@@ -1050,7 +1048,7 @@ SampleDataSet::readSample( std::istream & is,
     // read new sample data.
     //
 
-    SampleData new_data;
+    FormationData::Data new_data;
 
     double read_x = 0.0;
     double read_y = 0.0;
@@ -1123,7 +1121,7 @@ SampleDataSet::readSample( std::istream & is,
 
  */
 bool
-SampleDataSet::readConstraints( std::istream & is )
+FormationData::readConstraints( std::istream & is )
 {
     std::string line_buf;
 
@@ -1206,7 +1204,7 @@ SampleDataSet::readConstraints( std::istream & is )
 
  */
 bool
-SampleDataSet::save( const std::string & filepath ) const
+FormationData::save( const std::string & filepath ) const
 {
     std::ofstream fout( filepath.c_str() );
     if ( ! fout.is_open() )
@@ -1236,7 +1234,7 @@ SampleDataSet::save( const std::string & filepath ) const
 
  */
 std::ostream &
-SampleDataSet::print( std::ostream & os ) const
+FormationData::print( std::ostream & os ) const
 {
     return printCSV( os );
 }
@@ -1246,7 +1244,7 @@ SampleDataSet::print( std::ostream & os ) const
 
  */
 std::ostream &
-SampleDataSet::printOld( std::ostream & os ) const
+FormationData::printOld( std::ostream & os ) const
 {
     printV2( os );
     return os << std::flush;
@@ -1257,10 +1255,10 @@ SampleDataSet::printOld( std::ostream & os ) const
 
  */
 std::ostream &
-SampleDataSet::printV1( std::ostream & os ) const
+FormationData::printV1( std::ostream & os ) const
 {
     // put data to the stream
-    for ( const SampleData & data : M_data_cont )
+    for ( const FormationData::Data & data : M_data_cont )
     {
         os << round_coord( data.ball_.x ) << ' ' << round_coord( data.ball_.y ) << ' ';
 
@@ -1279,13 +1277,13 @@ SampleDataSet::printV1( std::ostream & os ) const
 
  */
 std::ostream &
-SampleDataSet::printV2( std::ostream & os ) const
+FormationData::printV2( std::ostream & os ) const
 {
    os << "Begin Samples 2 " << M_data_cont.size() << '\n';
 
     // put data to the stream
     int idx = 0;
-    for ( const SampleData & d : M_data_cont )
+    for ( const FormationData::Data & d : M_data_cont )
     {
         os << "----- " << idx << " -----\n";
         ++idx;
@@ -1310,7 +1308,7 @@ SampleDataSet::printV2( std::ostream & os ) const
 
  */
 std::ostream &
-SampleDataSet::printConstraints( std::ostream & os ) const
+FormationData::printConstraints( std::ostream & os ) const
 {
     if ( M_constraints.empty() )
     {
@@ -1335,7 +1333,7 @@ SampleDataSet::printConstraints( std::ostream & os ) const
 
  */
 std::ostream &
-SampleDataSet::printCSV( std::ostream & os ) const
+FormationData::printCSV( std::ostream & os ) const
 {
     os << "SampleData\n";
     os << "Size," << M_data_cont.size() << '\n';
@@ -1348,7 +1346,7 @@ SampleDataSet::printCSV( std::ostream & os ) const
     os << '\n';
 
     int idx = 0;
-    for ( const SampleData & data : M_data_cont )
+    for ( const FormationData::Data & data : M_data_cont )
     {
         os << idx << ',';
         ++idx;
@@ -1373,5 +1371,4 @@ SampleDataSet::printCSV( std::ostream & os ) const
     return os;
 }
 
-}
 }
