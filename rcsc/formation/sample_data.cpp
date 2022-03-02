@@ -35,8 +35,6 @@
 
 #include "sample_data.h"
 
-#include "formation.h"
-
 #include <rcsc/geom/segment_2d.h>
 
 #include <iterator>
@@ -44,6 +42,7 @@
 #include <limits>
 #include <fstream>
 #include <sstream>
+#include <cstring>
 
 namespace rcsc {
 namespace formation {
@@ -247,9 +246,7 @@ SampleDataSet::existIntersectedConstraints() const
 
  */
 SampleDataSet::ErrorType
-SampleDataSet::addData( const Formation & formation,
-                        const SampleData & data,
-                        const bool symmetry )
+SampleDataSet::addData( const SampleData & data )
 {
     if ( M_data_cont.size() >= MAX_DATA_SIZE )
     {
@@ -277,23 +274,6 @@ SampleDataSet::addData( const Formation & formation,
     // std::cerr << "Added data. current data size = " << M_data_cont.size()
     //           << std::endl;
 
-    //
-    // add symmetry data
-    //
-    if ( symmetry )
-    {
-        if ( data.ball_.absY() < 0.5 )
-        {
-            //return ILLEGAL_SYMMETRY_DATA;
-            return NO_ERROR;
-        }
-
-        SampleData reversed = data;
-        reversed.ball_.y *= -1.0;
-        reverseY( formation, reversed.players_ );
-
-        return addData( formation, reversed, false );
-    }
 
     updateDataIndex();
 
@@ -305,10 +285,8 @@ SampleDataSet::addData( const Formation & formation,
 
  */
 SampleDataSet::ErrorType
-SampleDataSet::insertData( const Formation & formation,
-                           const size_t idx,
-                           const SampleData & data,
-                           const bool symmetry )
+SampleDataSet::insertData( const size_t idx,
+                           const SampleData & data )
 {
     if ( M_data_cont.size() >= MAX_DATA_SIZE )
     {
@@ -347,24 +325,6 @@ SampleDataSet::insertData( const Formation & formation,
               << M_data_cont.size()
               << std::endl;
 
-    //
-    // insert symmetry data
-    //
-    if ( symmetry )
-    {
-        if ( data.ball_.absY() < 0.5 )
-        {
-            //return ILLEGAL_SYMMETRY_DATA;
-            return NO_ERROR;
-        }
-
-        SampleData reversed = data;
-        reversed.ball_.y *= -1.0;
-        reverseY( formation, reversed.players_ );
-
-        return insertData( formation, idx + 1, reversed, false );
-    }
-
     updateDataIndex();
 
     return NO_ERROR;
@@ -375,10 +335,8 @@ SampleDataSet::insertData( const Formation & formation,
 
  */
 SampleDataSet::ErrorType
-SampleDataSet::replaceData( const Formation & formation,
-                            const size_t idx,
-                            const SampleData & data,
-                            const bool symmetry )
+SampleDataSet::replaceData( const size_t idx,
+                            const SampleData & data )
 {
     if ( M_data_cont.size() < idx )
     {
@@ -389,7 +347,7 @@ SampleDataSet::replaceData( const Formation & formation,
     std::advance( replaced, idx );
 
     //
-    // check near adata
+    // check near data
     //
     {
         const double dist_thr2 = NEAR_DIST_THR * NEAR_DIST_THR;
@@ -417,100 +375,12 @@ SampleDataSet::replaceData( const Formation & formation,
         return INTERSECTS_CONSTRAINT;
     }
 
-    std::cerr << "Replaced data at index=" << idx
-              << std::endl;
-
-    //
-    // replace symmetry data
-    //
-    if ( symmetry )
-    {
-        if ( data.ball_.absY() < 0.5 )
-        {
-            return NO_ERROR;
-        }
-
-        SampleData reversed = data;
-        reversed.ball_.y *= -1.0;
-        reverseY( formation, reversed.players_ );
-
-        return replaceSymmetryData( formation, original_data, reversed );
-    }
+    std::cerr << "Replaced data at index=" << idx << std::endl;
 
     //
     // update index value
     //
     updateDataIndex();
-
-    return NO_ERROR;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-SampleDataSet::ErrorType
-SampleDataSet::replaceSymmetryData( const Formation & formation,
-                                    const SampleData & original_data,
-                                    const SampleData & reversed_data )
-{
-    if ( reversed_data.ball_.absY() < 0.5 )
-    {
-        return ILLEGAL_SYMMETRY_DATA;
-    }
-
-    //
-    // check near data.
-    //
-
-    DataCont::iterator replaced = M_data_cont.end();
-    {
-        double min_dist2 = std::numeric_limits< double >::max();
-        const Vector2D pos( original_data.ball_.x, - original_data.ball_.y );
-        const double dist_thr2 = NEAR_DIST_THR * NEAR_DIST_THR;
-
-        for ( DataCont::iterator it = M_data_cont.begin(), end = M_data_cont.end();
-              it != end;
-              ++it )
-        {
-            double d2 = it->ball_.dist2( pos );
-            if ( d2 < dist_thr2
-                 && d2 < min_dist2 )
-            {
-                min_dist2 = d2;
-                replaced = it;
-            }
-        }
-    }
-
-    //
-    // not found
-    //
-    if ( replaced == M_data_cont.end() )
-    {
-        // try to add new data
-        return addData( formation, reversed_data, false );
-    }
-
-    //
-    // found
-    //
-
-    SampleData tmp = *replaced;
-    *replaced = reversed_data;
-
-    //
-    // check intersection
-    //
-    if ( existIntersectedConstraints() )
-    {
-        *replaced = tmp;
-        return INTERSECTS_CONSTRAINT;
-    }
-
-    std::cerr << "Replaced symmetry data at index="
-              << std::distance( M_data_cont.begin(), replaced )
-              << std::endl;
 
     return NO_ERROR;
 }
@@ -823,48 +693,6 @@ SampleDataSet::removeConstraint( const size_t origin_idx,
               << std::endl;
 
     return INVALID_INDEX;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-void
-SampleDataSet::reverseY( const Formation & formation,
-                         SampleData::PlayerCont & positions ) const
-
-{
-    SampleData::PlayerCont old_positions = positions;
-
-    int unum = 1;
-    for ( SampleData::PlayerCont::iterator it = positions.begin();
-          it != positions.end();
-          ++it, ++unum )
-    {
-        if ( formation.isCenterType( unum ) )
-        {
-            it->y *= -1.0;
-        }
-        else if ( formation.isSymmetryType( unum ) )
-        {
-            int symmetry_unum = formation.getSymmetryNumber( unum );
-            if ( symmetry_unum == 0 ) continue;
-            it->x = old_positions[symmetry_unum - 1].x;
-            it->y = old_positions[symmetry_unum - 1].y * -1.0;
-        }
-        else if ( formation.isSideType( unum ) )
-        {
-            it->y *= -1.0;
-            for ( int iunum = 1; iunum <= 11; ++iunum )
-            {
-                if ( formation.getSymmetryNumber( iunum ) == unum )
-                {
-                    it->x = old_positions[iunum - 1].x;
-                    it->y = old_positions[iunum - 1].y * -1.0;
-                }
-            }
-        }
-    }
 }
 
 /*-------------------------------------------------------------------*/

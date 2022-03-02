@@ -90,7 +90,7 @@ FormationStatic::createDefaultData()
     data.players_.emplace_back( 10.0, 22.0 );
     data.players_.emplace_back( 10.0, 0.0 );
 
-    M_samples->addData( *this, data, false );
+    M_samples->addData( data );
 }
 
 /*-------------------------------------------------------------------*/

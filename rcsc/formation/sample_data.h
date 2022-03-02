@@ -43,8 +43,6 @@
 
 namespace rcsc {
 
-class Formation;
-
 namespace formation {
 
 /*!
@@ -217,40 +215,28 @@ public:
 
     /*!
       \brief append new data.
-      \param formation formation is needed to check the symmetry data.
-      \param data input data.
-      \param symmetry switch variable to determine symmetry mode.
+      \param data new data.
       \return error code.
      */
-    ErrorType addData( const Formation & formation,
-                       const SampleData & data,
-                       const bool symmetry );
+    ErrorType addData( const SampleData & data );
 
     /*!
       \brief insert new data just before the input index.
-      \param formation formation is needed to check the symmetry data.
-      \param idx input index.
-      \param data input data.
-      \param symmetry switch variable to determine symmetry mode.
+      \param idx target index.
+      \param data new data.
       \return error code.
      */
-    ErrorType insertData( const Formation & formation,
-                          const size_t idx,
-                          const SampleData & data,
-                          const bool symmetry );
+    ErrorType insertData( const size_t idx,
+                          const SampleData & data );
 
     /*!
       \brief replace exsiting data at input index with input data.
-      \param formation formation is needed to check the symmetry data.
-      \param idx input index.
-      \param data input data.
-      \param symmetry switch variable to determine symmetry mode.
+      \param idx target index.
+      \param data new data.
       \return error code.
      */
-    ErrorType replaceData( const Formation & formation,
-                           const size_t idx,
-                           const SampleData & data,
-                           const bool symmetry );
+    ErrorType replaceData( const size_t idx,
+                           const SampleData & data );
 
     /*!
       \brief delete exsiting data at input index.
@@ -267,20 +253,6 @@ public:
      */
     ErrorType changeDataIndex( const size_t old_idx,
                                const size_t new_idx );
-
-private:
-
-    /*!
-      \brief replace exsiting data at input index with input data.
-      \param formation formation is needed to check the symmetry data.
-      \param idx input index.
-      \param data input data.
-      \param symmetry switch variable to determine symmetry mode.
-      \return error code.
-     */
-    ErrorType replaceSymmetryData( const Formation & formation,
-                                   const SampleData & original_data,
-                                   const SampleData & reversed_data );
 
 public:
 
@@ -320,14 +292,6 @@ public:
     ErrorType removeConstraint( const size_t origin_idx,
                                 const size_t terminal_idx );
 
-
-    /*!
-      \brief reverse Y coodinate value of given positions.
-      \param formation formation instance.
-      \param positions reversed value container.
-     */
-    void reverseY( const Formation & formation,
-                   SampleData::PlayerCont & positions ) const;
 
     /*!
       \brief open the file and read data from it.

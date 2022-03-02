@@ -226,7 +226,7 @@ FormationDT::createDefaultData()
     data.players_.emplace_back( 10.0, 10.0 );
 #endif
 
-    M_samples->addData( *this, data, false );
+    M_samples->addData( data );
 }
 
 /*-------------------------------------------------------------------*/
