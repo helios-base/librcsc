@@ -75,9 +75,8 @@ round_coordinates( const double & x,
 
  */
 FormationData::FormationData()
-    : M_data_cont()
 {
-
+    std::fill( M_position_pairs.begin(), M_position_pairs.end(), 0 );
 }
 
 /*-------------------------------------------------------------------*/
@@ -87,6 +86,8 @@ FormationData::FormationData()
 void
 FormationData::clear()
 {
+    std::fill( M_role_names.begin(), M_role_names.end(), "" );
+    std::fill( M_position_pairs.begin(), M_position_pairs.end(), 0 );
     M_data_cont.clear();
     M_constraints.clear();
 }
@@ -237,6 +238,87 @@ FormationData::existIntersectedConstraints() const
     }
 
     return false;
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationData::setRoleName( const int unum,
+                            const std::string & name )
+{
+    if ( unum < 1 || 11 < unum )
+    {
+        std::cerr << "(FormationData;:setRoleName) illegal unum " << unum << std::endl;
+        return false;
+    }
+
+    if ( name.empty() )
+    {
+        std::cerr << "(FormationData;:setRoleName) empty role name" << std::endl;
+        return false;
+    }
+
+    M_role_names[unum - 1] = name;
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationData::setPositionPair( const int unum,
+                                const int paired_unum )
+{
+    if ( unum < 1 || 11 < unum )
+    {
+        std::cerr << "(FormationData;:setPositionPair) ERROR: "
+                  << "illegal unum " << unum << std::endl;
+        return false;
+    }
+
+    if ( paired_unum < -1 || 11 < paired_unum )
+    {
+        std::cerr << "(FormationData;:setPositionPair) ERROR: "
+                  << "illegal paired unum " << paired_unum << std::endl;
+        return false;
+    }
+
+    if ( unum == paired_unum )
+    {
+        std::cerr << "(FormationData;:setPositionPair) ERROR: "
+                  << "unum:" << unum << " = paired:" << paired_unum << std::endl;
+        return false;
+    }
+
+    // check doubling registration
+    for ( int i = 0; i < 11; ++i )
+    {
+        if ( i + 1 == unum
+             || i + 1 == paired_unum )
+        {
+            continue;
+        }
+
+        if ( paired_unum == M_position_pairs[i] )
+        {
+            std::cerr << "(FormationData;:setPositionPair) ERROR: "
+                      <<  paired_unum << " already registered "<< std::endl;
+            return false;
+        }
+    }
+
+    M_position_pairs[unum - 1] = paired_unum;
+
+    if ( 1 <= paired_unum && paired_unum <= 11 )
+    {
+        M_position_pairs[paired_unum - 1] = unum;
+    }
+
+    return true;
 }
 
 /*-------------------------------------------------------------------*/

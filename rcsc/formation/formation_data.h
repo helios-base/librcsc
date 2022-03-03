@@ -35,6 +35,7 @@
 #include <rcsc/geom/vector_2d.h>
 
 #include <memory>
+#include <array>
 #include <vector>
 #include <list>
 #include <utility>
@@ -103,6 +104,12 @@ public:
 
 private:
 
+    //! role name string
+    std::array< std::string, 11 > M_role_names;
+
+    //! uniform number of the paired player. 0 means no pair.
+    std::array< int, 11 > M_position_pairs;
+
     DataCont M_data_cont; //!< data container.
     Constraints M_constraints; //!< constraint container.
 
@@ -129,6 +136,24 @@ public:
       \brief clear all data.
     */
     void clear();
+
+    /*!
+      \brief get the role name array
+      \return const refrence to the array instance
+     */
+    const std::array< std::string, 11 > & roleNames() const
+    {
+        return M_role_names;
+    }
+
+    /*!
+      \brief get the position pair array
+      \return const refrence to the array instance
+     */
+    const std::array< int, 11 > & positionPairs() const
+    {
+        return M_position_pairs;
+    }
 
     /*!
       \brief get the data container.
@@ -186,6 +211,24 @@ private:
     bool existIntersectedConstraints() const;
 
 public:
+
+    /*!
+      \brief set the role name
+      \param unum target player
+      \param name name value
+      \return true if success
+     */
+    bool setRoleName( const int unum,
+                      const std::string & name );
+
+    /*!
+      \brief set the position pair
+      \param unum target player's uniform number
+      \param paired_unum pared player's uniform number
+      \return true if success
+     */
+    bool setPositionPair( const int unum,
+                          const int paired_unum );
 
     /*!
       \brief append new data.
