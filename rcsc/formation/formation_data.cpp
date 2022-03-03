@@ -243,17 +243,17 @@ FormationData::existIntersectedConstraints() const
 /*!
 
  */
-FormationData::ErrorType
+std::string
 FormationData::addData( const FormationData::Data & data )
 {
     if ( M_data_cont.size() >= MAX_DATA_SIZE )
     {
-        return TOO_MANY_DATA;
+        return std::string( "Too many data" );
     }
 
     if ( existTooNearData( data ) )
     {
-        return TOO_NEAR_DATA;
+        return std::string( "Too near data" );
     }
 
     //
@@ -261,7 +261,7 @@ FormationData::addData( const FormationData::Data & data )
     //
     if ( existIntersectedConstraint( data.ball_ ) )
     {
-        return INTERSECTS_CONSTRAINT;
+        return std::string( "Exist intersected constraint" );
     }
 
     //
@@ -275,30 +275,30 @@ FormationData::addData( const FormationData::Data & data )
 
     updateDataIndex();
 
-    return NO_ERROR;
+    return std::string();
 }
 
 /*-------------------------------------------------------------------*/
 /*!
 
  */
-FormationData::ErrorType
+std::string
 FormationData::insertData( const size_t idx,
                            const FormationData::Data & data )
 {
     if ( M_data_cont.size() >= MAX_DATA_SIZE )
     {
-        return TOO_MANY_DATA;
+        return std::string( "Too many data" );
     }
 
     if ( M_data_cont.size() < idx )
     {
-        return INSERT_RANGE_OVER;
+        return std::string( "Over insert range" );
     }
 
     if ( existTooNearData( data ) )
     {
-        return TOO_NEAR_DATA;
+        return std::string( "Too near data" );
     }
 
     //
@@ -306,7 +306,7 @@ FormationData::insertData( const size_t idx,
     //
     if ( existIntersectedConstraint( data.ball_ ) )
     {
-        return INTERSECTS_CONSTRAINT;
+        return std::string( "Exist intersected constraint" );
     }
 
     //
@@ -317,28 +317,26 @@ FormationData::insertData( const size_t idx,
 
     M_data_cont.insert( it, data );
 
-    std::cerr << "Inserted data at index="
-              << std::distance( M_data_cont.begin(), it ) + 1
-              << ". current data size = "
-              << M_data_cont.size()
+    std::cerr << "Inserted data at index=" << std::distance( M_data_cont.begin(), it ) + 1
+              << ". current data size = " << M_data_cont.size()
               << std::endl;
 
     updateDataIndex();
 
-    return NO_ERROR;
+    return std::string();
 }
 
 /*-------------------------------------------------------------------*/
 /*!
 
  */
-FormationData::ErrorType
+std::string
 FormationData::replaceData( const size_t idx,
                             const FormationData::Data & data )
 {
     if ( M_data_cont.size() < idx )
     {
-        return INVALID_INDEX;
+        return std::string( "Invalid index" );
     }
 
     DataCont::iterator replaced = M_data_cont.begin();
@@ -356,7 +354,7 @@ FormationData::replaceData( const size_t idx,
             if ( it != replaced
                  && it->ball_.dist2( data.ball_ ) < dist_thr2 )
             {
-                return TOO_NEAR_DATA;
+                return std::string( "Too near data" );
             }
         }
     }
@@ -370,7 +368,7 @@ FormationData::replaceData( const size_t idx,
     if ( existIntersectedConstraints() )
     {
         *replaced = original_data;
-        return INTERSECTS_CONSTRAINT;
+        return std::string( "Exist intersected constraint" );
     }
 
     std::cerr << "Replaced data at index=" << idx << std::endl;
@@ -380,19 +378,19 @@ FormationData::replaceData( const size_t idx,
     //
     updateDataIndex();
 
-    return NO_ERROR;
+    return std::string();
 }
 
 /*-------------------------------------------------------------------*/
 /*!
 
  */
-FormationData::ErrorType
+std::string
 FormationData::removeData( const size_t idx )
 {
     if ( M_data_cont.size() < idx )
     {
-        return INVALID_INDEX;
+        return std::string( "Invalid index" );
     }
 
     DataCont::iterator it = M_data_cont.begin();
@@ -425,14 +423,14 @@ FormationData::removeData( const size_t idx )
     //
     updateDataIndex();
 
-    return NO_ERROR;
+    return std::string();
 }
 
 /*-------------------------------------------------------------------*/
 /*!
 
  */
-FormationData::ErrorType
+std::string
 FormationData::changeDataIndex( const size_t old_idx,
                                 const size_t new_idx )
 {
@@ -440,7 +438,7 @@ FormationData::changeDataIndex( const size_t old_idx,
          || M_data_cont.size() < old_idx
          || M_data_cont.size() < new_idx )
     {
-        return INVALID_INDEX;
+        return std::string( "Invalid index" );
     }
 
     DataCont::iterator oit = M_data_cont.begin();
@@ -455,14 +453,14 @@ FormationData::changeDataIndex( const size_t old_idx,
 
     updateDataIndex();
 
-    return NO_ERROR;
+    return std::string();
 }
 
 /*-------------------------------------------------------------------*/
 /*!
 
  */
-FormationData::ErrorType
+std::string
 FormationData::addConstraint( const size_t origin_idx,
                               const size_t terminal_idx )
 {
@@ -471,23 +469,21 @@ FormationData::addConstraint( const size_t origin_idx,
     //
     if ( origin_idx == terminal_idx )
     {
-        std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                  << " addConstraint() duplicated index"
+        std::cerr << "(FormationData::addConstraint) duplicated index"
                   << " first=" << origin_idx
                   << " second=" << terminal_idx
                   << std::endl;
-        return DUPLICATED_INDEX;
+        return std::string( "Duplicated index" );
     }
 
     if ( M_data_cont.size() < origin_idx + 1
          || M_data_cont.size() < terminal_idx + 1 )
     {
-        std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                  << " addConstraint() range over. data_size=" << M_data_cont.size()
+        std::cerr << "(FormationData::addConstraint) range over. data_size=" << M_data_cont.size()
                   << " first=" << origin_idx
                   << " second=" << terminal_idx
                   << std::endl;
-        return INVALID_INDEX;
+        return std::string( "Invalid index" );
     }
 
     DataCont::iterator origin = M_data_cont.begin();
@@ -502,24 +498,22 @@ FormationData::addConstraint( const size_t origin_idx,
         Constraints::value_type value( &(*origin), &(*terminal) );
         if ( std::find( M_constraints.begin(), M_constraints.end(), value ) != M_constraints.end() )
         {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " addConstraint() the constraint is already registered. "
+            std::cerr << "(FormationData::addConstraint) the constraint is already registered. "
                       << " first=" << origin_idx
                       << " second=" << terminal_idx
                       << std::endl;
-            return DUPLICATED_CONSTRAINT;
+            return std::string( "Duplicated constraint" );
         }
     }
     {
         Constraints::value_type value( &(*terminal), &(*origin) );
         if ( std::find( M_constraints.begin(), M_constraints.end(), value ) != M_constraints.end() )
         {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " addConstraint() the constraint is already registered. "
+            std::cerr << "(FormationData::addConstraint) the constraint is already registered. "
                       << " first=" << origin_idx
                       << " second=" << terminal_idx
                       << std::endl;
-            return DUPLICATED_CONSTRAINT;
+            return std::string( "Duplicated constraint" );
         }
     }
 
@@ -534,12 +528,11 @@ FormationData::addConstraint( const size_t origin_idx,
         if ( constraint.existIntersectionExceptEndpoint( Segment2D( c.first->ball_,
                                                                     c.second->ball_ ) ) )
         {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " addConstraint() the input constraint intersects with existing constraint. "
+            std::cerr << "(FormationData::addConstraint) the input constraint intersects with existing constraint. "
                       << " input:" << origin->ball_ << '-' << terminal->ball_
                       << " intersected:" << c.first->ball_ << '-' << c.second ->ball_
                       << std::endl;
-            return INTERSECTS_CONSTRAINT;
+            return std::string( "Exist intersected constraint" );
         }
     }
 
@@ -558,12 +551,11 @@ FormationData::addConstraint( const size_t origin_idx,
 
         if ( constraint.onSegmentWeakly( d->ball_ ) )
         {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " addConstraint() the input constraint intersects with existing sample. "
+            std::cerr <<"(FormationData::addConstraint) the input constraint intersects with existing sample. "
                       << " input:" << origin->ball_ << '-' << terminal->ball_
                       << " intersected:" << d->ball_ << '-' << d->ball_
                       << std::endl;
-            return INTERSECTS_CONSTRAINT;
+            return std::string( "Exist intersected constraint" );
         }
     }
 
@@ -572,14 +564,14 @@ FormationData::addConstraint( const size_t origin_idx,
     //
     M_constraints.push_back( Constraints::value_type( &(*origin), &(*terminal) ) );
 
-    return NO_ERROR;
+    return std::string();
 }
 
 /*-------------------------------------------------------------------*/
 /*!
 
  */
-FormationData::ErrorType
+std::string
 FormationData::replaceConstraint( const size_t idx,
                                   const size_t origin_idx,
                                   const size_t terminal_idx )
@@ -590,7 +582,7 @@ FormationData::replaceConstraint( const size_t idx,
                   << " replaceConstraint() range over. size=" << M_constraints.size()
                   << " index=" << idx
                   << std::endl;
-        return INVALID_INDEX;
+        return std::string( "Invalid index" );
     }
 
     Constraints::iterator it = M_constraints.begin();
@@ -599,12 +591,11 @@ FormationData::replaceConstraint( const size_t idx,
     Constraint backup = *it;
     it = M_constraints.erase( it );
 
-    ErrorType err = addConstraint( origin_idx, terminal_idx );
+    std::string err = addConstraint( origin_idx, terminal_idx );
 
-    if ( err != NO_ERROR )
+    if ( ! err.empty() )
     {
-        std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                  << " replaceConstraint() could not replace the constraint."
+        std::cerr << "(FormationData::replaceConstraint) could not replace the constraint."
                   << " index=" << idx
                   << std::endl;
         M_constraints.insert( it, backup );
@@ -615,14 +606,14 @@ FormationData::replaceConstraint( const size_t idx,
     M_constraints.pop_back();
     M_constraints.insert( it, added );
 
-    return NO_ERROR;
+    return std::string();
 }
 
 /*-------------------------------------------------------------------*/
 /*!
 
  */
-FormationData::ErrorType
+std::string
 FormationData::removeConstraint( const size_t idx )
 {
     if ( M_constraints.size() < idx + 1 )
@@ -631,14 +622,14 @@ FormationData::removeConstraint( const size_t idx )
                   << " removeConstraint() range over. size=" << M_constraints.size()
                   << " index=" << idx
                   << std::endl;
-        return INVALID_INDEX;
+        return std::string( "Invalid index" );
     }
 
     Constraints::iterator it = M_constraints.begin();
     std::advance( it, idx );
 
     M_constraints.erase( it );
-    return NO_ERROR;
+    return std::string();
 }
 
 
@@ -646,19 +637,18 @@ FormationData::removeConstraint( const size_t idx )
 /*!
 
  */
-FormationData::ErrorType
+std::string
 FormationData::removeConstraint( const size_t origin_idx,
                                  const size_t terminal_idx )
 {
     if ( M_data_cont.size() < origin_idx + 1
          || M_data_cont.size() < terminal_idx + 1 )
     {
-        std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                  << " removeConstraint() range over. data_size=" << M_data_cont.size()
+        std::cerr << "(FormationData::removeConstraint) range over. data_size=" << M_data_cont.size()
                   << " first=" << origin_idx
                   << " second=" << terminal_idx
                   << std::endl;
-        return INVALID_INDEX;
+        return std::string( "Invalid index" );
     }
 
     DataCont::iterator origin = M_data_cont.begin();
@@ -672,7 +662,7 @@ FormationData::removeConstraint( const size_t origin_idx,
         if ( it != M_constraints.end() )
         {
             M_constraints.erase( it );
-            return NO_ERROR;
+            return std::string();
         }
     }
 
@@ -682,15 +672,13 @@ FormationData::removeConstraint( const size_t origin_idx,
         if ( it != M_constraints.end() )
         {
             M_constraints.erase( it );
-            return NO_ERROR;
+            return std::string();
         }
     }
 
-    std::cerr << __FILE__ << ':' << __LINE__ << ':'
-              << " removeConstraint() no constraint (" << origin_idx << ',' << terminal_idx << ')'
-              << std::endl;
+    std::cerr << "(FormationData::removeConstraint) no constraint (" << origin_idx << ',' << terminal_idx << ')' << std::endl;
 
-    return INVALID_INDEX;
+    return std::string( "Invalid index" );
 }
 
 /*-------------------------------------------------------------------*/
