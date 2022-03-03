@@ -33,7 +33,7 @@
 #include <config.h>
 #endif
 
-#include "sample_data.h"
+#include "formation_data.h"
 
 #include <rcsc/geom/segment_2d.h>
 

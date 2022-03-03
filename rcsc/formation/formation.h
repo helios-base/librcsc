@@ -32,7 +32,7 @@
 #ifndef RCSC_FORMATION_FORMATION_H
 #define RCSC_FORMATION_FORMATION_H
 
-#include <rcsc/formation/sample_data.h>
+#include <rcsc/formation/formation_data.h>
 #include <rcsc/common/role_type.h>
 #include <rcsc/geom/vector_2d.h>
 #include <rcsc/factory.h>

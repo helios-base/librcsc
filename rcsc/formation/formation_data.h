@@ -1,7 +1,7 @@
 // -*-c++-*-
 
 /*!
-  \file sample_data.h
+  \file formation_data.h
   \brief formation sample data class Header File.
 */
 
@@ -29,8 +29,8 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_FORMATION_SAMPLE_DATA_H
-#define RCSC_FORMATION_SAMPLE_DATA_H
+#ifndef RCSC_FORMATION_FORMATION_DATA_H
+#define RCSC_FORMATION_FORMATION_DATA_H
 
 #include <rcsc/geom/vector_2d.h>
 
@@ -45,7 +45,7 @@ namespace rcsc {
 
 /*!
   \class FormationData
-  \brief data to construct the formation
+  \brief data for constructing the formation
  */
 class FormationData {
 public:

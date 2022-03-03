@@ -4,7 +4,7 @@ noinst_LTLIBRARIES = librcsc_formation.la
 
 librcsc_formation_la_SOURCES = \
 	formation.cpp \
-	sample_data.cpp \
+	formation_data.cpp \
 	formation_parser.cpp \
 	formation_parser_v1.cpp \
 	formation_parser_v2.cpp \
@@ -25,7 +25,7 @@ librcsc_formationincludedir = $(includedir)/rcsc/formation
 
 librcsc_formationinclude_HEADERS = \
 	formation.h \
-	sample_data.h \
+	formation_data.h \
 	formation_parser.h \
 	formation_parser_v1.h \
 	formation_parser_v2.h \
