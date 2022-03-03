@@ -32,7 +32,7 @@
 #ifndef RCSC_FORMATION_FORMATION_PARSER_H
 #define RCSC_FORMATION_FORMATION_PARSER_H
 
-#include <rcsc/formation/formation.h>
+#include <rcsc/formation/formation_data.h>
 
 #include <string>
 #include <iosfwd>
@@ -41,7 +41,7 @@ namespace rcsc {
 
 /*!
   \class FormationParser
-  \brief abstarct formation parser interface
+  \brief abstarct formation data parser interface
 */
 class FormationParser {
 private:
@@ -69,7 +69,7 @@ public:
       \param filepath the file path to be parsed
       \return formation instance
      */
-    Formation::Ptr parse( const std::string & filepath );
+    FormationData::Ptr parse( const std::string & filepath );
 
     /*!
       \brief parse the input stream
@@ -77,14 +77,21 @@ public:
       \return formation instance
      */
     virtual
-    Formation::Ptr parse( std::istream & is ) = 0;
+    FormationData::Ptr parse( std::istream & is ) = 0;
 
 protected:
 
     /*!
-      \brief check the consistency of position pairs
+      \brief check the consistency of role names
+      \return true if success
      */
-    bool checkPositionPair();
+    bool checkRoleNames( const FormationData::ConstPtr ptr );
+
+    /*!
+      \brief check the consistency of position pairs
+      \return true if success
+     */
+    bool checkPositionPair( const FormationData::ConstPtr ptr );
 
 };
 

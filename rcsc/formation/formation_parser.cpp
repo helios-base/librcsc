@@ -40,7 +40,7 @@
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
-Formation::Ptr
+FormationData::Ptr
 FormationParser::parse( const std::string & filepath )
 {
     std::ifstream fin( filepath.c_str() );
@@ -50,10 +50,40 @@ FormationParser::parse( const std::string & filepath )
 
 /*-------------------------------------------------------------------*/
 bool
-FormationParser::checkPositionPair()
+FormationParser::checkRoleNames( const FormationData::ConstPtr ptr )
 {
+    if ( ! ptr )
+    {
+        return false;
+    }
+
+    for ( size_t i = 0; i < ptr->roleNames().max_size(); ++i )
+    {
+        if ( ptr->roleNames()[i].empty() )
+        {
+            std::cerr << "(FormationParser::checkRoleNames) empty role name. unum= " << i + 1 << std::endl;
+            return false;
+        }
+    }
+
     return true;
 }
 
+/*-------------------------------------------------------------------*/
+bool
+FormationParser::checkPositionPair( const FormationData::ConstPtr ptr )
+{
+    if ( ! ptr )
+    {
+        return false;
+    }
+
+    for ( size_t i = 0; i < ptr->positionPairs().max_size(); ++i )
+    {
+
+    }
+
+    return true;
+}
 
 }

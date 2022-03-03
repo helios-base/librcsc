@@ -41,22 +41,31 @@
 
 namespace rcsc {
 
-/*-------------------------------------------------------------------*/
-Formation::Ptr
-FormationParserV3::parse( std::istream & is )
+namespace {
+inline
+double
+round_coord( const double val )
 {
-    if ( ! parseHeader( is ) ) return Formation::Ptr();
-    if ( ! parseRoles( is ) ) return Formation::Ptr();
-    if ( ! parseData( is ) ) return Formation::Ptr();
-    if ( ! parseEnd( is ) ) return Formation::Ptr();
-
-    if ( ! checkPositionPair() ) return Formation::Ptr();
-
-    Formation::Ptr ptr;
-    return ptr;
+    return rint( val / FormationData::PRECISION ) * FormationData::PRECISION;
+}
 }
 
+/*-------------------------------------------------------------------*/
+FormationData::Ptr
+FormationParserV3::parse( std::istream & is )
+{
+    FormationData::Ptr ptr( new FormationData() );
 
+    if ( ! parseHeader( is ) ) return FormationData::Ptr();
+    if ( ! parseRoles( is, ptr ) ) return FormationData::Ptr();
+    if ( ! parseData( is, ptr ) ) return FormationData::Ptr();
+    if ( ! parseEnd( is ) ) return FormationData::Ptr();
+
+    if ( ! checkRoleNames( ptr ) ) return FormationData::Ptr();
+    if ( ! checkPositionPair( ptr ) ) return FormationData::Ptr();
+
+    return ptr;
+}
 
 /*-------------------------------------------------------------------*/
 bool
@@ -110,8 +119,11 @@ FormationParserV3::parseHeader( std::istream & is )
 
 /*-------------------------------------------------------------------*/
 bool
-FormationParserV3::parseRoles( std::istream & is )
+FormationParserV3::parseRoles( std::istream & is,
+                               FormationData::Ptr result )
 {
+    if ( ! result ) return false;
+
     //
     // read Begin tag
     //
@@ -120,7 +132,6 @@ FormationParserV3::parseRoles( std::istream & is )
     {
         return false;
     }
-
 
     //
     // read role data
@@ -143,23 +154,29 @@ FormationParserV3::parseRoles( std::istream & is )
 
         int read_unum = 0;
         char role_name[128];
-        int position_pair = 0;
+        int paired_unum = 0;
         char role_type[4];
         char marker[32];
         char smarker[32];
 
         if ( std::sscanf( line.c_str(),
                           " %d %3s %127s %d %31s %31s ",
-                          &read_unum, role_type, role_name, &position_pair, marker, smarker ) != 6
+                          &read_unum, role_type, role_name, &paired_unum, marker, smarker ) != 6
              || read_unum != unum )
         {
             std::cerr << "(FormationParserV3::parseRoles). Illegal role data [" << line << "]" << std::endl;
             return false;
         }
 
-        // createRoleOrSetSymmetry( unum, role_name, position_pair );
-        // setRoleType( unum, role_type );
-        // setMarker( unum, marker, smarker );
+        if ( ! result->setRoleName( unum, role_name ) )
+        {
+            return false;
+        }
+
+        if ( ! result->setPositionPair( unum, paired_unum ) )
+        {
+            return false;
+        }
     }
 
     //
@@ -237,16 +254,175 @@ FormationParserV3::parseEndRolesTag( std::istream & is )
 
 /*-------------------------------------------------------------------*/
 bool
-FormationParserV3::parseData( std::istream & is )
+FormationParserV3::parseData( std::istream & is,
+                              FormationData::Ptr result )
 {
-    FormationData::Ptr data( new FormationData() );
+    if ( ! result ) return false;
 
-    if ( ! data->readOld( is ) )
+    int data_size = 0;
+    if ( ! parseDataHeader( is, &data_size ) )
     {
         return false;
     }
 
-    return false;
+    for ( int i = 0; i < data_size; ++i )
+    {
+        if ( ! parseOneData( is, i, result ) )
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+FormationParserV3::parseDataHeader( std::istream & is,
+                                    int * data_size )
+{
+    std::string line;
+    int n_line = 0;
+
+    // read data header
+    while ( std::getline( is, line ) )
+    {
+        ++n_line;
+        if ( line.empty()
+             || line[0] == '#'
+             || ! line.compare( 0, 2, "//" ) )
+        {
+            continue;
+        }
+
+        if ( ! line.compare( 0, 13, "Begin Samples" ) )
+        {
+            int version = 0;
+            int n_val = std::sscanf( line.c_str(),
+                                     " Begin Samples %d %d ",
+                                     &version, data_size );
+            if ( n_val != 2 )
+            {
+                std::cerr << "(FormationParserV3::parseData) ERROR: "
+                          << " Illegal data header [" << line << "]" << std::endl;
+                return false;
+            }
+
+            if ( version != 2 )
+            {
+                std::cerr << "(FormationParserV3::parseData) ERROR: "
+                          << " Illegal data version [" << version << "]" << std::endl;
+                return false;
+            }
+        }
+
+        break;
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+FormationParserV3::parseOneData( std::istream & is,
+                                 const int index,
+                                 FormationData::Ptr result )
+{
+    std::string line;
+
+    //
+    // read index
+    //
+    while ( std::getline( is, line ) )
+    {
+        if ( line.empty()
+             || line[0] == '#'
+             || ! line.compare( 0, 2, "//" ) )
+        {
+            continue;
+        }
+
+        int read_index = -1;
+        if ( std::sscanf( line.c_str(),
+                          "----- %d -----",
+                          &read_index ) != 1
+             || read_index != index )
+        {
+            std::cerr << "(FormationParaserV3::parseOneData) ERROR: Illegal data segment. "
+                      << " index=" << index << " [" << line << ']' << std::endl;
+            return false;
+        }
+
+        break;
+    }
+
+
+    //
+    // read new data.
+    //
+
+    FormationData::Data new_data;
+
+    double read_x = 0.0;
+    double read_y = 0.0;
+
+    //
+    // read ball data
+    //
+    if ( ! std::getline( is, line ) )
+    {
+        std::cerr << "(FormationParserV3::parseOneData) ERROR: failed to read ball data."
+                  << " index=" << index << std::endl;
+        return false;
+    }
+
+    if ( std::sscanf( line.c_str(),
+                      " Ball %lf %lf ",
+                      &read_x, &read_y ) != 2 )
+    {
+        std::cerr << "(FormationParserV3::parseOneData) ERROR: Illegal ball data."
+                  << " index=" << index << " [" << line << "]" << std::endl;
+        return false;
+    }
+
+    new_data.ball_.assign( round_coord( read_x ), round_coord( read_y ) );
+
+    //
+    // read player data
+    //
+
+    int read_unum = 0;
+
+    for ( int unum = 1; unum <= 11; ++unum )
+    {
+        if ( ! std::getline( is, line ) )
+        {
+            std::cerr << "(FormationParserV3::parseOneData) ERROR: failed to read a line."
+                      << " index" << index << " unum=" << unum << std::endl;
+            return false;
+        }
+
+        if ( std::sscanf( line.c_str(),
+                          " %d %lf %lf ",
+                          &read_unum, &read_x, &read_y ) != 3
+             || read_unum != unum )
+        {
+            std::cerr << "(FormationParserV3::parseOneData) ERROR: Illegal player data."
+                      << " index=" << index << " unum=" << unum << " [" << line << "]" << std::endl;
+            return false;
+        }
+
+        new_data.players_.emplace_back( round_coord( read_x ), round_coord( read_y ) );
+    }
+
+    const std::string err = result->addData( new_data );
+    if ( ! err.empty() )
+    {
+        std::cerr << "(FormationParserV3::parseOneData) ERROR: " << err << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 /*-------------------------------------------------------------------*/

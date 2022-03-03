@@ -42,16 +42,18 @@
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
-Formation::Ptr
+FormationData::Ptr
 FormationParserV1::parse( std::istream & is )
 {
-    if ( ! parseHeader( is ) ) return Formation::Ptr();
-    if ( ! parseRoles( is ) ) return Formation::Ptr();
-    if ( ! parseData( is ) ) return Formation::Ptr();
+    FormationData::Ptr ptr( new FormationData() );
 
-    if ( ! checkPositionPair() ) return Formation::Ptr();
+    if ( ! parseHeader( is ) ) return FormationData::Ptr();
+    if ( ! parseRoles( is, ptr ) ) return FormationData::Ptr();
+    if ( ! parseData( is, ptr ) ) return FormationData::Ptr();
 
-    Formation::Ptr ptr;
+    if ( ! checkRoleNames( ptr ) ) return FormationData::Ptr();
+    if ( ! checkPositionPair( ptr ) ) return FormationData::Ptr();
+
     return ptr;
 }
 
@@ -106,8 +108,11 @@ FormationParserV1::parseHeader( std::istream & is )
 
 /*-------------------------------------------------------------------*/
 bool
-FormationParserV1::parseRoles( std::istream & is )
+FormationParserV1::parseRoles( std::istream & is,
+                               FormationData::Ptr result )
 {
+    if ( ! result ) return false;
+
     std::string line;
     while ( std::getline( is, line ) )
     {
@@ -123,34 +128,26 @@ FormationParserV1::parseRoles( std::istream & is )
         for ( int unum = 1; unum <= 11; ++unum )
         {
             char role_name[128];
-            int position_pair;
+            int paired_unum;
             int n_read = 0;
 
             if ( std::sscanf( msg, " %s %d %n ",
-                              role_name, &position_pair, &n_read ) != 2 )
+                              role_name, &paired_unum, &n_read ) != 2 )
             {
                 std::cerr << "(FormationParserV1::parseRoles) Failed to read player " << unum << std::endl;
                 return false;
             }
             msg += n_read;
 
-            // const Formation::SideType type = ( symmetry_number == 0
-            //                                    ? Formation::CENTER
-            //                                    : symmetry_number < 0
-            //                                    ? Formation::SIDE
-            //                                    : Formation::SYMMETRY );
-            // if ( type == Formation::CENTER )
-            // {
-            //     createNewRole( unum, role_name, type );
-            // }
-            // else if ( type == Formation::SIDE )
-            // {
-            //     createNewRole( unum, role_name, type );
-            // }
-            // else
-            // {
-            //     setSymmetryType( unum, symmetry_number, role_name );
-            // }
+            if ( ! result->setRoleName( unum, role_name ) )
+            {
+                return false;
+            }
+
+            if ( ! result->setPositionPair( unum, paired_unum ) )
+            {
+                return false;
+            }
         }
 
         return true;
@@ -161,8 +158,11 @@ FormationParserV1::parseRoles( std::istream & is )
 
 /*-------------------------------------------------------------------*/
 bool
-FormationParserV1::parseData( std::istream & is )
+FormationParserV1::parseData( std::istream & is,
+                              FormationData::Ptr result )
 {
+    if ( ! result ) return false;
+
     std::string line;
     while ( std::getline( is, line ) )
     {
@@ -175,6 +175,8 @@ FormationParserV1::parseData( std::istream & is )
 
         const char * msg = line.c_str();
 
+        FormationData::Data new_data;
+
         double read_x, read_y;
         int n_read = 0;
 
@@ -182,13 +184,13 @@ FormationParserV1::parseData( std::istream & is )
         if ( std::sscanf( msg, " %lf %lf %n ",
                           &read_x, &read_y, &n_read ) != 2 )
         {
-            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                      << " *** ERROR *** Invalid ball data ["
-                      << line << "]"
-                      << std::endl;
+            std::cerr << "(FormationParserV1::parseData) ERROR: Invalid ball data. "
+                      <<  '[' << line << ']' << std::endl;
             return false;
         }
         msg += n_read;
+
+        new_data.ball_.assign( read_x, read_y );
 
         //new_sample.ball_.assign( read_x, read_y );
 
@@ -197,19 +199,21 @@ FormationParserV1::parseData( std::istream & is )
             if ( std::sscanf( msg, " %lf %lf %n ",
                               &read_x, &read_y, &n_read ) != 2 )
             {
-                std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                          << " *** ERROR *** Illegal player data. unum = "
-                          << unum
-                          << " [" << line << "]"
-                          << std::endl;
+                std::cerr <<  "(FormationParserV1::parseData) ERROR: Illegal player data. "
+                          << "unum = " << unum << " [" << line << "]" << std::endl;
                 return false;
             }
             msg += n_read;
 
-            //new_sample.players_.push_back( Vector2D( read_x, read_y ) );
+            new_data.players_.emplace_back( read_x, read_y );
         }
 
-        //samples->addData( *this, new_sample, false );
+        std::string err = result->addData( new_data );
+        if ( ! err.empty() )
+        {
+            std::cerr << "(FormationParserV1::parseData) ERROR: " << err << std::endl;
+            return false;
+        }
     }
 
     return false;

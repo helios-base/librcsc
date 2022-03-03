@@ -61,15 +61,22 @@ public:
       \param is reference to the input stream to be parsed
       \return formation instance
      */
-    Formation::Ptr parse( std::istream & is ) override;
+    FormationData::Ptr parse( std::istream & is ) override;
 
 private:
 
     bool parseHeader( std::istream & is );
-    bool parseRoles( std::istream & is );
+    bool parseRoles( std::istream & is,
+                     FormationData::Ptr result );
     bool parseBeginRolesTag( std::istream & is );
     bool parseEndRolesTag( std::istream & is );
-    bool parseData( std::istream & is );
+    bool parseData( std::istream & is,
+                    FormationData::Ptr result );
+    bool parseDataHeader( std::istream & is,
+                          int * data_size );
+    bool parseOneData( std::istream & is,
+                       const int index,
+                       FormationData::Ptr result );
     bool parseEnd( std::istream & is );
 
 };

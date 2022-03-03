@@ -76,7 +76,7 @@ round_coordinates( const double & x,
  */
 FormationData::FormationData()
 {
-    std::fill( M_position_pairs.begin(), M_position_pairs.end(), 0 );
+    M_position_pairs.fill( 0 );
 }
 
 /*-------------------------------------------------------------------*/
@@ -86,8 +86,8 @@ FormationData::FormationData()
 void
 FormationData::clear()
 {
-    std::fill( M_role_names.begin(), M_role_names.end(), "" );
-    std::fill( M_position_pairs.begin(), M_position_pairs.end(), 0 );
+    M_role_names.fill( "" );
+    M_position_pairs.fill( 0 );
     M_data_cont.clear();
     M_constraints.clear();
 }
@@ -309,6 +309,16 @@ FormationData::setPositionPair( const int unum,
                       <<  paired_unum << " already registered "<< std::endl;
             return false;
         }
+    }
+
+    if ( 1 <= paired_unum && paired_unum <= 11
+         && M_position_pairs[paired_unum - 1] > 0
+         && M_position_pairs[paired_unum - 1] != unum )
+    {
+        std::cerr << "(FormationData;:setPositionPair) ERROR: "
+                  << "unum=" << unum << ". paired_unum=" << paired_unum
+                  << " already has the pair " << M_position_pairs[paired_unum - 1] << std::endl;
+        return false;
     }
 
     M_position_pairs[unum - 1] = paired_unum;
