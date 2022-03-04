@@ -48,7 +48,7 @@ public:
     /*!
       \brief default constructor
      */
-    FormationParserStatic();
+    FormationParserStatic() = default;
 
     /*!
       \brief virtual default destructor
