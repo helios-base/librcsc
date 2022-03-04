@@ -103,6 +103,46 @@ FormationParserV3::parseHeader( std::istream & is )
     return false;
 }
 
+/*-------------------------------------------------------------------*/
+namespace {
+RoleType
+create_role_type( const std::string & role_type,
+                  const int paired_unum )
+{
+    RoleType result;
+    if ( role_type == "G" )
+    {
+        result.setType( RoleType::Goalie );
+    }
+    else if ( role_type == "DF" )
+    {
+        result.setType( RoleType::Defender );
+    }
+    else if ( role_type == "MF" )
+    {
+        result.setType( RoleType::MidFielder );
+    }
+    else if ( role_type == "FW" )
+    {
+        result.setType( RoleType::Forward );
+    }
+
+    if ( paired_unum == 0 )
+    {
+        result.setSide( RoleType::Center );
+    }
+    else if ( paired_unum == -1 )
+    {
+        result.setSide( RoleType::Left );
+    }
+    else
+    {
+        result.setSide( RoleType::Right );
+    }
+
+    return result;
+}
+}
 
 /*-------------------------------------------------------------------*/
 bool
@@ -151,11 +191,17 @@ FormationParserV3::parseRoles( std::istream & is,
                           &read_unum, role_type, role_name, &paired_unum, marker, smarker ) != 6
              || read_unum != unum )
         {
-            std::cerr << "(FormationParserV3::parseRoles). Illegal role data [" << line << "]" << std::endl;
+            std::cerr << "(FormationParserV3::parseRoles). Illegal role data "
+                      << "[" << line << "]" << std::endl;
             return false;
         }
 
         if ( ! result->setRoleName( unum, role_name ) )
+        {
+            return false;
+        }
+
+        if ( ! result->setRoleType( unum, create_role_type( role_type, paired_unum ) ) )
         {
             return false;
         }
@@ -176,7 +222,6 @@ FormationParserV3::parseRoles( std::istream & is,
 
     return true;
 }
-
 
 /*-------------------------------------------------------------------*/
 /*!
