@@ -1,7 +1,7 @@
 // -*-c++-*-
 
 /*!
-  \file formation_parser_v1.h
+  \file formation_parser_static.h
   \brief v1 formation parser Header File.
 */
 
@@ -29,18 +29,18 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_FORMATION_FORMATION_PARSER_V1_H
-#define RCSC_FORMATION_FORMATION_PARSER_V1_H
+#ifndef RCSC_FORMATION_FORMATION_PARSER_STATIC_H
+#define RCSC_FORMATION_FORMATION_PARSER_STATIC_H
 
 #include <rcsc/formation/formation_parser.h>
 
 namespace rcsc {
 
 /*!
-  \class FormationParserV1
-  \brief v1 formation parser interface
+  \class FormationParserStatic
+  \brief v1 static formation parser interface
 */
-class FormationParserV1
+class FormationParserStatic
     : public FormationParser {
 
 public:
@@ -48,12 +48,12 @@ public:
     /*!
       \brief default constructor
      */
-    FormationParserV1();
+    FormationParserStatic();
 
     /*!
       \brief virtual default destructor
      */
-    ~FormationParserV1() override
+    ~FormationParserStatic() override
     { }
 
     /*!
@@ -64,9 +64,8 @@ public:
     FormationData::Ptr parse( std::istream & is ) override;
 
 private:
+
     bool parseHeader( std::istream & is );
-    bool parseRoles( std::istream & is,
-                     FormationData::Ptr result );
     bool parseData( std::istream & is,
                     FormationData::Ptr result );
 

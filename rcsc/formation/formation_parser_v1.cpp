@@ -37,7 +37,7 @@
 
 #include "formation_data.h"
 
-#include <sstream>
+#include <cstring>
 
 namespace rcsc {
 
@@ -71,33 +71,22 @@ FormationParserV1::parseHeader( std::istream & is )
             continue;
         }
 
-        std::istringstream istr( line );
-
-        std::string tag;
-        std::string method_name;
+        char method_name[32];
         int ver = 0;
 
-        istr >> tag;
-        if ( tag != "Formation" )
-        {
-            std::cerr << "(FormationParserV1::parseHeader) unknown tag [" << tag << "]" << std::endl;
-            return false;
-        }
+        int n = std::sscanf( line.c_str(), "Formation %31s %d", method_name, &ver );
 
-        istr >> method_name;
-        if ( ! istr )
+        if ( n < 1 )
         {
             std::cerr << "(FormationParserV1::parseHeader) No method name" << std::endl;
             return false;
         }
 
-        if ( istr >> ver )
+        if ( n == 2
+             && ver != 1 )
         {
-            if ( ver != 1 )
-            {
-                std::cerr << "(FormationParserV1::parseHeader) Illegas format version " << ver << std::endl;
-                return false;
-            }
+            std::cerr << "(FormationParserV1::parseHeader) Illegas format version " << ver << std::endl;
+            return false;
         }
 
         return true;

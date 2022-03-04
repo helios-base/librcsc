@@ -37,7 +37,7 @@
 
 #include "formation_data.h"
 
-#include <sstream>
+#include <cstring>
 
 namespace rcsc {
 
@@ -80,33 +80,20 @@ FormationParserV2::parseHeader( std::istream & is )
             continue;
         }
 
-        std::istringstream istr( line );
-
-        std::string tag;
-        std::string method_name;
+        char method_name[32];
         int ver = 0;
 
-        istr >> tag;
-        if ( tag != "Formation" )
+        if ( std::sscanf( line.c_str(), "Formation %31s %d", method_name, &ver ) != 2 )
         {
-            std::cerr << "(FormationParserV2::parseHeader) unknown tag [" << tag << "]" << std::endl;
+            std::cerr << "(FormationParserV2::parseHeader) ERROR: illegal header"
+                      << '[' << line << ']' << std::endl;
             return false;
         }
 
-        istr >> method_name;
-        if ( ! istr )
+        if ( ver != 2 )
         {
-            std::cerr << "(FormationParserV2::parseHeader) No method name" << std::endl;
+            std::cerr << "(FormationParserV2::parseHeader) Illegas format version " << ver << std::endl;
             return false;
-        }
-
-        if ( istr >> ver )
-        {
-            if ( ver != 2 )
-            {
-                std::cerr << "(FormationParserV2::parseHeader) Illegas format version " << ver << std::endl;
-                return false;
-            }
         }
 
         return true;
@@ -114,7 +101,6 @@ FormationParserV2::parseHeader( std::istream & is )
 
     return false;
 }
-
 
 /*-------------------------------------------------------------------*/
 bool
