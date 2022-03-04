@@ -6,6 +6,7 @@ librcsc_formation_la_SOURCES = \
 	formation.cpp \
 	formation_data.cpp \
 	formation_parser.cpp \
+	formation_parser_csv.cpp \
 	formation_parser_static.cpp \
 	formation_parser_v1.cpp \
 	formation_parser_v2.cpp \
@@ -28,6 +29,7 @@ librcsc_formationinclude_HEADERS = \
 	formation.h \
 	formation_data.h \
 	formation_parser.h \
+	formation_parser_csv.h \
 	formation_parser_static.h \
 	formation_parser_v1.h \
 	formation_parser_v2.h \
