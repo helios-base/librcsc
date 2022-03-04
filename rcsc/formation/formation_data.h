@@ -32,6 +32,7 @@
 #ifndef RCSC_FORMATION_FORMATION_DATA_H
 #define RCSC_FORMATION_FORMATION_DATA_H
 
+#include <rcsc/common/role_type.h>
 #include <rcsc/geom/vector_2d.h>
 
 #include <memory>
@@ -107,6 +108,9 @@ private:
     //! role name string
     std::array< std::string, 11 > M_role_names;
 
+    //! role types
+    std::array< RoleType, 11 > M_role_types;
+
     //! uniform number of the paired player. 0 means no pair.
     std::array< int, 11 > M_position_pairs;
 
@@ -144,6 +148,15 @@ public:
     const std::array< std::string, 11 > & roleNames() const
     {
         return M_role_names;
+    }
+
+    /*!
+      \brief get the role type array
+      \return const refrence to the array instance
+     */
+    const std::array< RoleType, 11 > & roleTypes() const
+    {
+        return M_role_types;
     }
 
     /*!
@@ -220,6 +233,15 @@ public:
      */
     bool setRoleName( const int unum,
                       const std::string & name );
+
+    /*!
+      \brief set the role type
+      \param unum target player
+      \param type role type value
+      \return true if success
+     */
+    bool setRoleType( const int unum,
+                      const RoleType & type );
 
     /*!
       \brief set the position pair

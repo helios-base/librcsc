@@ -240,7 +240,6 @@ FormationData::existIntersectedConstraints() const
     return false;
 }
 
-
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -251,17 +250,35 @@ FormationData::setRoleName( const int unum,
 {
     if ( unum < 1 || 11 < unum )
     {
-        std::cerr << "(FormationData;:setRoleName) illegal unum " << unum << std::endl;
+        std::cerr << "(FormationData::setRoleName) illegal unum " << unum << std::endl;
         return false;
     }
 
     if ( name.empty() )
     {
-        std::cerr << "(FormationData;:setRoleName) empty role name" << std::endl;
+        std::cerr << "(FormationData::setRoleName) empty role name" << std::endl;
         return false;
     }
 
     M_role_names[unum - 1] = name;
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationData::setRoleType( const int unum,
+                            const RoleType & type )
+{
+    if ( unum < 1 || 11 < unum )
+    {
+        std::cerr << "(FormationData::setRoleTypes) illegal unum " << unum << std::endl;
+        return false;
+    }
+
+    M_role_types[unum - 1] = type;
     return true;
 }
 
