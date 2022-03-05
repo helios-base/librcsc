@@ -34,6 +34,7 @@
 
 #include <rcsc/formation/formation_data.h>
 
+#include <memory>
 #include <string>
 #include <iosfwd>
 
@@ -44,6 +45,10 @@ namespace rcsc {
   \brief abstarct formation data parser interface
 */
 class FormationParser {
+public:
+
+    typedef std::shared_ptr< FormationParser > Ptr; //!< smart pointer type
+
 private:
 
     FormationParser( FormationParser & ) = delete;
@@ -92,6 +97,15 @@ protected:
       \return true if success
      */
     bool checkPositionPair( const FormationData::ConstPtr ptr );
+
+public:
+
+    /*!
+      \brief create formation parser instance according to the header data
+      \param filepath the path string of the input file
+      \return formation parser instance
+     */
+    static FormationParser::Ptr create( std::string & filepath );
 
 };
 

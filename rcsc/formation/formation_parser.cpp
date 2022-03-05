@@ -36,6 +36,7 @@
 #include "formation_parser.h"
 
 #include <fstream>
+#include <cstring>
 
 namespace rcsc {
 
@@ -84,6 +85,66 @@ FormationParser::checkPositionPair( const FormationData::ConstPtr ptr )
     }
 
     return true;
+}
+
+}
+
+#include "formation_parser_v1.h"
+#include "formation_parser_v2.h"
+#include "formation_parser_v3.h"
+#include "formation_parser_static.h"
+#include "formation_parser_csv.h"
+
+namespace rcsc {
+
+/*-------------------------------------------------------------------*/
+FormationParser::Ptr
+FormationParser::create( std::string & filepath )
+{
+    FormationParser::Ptr ptr;
+
+    std::ifstream fin( filepath.c_str() );
+    std::string line;
+    if ( ! std::getline( fin, line ) ) return ptr;
+
+    // {
+    //     std::string::size_type first = line.find_first_not_of( ' ' );
+    //     if ( first != line.std::string::npos
+    //          && line[first] == '{' )
+    //     {
+    //         ptr = FormationParser::Ptr( new FormationParserJSON() );
+    //     }
+    // }
+
+    char method_name[32];
+
+    if ( std::sscanf( line.c_str(), " Formation , %31[^,] ", method_name ) == 1 )
+    {
+        ptr = FormationParser::Ptr( new FormationParserCSV() );
+        return ptr;
+    }
+
+    int ver = 0;
+    int n = std::sscanf( line.c_str(), " Formation %31[^,] %d ", method_name, &ver );
+    if ( n == 2 )
+    {
+        if ( ver == 3 ) ptr = FormationParser::Ptr( new FormationParserV3() );
+        if ( ver == 2 ) ptr = FormationParser::Ptr( new FormationParserV2() );
+        if ( ver == 1 ) ptr = FormationParser::Ptr( new FormationParserV1() );
+    }
+    else if ( n == 1 )
+    {
+        if ( std::strncmp( method_name, "Static", std::strlen( "Static" ) ) == 0 )
+        {
+            ptr = FormationParser::Ptr( new FormationParserStatic() );
+        }
+        else
+        {
+            ptr = FormationParser::Ptr( new FormationParserV2() );
+        }
+    }
+
+    return ptr;
 }
 
 }
