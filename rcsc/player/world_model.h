@@ -78,7 +78,7 @@ public:
 
 private:
 
-    Localization * M_localize; //!< localization module
+    std::shared_ptr< Localization > M_localize; //!< localization module
     InterceptTable * M_intercept_table; //!< interception info table
     std::shared_ptr< AudioMemory > M_audio_memory; //!< heard deqinfo memory
     PenaltyKickState * M_penalty_kick_state; //!< penalty kick mode status
@@ -269,6 +269,12 @@ public:
     void setAudioMemory( std::shared_ptr< AudioMemory > memory );
 
     /*!
+      \brief set new localization method
+      \param localization pointer to the localization instance.
+    */
+    void setLocalization( std::shared_ptr< Localization > localization );
+
+    /*!
       \brief set server param. this method have to be called only once just after server_param message received.
      */
     void setServerParam();
@@ -436,6 +442,7 @@ private:
     */
     bool localizeSelf( const VisualSensor & see,
                        const BodySensor & sense_body,
+                       const ActionEffector & act,
                        const GameTime & current );
 
     /*!
