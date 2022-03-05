@@ -50,24 +50,19 @@ const double FormationData::PRECISION = 0.01;
 const size_t FormationData::MAX_DATA_SIZE = 128;
 const double FormationData::NEAR_DIST_THR = 0.5;
 
-namespace {
-
-inline
+/*-------------------------------------------------------------------*/
 double
-round_coord( const double & val )
+FormationData::round_xy( const double xy )
 {
-    return rint( val / FormationData::PRECISION ) * FormationData::PRECISION;
+    return rint( xy / PRECISION ) * PRECISION;
 }
 
-inline
+/*-------------------------------------------------------------------*/
 Vector2D
-round_coordinates( const double & x,
-                   const double & y )
+FormationData::rounded_vector( const double x,
+                               const double y )
 {
-    return Vector2D( rint( x / FormationData::PRECISION ) * FormationData::PRECISION,
-                     rint( y / FormationData::PRECISION ) * FormationData::PRECISION );
-}
-
+    return Vector2D( round_xy( x ), round_xy( y ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -976,7 +971,7 @@ FormationData::readCSV( std::istream & is )
         }
         buf += n_read;
 
-        new_data.ball_ = round_coordinates( read_x, read_y );
+        new_data.ball_ = rounded_vector( read_x, read_y );
 
         // read players
         for ( int i = 1; i <= 11; ++i )
@@ -989,7 +984,7 @@ FormationData::readCSV( std::istream & is )
             }
             buf += n_read;
 
-            new_data.players_.push_back( round_coordinates( read_x, read_y ) );
+            new_data.players_.emplace_back( round_xy( read_x ), round_xy( read_y ) );
         }
 
         M_data_cont.push_back( new_data );
@@ -1023,7 +1018,7 @@ FormationData::readV1( std::istream & is )
         FormationData::Data new_data;
 
         istr >> x >> y;
-        new_data.ball_ = round_coordinates( x, y );
+        new_data.ball_ = rounded_vector( x, y );
 
         for ( int unum = 1; unum <= 11; ++unum )
         {
@@ -1038,7 +1033,7 @@ FormationData::readV1( std::istream & is )
             }
 
             istr >> x >> y;
-            new_data.players_.push_back( round_coordinates( x, y ) );
+            new_data.players_.emplace_back( round_xy( x ), round_xy( y ) );
         }
 
         M_data_cont.push_back( new_data );
@@ -1172,7 +1167,7 @@ FormationData::readSample( std::istream & is,
         return false;
     }
 
-    new_data.ball_ = round_coordinates( read_x, read_y );
+    new_data.ball_ = rounded_vector( read_x, read_y );
 
     //
     // read player data
@@ -1205,7 +1200,7 @@ FormationData::readSample( std::istream & is,
             return false;
         }
 
-        new_data.players_.push_back( round_coordinates( read_x, read_y ) );
+        new_data.players_.emplace_back( round_xy( read_x ), round_xy ( read_y ) );
     }
 
     M_data_cont.push_back( new_data );
@@ -1357,11 +1352,11 @@ FormationData::printV1( std::ostream & os ) const
     // put data to the stream
     for ( const FormationData::Data & data : M_data_cont )
     {
-        os << round_coord( data.ball_.x ) << ' ' << round_coord( data.ball_.y ) << ' ';
+        os << round_xy( data.ball_.x ) << ' ' << round_xy( data.ball_.y ) << ' ';
 
         for ( const Vector2D & p : data.players_ )
         {
-            os << round_coord( p.x ) << ' ' << round_coord( p.y ) << ' ';
+            os << round_xy( p.x ) << ' ' << round_xy( p.y ) << ' ';
         }
         os << '\n';
     }
@@ -1384,11 +1379,11 @@ FormationData::printV2( std::ostream & os ) const
     {
         os << "----- " << idx << " -----\n";
         ++idx;
-        os << "Ball " << round_coord( d.ball_.x ) << ' ' << round_coord( d.ball_.y ) << '\n';
+        os << "Ball " << round_xy( d.ball_.x ) << ' ' << round_xy( d.ball_.y ) << '\n';
         int unum = 1;
         for ( const Vector2D & p : d.players_ )
         {
-            os << unum << ' ' << round_coord( p.x ) << ' ' << round_coord( p.y ) << '\n';
+            os << unum << ' ' << round_xy( p.x ) << ' ' << round_xy( p.y ) << '\n';
             ++unum;
         }
     }
@@ -1447,10 +1442,10 @@ FormationData::printCSV( std::ostream & os ) const
     {
         os << idx << ',';
         ++idx;
-        os << round_coord( data.ball_.x ) << ',' << round_coord( data.ball_.y );
+        os << round_xy( data.ball_.x ) << ',' << round_xy( data.ball_.y );
         for ( const Vector2D & p : data.players_ )
         {
-            os << ',' << round_coord( p.x ) << ',' << round_coord( p.y );
+            os << ',' << round_xy( p.x ) << ',' << round_xy( p.y );
         }
         os << '\n';
     }

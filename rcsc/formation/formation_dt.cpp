@@ -56,17 +56,6 @@ namespace {
 
  */
 inline
-double
-round_coord( const double & val )
-{
-    return rint( val / FormationData::PRECISION ) * FormationData::PRECISION;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-inline
 bool
 is_comment_line( const std::string & line )
 {

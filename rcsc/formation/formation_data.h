@@ -103,6 +103,10 @@ public:
     static const size_t MAX_DATA_SIZE; //!< max data size
     static const double NEAR_DIST_THR; //!< data distance threshold
 
+    static double round_xy( const double xy );
+    static rcsc::Vector2D rounded_vector( const double x,
+                                          const double y );
+
 private:
 
     //! role name string
@@ -157,6 +161,17 @@ public:
     const std::array< RoleType, 11 > & roleTypes() const
     {
         return M_role_types;
+    }
+
+    /*!
+      \brief get the role type of the given uniform number
+      \return role type value
+     */
+    const RoleType roleType( const int unum ) const
+    {
+        return ( 1 <= unum && unum <= 11
+                 ? M_role_types[unum - 1]
+                 : RoleType() );
     }
 
     /*!

@@ -41,15 +41,6 @@
 
 namespace rcsc {
 
-namespace {
-inline
-double
-round_coord( const double val )
-{
-    return rint( val / FormationData::PRECISION ) * FormationData::PRECISION;
-}
-}
-
 /*-------------------------------------------------------------------*/
 FormationData::Ptr
 FormationParserV3::parse( std::istream & is )
@@ -417,7 +408,7 @@ FormationParserV3::parseOneData( std::istream & is,
         return false;
     }
 
-    new_data.ball_.assign( round_coord( read_x ), round_coord( read_y ) );
+    new_data.ball_ = FormationData::rounded_vector( read_x,  read_y );
 
     //
     // read player data
@@ -444,7 +435,8 @@ FormationParserV3::parseOneData( std::istream & is,
             return false;
         }
 
-        new_data.players_.emplace_back( round_coord( read_x ), round_coord( read_y ) );
+        new_data.players_.emplace_back( FormationData::round_xy( read_x ),
+                                        FormationData::round_xy( read_y ) );
     }
 
     const std::string err = result->addData( new_data );

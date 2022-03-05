@@ -41,6 +41,28 @@
 
 namespace rcsc {
 
+namespace {
+
+std::string
+get_value_line( std::istream & is )
+{
+    std::string buf;
+    while ( std::getline( is, buf ) )
+    {
+        if ( buf.empty()
+             || buf.front() == '#' )
+        {
+            buf.clear();
+            continue;
+        }
+        break;
+    }
+
+    return buf;
+}
+
+}
+
 /*-------------------------------------------------------------------*/
 FormationData::Ptr
 FormationParserCSV::parse( std::istream & is )
@@ -66,44 +88,23 @@ FormationParserCSV::parse( std::istream & is )
 bool
 FormationParserCSV::parseMethodName( std::istream & is )
 {
-    std::string line;
-    while ( std::getline( is, line ) )
+    const std::string line = get_value_line( is );
+
+    char method_name[32];
+    if ( std::sscanf( line.c_str(), "Formation , %31s", method_name ) != 1 )
     {
-        if ( line.empty()
-             || line[0] == '#'
-             || ! line.compare( 0, 2, "//" ) )
-        {
-            continue;
-        }
-
-        char method_name[32];
-
-        if ( std::sscanf( line.c_str(), "Formation , %31s", method_name ) != 1 )
-        {
-            std::cerr << "(FormationParserCSV::parseMethodName) No method name" << std::endl;
-            return false;
-        }
-
-        return true;
+        std::cerr << "(FormationParserCSV::parseMethodName) No method name" << std::endl;
+        return false;
     }
 
-    return false;
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
 bool
 FormationParserCSV::parseRoleNumbers( std::istream & is )
 {
-    std::string line;
-    while ( std::getline( is, line ) )
-    {
-        if ( line.empty()
-             || line.front() == '#' )
-        {
-            continue;
-        }
-        break;
-    }
+    const std::string line = get_value_line( is );
 
     char type[32];
     if ( std::sscanf( line.c_str(), " %31[^,] ", type ) != 1 )
@@ -128,17 +129,7 @@ bool
 FormationParserCSV::parseRoleNames( std::istream & is,
                                     FormationData::Ptr result )
 {
-    std::string line;
-    while ( std::getline( is, line ) )
-    {
-        if ( line.empty()
-             || line.front() == '#' )
-        {
-            continue;
-        }
-        break;
-    }
-
+    const std::string line = get_value_line( is );
     const char * msg = line.c_str();
 
     int n_read = 0;
@@ -207,17 +198,7 @@ bool
 FormationParserCSV::parseRoleTypes( std::istream & is,
                                     FormationData::Ptr result )
 {
-    std::string line;
-    while ( std::getline( is, line ) )
-    {
-        if ( line.empty()
-             || line.front() == '#' )
-        {
-            continue;
-        }
-        break;
-    }
-
+    const std::string line = get_value_line( is );
     const char * msg = line.c_str();
 
     int n_read = 0;
@@ -258,6 +239,52 @@ bool
 FormationParserCSV::parsePositionPairs( std::istream & is,
                                         FormationData::Ptr result )
 {
+    const std::string line = get_value_line( is );
+    const char * msg = line.c_str();
+
+    int n_read = 0;
+    char type[32];
+    if ( std::sscanf( msg, " %31[^,] %n ", type, &n_read ) != 1
+         || std::strcmp( type, "SymmetryNumber" ) != 0 )
+    {
+        std::cerr << "(FormationParserCSV::parsePositionPairs) Illegal line"
+                  << '[' << line << ']' << std::endl;
+        return false;
+    }
+    msg += n_read;
+
+
+    for ( int unum = 1; unum <= 11; ++unum )
+    {
+        int paired_unum = 0;
+        if ( std::sscanf( msg, " , %d %n ", &paired_unum, &n_read ) != 1 )
+        {
+            std::cerr << "(FormationParserCSV::parsePositionPairs) Illegal number"
+                      << '[' << line << ']' << std::endl;
+            return false;
+        }
+        msg += n_read;
+
+        RoleType role_type = result->roleType( unum );
+        role_type.setSide( paired_unum == 0 ? RoleType::Center :
+                           paired_unum < 0 ? RoleType::Left :
+                           RoleType::Right );
+
+        if ( ! result->setRoleType( unum, role_type ) )
+        {
+            std::cerr << "(FormationParserCSV::parsePositionPairs) Could not set the role type"
+                      << '[' << line << ']' << std::endl;
+            return false;
+        }
+
+        if ( ! result->setPositionPair( unum, paired_unum ) )
+        {
+            std::cerr << "(FormationParserCSV::parsePositionPairs) Could not set the position pair"
+                      << '[' << line << ']' << std::endl;
+            return false;
+        }
+    }
+
     return false;
 }
 
@@ -265,14 +292,42 @@ FormationParserCSV::parsePositionPairs( std::istream & is,
 bool
 FormationParserCSV::parseMarkerFlags( std::istream & is )
 {
-    return false;
+    const std::string line = get_value_line( is );
+    const char * msg = line.c_str();
+
+    int n_read = 0;
+    char type[32];
+    if ( std::sscanf( msg, " %31[^,] %n ", type, &n_read ) != 1
+         || std::strcmp( type, "Marker" ) != 0 )
+    {
+        std::cerr << "(FormationParserCSV::parseMarkerFlags) Illegal line"
+                  << '[' << line << ']' << std::endl;
+        return false;
+    }
+    msg += n_read;
+
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
 bool
 FormationParserCSV::parseSetplayMarkerFlags( std::istream & is )
 {
-    return false;
+    const std::string line = get_value_line( is );
+    const char * msg = line.c_str();
+
+    int n_read = 0;
+    char type[32];
+    if ( std::sscanf( msg, " %31[^,] %n ", type, &n_read ) != 1
+         || std::strcmp( type, "SetplayMarker" ) != 0 )
+    {
+        std::cerr << "(FormationParserCSV::parseSetplayMarkerFlags) Illegal line"
+                  << '[' << line << ']' << std::endl;
+        return false;
+    }
+    msg += n_read;
+
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
@@ -280,7 +335,100 @@ bool
 FormationParserCSV::parseData( std::istream & is,
                                FormationData::Ptr result )
 {
-    return false;
+    // read tag name
+    {
+        const std::string line = get_value_line( is );
+        if ( line != "SampleData" )
+        {
+            std::cerr << "(FormationParserCSV::parseData) Illegal line"
+                      << '[' << line << ']' << std::endl;
+            return false;
+        }
+    }
+
+    // read data size
+    int data_size = 0;
+    {
+        const std::string line = get_value_line( is );
+        if ( std::sscanf( line.c_str(), "S ize , %d ", &data_size ) != 1
+             || data_size <= 0 )
+        {
+            std::cerr << "(FormationParserCSV::parseData) Illegal data size"
+                      << '[' << line << ']' << std::endl;
+            return false;
+        }
+    }
+    // read data header
+    {
+        const std::string line = get_value_line( is );
+        if ( line.compare( 0, 3, "idx" ) != 0 )
+        {
+            std::cerr << "(FormationParserCSV::parseData) Illegal header line"
+                      << '[' << line << ']' << std::endl;
+            return false;
+
+        }
+    }
+
+    // read data loop
+    for ( int i = 0; i < data_size; ++i )
+    {
+        const std::string line = get_value_line( is );
+        const char * msg = line.c_str();
+        int n_read = 0;
+
+        FormationData::Data data;
+
+        // read index
+        {
+            int idx;
+            if ( std::sscanf( msg, " %d %n ", &idx, &n_read ) != 1
+                 || idx != i )
+            {
+                std::cerr << "(FormationParserCSV::parseData) Illegal index"
+                          << '[' << line << ']' << std::endl;
+                return false;
+            }
+            msg += n_read;
+        }
+        // read ball
+        {
+            double read_x, read_y;
+            if ( std::sscanf( msg, " , %lf , %lf %n ", &read_x, &read_y, &n_read ) != 2 )
+            {
+                std::cerr << "(FormationParserCSV::parseData) Illegal ball data"
+                          << '[' << line << ']' << std::endl;
+                return false;
+            }
+            msg += n_read;
+
+            data.ball_ = FormationData::rounded_vector( read_x, read_y );
+        }
+        // read players
+        for ( int unum = 1; unum <= 11; ++unum )
+        {
+            double read_x, read_y;
+            if ( std::sscanf( msg, " , %lf , %lf %n ", &read_x, &read_y, &n_read ) != 2 )
+            {
+                std::cerr << "(FormationParserCSV::parseData) Illegal player data. unum=" << unum
+                          << '[' << msg << ']' << std::endl;
+                return false;
+            }
+            msg += n_read;
+
+            data.players_.emplace_back( FormationData::round_xy( read_x ),
+                                        FormationData::round_xy( read_y ) );
+        }
+
+        const std::string err = result->addData( data );
+        if ( ! err.empty() )
+        {
+            std::cerr << "(FormationParserV3::parseData) ERROR: " << err << std::endl;
+            return false;
+        }
+    }
+
+    return true;
 }
 
 }
