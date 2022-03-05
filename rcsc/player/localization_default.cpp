@@ -1132,6 +1132,8 @@ LocalizationDefault::estimateSelfFace( const VisualSensor & see,
  */
 bool
 LocalizationDefault::localizeSelf( const VisualSensor & see,
+                                   const ActionEffector & /* act */,
+                                   const PlayerType * /* ptype */,
                                    const double & self_face,
                                    const double & self_face_err,
                                    Vector2D * self_pos,
@@ -1224,6 +1226,7 @@ LocalizationDefault::localizeSelf( const VisualSensor & see,
  */
 bool
 LocalizationDefault::localizeBallRelative( const VisualSensor & see,
+                                           const ActionEffector & /* act */,
                                            const double & self_face,
                                            const double & self_face_err,
                                            Vector2D * rpos,
