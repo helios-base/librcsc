@@ -40,16 +40,174 @@
 
 #include <cstring>
 
+using namespace boost::property_tree;
+
 namespace rcsc {
+
+namespace {
+
+/*-------------------------------------------------------------------*/
+bool
+parse_method_name( const ptree & doc )
+{
+    boost::optional< std::string > v = doc.get_optional< std::string >( "method" );
+
+    if ( ! v )
+    {
+        std::cerr << "(FormationParserJSON..parse_method_name) No method name" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+RoleType
+create_role_type( const std::string & role_type,
+                  const int paired_unum )
+{
+    RoleType result;
+    if ( role_type == "G" )
+    {
+        result.setType( RoleType::Goalie );
+    }
+    else if ( role_type == "DF" )
+    {
+        result.setType( RoleType::Defender );
+    }
+    else if ( role_type == "MF" )
+    {
+        result.setType( RoleType::MidFielder );
+    }
+    else if ( role_type == "FW" )
+    {
+        result.setType( RoleType::Forward );
+    }
+
+    if ( paired_unum == 0 )
+    {
+        result.setSide( RoleType::Center );
+    }
+    else if ( paired_unum == -1 )
+    {
+        result.setSide( RoleType::Left );
+    }
+    else
+    {
+        result.setSide( RoleType::Right );
+    }
+
+    return result;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+parse_role( const ptree & doc,
+            FormationData::Ptr result )
+{
+    boost::optional< const ptree & > role_array = doc.get_child_optional( "role" );
+    if ( ! role_array )
+    {
+        std::cerr << "(FormationParserJSON..parse_role) No role array" << std::endl;
+        return false;
+    }
+
+    for ( const ptree::value_type & child : *role_array )
+    {
+        const ptree & role = child.second;
+
+        boost::optional< int > number = role.get_optional< int >( "number" );
+        boost::optional< std::string > name = role.get_optional< std::string >( "name" );
+        boost::optional< std::string > type = role.get_optional< std::string >( "type" );
+        boost::optional< int > pair = role.get_optional< int >( "pair" );
+
+        if ( ! number
+             || *number < 1 || 11 < *number
+             || ! name
+             || ! type
+             || ! pair )
+        {
+            return false;
+        }
+
+        if ( ! result->setRoleName( *number, *name ) )
+        {
+            return false;
+        }
+
+        const RoleType role_type = create_role_type( *type, *pair );
+        if ( role_type.type() == RoleType::Unknown
+             || ! result->setRoleType( *number, role_type ) )
+        {
+            return false;
+        }
+
+        if ( ! result->setPositionPair( *number, *pair ) )
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+parse_data( const ptree & doc,
+            FormationData::Ptr result )
+{
+    boost::optional< const ptree & > data_array = doc.get_child_optional( "data" );
+    if ( ! data_array )
+    {
+        std::cerr << "(FormationParserJSON..parse_data) No data array" << std::endl;
+        return false;
+    }
+
+    for ( const ptree::value_type & child : *data_array )
+    {
+        const ptree & elem = child.second;
+
+        FormationData::Data data;
+
+        try
+        {
+            data.ball_.assign( FormationData::round_xy( elem.get< double >( "ball.x" ) ),
+                               FormationData::round_xy( elem.get< double >( "ball.y" ) ) );
+
+            for ( int i = 0; i < 11; ++i )
+            {
+                const std::string unum = std::to_string( i + 1 );
+                data.players_.emplace_back( FormationData::round_xy( elem.get< double >( unum + ".x" ) ),
+                                            FormationData::round_xy( elem.get< double >( unum + ".y" ) ) );
+            }
+        }
+        catch ( std::exception & e )
+        {
+            std::cerr << "(FormationParserJSON..parse_data) " << e.what() << std::endl;
+            return false;
+        }
+
+        const std::string err = result->addData( data );
+        if ( ! err.empty() )
+        {
+            std::cerr << "(FormationParserJSON..parse_data) ERROR: " << err << std::endl;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+}
 
 /*-------------------------------------------------------------------*/
 FormationData::Ptr
 FormationParserJSON::parse( std::istream & is )
 {
-    boost::property_tree::ptree json;
+    ptree doc;
     try
     {
-        boost::property_tree::read_json( is, json );
+        boost::property_tree::read_json( is, doc );
     }
     catch ( std::exception & e )
     {
@@ -58,6 +216,10 @@ FormationParserJSON::parse( std::istream & is )
     }
 
     FormationData::Ptr ptr( new FormationData() );
+
+    if ( ! parse_method_name( doc ) ) return FormationData::Ptr();
+    if ( ! parse_role( doc, ptr ) ) return FormationData::Ptr();
+    if ( ! parse_data( doc, ptr ) ) return FormationData::Ptr();
 
     return ptr;
 }
