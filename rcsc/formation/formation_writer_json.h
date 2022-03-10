@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file formation_writer.h
-  \brief abstract formation data writer Header File.
+  \file formation_writer_json.h
+  \brief JSON style formation data writer Header File.
 */
 
 /*
@@ -29,37 +29,30 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_FORMATION_FORMATION_WRITER_H
-#define RCSC_FORMATION_FORMATION_WRITER_H
+#ifndef RCSC_FORMATION_FORMATION_WRITER_JSON_H
+#define RCSC_FORMATION_FORMATION_WRITER_JSON_H
 
-#include <rcsc/formation/formation_data.h>
-
-#include <memory>
-#include <string>
-#include <iosfwd>
+#include <rcsc/formation/formation_writer.h>
 
 namespace rcsc {
 
 /*!
-  \class FormationWriter
-  \brief abstarct formation data writer interface
+  \class FormationWriterJSON
+  \brief JSON style formation data writer
 */
-class FormationWriter {
-public:
-
-    typedef std::shared_ptr< FormationWriter > Ptr; //!< smart pointer type
-
+class FormationWriterJSON
+    : public FormationWriter {
 private:
 
-    FormationWriter( FormationWriter & ) = delete;
-    FormationWriter & operator=( FormationWriter & ) = delete;
+    FormationWriterJSON( FormationWriterJSON & ) = delete;
+    FormationWriterJSON & operator=( FormationWriterJSON & ) = delete;
 
 protected:
 
     /*!
       \brief default constructor
      */
-    FormationWriter() = default;
+    FormationWriterJSON() = default;
 
 public:
 
@@ -67,16 +60,7 @@ public:
       \brief virtual default destructor
      */
     virtual
-    ~FormationWriter() = default;
-
-    /*!
-      \brief write to the the given file
-      \param filepath the file path
-      \param data pointer to the written data
-      \return true if success
-     */
-    bool print( const std::string & filepath,
-                FormationData::ConstPtr & data );
+    ~FormationWriterJSON() = default;
 
     /*!
       \brief write to the output stream
@@ -86,16 +70,7 @@ public:
      */
     virtual
     bool print( std::ostream & os,
-                FormationData::ConstPtr & data ) const = 0;
-
-public:
-
-    /*!
-      \brief create formation data writer instance according to the given name
-      \param name the format type name
-      \return formation writer instance
-     */
-    static FormationWriter::Ptr create( std::string & name );
+                FormationData::ConstPtr & data ) const override;
 
 };
 

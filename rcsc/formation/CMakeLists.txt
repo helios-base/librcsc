@@ -10,6 +10,7 @@ add_library(rcsc_formation OBJECT
   formation_parser_v2.cpp
   formation_parser_v3.cpp
   formation_writer.cpp
+  formation_writer_json.cpp
   formation_dt.cpp
   formation_static.cpp
   )
@@ -33,6 +34,7 @@ install(FILES
   formation_parser_v2.h
   formation_parser_v3.h
   formation_writer.h
+  formation_writer_json.h
   formation_dt.h
   formation_static.h
   DESTINATION include/rcsc/formation
