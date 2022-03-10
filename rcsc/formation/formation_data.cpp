@@ -325,39 +325,38 @@ FormationData::setPositionPair( const int unum,
         return false;
     }
 
-    // check doubling registration
-    for ( int i = 0; i < 11; ++i )
+    if ( paired_unum >= 1 )
     {
-        if ( i + 1 == unum
-             || i + 1 == paired_unum )
+        // check doubling registration
+        for ( int i = 0; i < 11; ++i )
         {
-            continue;
+            if ( i + 1 == unum ) continue;
+
+            if ( paired_unum == M_position_pairs[i] )
+            {
+                std::cerr << "(FormationData;:setPositionPair) ERROR: "
+                          <<  paired_unum << " already registered "<< std::endl;
+                return false;
+            }
         }
 
-        if ( paired_unum == M_position_pairs[i] )
+        if ( 1 <= paired_unum && paired_unum <= 11
+             && M_position_pairs[paired_unum - 1] > 0
+             && M_position_pairs[paired_unum - 1] != unum )
         {
             std::cerr << "(FormationData;:setPositionPair) ERROR: "
-                      <<  paired_unum << " already registered "<< std::endl;
+                      << "unum=" << unum << ". paired_unum=" << paired_unum
+                      << " already has the pair " << M_position_pairs[paired_unum - 1] << std::endl;
             return false;
         }
     }
 
-    if ( 1 <= paired_unum && paired_unum <= 11
-         && M_position_pairs[paired_unum - 1] > 0
-         && M_position_pairs[paired_unum - 1] != unum )
-    {
-        std::cerr << "(FormationData;:setPositionPair) ERROR: "
-                  << "unum=" << unum << ". paired_unum=" << paired_unum
-                  << " already has the pair " << M_position_pairs[paired_unum - 1] << std::endl;
-        return false;
-    }
-
     M_position_pairs[unum - 1] = paired_unum;
 
-    if ( 1 <= paired_unum && paired_unum <= 11 )
-    {
-        M_position_pairs[paired_unum - 1] = unum;
-    }
+    // if ( 1 <= paired_unum && paired_unum <= 11 )
+    // {
+    //     M_position_pairs[paired_unum - 1] = unum;
+    // }
 
     return true;
 }
