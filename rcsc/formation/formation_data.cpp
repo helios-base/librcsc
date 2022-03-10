@@ -81,6 +81,7 @@ FormationData::FormationData()
 void
 FormationData::clear()
 {
+    M_method_name.clear();
     M_role_names.fill( "" );
     M_position_pairs.fill( 0 );
     M_data_cont.clear();
@@ -233,6 +234,24 @@ FormationData::existIntersectedConstraints() const
     }
 
     return false;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+FormationData::setMethodName( const std::string & name )
+{
+    if ( ! M_method_name.empty() )
+    {
+        std::cerr << "(FormationData::setMethodName) the name already set as "
+                  << M_method_name << std::endl;
+        return false;
+    }
+
+    M_method_name = name;
+    return true;
 }
 
 /*-------------------------------------------------------------------*/

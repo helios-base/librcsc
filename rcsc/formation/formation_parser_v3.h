@@ -65,7 +65,8 @@ public:
 
 private:
 
-    bool parseHeader( std::istream & is );
+    bool parseHeader( std::istream & is,
+                      FormationData::Ptr result );
     bool parseRoles( std::istream & is,
                      FormationData::Ptr result );
     bool parseBeginRolesTag( std::istream & is );

@@ -69,7 +69,7 @@ FormationParserCSV::parse( std::istream & is )
 {
     FormationData::Ptr ptr( new FormationData() );
 
-    if ( ! parseMethodName( is ) ) return FormationData::Ptr();
+    if ( ! parseMethodName( is, ptr ) ) return FormationData::Ptr();
     if ( ! parseRoleNumbers( is ) ) return FormationData::Ptr();
     if ( ! parseRoleNames( is, ptr ) ) return FormationData::Ptr();
     if ( ! parseRoleTypes( is, ptr ) ) return FormationData::Ptr();
@@ -86,7 +86,8 @@ FormationParserCSV::parse( std::istream & is )
 
 /*-------------------------------------------------------------------*/
 bool
-FormationParserCSV::parseMethodName( std::istream & is )
+FormationParserCSV::parseMethodName( std::istream & is,
+                                     FormationData::Ptr result )
 {
     const std::string line = get_value_line( is );
 
@@ -97,7 +98,7 @@ FormationParserCSV::parseMethodName( std::istream & is )
         return false;
     }
 
-    return true;
+    return result->setMethodName( method_name );
 }
 
 /*-------------------------------------------------------------------*/

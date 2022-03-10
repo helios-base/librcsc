@@ -109,6 +109,9 @@ public:
 
 private:
 
+    //! the method name
+    std::string M_method_name;
+
     //! role name string
     std::array< std::string, 11 > M_role_names;
 
@@ -144,6 +147,15 @@ public:
       \brief clear all data.
     */
     void clear();
+
+    /*!
+      \brief get the method name
+      \return the name string value
+     */
+    const std::string & methodName() const
+    {
+        return M_method_name;
+    }
 
     /*!
       \brief get the role name array
@@ -239,6 +251,13 @@ private:
     bool existIntersectedConstraints() const;
 
 public:
+
+    /*!
+      \brief set the method name
+      \param name name value
+      \return true if success
+     */
+    bool setMethodName( const std::string & name );
 
     /*!
       \brief set the role name

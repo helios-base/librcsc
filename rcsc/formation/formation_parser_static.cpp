@@ -47,7 +47,7 @@ FormationParserStatic::parse( std::istream & is )
 {
     FormationData::Ptr ptr( new FormationData() );
 
-    if ( ! parseHeader( is ) ) return FormationData::Ptr();
+    if ( ! parseHeader( is, ptr ) ) return FormationData::Ptr();
     if ( ! parseData( is, ptr ) ) return FormationData::Ptr();
 
     if ( ! checkRoleNames( ptr ) ) return FormationData::Ptr();
@@ -57,8 +57,11 @@ FormationParserStatic::parse( std::istream & is )
 
 /*-------------------------------------------------------------------*/
 bool
-FormationParserStatic::parseHeader( std::istream & is )
+FormationParserStatic::parseHeader( std::istream & is,
+                                    FormationData::Ptr result )
 {
+    if ( ! result ) return false;
+
     std::string line;
     while ( std::getline( is, line ) )
     {
@@ -83,7 +86,7 @@ FormationParserStatic::parseHeader( std::istream & is )
             return true;
         }
 
-        return true;
+        return result->setMethodName( method_name );
     }
 
     return false;

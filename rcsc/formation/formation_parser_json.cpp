@@ -48,7 +48,8 @@ namespace {
 
 /*-------------------------------------------------------------------*/
 bool
-parse_method_name( const ptree & doc )
+parse_method_name( const ptree & doc,
+                   FormationData::Ptr result )
 {
     boost::optional< std::string > v = doc.get_optional< std::string >( "method" );
 
@@ -58,7 +59,7 @@ parse_method_name( const ptree & doc )
         return false;
     }
 
-    return true;
+    return result->setMethodName( *v );
 }
 
 /*-------------------------------------------------------------------*/
@@ -217,7 +218,7 @@ FormationParserJSON::parse( std::istream & is )
 
     FormationData::Ptr ptr( new FormationData() );
 
-    if ( ! parse_method_name( doc ) ) return FormationData::Ptr();
+    if ( ! parse_method_name( doc, ptr ) ) return FormationData::Ptr();
     if ( ! parse_role( doc, ptr ) ) return FormationData::Ptr();
     if ( ! parse_data( doc, ptr ) ) return FormationData::Ptr();
 

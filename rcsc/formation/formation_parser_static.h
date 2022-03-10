@@ -65,7 +65,8 @@ public:
 
 private:
 
-    bool parseHeader( std::istream & is );
+    bool parseHeader( std::istream & is,
+                      FormationData::Ptr result );
     bool parseData( std::istream & is,
                     FormationData::Ptr result );
 

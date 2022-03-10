@@ -48,7 +48,7 @@ public:
     /*!
       \brief default constructor
      */
-    FormationParserCSV();
+    FormationParserCSV() = default;
 
     /*!
       \brief virtual default destructor
@@ -64,7 +64,8 @@ public:
     FormationData::Ptr parse( std::istream & is ) override;
 
 private:
-    bool parseMethodName( std::istream & is );
+    bool parseMethodName( std::istream & is,
+                          FormationData::Ptr result );
     bool parseRoleNumbers( std::istream & is );
     bool parseRoleNames( std::istream & is,
                          FormationData::Ptr result );
