@@ -62,7 +62,7 @@ parse_method_name( const ptree & doc )
 /*-------------------------------------------------------------------*/
 RoleType
 create_role_type( const std::string & role_type,
-                  const int paired_unum )
+                  const std::string & side )
 {
     RoleType result;
     if ( role_type == "G" )
@@ -81,18 +81,22 @@ create_role_type( const std::string & role_type,
     {
         result.setType( RoleType::Forward );
     }
-
-    if ( paired_unum == 0 )
+    else
     {
-        result.setSide( RoleType::Center );
+        result.setType( RoleType::Unknown );
     }
-    else if ( paired_unum == -1 )
+
+    if ( side == "L" )
     {
         result.setSide( RoleType::Left );
     }
-    else
+    else if ( side == "R" )
     {
         result.setSide( RoleType::Right );
+    }
+    else // if ( side == "C" )
+    {
+        result.setSide( RoleType::Center );
     }
 
     return result;
@@ -119,12 +123,14 @@ parse_role( const ptree & doc,
         boost::optional< int > number = role.get_optional< int >( "number" );
         boost::optional< std::string > name = role.get_optional< std::string >( "name" );
         boost::optional< std::string > type = role.get_optional< std::string >( "type" );
+        boost::optional< std::string > side = role.get_optional< std::string >( "side" );
         boost::optional< int > pair = role.get_optional< int >( "pair" );
 
         if ( ! number
              || *number < 1 || 11 < *number
              || ! name
              || ! type
+             || ! side
              || ! pair )
         {
             return false;
@@ -135,7 +141,7 @@ parse_role( const ptree & doc,
             return false;
         }
 
-        const RoleType role_type = create_role_type( *type, *pair );
+        const RoleType role_type = create_role_type( *type, *side );
         if ( role_type.type() == RoleType::Unknown
              || ! result->setRoleType( *number, role_type ) )
         {
