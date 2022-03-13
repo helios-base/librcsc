@@ -74,8 +74,7 @@ public:
     Formation::Ptr parse( std::istream & is ) override;
 
 private:
-    bool parseMethodName( std::istream & is,
-                          Formation::Ptr result );
+    std::string parseMethodName( std::istream & is );
     bool parseRoleNumbers( std::istream & is );
     bool parseRoleNames( std::istream & is,
                          Formation::Ptr result );

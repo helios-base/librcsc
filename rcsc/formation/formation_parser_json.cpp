@@ -35,12 +35,8 @@
 
 #include "formation_parser_json.h"
 
-#include "formation_dt.h"
-
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
-
-#include <cstring>
 
 using namespace boost::property_tree;
 
@@ -49,25 +45,18 @@ namespace rcsc {
 namespace {
 
 /*-------------------------------------------------------------------*/
-bool
-parse_method_name( const ptree & doc,
-                   Formation::Ptr result )
+std::string
+parse_method_name( const ptree & doc )
 {
     boost::optional< std::string > v = doc.get_optional< std::string >( "method" );
 
     if ( ! v )
     {
         std::cerr << "(FormationParserJSON..parse_method_name) No method name" << std::endl;
-        return false;
+        return std::string();
     }
 
-    if ( *v != result->methodName() )
-    {
-        std::cerr << "(FormationParserJSON..parse_method_name) Unsupported method name " << *v << std::endl;
-        return false;
-    }
-
-    return true;
+    return *v;
 }
 
 /*-------------------------------------------------------------------*/
@@ -230,9 +219,17 @@ FormationParserJSON::parse( std::istream & is )
         return Formation::Ptr();
     }
 
-    Formation::Ptr ptr( new FormationDT() );
 
-    if ( ! parse_method_name( doc, ptr ) ) return Formation::Ptr();
+    const std::string method = parse_method_name( doc );
+
+    Formation::Ptr ptr = Formation::create( method );
+    if ( ! ptr )
+    {
+        std::cerr << "(FormationParserJSON::parse) Could not create the formation " << method << std::endl;
+        return Formation::Ptr();
+    }
+
+
     if ( ! parse_role( doc, ptr ) ) return Formation::Ptr();
     if ( ! parse_data( doc, ptr ) ) return Formation::Ptr();
 

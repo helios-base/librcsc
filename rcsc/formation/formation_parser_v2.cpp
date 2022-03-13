@@ -43,9 +43,15 @@ namespace rcsc {
 Formation::Ptr
 FormationParserV2::parse( std::istream & is )
 {
-    Formation::Ptr ptr( new FormationDT() );
+    const std::string method = parseHeader( is );
 
-    if ( ! parseHeader( is, ptr ) ) return Formation::Ptr();
+    Formation::Ptr ptr = Formation::create( method );
+    if ( ! ptr )
+    {
+        std::cerr << "(FormationParserV2::parse) Could not create the formation " << method << std::endl;
+        return Formation::Ptr();
+    }
+
     if ( ! parseRoles( is, ptr ) ) return Formation::Ptr();
 
     FormationData formation_data;
@@ -60,12 +66,9 @@ FormationParserV2::parse( std::istream & is )
 }
 
 /*-------------------------------------------------------------------*/
-bool
-FormationParserV2::parseHeader( std::istream & is,
-                                Formation::Ptr result )
+std::string
+FormationParserV2::parseHeader( std::istream & is )
 {
-    if ( ! result ) return false;
-
     std::string line;
     while ( std::getline( is, line ) )
     {
@@ -84,22 +87,16 @@ FormationParserV2::parseHeader( std::istream & is,
     {
         std::cerr << "(FormationParserV2::parseHeader) ERROR: illegal header"
                   << '[' << line << ']' << std::endl;
-        return false;
-    }
-
-    if ( result->methodName() != method_name )
-    {
-        std::cerr << "(FormationParserV2::parseHeader) Unsupported method name " << method_name << std::endl;
-        return false;
+        return std::string();
     }
 
     if ( ver != 2 )
     {
         std::cerr << "(FormationParserV2::parseHeader) Illegas format version " << ver << std::endl;
-        return false;
+        return std::string();
     }
 
-    return true;
+    return method_name;
 }
 
 /*-------------------------------------------------------------------*/

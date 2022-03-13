@@ -35,17 +35,21 @@
 
 #include "formation_parser_v1.h"
 
-#include "formation_dt.h"
-
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
 Formation::Ptr
 FormationParserV1::parse( std::istream & is )
 {
-    Formation::Ptr ptr( new FormationDT() );
+    const std::string method = parseHeader( is );
 
-    if ( ! parseHeader( is, ptr ) ) return Formation::Ptr();
+    Formation::Ptr ptr = Formation::create( method );
+    if ( ! ptr )
+    {
+        std::cerr << "(FormationParserV1::parse) Could not create the formation " << method << std::endl;
+        return Formation::Ptr();
+    }
+
     if ( ! parseRoles( is, ptr ) ) return Formation::Ptr();
     if ( ! parseData( is, ptr ) ) return Formation::Ptr();
 
@@ -56,12 +60,9 @@ FormationParserV1::parse( std::istream & is )
 }
 
 /*-------------------------------------------------------------------*/
-bool
-FormationParserV1::parseHeader( std::istream & is,
-                                Formation::Ptr result )
+std::string
+FormationParserV1::parseHeader( std::istream & is )
 {
-    if ( ! result ) return false;
-
     std::string line;
     while ( std::getline( is, line ) )
     {
@@ -83,23 +84,17 @@ FormationParserV1::parseHeader( std::istream & is,
     if ( n < 1 )
     {
         std::cerr << "(FormationParserV1::parseHeader) No method name" << std::endl;
-        return false;
-    }
-
-    if ( result->methodName() != method_name )
-    {
-        std::cerr << "(FormationParserV1::parseHeader) Unsupported method " << method_name << std::endl;
-        return false;
+        return std::string();
     }
 
     if ( n == 2
          && ver != 1 )
     {
         std::cerr << "(FormationParserV1::parseHeader) Illegas format version " << ver << std::endl;
-        return false;
+        return std::string();
     }
 
-    return true;
+    return method_name;
 }
 
 /*-------------------------------------------------------------------*/

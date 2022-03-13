@@ -74,8 +74,7 @@ public:
     Formation::Ptr parse( std::istream & is ) override;
 
 private:
-    bool parseHeader( std::istream & is,
-                      Formation::Ptr result );
+    std::string parseHeader( std::istream & is );
     bool parseRoles( std::istream & is,
                      Formation::Ptr result );
     bool parseData( std::istream & is,

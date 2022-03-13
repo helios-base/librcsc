@@ -35,8 +35,6 @@
 
 #include "formation_parser_csv.h"
 
-#include "formation_dt.h"
-
 #include <cstring>
 
 namespace rcsc {
@@ -67,9 +65,15 @@ get_value_line( std::istream & is )
 Formation::Ptr
 FormationParserCSV::parse( std::istream & is )
 {
-    Formation::Ptr ptr( new FormationDT() );
+    const std::string method = parseMethodName( is );
 
-    if ( ! parseMethodName( is, ptr ) ) return Formation::Ptr();
+    Formation::Ptr ptr = Formation::create( method );
+    if ( ! ptr )
+    {
+        std::cerr << "(FormationParserCSV::parse) Could not create the formation " << method << std::endl;
+        return Formation::Ptr();
+    }
+
     if ( ! parseRoleNumbers( is ) ) return Formation::Ptr();
     if ( ! parseRoleNames( is, ptr ) ) return Formation::Ptr();
     if ( ! parseRoleTypes( is, ptr ) ) return Formation::Ptr();
@@ -85,28 +89,19 @@ FormationParserCSV::parse( std::istream & is )
 }
 
 /*-------------------------------------------------------------------*/
-bool
-FormationParserCSV::parseMethodName( std::istream & is,
-                                     Formation::Ptr result )
+std::string
+FormationParserCSV::parseMethodName( std::istream & is )
 {
-    if ( ! result ) return false;
-
     const std::string line = get_value_line( is );
 
     char method_name[32];
     if ( std::sscanf( line.c_str(), " Method , %31s ", method_name ) != 1 )
     {
         std::cerr << "(FormationParserCSV::parseMethodName) No method name" << std::endl;
-        return false;
+        return std::string();
     }
 
-    if ( result->methodName() != method_name )
-    {
-        std::cerr << "(FormationParserCSV::parseMethodName) Unsupported method name " << method_name << std::endl;
-        return false;
-    }
-
-    return true;
+    return method_name;
 }
 
 /*-------------------------------------------------------------------*/
