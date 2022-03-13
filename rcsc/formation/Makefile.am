@@ -37,7 +37,8 @@ librcsc_formationinclude_HEADERS = \
 	formation_parser_v2.h \
 	formation_parser_v3.h \
 	formation_dt.h \
-	formation_static.h
+	formation_static.h \
+	role_type.h
 
 #	formation_bpn.h
 #	formation_cdt.h
