@@ -42,27 +42,31 @@ namespace rcsc {
 /*-------------------------------------------------------------------*/
 bool
 FormationWriter::print( const std::string & filepath,
-                        FormationData::ConstPtr & data )
+                        Formation::ConstPtr f )
 
 {
     std::ofstream fout( filepath.c_str() );
 
-    return print( fout, data );
+    return print( fout, f );
 }
 
 }
 
-//#include "formation_writer_json.h"
+#include "formation_writer_json.h"
 
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
 FormationWriter::Ptr
-FormationWriter::create( std::string & name )
+FormationWriter::create( const std::string & name )
 {
     FormationWriter::Ptr ptr;
 
-    std::cout << "(FormationWriter::create) name = " << name << std::endl;
+    if ( name.empty()
+         || name == FormationWriterJSON::NAME )
+    {
+        ptr = FormationWriter::Ptr( new FormationWriterJSON() );
+    }
 
     return ptr;
 }

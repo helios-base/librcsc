@@ -35,7 +35,7 @@
 
 #include "formation_parser_csv.h"
 
-#include "formation_data.h"
+#include "formation_dt.h"
 
 #include <cstring>
 
@@ -64,22 +64,22 @@ get_value_line( std::istream & is )
 }
 
 /*-------------------------------------------------------------------*/
-FormationData::Ptr
+Formation::Ptr
 FormationParserCSV::parse( std::istream & is )
 {
-    FormationData::Ptr ptr( new FormationData() );
+    Formation::Ptr ptr( new FormationDT() );
 
-    if ( ! parseMethodName( is, ptr ) ) return FormationData::Ptr();
-    if ( ! parseRoleNumbers( is ) ) return FormationData::Ptr();
-    if ( ! parseRoleNames( is, ptr ) ) return FormationData::Ptr();
-    if ( ! parseRoleTypes( is, ptr ) ) return FormationData::Ptr();
-    if ( ! parsePositionPairs( is, ptr ) ) return FormationData::Ptr();
-    if ( ! parseMarkerFlags( is ) ) return FormationData::Ptr();
-    if ( ! parseSetplayMarkerFlags( is ) ) return FormationData::Ptr();
-    if ( ! parseData( is, ptr ) ) return FormationData::Ptr();
+    if ( ! parseMethodName( is, ptr ) ) return Formation::Ptr();
+    if ( ! parseRoleNumbers( is ) ) return Formation::Ptr();
+    if ( ! parseRoleNames( is, ptr ) ) return Formation::Ptr();
+    if ( ! parseRoleTypes( is, ptr ) ) return Formation::Ptr();
+    if ( ! parsePositionPairs( is, ptr ) ) return Formation::Ptr();
+    if ( ! parseMarkerFlags( is ) ) return Formation::Ptr();
+    if ( ! parseSetplayMarkerFlags( is ) ) return Formation::Ptr();
+    if ( ! parseData( is, ptr ) ) return Formation::Ptr();
 
-    if ( ! checkRoleNames( ptr ) ) return FormationData::Ptr();
-    if ( ! checkPositionPair( ptr ) ) return FormationData::Ptr();
+    if ( ! checkRoleNames( ptr ) ) return Formation::Ptr();
+    if ( ! checkPositionPair( ptr ) ) return Formation::Ptr();
 
     return ptr;
 }
@@ -87,18 +87,26 @@ FormationParserCSV::parse( std::istream & is )
 /*-------------------------------------------------------------------*/
 bool
 FormationParserCSV::parseMethodName( std::istream & is,
-                                     FormationData::Ptr result )
+                                     Formation::Ptr result )
 {
+    if ( ! result ) return false;
+
     const std::string line = get_value_line( is );
 
     char method_name[32];
-    if ( std::sscanf( line.c_str(), "Formation , %31s", method_name ) != 1 )
+    if ( std::sscanf( line.c_str(), " Method , %31s ", method_name ) != 1 )
     {
         std::cerr << "(FormationParserCSV::parseMethodName) No method name" << std::endl;
         return false;
     }
 
-    return result->setMethodName( method_name );
+    if ( result->methodName() != method_name )
+    {
+        std::cerr << "(FormationParserCSV::parseMethodName) Unsupported method name " << method_name << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
@@ -128,7 +136,7 @@ FormationParserCSV::parseRoleNumbers( std::istream & is )
 /*-------------------------------------------------------------------*/
 bool
 FormationParserCSV::parseRoleNames( std::istream & is,
-                                    FormationData::Ptr result )
+                                    Formation::Ptr result )
 {
     const std::string line = get_value_line( is );
     const char * msg = line.c_str();
@@ -163,7 +171,7 @@ FormationParserCSV::parseRoleNames( std::istream & is,
         }
     }
 
-    return false;
+    return true;
 }
 
 
@@ -197,7 +205,7 @@ create_role_type( const std::string & role_type )
 /*-------------------------------------------------------------------*/
 bool
 FormationParserCSV::parseRoleTypes( std::istream & is,
-                                    FormationData::Ptr result )
+                                    Formation::Ptr result )
 {
     const std::string line = get_value_line( is );
     const char * msg = line.c_str();
@@ -238,7 +246,7 @@ FormationParserCSV::parseRoleTypes( std::istream & is,
 /*-------------------------------------------------------------------*/
 bool
 FormationParserCSV::parsePositionPairs( std::istream & is,
-                                        FormationData::Ptr result )
+                                        Formation::Ptr result )
 {
     const std::string line = get_value_line( is );
     const char * msg = line.c_str();
@@ -286,7 +294,7 @@ FormationParserCSV::parsePositionPairs( std::istream & is,
         }
     }
 
-    return false;
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
@@ -334,7 +342,7 @@ FormationParserCSV::parseSetplayMarkerFlags( std::istream & is )
 /*-------------------------------------------------------------------*/
 bool
 FormationParserCSV::parseData( std::istream & is,
-                               FormationData::Ptr result )
+                               Formation::Ptr result )
 {
     // read tag name
     {
@@ -370,6 +378,8 @@ FormationParserCSV::parseData( std::istream & is,
 
         }
     }
+
+    FormationData formation_data;
 
     // read data loop
     for ( int i = 0; i < data_size; ++i )
@@ -421,7 +431,7 @@ FormationParserCSV::parseData( std::istream & is,
                                         FormationData::round_xy( read_y ) );
         }
 
-        const std::string err = result->addData( data );
+        const std::string err = formation_data.addData( data );
         if ( ! err.empty() )
         {
             std::cerr << "(FormationParserV3::parseData) ERROR: " << err << std::endl;
@@ -429,7 +439,7 @@ FormationParserCSV::parseData( std::istream & is,
         }
     }
 
-    return true;
+    return result->train( formation_data );
 }
 
 }

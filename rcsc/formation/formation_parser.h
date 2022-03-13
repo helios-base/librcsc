@@ -32,7 +32,7 @@
 #ifndef RCSC_FORMATION_FORMATION_PARSER_H
 #define RCSC_FORMATION_FORMATION_PARSER_H
 
-#include <rcsc/formation/formation_data.h>
+#include <rcsc/formation/formation.h>
 
 #include <memory>
 #include <string>
@@ -70,11 +70,18 @@ public:
     ~FormationParser() = default;
 
     /*!
+      \brief get the parser name
+      \return parser name
+     */
+    virtual
+    std::string name() const = 0;
+
+    /*!
       \brief parse the given file
       \param filepath the file path to be parsed
       \return formation instance
      */
-    FormationData::Ptr parse( const std::string & filepath );
+    Formation::Ptr parse( const std::string & filepath );
 
     /*!
       \brief parse the input stream
@@ -82,7 +89,7 @@ public:
       \return formation instance
      */
     virtual
-    FormationData::Ptr parse( std::istream & is ) = 0;
+    Formation::Ptr parse( std::istream & is ) = 0;
 
 protected:
 
@@ -90,13 +97,13 @@ protected:
       \brief check the consistency of role names
       \return true if success
      */
-    bool checkRoleNames( const FormationData::ConstPtr ptr );
+    bool checkRoleNames( const Formation::ConstPtr ptr );
 
     /*!
       \brief check the consistency of position pairs
       \return true if success
      */
-    bool checkPositionPair( const FormationData::ConstPtr ptr );
+    bool checkPositionPair( const Formation::ConstPtr ptr );
 
 public:
 
@@ -105,7 +112,7 @@ public:
       \param filepath the path string of the input file
       \return formation parser instance
      */
-    static FormationParser::Ptr create( std::string & filepath );
+    static FormationParser::Ptr create( const std::string & filepath );
 
 };
 

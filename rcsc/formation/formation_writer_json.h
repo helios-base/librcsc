@@ -42,19 +42,20 @@ namespace rcsc {
 */
 class FormationWriterJSON
     : public FormationWriter {
+public:
+    static const std::string NAME;
+
 private:
 
     FormationWriterJSON( FormationWriterJSON & ) = delete;
     FormationWriterJSON & operator=( FormationWriterJSON & ) = delete;
 
-protected:
+public:
 
     /*!
       \brief default constructor
      */
     FormationWriterJSON() = default;
-
-public:
 
     /*!
       \brief virtual default destructor
@@ -65,13 +66,12 @@ public:
     /*!
       \brief write to the output stream
       \param os reference to the output stream
-      \param data pointer to the written data
+      \param f pointer to the written formation model
       \return true if success
      */
     virtual
     bool print( std::ostream & os,
-                FormationData::ConstPtr & data ) const override;
-
+                Formation::ConstPtr f ) const override;
 };
 
 }

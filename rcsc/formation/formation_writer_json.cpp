@@ -35,9 +35,9 @@
 
 #include "formation_writer_json.h"
 
-#include <fstream>
-
 namespace rcsc {
+
+const std::string FormationWriterJSON::NAME = "json";
 
 namespace {
 
@@ -45,13 +45,24 @@ const std::string tab = "  ";
 
 /*-------------------------------------------------------------------*/
 bool
-print_method_name( std::ostream & os,
-                   FormationData::ConstPtr & data )
+print_version( std::ostream & os,
+               Formation::ConstPtr f )
 {
-    os << tab << '"' << "method" << '"' << " : " << '"' <<  data->methodName() << '"';
+    os << tab << '"' << "version" << '"' << " : " << '"' <<  f->version() << '"';
     return true;
 }
 
+
+/*-------------------------------------------------------------------*/
+bool
+print_method_name( std::ostream & os,
+                   Formation::ConstPtr & f )
+{
+    os << tab << '"' << "method" << '"' << " : " << '"' << f->methodName() << '"';
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
 std::string
 get_role_type_string( const RoleType & type )
 {
@@ -65,7 +76,7 @@ get_role_type_string( const RoleType & type )
 /*-------------------------------------------------------------------*/
 bool
 print_roles( std::ostream & os,
-             FormationData::ConstPtr & data )
+             Formation::ConstPtr f )
 {
     os << tab << "\"role\"" << " : [\n";
 
@@ -77,9 +88,9 @@ print_roles( std::ostream & os,
 
             os << tab << tab << '{';
             os << "\"number\" : " << i + 1 << ','
-               << "\"name\" : " << '"' << data->roleNames().at( i ) << '"' << ','
-               << "\"type\" : " << '"' << get_role_type_string( data->roleTypes().at( i ) )
-               << "\"pair\" : " << data->positionPairs().at( i )
+               << "\"name\" : " << '"' << f->roleNames().at( i ) << '"' << ','
+               << "\"type\" : " << '"' << get_role_type_string( f->roleTypes().at( i ) )
+               << "\"pair\" : " << f->positionPairs().at( i )
                << '}';
         }
     }
@@ -123,23 +134,23 @@ print_data_element( std::ostream & os,
 /*-------------------------------------------------------------------*/
 bool
 print_data( std::ostream & os,
-            FormationData::ConstPtr & data )
+            Formation::ConstPtr f )
 {
-    os << tab << "\"data\"" << " : [\n";
+    os << tab << "\"data\"" << " : ";
 
-    size_t idx = 0;
-    for ( const auto & d : data->dataCont() )
-    {
-        if ( idx != 0 ) os << ",\n";
+    //f->printJSON( os );
+    // size_t idx = 0;
+    // for ( const auto & d : data->dataCont() )
+    // {
+    //     if ( idx != 0 ) os << ",\n";
 
-        if ( ! print_data_element( os, idx, d ) )
-        {
-            return false;
-        }
-        ++idx;
-    }
+    //     if ( ! print_data_element( os, idx, d ) )
+    //     {
+    //         return false;
+    //     }
+    //     ++idx;
+    // }
 
-    os << tab << ']';
     return true;
 }
 
@@ -148,18 +159,21 @@ print_data( std::ostream & os,
 /*-------------------------------------------------------------------*/
 bool
 FormationWriterJSON::print( std::ostream & os,
-                            FormationData::ConstPtr & data ) const
+                            Formation::ConstPtr f ) const
 
 {
     os << "{\n";
 
-    if ( ! print_method_name( os, data ) ) return false;
+    if ( ! print_version( os, f ) ) return false;
     os << ",\n";
 
-    if ( ! print_roles( os, data ) ) return false;
+    if ( ! print_method_name( os, f ) ) return false;
     os << ",\n";
 
-    if ( ! print_data( os, data ) ) return false;
+    if ( ! print_roles( os, f ) ) return false;
+    os << ",\n";
+
+    if ( ! print_data( os, f ) ) return false;
     os << '\n';
 
     os << "}\n";

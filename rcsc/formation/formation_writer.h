@@ -32,7 +32,7 @@
 #ifndef RCSC_FORMATION_FORMATION_WRITER_H
 #define RCSC_FORMATION_FORMATION_WRITER_H
 
-#include <rcsc/formation/formation_data.h>
+#include <rcsc/formation/formation.h>
 
 #include <memory>
 #include <string>
@@ -42,7 +42,7 @@ namespace rcsc {
 
 /*!
   \class FormationWriter
-  \brief abstarct formation data writer interface
+  \brief abstarct formation model writer interface
 */
 class FormationWriter {
 public:
@@ -72,21 +72,21 @@ public:
     /*!
       \brief write to the the given file
       \param filepath the file path
-      \param data pointer to the written data
+      \param f pointer to the written formation model
       \return true if success
      */
     bool print( const std::string & filepath,
-                FormationData::ConstPtr & data );
+                Formation::ConstPtr f );
 
     /*!
       \brief write to the output stream
       \param os reference to the output stream
-      \param data pointer to the written data
+      \param f pointer to the written formation model
       \return true if success
      */
     virtual
     bool print( std::ostream & os,
-                FormationData::ConstPtr & data ) const = 0;
+                Formation::ConstPtr f ) const = 0;
 
 public:
 
@@ -95,7 +95,7 @@ public:
       \param name the format type name
       \return formation writer instance
      */
-    static FormationWriter::Ptr create( std::string & name );
+    static FormationWriter::Ptr create( const std::string & name = "" );
 
 };
 

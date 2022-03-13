@@ -35,24 +35,26 @@
 
 #include "formation_parser_v2.h"
 
-#include "formation_data.h"
-
-#include <cstring>
+#include "formation_dt.h"
 
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
-FormationData::Ptr
+Formation::Ptr
 FormationParserV2::parse( std::istream & is )
 {
-    FormationData::Ptr ptr( new FormationData() );
+    Formation::Ptr ptr( new FormationDT() );
 
-    if ( ! parseHeader( is, ptr ) ) return FormationData::Ptr();
-    if ( ! parseRoles( is, ptr ) ) return FormationData::Ptr();
-    if ( ! parseData( is, ptr ) ) return FormationData::Ptr();
+    if ( ! parseHeader( is, ptr ) ) return Formation::Ptr();
+    if ( ! parseRoles( is, ptr ) ) return Formation::Ptr();
 
-    if ( ! checkRoleNames( ptr ) ) return FormationData::Ptr();
-    if ( ! checkPositionPair( ptr ) ) return FormationData::Ptr();
+    FormationData formation_data;
+    if ( ! parseData( is, &formation_data ) ) return Formation::Ptr();
+
+    if ( ! checkRoleNames( ptr ) ) return Formation::Ptr();
+    if ( ! checkPositionPair( ptr ) ) return Formation::Ptr();
+
+    if ( ! ptr->train( formation_data ) ) return Formation::Ptr();
 
     return ptr;
 }
@@ -60,7 +62,7 @@ FormationParserV2::parse( std::istream & is )
 /*-------------------------------------------------------------------*/
 bool
 FormationParserV2::parseHeader( std::istream & is,
-                                FormationData::Ptr result )
+                                Formation::Ptr result )
 {
     if ( ! result ) return false;
 
@@ -73,33 +75,37 @@ FormationParserV2::parseHeader( std::istream & is,
         {
             continue;
         }
-
-        char method_name[32];
-        int ver = 0;
-
-        if ( std::sscanf( line.c_str(), "Formation %31s %d", method_name, &ver ) != 2 )
-        {
-            std::cerr << "(FormationParserV2::parseHeader) ERROR: illegal header"
-                      << '[' << line << ']' << std::endl;
-            return false;
-        }
-
-        if ( ver != 2 )
-        {
-            std::cerr << "(FormationParserV2::parseHeader) Illegas format version " << ver << std::endl;
-            return false;
-        }
-
-        return result->setMethodName( method_name );
     }
 
-    return false;
+
+    char method_name[32];
+    int ver = 0;
+    if ( std::sscanf( line.c_str(), "Formation %31s %d", method_name, &ver ) != 2 )
+    {
+        std::cerr << "(FormationParserV2::parseHeader) ERROR: illegal header"
+                  << '[' << line << ']' << std::endl;
+        return false;
+    }
+
+    if ( result->methodName() != method_name )
+    {
+        std::cerr << "(FormationParserV2::parseHeader) Unsupported method name " << method_name << std::endl;
+        return false;
+    }
+
+    if ( ver != 2 )
+    {
+        std::cerr << "(FormationParserV2::parseHeader) Illegas format version " << ver << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
 bool
 FormationParserV2::parseRoles( std::istream & is,
-                               FormationData::Ptr result )
+                               Formation::Ptr result )
 {
     if ( ! result ) return false;
 
@@ -201,9 +207,9 @@ FormationParserV2::parseRoles( std::istream & is,
 /*-------------------------------------------------------------------*/
 bool
 FormationParserV2::parseData( std::istream & is,
-                              FormationData::Ptr result )
+                              FormationData * formation_data )
 {
-    if ( ! result ) return false;
+    if ( ! formation_data ) return false;
 
     int data_size = 0;
     if ( ! parseDataHeader( is, &data_size ) )
@@ -213,7 +219,7 @@ FormationParserV2::parseData( std::istream & is,
 
     for ( int i = 0; i < data_size; ++i )
     {
-        if ( ! parseOneData( is, i, result ) )
+        if ( ! parseOneData( is, i, formation_data ) )
         {
             return false;
         }
@@ -272,8 +278,10 @@ FormationParserV2::parseDataHeader( std::istream & is,
 bool
 FormationParserV2::parseOneData( std::istream & is,
                                  const int index,
-                                 FormationData::Ptr result )
+                                 FormationData * formation_data )
 {
+    if ( ! formation_data ) return false;
+
     std::string line;
 
     //
@@ -302,7 +310,6 @@ FormationParserV2::parseOneData( std::istream & is,
         break;
     }
 
-
     //
     // read new data.
     //
@@ -315,6 +322,7 @@ FormationParserV2::parseOneData( std::istream & is,
     //
     // read ball data
     //
+
     if ( ! std::getline( is, line ) )
     {
         std::cerr << "(FormationParserV2::parseOneData) ERROR: failed to read ball data."
@@ -338,7 +346,6 @@ FormationParserV2::parseOneData( std::istream & is,
     //
 
     int read_unum = 0;
-
     for ( int unum = 1; unum <= 11; ++unum )
     {
         if ( ! std::getline( is, line ) )
@@ -362,7 +369,7 @@ FormationParserV2::parseOneData( std::istream & is,
                                         FormationData::round_xy( read_y ) );
     }
 
-    const std::string err = result->addData( new_data );
+    const std::string err = formation_data->addData( new_data );
     if ( ! err.empty() )
     {
         std::cerr << "(FormationParserV2::parseOneData) ERROR: " << err << std::endl;

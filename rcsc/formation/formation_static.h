@@ -49,27 +49,14 @@ public:
 
 private:
 
-    //! role names for all players
-    std::string M_role_names[11];
     //! home position for all players
-    Vector2D M_pos[11];
+    std::array< Vector2D, 11 > M_positions;
 
 public:
     /*!
       \brief just call the base class constructor
      */
     FormationStatic();
-
-    /*!
-      \brief static method. get the type name of this formation
-      \return type name string
-     */
-    static
-    std::string name()
-      {
-          //return std::string( "Static" );
-          return NAME;
-      }
 
     /*!
       \brief static factory method. create this class.
@@ -81,57 +68,12 @@ public:
           return Formation::Ptr( new FormationStatic() );
       }
 
-    //--------------------------------------------------------------
-
     /*!
-      \brief create default formation. assign role and initial positions.
-      \return snapshow variable for the initial stat(ball pos=(0,0)).
-     */
-    virtual
-    void createDefaultData() override;
-
-    /*!
-      \brief get the name of this formation
+      \brief get the method name of the formation model
       \return name string
-     */
+    */
     virtual
-    std::string methodName() const override
-      {
-          return FormationStatic::name();
-      }
-
-protected:
-
-    /*!
-      \brief create new role parameter.
-      \param unum target player's number
-      \param role_name new role name
-      \param type side type of this parameter
-     */
-    virtual
-    void createNewRole( const int unum,
-                        const std::string & role_name,
-                        const SideType type ) override;
-
-    /*!
-      \brief set the role name of the specified player
-      \param unum target player's number
-      \param name role name string.
-     */
-    virtual
-    void setRoleName( const int unum,
-                      const std::string & name ) override;
-
-public:
-
-    /*!
-      \brief get the role name of the specified player
-      \param unum target player's number
-      \return role name string. if empty string is returned,
-      that means no role parameter is assigned for unum.
-     */
-    virtual
-    std::string getRoleName( const int unum ) const override;
+    std::string methodName() const override;
 
     /*!
       \brief get position for the current focus point
@@ -139,7 +81,7 @@ public:
       \param focus_point current focus point, usually ball position.
      */
     virtual
-    Vector2D getPosition( const int unum,
+    Vector2D getPosition( const int num,
                           const Vector2D & focus_point ) const override;
 
     /*!
@@ -153,65 +95,28 @@ public:
 
     /*!
       \brief update formation paramter using training data set
+      \param data training data
+      \return true if success
+    */
+    virtual
+    bool train( const FormationData & data ) override;
+
+    /*!
+      \brief create data for the editor
+      \return formation data
      */
     virtual
-    void train() override;
-
-    /*!
-      \brief read formation data from the input stream.
-      \param is reference to the input stream.
-      \return result status.
-    */
-    virtual
-    bool read( std::istream & is ) override;
-    virtual
-    bool readCSV( std::istream & is ) override;
-
-    /*!
-      \brief put formation data to the output stream.
-      \param os reference to the output stream
-      \return reference to the output stream
-    */
-    virtual
-    std::ostream & print( std::ostream & os ) const override;
-    virtual
-    std::ostream & printCSV( std::ostream & os ) const override;
+    FormationData::Ptr toData() const override;
 
 protected:
 
-    bool readOld( std::istream & is );
-
     /*!
-      \brief restore conf data from the input stream.
-      \param is reference to the input stream.
-      \return pasing result.
-    */
-    virtual
-    bool readConf( std::istream & is );
-
-    std::ostream & printOld( std::ostream & os ) const;
-
-    /*!
-      \brief put all variables to output stream
-      \param os reference to the output stream
-      \return  reference to the output stream
+      \brief print model data
+      \param os output stream
+      \return true if success
      */
     virtual
-    std::ostream & printConf( std::ostream & os ) const;
-
-    std::ostream & printRoleNumbers( std::ostream & os ) const;
-    std::ostream & printRoleNames( std::ostream & os ) const;
-    std::ostream & printPositions( std::ostream & os ) const;
-
-private:
-
-    /*!
-      \brief restore players from the input stream
-      \param is reference to the input stream.
-      \return parsing result
-     */
-    bool readPlayers( std::istream & is );
-
+    bool printData( std::ostream & os ) const override;
 };
 
 }

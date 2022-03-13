@@ -57,11 +57,21 @@ public:
     { }
 
     /*!
+      \brief get the parser name
+      \return parser name
+     */
+    virtual
+    std::string name() const override
+    {
+        return "json";
+    }
+
+    /*!
       \brief parse the input stream
       \param is reference to the input stream to be parsed
       \return formation instance
      */
-    FormationData::Ptr parse( std::istream & is ) override;
+    Formation::Ptr parse( std::istream & is ) override;
 
 };
 

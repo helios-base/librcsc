@@ -33,6 +33,7 @@
 #define RCSC_FORMATION_FORMATION_PARSER_V3_H
 
 #include <rcsc/formation/formation_parser.h>
+#include <rcsc/formation/formation_data.h>
 
 namespace rcsc {
 
@@ -57,27 +58,37 @@ public:
     { }
 
     /*!
+      \brief get the parser name
+      \return parser name
+     */
+    virtual
+    std::string name() const override
+    {
+        return "v3";
+    }
+
+    /*!
       \brief parse the input stream
       \param is reference to the input stream to be parsed
       \return formation instance
      */
-    FormationData::Ptr parse( std::istream & is ) override;
+    Formation::Ptr parse( std::istream & is ) override;
 
 private:
 
     bool parseHeader( std::istream & is,
-                      FormationData::Ptr result );
+                      Formation::Ptr result );
     bool parseRoles( std::istream & is,
-                     FormationData::Ptr result );
+                     Formation::Ptr result );
     bool parseBeginRolesTag( std::istream & is );
     bool parseEndRolesTag( std::istream & is );
     bool parseData( std::istream & is,
-                    FormationData::Ptr result );
+                    FormationData * formation_data );
     bool parseDataHeader( std::istream & is,
                           int * data_size );
     bool parseOneData( std::istream & is,
                        const int index,
-                       FormationData::Ptr result );
+                       FormationData * formation_data );
     bool parseEnd( std::istream & is );
 
 };

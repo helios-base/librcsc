@@ -32,7 +32,6 @@
 #ifndef RCSC_FORMATION_FORMATION_DATA_H
 #define RCSC_FORMATION_FORMATION_DATA_H
 
-#include <rcsc/common/role_type.h>
 #include <rcsc/geom/vector_2d.h>
 
 #include <memory>
@@ -84,20 +83,18 @@ public:
 
         /*!
           \brief get the position of specified player.
-          \param unum player number [1..11].
+          \param num player number [1..11].
           \return position value.
         */
-        Vector2D getPosition( const int unum ) const
+        Vector2D getPosition( const int num ) const
         {
-            return players_.at( unum - 1 );
+            return players_.at( num - 1 );
         }
     };
 
     typedef std::shared_ptr< FormationData > Ptr;
     typedef std::shared_ptr< const FormationData > ConstPtr;
     typedef std::list< Data > DataCont; //!< data container type.
-    typedef std::pair< const Data *, const Data * > Constraint; //!< constraint type
-    typedef std::vector< Constraint > Constraints; //!< constraint container type.
 
     static const double PRECISION; //!< coordinates value precision
     static const size_t MAX_DATA_SIZE; //!< max data size
@@ -109,20 +106,7 @@ public:
 
 private:
 
-    //! the method name
-    std::string M_method_name;
-
-    //! role name string
-    std::array< std::string, 11 > M_role_names;
-
-    //! role types
-    std::array< RoleType, 11 > M_role_types;
-
-    //! uniform number of the paired player. 0 means no pair.
-    std::array< int, 11 > M_position_pairs;
-
     DataCont M_data_cont; //!< data container.
-    Constraints M_constraints; //!< constraint container.
 
     // not used
     FormationData( const FormationData & other ) = delete;
@@ -148,52 +132,10 @@ public:
     */
     void clear();
 
-    /*!
-      \brief get the method name
-      \return the name string value
-     */
-    const std::string & methodName() const
-    {
-        return M_method_name;
-    }
-
-    /*!
-      \brief get the role name array
-      \return const refrence to the array instance
-     */
-    const std::array< std::string, 11 > & roleNames() const
-    {
-        return M_role_names;
-    }
-
-    /*!
-      \brief get the role type array
-      \return const refrence to the array instance
-     */
-    const std::array< RoleType, 11 > & roleTypes() const
-    {
-        return M_role_types;
-    }
-
-    /*!
-      \brief get the role type of the given uniform number
-      \return role type value
-     */
-    const RoleType roleType( const int unum ) const
-    {
-        return ( 1 <= unum && unum <= 11
-                 ? M_role_types[unum - 1]
-                 : RoleType() );
-    }
-
-    /*!
-      \brief get the position pair array
-      \return const refrence to the array instance
-     */
-    const std::array< int, 11 > & positionPairs() const
-    {
-        return M_position_pairs;
-    }
+    // /*!
+    //   \brief create default data.
+    //  */
+    // void createDefault();
 
     /*!
       \brief get the data container.
@@ -202,11 +144,6 @@ public:
     const DataCont & dataCont() const
     {
         return M_data_cont;
-    }
-
-    const Constraints & constraints() const
-    {
-        return M_constraints;
     }
 
     /*!
@@ -222,7 +159,7 @@ public:
       \return index of the result data. -1 if no result
     */
     int nearestDataIndex( const Vector2D & pos,
-                          const double & dist_thr ) const;
+                          const double dist_thr ) const;
 
     /*!
       \brief check if there are exsiting data near to input data.
@@ -237,54 +174,7 @@ private:
     */
     void updateDataIndex();
 
-    /*!
-      \brief check if there are constraints intersected wht the input position.
-      \param pos input position.
-      \param checked result.
-    */
-    bool existIntersectedConstraint( const Vector2D & pos ) const;
-
-    /*!
-      \brief check if there are constraints intersected with others.
-      \param checked result.
-    */
-    bool existIntersectedConstraints() const;
-
 public:
-
-    /*!
-      \brief set the method name
-      \param name name value
-      \return true if success
-     */
-    bool setMethodName( const std::string & name );
-
-    /*!
-      \brief set the role name
-      \param unum target player
-      \param name name value
-      \return true if success
-     */
-    bool setRoleName( const int unum,
-                      const std::string & name );
-
-    /*!
-      \brief set the role type
-      \param unum target player
-      \param type role type value
-      \return true if success
-     */
-    bool setRoleType( const int unum,
-                      const RoleType & type );
-
-    /*!
-      \brief set the position pair
-      \param unum target player's uniform number
-      \param paired_unum pared player's uniform number
-      \return true if success
-     */
-    bool setPositionPair( const int unum,
-                          const int paired_unum );
 
     /*!
       \brief append new data.
@@ -327,94 +217,21 @@ public:
     std::string changeDataIndex( const size_t old_idx,
                                  const size_t new_idx );
 
-public:
-
     /*!
-      \brief add new constraint between given indices.
-      \param origin_idx index of first vertex.
-      \param terminal_idx index of second vertex.
-      \return error message if error occurd. otherwise, empty string.
-    */
-    std::string addConstraint( const size_t origin_idx,
-                               const size_t terminal_idx );
-
-    /*!
-      \brief delete the specified constraint.
-      \param idx replaced index.
-      \param origin_idx new origin index.
-      \param terminal_idx new terminal index.
-      \return error message if error occurd. otherwise, empty string.
-    */
-    std::string replaceConstraint( const size_t idx,
-                                   const size_t origin_idx,
-                                   const size_t terminal_idx );
-
-    /*!
-      \brief delete the specified constraint.
-      \param idx index of removed constraint.
-      \return error message if error occurd. otherwise, empty string.
-    */
-    std::string removeConstraint( const size_t idx );
-
-    /*!
-      \brief delete the specified constraint.
-      \param origin_idx origin index of removed constraint.
-      \param terminal_idx terminal index of removed constraint.
-      \return error message if error occurd. otherwise, empty string.
-    */
-    std::string removeConstraint( const size_t origin_idx,
-                                  const size_t terminal_idx );
-
-
-    /*!
-      \brief open the file and read data from it.
-      \param filepath file path string.
-      \return result status.
-    */
-    bool open( const std::string & filepath );
-
-    /*!
-      \brief read data from input stream.
-      \param is reference to the input stream.
-      \return result status.
-    */
-    bool read( std::istream & is );
-    bool readOld( std::istream & is );
-    bool readCSV( std::istream & is );
-
-    /*!
-      \brief save data to the file.
-      \param filepath file path string.
-      \return result status.
-    */
-    bool save( const std::string & filepath ) const;
-
-    /*!
-      \brief print data to the output stream.
-      \param os reference to the output stream.
-      \return reference to the output stream.
+      \brief print data in JSON format
+      \param os output stream.
+      \return output stream.
     */
     std::ostream & print( std::ostream & os ) const;
-    std::ostream & printOld( std::ostream & os ) const;
-    std::ostream & printCSV( std::ostream & os ) const;
-private:
 
-    bool readV1( std::istream & is );
-
-    bool readV2( std::istream & is,
-                 const int data_size );
-
-    bool readSample( std::istream & is,
-                     const int index );
-    bool readConstraints( std::istream & is );
-
-
-    std::ostream & printV1( std::ostream & os ) const;
-    std::ostream & printV2( std::ostream & os ) const;
-
-    std::ostream & printConstraints( std::ostream & os ) const;
-
+    /*!
+      \brief read data in JSON format
+      \param is input stream.
+      \return input stream.
+    */
+    bool read( std::istream & is );
 };
+
 }
 
 #endif

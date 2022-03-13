@@ -35,620 +35,233 @@
 
 #include "formation.h"
 
-//#include "formation_bpn.h"
-//#include "formation_cdt.h"
-#include "formation_dt.h"
-//#include "formation_knn.h"
-//#include "formation_ngnet.h"
-//#include "formation_rbf.h"
-//#include "formation_sbsp.h"
-#include "formation_static.h"
-//#include "formation_uva.h"
-
-#include <boost/algorithm/string.hpp>
-
-#include <sstream>
-
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
-/*!
-
-*/
-Formation::Creators &
-Formation::creators()
+Formation::Formation()
 {
-    static Creators s_instance;
-    return s_instance;
+    M_position_pairs.fill( 0 );
+}
+
+/*-------------------------------------------------------------------*/
+bool
+Formation::setVersion( const std::string & ver )
+{
+    M_version = ver;
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+Formation::setRoleName( const int num,
+                        const std::string & name )
+{
+    if ( num < 1 || 11 < num )
+    {
+        std::cerr << "(Formation::setRoleName) illegal number " << num << std::endl;
+        return false;
+    }
+
+    if ( name.empty() )
+    {
+        std::cerr << "(Formation::setRoleName) empty role name" << std::endl;
+        return false;
+    }
+
+    M_role_names[num - 1] = name;
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+Formation::setRoleType( const int num,
+                        const RoleType & type )
+{
+    if ( num < 1 || 11 < num )
+    {
+        std::cerr << "(Formation::setRoleType) illegal number " << num << std::endl;
+        return false;
+    }
+
+    M_role_types[num - 1] = type;
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
+bool
+Formation::setPositionPair( const int num,
+                            const int paired_num )
+{
+    if ( num < 1 || 11 < num )
+    {
+        std::cerr << "(Formation::setPositionPair) illegal number " << num << std::endl;
+        return false;
+    }
+
+    if ( paired_num < -1 || 11 < paired_num )
+    {
+        std::cerr << "(FormationData;:setPositionPair) illegal paired number " << paired_num << std::endl;
+        return false;
+    }
+
+    if ( num == paired_num )
+    {
+        std::cerr << "(FormationData;:setPositionPair) num " << num << " == paired " << paired_num << std::endl;
+        return false;
+    }
+
+    if ( paired_num >= 1 )
+    {
+        // check doubling registration
+        for ( int i = 0; i < 11; ++i )
+        {
+            if ( i + 1 == num ) continue;
+
+            if ( paired_num == M_position_pairs[i] )
+            {
+                std::cerr << "(Formation::setPositionPair) " << paired_num << " already registered "<< std::endl;
+                return false;
+            }
+        }
+
+        if ( 1 <= paired_num && paired_num <= 11
+             && M_position_pairs[paired_num - 1] > 0
+             && M_position_pairs[paired_num - 1] != num )
+        {
+            std::cerr << "(Formation::setPositionPair) already has the pair. num = " << num << " paired = " << paired_num << std::endl;
+            return false;
+        }
+    }
+
+    M_position_pairs[num - 1] = paired_num;
+
+    if ( 1 <= paired_num && paired_num <= 11 )
+    {
+        M_position_pairs[paired_num - 1] = num;
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+Formation::setRole( const int num,
+                    const std::string & name,
+                    const RoleType & type,
+                    const int paired_num )
+{
+    if ( ! setRoleName( num, name ) ) return false;
+    if ( ! setRoleType( num, type ) ) return false;
+    if ( ! setPositionPair( num, paired_num ) ) return false;
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+Formation::print( std::ostream & os ) const
+{
+    os << "{\n";
+
+    if ( ! printVersion( os ) ) return false;
+    os << ",\n";
+
+    if ( ! printMethodName( os ) ) return false;
+    os << ",\n";
+
+    if ( ! printRoles( os ) ) return false;
+    os << ",\n";
+
+    if ( ! printData( os ) ) return false;
+    os << "\n";
+
+    os << "}" << std::endl;
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+namespace {
+const std::string tab = "  ";
+
+std::string to_string( const RoleType::Type type )
+{
+    return ( type == RoleType::Goalie ? "G"
+             : type == RoleType::Defender ? "DF"
+             : type == RoleType::MidFielder ? "MF"
+             : type == RoleType::Forward ? "FW"
+             : "Unknown" );
+}
+
+std::string to_string( const RoleType::Side side )
+{
+    return ( side == RoleType::Center ? "C"
+             : side == RoleType::Left ? "L"
+             : side == RoleType::Right ? "R"
+             : "U" );
+}
+
+}
+
+/*-------------------------------------------------------------------*/
+bool
+Formation::printVersion( std::ostream & os ) const
+{
+    os << tab << '"' << "version" << '"' << " : " << '"' <<  version() << '"';
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+Formation::printMethodName( std::ostream & os ) const
+{
+    os << tab << '"' << "method" << '"' << " : " << '"' << methodName() << '"';
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+Formation::printRoles( std::ostream & os ) const
+{
+    os << tab << "\"role\"" << " : [\n";
+
+    for ( size_t i = 0; i < 11; ++i )
+    {
+        if ( i != 0 ) os << ",\n";
+
+        os << tab << tab << "{\n"
+           << tab << tab << tab << " \"number\" : " << i + 1 << ",\n"
+           << tab << tab << tab << " \"name\" : " << '"' << M_role_names[i] << '"' << ",\n"
+           << tab << tab << tab << " \"type\" : " << '"' << to_string( M_role_types[i].type() ) << '"' << ",\n"
+           << tab << tab << tab << " \"side\" : " << '"' << to_string( M_role_types[i].side() ) << '"' << ",\n"
+           << tab << tab << tab << " \"pair\" : " << M_position_pairs[i] << '\n'
+           << tab << tab << "}";
+    }
+
+    os << '\n' << tab << ']';
+    return true;
+}
+
+
+}
+
+#include "formation_dt.h"
+#include "formation_static.h"
+
+namespace rcsc {
+
+/*-------------------------------------------------------------------*/
 Formation::Ptr
 Formation::create( const std::string & name )
 {
     Formation::Ptr ptr;
 
-    Formation::Creator creator;
-    if ( Formation::creators().getCreator( creator, name ) )
-    {
-        ptr = creator();
-    }
-    //else if ( name == FormationBPN::NAME ) ptr = FormationBPN::create();
-    //else if ( name == FormationCDT::NAME ) ptr = FormationCDT::create();
-    else if ( name == FormationDT::NAME ) ptr = FormationDT::create();
-    //else if ( name == FormationKNN::NAME ) ptr = FormationKNN::create();
-    //else if ( name == FormationNGNet::NAME ) ptr = FormationNGNet::create();
-    //else if ( name == FormationRBF::NAME ) ptr = FormationRBF::create();
-    //else if ( name == FormationSBSP::NAME ) ptr = FormationSBSP::create();
+    if ( name == FormationDT::NAME ) ptr = FormationDT::create();
     else if ( name == FormationStatic::NAME ) ptr = FormationStatic::create();
-    //else if ( name == FormationUvA::NAME ) ptr = FormationUvA::create();
 
     return ptr;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
-Formation::Ptr
-Formation::create( std::istream & is )
-{
-    std::string line_buf;
-    std::string method_name;
-
-    while ( std::getline( is, line_buf ) )
-    {
-        if ( line_buf.empty()
-             || line_buf[0] == '#'
-             || ! line_buf.compare( 0, 2, "//" ) )
-        {
-            continue;
-        }
-
-        std::vector< std::string > tokens;
-        boost::split( tokens, line_buf, boost::is_any_of( " ,") );
-
-        if ( tokens.size() < 2 )
-        {
-            std::cerr << __FILE__ << ':'
-                      << " (create) ERROR Illegal header line. [" << line_buf << ']'
-                      << std::endl;
-            return Formation::Ptr();
-        }
-
-        method_name = tokens[1];
-
-        break;
-    }
-
-    is.seekg( 0 );
-    return create( method_name );
-}
-
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-Formation::Formation()
-    : M_version( 0 ),
-      M_data( new FormationData() )
-{
-    for ( int i = 0; i < 11; ++i )
-    {
-        //M_role_type[i] = RoleType();
-        M_symmetry_number[i] = 0;
-        M_marker[i] = false;
-        M_setplay_marker[i] = false;
-    }
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-void
-Formation::setRoleType( const int unum,
-                        const std::string & role_type )
-{
-    if ( unum < 1 || 11 < unum )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** invalid unum " << unum
-                  << std::endl;
-        return;
-    }
-
-    if ( role_type == "G" ) M_role_type[unum - 1].setType( RoleType::Goalie );
-    else if ( role_type == "DF" ) M_role_type[unum - 1].setType( RoleType::Defender );
-    else if ( role_type == "MF" ) M_role_type[unum - 1].setType( RoleType::MidFielder );
-    else if ( role_type == "FW" ) M_role_type[unum - 1].setType( RoleType::Forward );
-    else
-    {
-        std::cerr << __FILE__ << " (setRoleType)"
-                  << " *** ERROR *** unknown role type [" << role_type << "]"
-                  << std::endl;
-    }
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-void
-Formation::setCenterType( const int unum )
-{
-    if ( unum < 1 || 11 < unum )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** invalid unum " << unum
-                  << std::endl;
-        return;
-    }
-
-    M_role_type[unum - 1].setSide( RoleType::Center );
-    M_symmetry_number[unum - 1] = 0;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-void
-Formation::setSideType( const int unum )
-{
-    if ( unum < 1 || 11 < unum )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** invalid unum " << unum
-                  << std::endl;
-        return;
-    }
-
-    M_role_type[unum - 1].setSide( RoleType::Left );
-    M_symmetry_number[unum - 1] = -1;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-Formation::setSymmetryType( const int unum,
-                            const int symmetry_unum,
-                            const std::string & role_name )
-{
-    if ( unum < 1 || 11 < unum )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** Invalid unum " << unum
-                  << std::endl;
-        return false;
-    }
-    if ( symmetry_unum < 1 || 11 < symmetry_unum )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** Invalid symmetry unum " << unum
-                  << std::endl;
-        return false;
-    }
-    if ( symmetry_unum == unum )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** Never symmetry itself. unum=" << unum
-                  << "  symmetry=" << symmetry_unum
-                  << std::endl;
-        return false;
-    }
-    if ( M_symmetry_number[symmetry_unum - 1] > 0 )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** " << symmetry_unum << " is already a symmetrical player. "
-                  << std::endl;
-        return false;
-    }
-    if ( M_symmetry_number[symmetry_unum - 1] == 0 )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** " << symmetry_unum << " is a center type player. "
-                  << std::endl;
-        return false;
-    }
-
-
-    // check if unum is already assigned as original side type player.
-    for ( int i = 0; i < 11; ++i )
-    {
-        if ( i + 1 == unum ) continue;
-        if ( M_symmetry_number[i] == symmetry_unum )
-        {
-            // refered by other player.
-            std::cerr << __FILE__ << ":" << __LINE__
-                      << " *** ERROR *** player " << unum
-                      << " has already refered by player " << i + 1
-                      << std::endl;
-            return false;
-        }
-    }
-
-    M_role_type[unum - 1].setSide( RoleType::Right );
-    M_symmetry_number[unum - 1] = symmetry_unum;
-
-    if ( role_name.empty() )
-    {
-        setRoleName( unum, getRoleName( symmetry_unum ) );
-    }
-    else
-    {
-        setRoleName( unum, role_name );
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-void
-Formation::setMarker( const int unum,
-                      const std::string & marker,
-                      const std::string & smarker )
-{
-    if ( unum < 1 || 11 < unum )
-    {
-        std::cerr << __FILE__ << ":" << __LINE__
-                  << " *** ERROR *** (setMarker) illegal unum " << unum
-                  << std::endl;
-        return;
-    }
-
-    M_marker[unum - 1] = ( marker == "marker" );
-    M_setplay_marker[unum - 1] = ( smarker == "setplay_marker" );
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-Formation::updateRole( const int unum,
-                       const int symmetry_unum,
-                       const std::string & role_name )
-{
-    if ( getSymmetryNumber( unum ) != symmetry_unum )
-    {
-        if ( symmetry_unum == 0 )
-        {
-            createNewRole( unum, role_name, Formation::CENTER );
-            return true;
-        }
-
-        if ( symmetry_unum < 0 )
-        {
-            createNewRole( unum, role_name, Formation::SIDE );
-            return true;
-        }
-
-        // ( symmetry_unum > 0 )
-
-        if ( ! isSideType( symmetry_unum ) )
-        {
-            std::cerr << __FILE__ << ":" << __LINE__
-                      << " You cannot use the player number " << symmetry_unum
-                      << " as a symmetry number."
-                      << std::endl;
-            return false;
-        }
-
-        for ( int i = 1; i <= 11; ++i )
-        {
-            if ( i == unum || i == symmetry_unum ) continue;
-            if ( getSymmetryNumber( i ) == symmetry_unum )
-            {
-                std::cerr << __FILE__ << ":" << __LINE__
-                          << " player number " << symmetry_unum
-                          << " has already refered by player " << i
-                          << std::endl;
-                return false;
-            }
-        }
-
-        setSymmetryType( unum, symmetry_unum, role_name );
-        return true;
-    }
-
-    if ( ! role_name.empty()
-         && getRoleName( unum ) != role_name )
-    {
-        setRoleName( unum, role_name );
-        return true;
-    }
-
-    return false;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-Formation::updateRoleType( const int unum,
-                           const RoleType::Type type )
-{
-    if ( unum < 1 || 11 < unum )
-    {
-        return false;
-    }
-
-    if ( M_role_type[unum-1].type() != type )
-    {
-        M_role_type[unum-1].setType( type );
-        return true;
-    }
-
-    return false;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-Formation::updateMarker( const int unum,
-                         const bool marker,
-                         const bool setplay_marker )
-{
-    if ( unum < 1 || 11 < unum )
-    {
-        return false;
-    }
-
-    if ( M_marker[unum-1] != marker
-         || M_setplay_marker[unum-1] != setplay_marker )
-    {
-        M_marker[unum-1] = marker;
-        M_setplay_marker[unum-1] = setplay_marker;
-        return true;
-    }
-
-    return false;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-Formation::printComment( std::ostream & os,
-                         const std::string & msg ) const
-{
-    if ( os ) os << "# " << msg << '\n';
-
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-Formation::readHeader( std::istream & is )
-{
-    std::string line_buf;
-
-    while ( std::getline( is, line_buf ) )
-    {
-        if ( line_buf.empty()
-             || line_buf[0] == '#'
-             || ! line_buf.compare( 0, 2, "//" ) )
-        {
-            continue;
-        }
-
-        std::istringstream istr( line_buf );
-
-        std::string tag;
-        istr >> tag;
-        if ( tag != "Formation" )
-        {
-            std::cerr << __FILE__ << ":" << __LINE__
-                      << " *** ERROR *** Found invalid tag ["
-                      << tag << "]"
-                      << std::endl;
-            return false;
-        }
-
-        std::string name;
-        istr >> name;
-        if ( name != methodName() )
-        {
-            std::cerr << __FILE__ << ":" << __LINE__
-                      << " *** ERROR *** Unsupported formation type name "
-                      << " [" << name << "]."
-                      << " The name has to be " << methodName()
-                      << std::endl;
-            return false;
-        }
-
-        int ver = 0;
-        if ( istr >> ver )
-        {
-            if ( ver < 0 )
-            {
-                std::cerr << __FILE__ << ":" << __LINE__
-                          << " *** ERROR *** Illegas format version "
-                          << ver
-                          << std::endl;
-                return false;
-            }
-
-            M_version = ver;
-        }
-        else
-        {
-            M_version = 0;
-        }
-
-        return true;
-    }
-
-    return false;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-Formation::readMethodName( std::istream & is )
-{
-    std::string line_buf;
-
-    while ( std::getline( is, line_buf ) )
-    {
-        if ( line_buf.empty()
-             || line_buf[0] == '#' )
-        {
-            continue;
-        }
-
-        break;
-    }
-
-    std::vector< std::string > tokens;
-    boost::split( tokens, line_buf, boost::is_any_of( " ," ) );
-
-    if ( tokens.size() < 2 )
-    {
-        std::cerr << __FILE__ << ':'
-                  << " (readMethodName) ERROR Illegal header line. [" << line_buf << ']'
-                  << std::endl;
-        return false;
-    }
-
-    if ( tokens[1] != methodName() )
-    {
-        std::cerr << __FILE__ << ':'
-                  << " (readMethodName) Unsupported formation method "
-                  << " [" << tokens[1] << "]" << std::endl;
-        return false;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-Formation::readSamplesOld( std::istream & is )
-{
-    M_data = FormationData::Ptr( new FormationData() );
-
-    if ( ! M_data->readOld( is ) )
-    {
-        M_data.reset();
-        return false;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-Formation::readSamplesCSV( std::istream & is )
-{
-    M_data = FormationData::Ptr( new FormationData() );
-
-    if ( ! M_data->readCSV( is ) )
-    {
-        M_data.reset();
-        return false;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-Formation::checkSymmetryNumber() const
-{
-    // check symmetry number circuration reference
-    for ( int i = 0; i < 11; ++i )
-    {
-        int referred_unum = M_symmetry_number[i];
-        if ( referred_unum <= 0 ) continue;
-        if ( M_symmetry_number[referred_unum - 1] > 0 )
-        {
-            return false;
-        }
-    }
-
-    return true;
-
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-Formation::printHeader( std::ostream & os ) const
-{
-    os << "Formation " << methodName() << ' ' << version() << '\n';
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-Formation::printMethodName( std::ostream & os ) const
-{
-    os << "Method," << methodName() << '\n';
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-Formation::printSamplesOld( std::ostream & os ) const
-{
-    if ( M_data )
-    {
-        M_data->printOld( os );
-    }
-
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-Formation::printSamplesCSV( std::ostream & os ) const
-{
-    if ( M_data )
-    {
-        M_data->printCSV( os );
-    }
-
-    return os;
 }
 
 }

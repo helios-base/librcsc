@@ -57,26 +57,36 @@ public:
     { }
 
     /*!
+      \brief get the parser name
+      \return parser name
+     */
+    virtual
+    std::string name() const override
+    {
+        return "csv";
+    }
+
+    /*!
       \brief parse the input stream
       \param is reference to the input stream to be parsed
       \return formation instance
      */
-    FormationData::Ptr parse( std::istream & is ) override;
+    Formation::Ptr parse( std::istream & is ) override;
 
 private:
     bool parseMethodName( std::istream & is,
-                          FormationData::Ptr result );
+                          Formation::Ptr result );
     bool parseRoleNumbers( std::istream & is );
     bool parseRoleNames( std::istream & is,
-                         FormationData::Ptr result );
+                         Formation::Ptr result );
     bool parseRoleTypes( std::istream & is,
-                         FormationData::Ptr result );
+                         Formation::Ptr result );
     bool parsePositionPairs( std::istream & is,
-                             FormationData::Ptr result );
+                             Formation::Ptr result );
     bool parseMarkerFlags( std::istream & is );
     bool parseSetplayMarkerFlags( std::istream & is );
     bool parseData( std::istream & is,
-                    FormationData::Ptr result );
+                    Formation::Ptr result );
 
 };
 

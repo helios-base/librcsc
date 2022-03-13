@@ -35,6 +35,8 @@
 
 #include "formation_parser_json.h"
 
+#include "formation_dt.h"
+
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
@@ -49,7 +51,7 @@ namespace {
 /*-------------------------------------------------------------------*/
 bool
 parse_method_name( const ptree & doc,
-                   FormationData::Ptr result )
+                   Formation::Ptr result )
 {
     boost::optional< std::string > v = doc.get_optional< std::string >( "method" );
 
@@ -59,7 +61,13 @@ parse_method_name( const ptree & doc,
         return false;
     }
 
-    return result->setMethodName( *v );
+    if ( *v != result->methodName() )
+    {
+        std::cerr << "(FormationParserJSON..parse_method_name) Unsupported method name " << *v << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
@@ -104,8 +112,10 @@ create_role_type( const std::string & role_type,
 /*-------------------------------------------------------------------*/
 bool
 parse_role( const ptree & doc,
-            FormationData::Ptr result )
+            Formation::Ptr result )
 {
+    if ( ! result ) return false;
+
     boost::optional< const ptree & > role_array = doc.get_child_optional( "role" );
     if ( ! role_array )
     {
@@ -155,14 +165,18 @@ parse_role( const ptree & doc,
 /*-------------------------------------------------------------------*/
 bool
 parse_data( const ptree & doc,
-            FormationData::Ptr result )
+            Formation::Ptr result )
 {
+    if ( ! result ) return false;
+
     boost::optional< const ptree & > data_array = doc.get_child_optional( "data" );
     if ( ! data_array )
     {
         std::cerr << "(FormationParserJSON..parse_data) No data array" << std::endl;
         return false;
     }
+
+    FormationData formation_data;
 
     for ( const ptree::value_type & child : *data_array )
     {
@@ -188,7 +202,7 @@ parse_data( const ptree & doc,
             return false;
         }
 
-        const std::string err = result->addData( data );
+        const std::string err = formation_data.addData( data );
         if ( ! err.empty() )
         {
             std::cerr << "(FormationParserJSON..parse_data) ERROR: " << err << std::endl;
@@ -196,13 +210,13 @@ parse_data( const ptree & doc,
         }
     }
 
-    return true;
+    return result->train( formation_data );
 }
 
 }
 
 /*-------------------------------------------------------------------*/
-FormationData::Ptr
+Formation::Ptr
 FormationParserJSON::parse( std::istream & is )
 {
     ptree doc;
@@ -213,14 +227,14 @@ FormationParserJSON::parse( std::istream & is )
     catch ( std::exception & e )
     {
         std::cerr << "(FormationParserJSON::parse) ERROR: read_json. " << e.what() << std::endl;
-        return FormationData::Ptr();
+        return Formation::Ptr();
     }
 
-    FormationData::Ptr ptr( new FormationData() );
+    Formation::Ptr ptr( new FormationDT() );
 
-    if ( ! parse_method_name( doc, ptr ) ) return FormationData::Ptr();
-    if ( ! parse_role( doc, ptr ) ) return FormationData::Ptr();
-    if ( ! parse_data( doc, ptr ) ) return FormationData::Ptr();
+    if ( ! parse_method_name( doc, ptr ) ) return Formation::Ptr();
+    if ( ! parse_role( doc, ptr ) ) return Formation::Ptr();
+    if ( ! parse_data( doc, ptr ) ) return Formation::Ptr();
 
     return ptr;
 }

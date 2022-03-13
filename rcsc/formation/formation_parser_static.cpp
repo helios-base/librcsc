@@ -35,22 +35,22 @@
 
 #include "formation_parser_static.h"
 
-#include "formation_data.h"
+#include "formation_static.h"
 
 #include <cstring>
 
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
-FormationData::Ptr
+Formation::Ptr
 FormationParserStatic::parse( std::istream & is )
 {
-    FormationData::Ptr ptr( new FormationData() );
+    Formation::Ptr ptr( new FormationStatic() );
 
-    if ( ! parseHeader( is, ptr ) ) return FormationData::Ptr();
-    if ( ! parseData( is, ptr ) ) return FormationData::Ptr();
+    if ( ! parseHeader( is, ptr ) ) return Formation::Ptr();
+    if ( ! parseData( is, ptr ) ) return Formation::Ptr();
 
-    if ( ! checkRoleNames( ptr ) ) return FormationData::Ptr();
+    if ( ! checkRoleNames( ptr ) ) return Formation::Ptr();
 
     return ptr;
 }
@@ -58,7 +58,7 @@ FormationParserStatic::parse( std::istream & is )
 /*-------------------------------------------------------------------*/
 bool
 FormationParserStatic::parseHeader( std::istream & is,
-                                    FormationData::Ptr result )
+                                    Formation::Ptr result )
 {
     if ( ! result ) return false;
 
@@ -72,30 +72,29 @@ FormationParserStatic::parseHeader( std::istream & is,
             continue;
         }
 
-        char method_name[32];
-
-        if ( std::sscanf( line.c_str(), "Formation %s", method_name ) != 1 )
-        {
-            std::cerr << "(FormationParserStatic::parseHeader) ERROR: Illegal header [" << line << "]" << std::endl;
-            return false;
-        }
-
-        if ( std::strncmp( method_name, "Static", std::strlen( "Static" ) ) != 0 )
-        {
-            std::cerr << "(FormationParserStatic::parseHeader) ERROR: Unknown method name [" << line << "]" << std::endl;
-            return true;
-        }
-
-        return result->setMethodName( method_name );
+        break;
     }
 
-    return false;
+    char method_name[32];
+    if ( std::sscanf( line.c_str(), "Formation %s", method_name ) != 1 )
+    {
+        std::cerr << "(FormationParserStatic::parseHeader) ERROR: Illegal header [" << line << "]" << std::endl;
+        return false;
+    }
+
+    if ( result->methodName() != method_name )
+    {
+        std::cerr << "(FormationParserStatic::parseHeader) ERROR: Unsupported method name " << method_name << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
 bool
 FormationParserStatic::parseData( std::istream & is,
-                                  FormationData::Ptr result )
+                                  Formation::Ptr result )
 {
     if ( ! result ) return false;
 
@@ -141,14 +140,16 @@ FormationParserStatic::parseData( std::istream & is,
         return false;
     }
 
-    std::string err = result->addData( data );
+    FormationData formation_data;
+
+    std::string err = formation_data.addData( data );
     if ( ! err.empty() )
     {
         std::cerr << "(FormationParserStatic::parseData) ERROR: " << err << std::endl;
         return false;
     }
 
-    return false;
+    return result->train( formation_data );
 }
 
 

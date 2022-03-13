@@ -41,7 +41,7 @@
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
-FormationData::Ptr
+Formation::Ptr
 FormationParser::parse( const std::string & filepath )
 {
     std::ifstream fin( filepath.c_str() );
@@ -51,18 +51,21 @@ FormationParser::parse( const std::string & filepath )
 
 /*-------------------------------------------------------------------*/
 bool
-FormationParser::checkRoleNames( const FormationData::ConstPtr ptr )
+FormationParser::checkRoleNames( const Formation::ConstPtr ptr )
 {
     if ( ! ptr )
     {
+        std::cerr << "(FormationParser::checkRoleNames) null ptr " << std::endl;
         return false;
     }
 
-    for ( size_t i = 0; i < ptr->roleNames().max_size(); ++i )
+    int num = 0;
+    for ( const std::string & name : ptr->roleNames() )
     {
-        if ( ptr->roleNames()[i].empty() )
+        ++num;
+        if ( name.empty() )
         {
-            std::cerr << "(FormationParser::checkRoleNames) empty role name. unum= " << i + 1 << std::endl;
+            std::cerr << "(FormationParser::checkRoleNames) empty role name. num= " << num << std::endl;
             return false;
         }
     }
@@ -72,16 +75,30 @@ FormationParser::checkRoleNames( const FormationData::ConstPtr ptr )
 
 /*-------------------------------------------------------------------*/
 bool
-FormationParser::checkPositionPair( const FormationData::ConstPtr ptr )
+FormationParser::checkPositionPair( const Formation::ConstPtr ptr )
 {
     if ( ! ptr )
     {
+        std::cerr << "(FormationParser::checkPositionPairs) null ptr " << std::endl;
         return false;
     }
 
-    for ( size_t i = 0; i < ptr->positionPairs().max_size(); ++i )
-    {
+    const std::array< int, 11 > & pairs = ptr->positionPairs();
 
+    for ( size_t i = 0; i < pairs.size(); ++i )
+    {
+        if ( 1 <= pairs[i] && pairs[i] <= 11 )
+        {
+            const int p = pairs[ pairs[i] - 1 ];
+            if ( p != -1
+                 && p != static_cast< int >( i + 1 ) )
+            {
+                std::cerr << "(FormationParser::checkPositionPairs) illegal pair "
+                          << " pair=" << pairs[i] << " - " << p
+                          << std::endl;
+                return false;
+            }
+        }
     }
 
     return true;
@@ -94,46 +111,59 @@ FormationParser::checkPositionPair( const FormationData::ConstPtr ptr )
 #include "formation_parser_v3.h"
 #include "formation_parser_static.h"
 #include "formation_parser_csv.h"
+#include "formation_parser_json.h"
 
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
 FormationParser::Ptr
-FormationParser::create( std::string & filepath )
+FormationParser::create( const std::string & filepath )
 {
     FormationParser::Ptr ptr;
 
     std::ifstream fin( filepath.c_str() );
     std::string line;
-    if ( ! std::getline( fin, line ) ) return ptr;
+    while ( std::getline( fin, line ) )
+    {
+        if ( line.empty() ) continue;
+        if ( line[0] == '#' ) continue;
+        break;
+    }
 
-    // {
-    //     std::string::size_type first = line.find_first_not_of( ' ' );
-    //     if ( first != line.std::string::npos
-    //          && line[first] == '{' )
-    //     {
-    //         ptr = FormationParser::Ptr( new FormationParserJSON() );
-    //     }
-    // }
+    // std::cerr << "(FormationParser::create) first line = [" << line << "]" << std::endl;
+    {
+        std::string::size_type first = line.find_first_not_of( ' ' );
+        if ( first != line.std::string::npos
+             && line[first] == '{' )
+        {
+            // std::cerr << "(FormationParser::create) JSON" << std::endl;
+            ptr = FormationParser::Ptr( new FormationParserJSON() );
+            return ptr;
+        }
+    }
 
     char method_name[32];
 
-    if ( std::sscanf( line.c_str(), " Formation , %31[^,] ", method_name ) == 1 )
+    if ( std::sscanf( line.c_str(), " Method , %31[^,] ", method_name ) == 1 )
     {
+        // std::cerr << "(FormationParser::create) CSV" << std::endl;
         ptr = FormationParser::Ptr( new FormationParserCSV() );
         return ptr;
     }
 
     int ver = 0;
-    int n = std::sscanf( line.c_str(), " Formation %31[^,] %d ", method_name, &ver );
+    int n = std::sscanf( line.c_str(), " Formation %31s %d ", method_name, &ver );
+
     if ( n == 2 )
     {
+        // std::cerr << "(FormationParser::create) method =" << method_name << " ver = " << ver << std::endl;
         if ( ver == 3 ) ptr = FormationParser::Ptr( new FormationParserV3() );
         if ( ver == 2 ) ptr = FormationParser::Ptr( new FormationParserV2() );
         if ( ver == 1 ) ptr = FormationParser::Ptr( new FormationParserV1() );
     }
     else if ( n == 1 )
     {
+        // std::cerr << "(FormationParser::create) method =" << method_name << std::endl;
         if ( std::strncmp( method_name, "Static", std::strlen( "Static" ) ) == 0 )
         {
             ptr = FormationParser::Ptr( new FormationParserStatic() );
@@ -143,6 +173,10 @@ FormationParser::create( std::string & filepath )
             ptr = FormationParser::Ptr( new FormationParserV2() );
         }
     }
+    // else
+    // {
+    //     std::cerr << "(FormationParser::create) unknown" << std::endl;
+    // }
 
     return ptr;
 }

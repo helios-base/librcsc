@@ -35,24 +35,22 @@
 
 #include "formation_parser_v1.h"
 
-#include "formation_data.h"
-
-#include <cstring>
+#include "formation_dt.h"
 
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
-FormationData::Ptr
+Formation::Ptr
 FormationParserV1::parse( std::istream & is )
 {
-    FormationData::Ptr ptr( new FormationData() );
+    Formation::Ptr ptr( new FormationDT() );
 
-    if ( ! parseHeader( is, ptr ) ) return FormationData::Ptr();
-    if ( ! parseRoles( is, ptr ) ) return FormationData::Ptr();
-    if ( ! parseData( is, ptr ) ) return FormationData::Ptr();
+    if ( ! parseHeader( is, ptr ) ) return Formation::Ptr();
+    if ( ! parseRoles( is, ptr ) ) return Formation::Ptr();
+    if ( ! parseData( is, ptr ) ) return Formation::Ptr();
 
-    if ( ! checkRoleNames( ptr ) ) return FormationData::Ptr();
-    if ( ! checkPositionPair( ptr ) ) return FormationData::Ptr();
+    if ( ! checkRoleNames( ptr ) ) return Formation::Ptr();
+    if ( ! checkPositionPair( ptr ) ) return Formation::Ptr();
 
     return ptr;
 }
@@ -60,7 +58,7 @@ FormationParserV1::parse( std::istream & is )
 /*-------------------------------------------------------------------*/
 bool
 FormationParserV1::parseHeader( std::istream & is,
-                                FormationData::Ptr result )
+                                Formation::Ptr result )
 {
     if ( ! result ) return false;
 
@@ -74,34 +72,40 @@ FormationParserV1::parseHeader( std::istream & is,
             continue;
         }
 
-        char method_name[32];
-        int ver = 0;
-
-        int n = std::sscanf( line.c_str(), "Formation %31s %d", method_name, &ver );
-
-        if ( n < 1 )
-        {
-            std::cerr << "(FormationParserV1::parseHeader) No method name" << std::endl;
-            return false;
-        }
-
-        if ( n == 2
-             && ver != 1 )
-        {
-            std::cerr << "(FormationParserV1::parseHeader) Illegas format version " << ver << std::endl;
-            return false;
-        }
-
-        return result->setMethodName( method_name );
+        break;
     }
 
-    return false;
+    char method_name[32];
+    int ver = 0;
+
+    int n = std::sscanf( line.c_str(), "Formation %31s %d", method_name, &ver );
+
+    if ( n < 1 )
+    {
+        std::cerr << "(FormationParserV1::parseHeader) No method name" << std::endl;
+        return false;
+    }
+
+    if ( result->methodName() != method_name )
+    {
+        std::cerr << "(FormationParserV1::parseHeader) Unsupported method " << method_name << std::endl;
+        return false;
+    }
+
+    if ( n == 2
+         && ver != 1 )
+    {
+        std::cerr << "(FormationParserV1::parseHeader) Illegas format version " << ver << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
 bool
 FormationParserV1::parseRoles( std::istream & is,
-                               FormationData::Ptr result )
+                               Formation::Ptr result )
 {
     if ( ! result ) return false;
 
@@ -115,45 +119,47 @@ FormationParserV1::parseRoles( std::istream & is,
             continue;
         }
 
-        const char * msg = line.c_str();
-
-        for ( int unum = 1; unum <= 11; ++unum )
-        {
-            char role_name[128];
-            int paired_unum;
-            int n_read = 0;
-
-            if ( std::sscanf( msg, " %s %d %n ",
-                              role_name, &paired_unum, &n_read ) != 2 )
-            {
-                std::cerr << "(FormationParserV1::parseRoles) Failed to read player " << unum << std::endl;
-                return false;
-            }
-            msg += n_read;
-
-            if ( ! result->setRoleName( unum, role_name ) )
-            {
-                return false;
-            }
-
-            if ( ! result->setPositionPair( unum, paired_unum ) )
-            {
-                return false;
-            }
-        }
-
-        return true;
+        break;
     }
 
-    return false;
+    const char * msg = line.c_str();
+
+    for ( int unum = 1; unum <= 11; ++unum )
+    {
+        char role_name[128];
+        int paired_unum;
+        int n_read = 0;
+
+        if ( std::sscanf( msg, " %s %d %n ",
+                          role_name, &paired_unum, &n_read ) != 2 )
+        {
+            std::cerr << "(FormationParserV1::parseRoles) Failed to read player " << unum << std::endl;
+            return false;
+        }
+        msg += n_read;
+
+        if ( ! result->setRoleName( unum, role_name ) )
+        {
+            return false;
+        }
+
+        if ( ! result->setPositionPair( unum, paired_unum ) )
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
 bool
 FormationParserV1::parseData( std::istream & is,
-                              FormationData::Ptr result )
+                              Formation::Ptr result )
 {
     if ( ! result ) return false;
+
+    FormationData formation_data;
 
     std::string line;
     while ( std::getline( is, line ) )
@@ -184,8 +190,6 @@ FormationParserV1::parseData( std::istream & is,
 
         new_data.ball_.assign( read_x, read_y );
 
-        //new_sample.ball_.assign( read_x, read_y );
-
         for ( int unum = 1; unum <= 11; ++unum )
         {
             if ( std::sscanf( msg, " %lf %lf %n ",
@@ -200,7 +204,7 @@ FormationParserV1::parseData( std::istream & is,
             new_data.players_.emplace_back( read_x, read_y );
         }
 
-        std::string err = result->addData( new_data );
+        std::string err = formation_data.addData( new_data );
         if ( ! err.empty() )
         {
             std::cerr << "(FormationParserV1::parseData) ERROR: " << err << std::endl;
@@ -208,7 +212,7 @@ FormationParserV1::parseData( std::istream & is,
         }
     }
 
-    return false;
+    return result->train( formation_data );
 }
 
 
