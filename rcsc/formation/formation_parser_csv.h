@@ -87,6 +87,8 @@ private:
     bool parseData( std::istream & is,
                     Formation::Ptr result );
 
+    bool parseStaticPositions( std::istream & is,
+                               Formation::Ptr result );
 };
 
 }

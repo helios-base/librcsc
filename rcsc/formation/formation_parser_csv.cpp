@@ -35,12 +35,15 @@
 
 #include "formation_parser_csv.h"
 
+#include "formation_static.h"
+
 #include <cstring>
 
 namespace rcsc {
 
 namespace {
 
+/*-------------------------------------------------------------------*/
 std::string
 get_value_line( std::istream & is )
 {
@@ -76,14 +79,22 @@ FormationParserCSV::parse( std::istream & is )
 
     if ( ! parseRoleNumbers( is ) ) return Formation::Ptr();
     if ( ! parseRoleNames( is, ptr ) ) return Formation::Ptr();
-    if ( ! parseRoleTypes( is, ptr ) ) return Formation::Ptr();
-    if ( ! parsePositionPairs( is, ptr ) ) return Formation::Ptr();
-    if ( ! parseMarkerFlags( is ) ) return Formation::Ptr();
-    if ( ! parseSetplayMarkerFlags( is ) ) return Formation::Ptr();
-    if ( ! parseData( is, ptr ) ) return Formation::Ptr();
 
-    if ( ! checkRoleNames( ptr ) ) return Formation::Ptr();
-    if ( ! checkPositionPair( ptr ) ) return Formation::Ptr();
+    if ( method == FormationStatic::NAME )
+    {
+        if ( ! parseStaticPositions( is, ptr ) ) return Formation::Ptr();
+    }
+    else
+    {
+        if ( ! parseRoleTypes( is, ptr ) ) return Formation::Ptr();
+        if ( ! parsePositionPairs( is, ptr ) ) return Formation::Ptr();
+        if ( ! parseMarkerFlags( is ) ) return Formation::Ptr();
+        if ( ! parseSetplayMarkerFlags( is ) ) return Formation::Ptr();
+        if ( ! parseData( is, ptr ) ) return Formation::Ptr();
+
+        if ( ! checkRoleNames( ptr ) ) return Formation::Ptr();
+        if ( ! checkPositionPair( ptr ) ) return Formation::Ptr();
+    }
 
     return ptr;
 }
@@ -429,9 +440,58 @@ FormationParserCSV::parseData( std::istream & is,
         const std::string err = formation_data.addData( data );
         if ( ! err.empty() )
         {
-            std::cerr << "(FormationParserV3::parseData) ERROR: " << err << std::endl;
+            std::cerr << "(FormationParserCSV::parseData) ERROR: " << err << std::endl;
             return false;
         }
+    }
+
+    return result->train( formation_data );
+}
+
+/*-------------------------------------------------------------------*/
+bool
+FormationParserCSV::parseStaticPositions( std::istream & is,
+                                          Formation::Ptr result )
+{
+    if ( ! result ) return false;
+
+    const std::string line = get_value_line( is );
+    const char * buf = line.c_str();
+
+    int n_read = 0;
+    char type[32];
+    if ( std::sscanf( buf, " %31[^,] %n ", type, &n_read ) != 1
+         || std::strcmp( type, "Position" ) != 0 )
+    {
+        std::cerr << "(FormationParserCSV::parseStaticPosition) Illegal line "
+                  << '[' << line << ']' << std::endl;
+        return false;
+    }
+    buf += n_read;
+
+    FormationData::Data data;
+    data.ball_.assign( 0.0, 0.0 );
+
+    for ( int num = 1; num <= 11; ++num )
+    {
+        double read_x, read_y;
+        if ( std::sscanf( buf, " ,  %lf , %lf %n ", &read_x, &read_y, &n_read ) != 2 )
+        {
+            std::cerr << "(FormationParserCSV::parseStaticPosition) Illegal value "
+                      << '[' << buf << ']' << std::endl;
+            return false;
+        }
+        buf += n_read;
+
+        data.players_.emplace_back( FormationData::round_xy( read_x ),
+                                    FormationData::round_xy( read_y ) );
+    }
+
+    FormationData formation_data;
+    const std::string err = formation_data.addData( data );
+    if ( ! err.empty() )
+    {
+        std::cerr << "(FormationParserCSV::parseStaticPosition) ERROR: " << err << std::endl;
     }
 
     return result->train( formation_data );
