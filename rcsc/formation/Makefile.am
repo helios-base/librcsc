@@ -13,7 +13,8 @@ librcsc_formation_la_SOURCES = \
 	formation_parser_v2.cpp \
 	formation_parser_v3.cpp \
 	formation_dt.cpp \
-	formation_static.cpp
+	formation_static.cpp \
+	role_type.cpp
 
 #	formation_bpn.cpp
 #	formation_cdt.cpp

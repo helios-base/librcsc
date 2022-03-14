@@ -62,49 +62,6 @@ parse_method_name( const ptree & doc )
 }
 
 /*-------------------------------------------------------------------*/
-RoleType
-create_role_type( const std::string & role_type,
-                  const std::string & side )
-{
-    RoleType result;
-    if ( role_type == "G" )
-    {
-        result.setType( RoleType::Goalie );
-    }
-    else if ( role_type == "DF" )
-    {
-        result.setType( RoleType::Defender );
-    }
-    else if ( role_type == "MF" )
-    {
-        result.setType( RoleType::MidFielder );
-    }
-    else if ( role_type == "FW" )
-    {
-        result.setType( RoleType::Forward );
-    }
-    else
-    {
-        result.setType( RoleType::Unknown );
-    }
-
-    if ( side == "L" )
-    {
-        result.setSide( RoleType::Left );
-    }
-    else if ( side == "R" )
-    {
-        result.setSide( RoleType::Right );
-    }
-    else // if ( side == "C" )
-    {
-        result.setSide( RoleType::Center );
-    }
-
-    return result;
-}
-
-/*-------------------------------------------------------------------*/
 bool
 parse_role( const ptree & doc,
             Formation::Ptr result )
@@ -133,7 +90,8 @@ parse_role( const ptree & doc,
              || ! name
              || ! type
              || ! side
-             || ! pair )
+             || ! pair
+             || *pair <= -1 || 11 < *pair )
         {
             std::cerr << "(FormationParserJSON..parse_role) Illegal role data" << std::endl;
             return false;
@@ -145,7 +103,8 @@ parse_role( const ptree & doc,
             return false;
         }
 
-        const RoleType role_type = create_role_type( *type, *side );
+        const RoleType role_type( RoleType::to_type( *type ),
+                                  RoleType::to_side( *side ) );
         if ( ( role_type.type() == RoleType::Unknown
                && result->methodName() != FormationStatic::NAME )
              || ! result->setRoleType( *number, role_type ) )

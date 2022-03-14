@@ -11,6 +11,7 @@ add_library(rcsc_formation OBJECT
   formation_parser_v3.cpp
   formation_dt.cpp
   formation_static.cpp
+  role_type.cpp
   )
 
 target_include_directories(rcsc_formation
@@ -33,5 +34,6 @@ install(FILES
   formation_parser_v3.h
   formation_dt.h
   formation_static.h
+  role_type.h
   DESTINATION include/rcsc/formation
   )

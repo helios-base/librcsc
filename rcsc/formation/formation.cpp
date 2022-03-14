@@ -185,24 +185,6 @@ Formation::print( std::ostream & os ) const
 /*-------------------------------------------------------------------*/
 namespace {
 const std::string tab = "  ";
-
-std::string to_string( const RoleType::Type type )
-{
-    return ( type == RoleType::Goalie ? "G"
-             : type == RoleType::Defender ? "DF"
-             : type == RoleType::MidFielder ? "MF"
-             : type == RoleType::Forward ? "FW"
-             : "Unknown" );
-}
-
-std::string to_string( const RoleType::Side side )
-{
-    return ( side == RoleType::Center ? "C"
-             : side == RoleType::Left ? "L"
-             : side == RoleType::Right ? "R"
-             : "U" );
-}
-
 }
 
 /*-------------------------------------------------------------------*/
@@ -234,8 +216,8 @@ Formation::printRoles( std::ostream & os ) const
         os << tab << tab << "{\n"
            << tab << tab << tab << " \"number\" : " << i + 1 << ",\n"
            << tab << tab << tab << " \"name\" : " << '"' << M_role_names[i] << '"' << ",\n"
-           << tab << tab << tab << " \"type\" : " << '"' << to_string( M_role_types[i].type() ) << '"' << ",\n"
-           << tab << tab << tab << " \"side\" : " << '"' << to_string( M_role_types[i].side() ) << '"' << ",\n"
+           << tab << tab << tab << " \"type\" : " << '"' << RoleType::to_string( M_role_types[i].type() ) << '"' << ",\n"
+           << tab << tab << tab << " \"side\" : " << '"' << RoleType::to_string( M_role_types[i].side() ) << '"' << ",\n"
            << tab << tab << tab << " \"pair\" : " << M_position_pairs[i] << '\n'
            << tab << tab << "}";
     }
