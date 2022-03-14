@@ -35,6 +35,8 @@
 
 #include "formation_parser_json.h"
 
+#include "formation_static.h"
+
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
@@ -133,18 +135,22 @@ parse_role( const ptree & doc,
              || ! side
              || ! pair )
         {
+            std::cerr << "(FormationParserJSON..parse_role) Illegal role data" << std::endl;
             return false;
         }
 
         if ( ! result->setRoleName( *number, *name ) )
         {
+            std::cerr << "(FormationParserJSON..parse_role) Could not set the role name. number=" << *number << " name=" << *name << std::endl;
             return false;
         }
 
         const RoleType role_type = create_role_type( *type, *side );
-        if ( role_type.type() == RoleType::Unknown
+        if ( ( role_type.type() == RoleType::Unknown
+               && result->methodName() != FormationStatic::NAME )
              || ! result->setRoleType( *number, role_type ) )
         {
+            std::cerr << "(FormationParserJSON..parse_role) Could not set the role type. number=" << *number << *name << std::endl;
             return false;
         }
 
@@ -225,7 +231,6 @@ FormationParserJSON::parse( std::istream & is )
         return Formation::Ptr();
     }
 
-
     const std::string method = parse_method_name( doc );
 
     Formation::Ptr ptr = Formation::create( method );
@@ -234,7 +239,6 @@ FormationParserJSON::parse( std::istream & is )
         std::cerr << "(FormationParserJSON::parse) Could not create the formation " << method << std::endl;
         return Formation::Ptr();
     }
-
 
     if ( ! parse_role( doc, ptr ) ) return Formation::Ptr();
     if ( ! parse_data( doc, ptr ) ) return Formation::Ptr();
