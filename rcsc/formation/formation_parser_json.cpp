@@ -91,7 +91,7 @@ parse_role( const ptree & doc,
              || ! type
              || ! side
              || ! pair
-             || *pair <= -1 || 11 < *pair )
+             || *pair < -1 || 11 < *pair )
         {
             std::cerr << "(FormationParserJSON..parse_role) Illegal role data" << std::endl;
             return false;
