@@ -222,21 +222,29 @@ print_data_element( std::ostream & os,
                     const size_t idx,
                     const FormationData::Data & data )
 {
+    char buf[128];
     os << tab << tab << "{\n";
     os << tab << tab << tab << "\"index\" : " << idx << ",\n";
-    os << tab << tab << tab << "\"ball\" : { "
-       << "\"x\" : " << data.ball_.x << ", "
-       << "\"y\" : " << data.ball_.y << " }";
+    snprintf( buf, sizeof( buf ) - 1,
+              "\"ball\" : { \"x\" : % 6.2f, \"y\" : % 6.2f }",
+              data.ball_.x, data.ball_.y );
+    os << tab << tab << tab << buf;
+    // os << tab << tab << tab << "\"ball\" : { "
+    //    << "\"x\" : " << data.ball_.x << ", "
+    //    << "\"y\" : " << data.ball_.y << " }";
 
     for ( size_t i = 0; i < data.players_.size(); ++i )
     {
         os << ",\n";
-        os << tab << tab << tab;
-        os << '"' << i + 1 << '"' // number
-           << " : { "
-           << "\"x\" : " << data.players_[i].x << ", "
-           << "\"y\" : " << data.players_[i].y
-           << " }";
+        snprintf( buf, sizeof( buf ) - 1,
+                  "  %s\"%zd\" : { \"x\" : % 6.2f, \"y\" : % 6.2f }",
+                  ( i < 9 ? " " : "" ), i + 1, data.players_[i].x, data.players_[i].y );
+        os << tab << tab << tab << buf;
+        // os << '"' << i + 1 << '"' // number
+        //    << " : { "
+        //    << "\"x\" : " << data.players_[i].x << ", "
+        //    << "\"y\" : " << data.players_[i].y
+        //    << " }";
     }
 
     os << '\n' << tab << tab << '}';

@@ -143,26 +143,30 @@ const std::string tab = "  ";
 bool
 FormationStatic::printData( std::ostream & os ) const
 {
-    os << tab << "\"data\"" << " : [";
+    os << tab << "\"data\"" << " : [\n";
     os << tab << tab << "{\n";
     os << tab << tab << tab << "\"index\" : " << 0 << ",\n";
-    os << tab << tab << tab << "\"ball\" : { "
-       << "\"x\" : " << 0 << ", "
-       << "\"y\" : " << 0 << " }";
+    os << tab << tab << tab << "\"ball\" : { \"x\" :   0.00, \"y\" :   0.00 }";
 
+    char buf[128];
     for ( size_t i = 0; i < M_positions.size(); ++i )
     {
         os << ",\n";
-        os << tab << tab << tab;
-        os << '"' << i + 1 << '"' // number
-           << " : { "
-           << "\"x\" : " << M_positions[i].x << ", "
-           << "\"y\" : " << M_positions[i].y
-           << " }";
+        snprintf( buf, sizeof( buf ) - 1,
+                  "  %s\"%zd\" : { \"x\" : % 6.2f, \"y\" : % 6.2f }",
+                  ( i < 9 ? " " : "" ), i + 1, M_positions[i].x, M_positions[i].y );
+        os << tab << tab << tab << buf;
+        // os << tab << tab << tab;
+        // os << '"' << i + 1 << '"' // number
+        //    << " : { "
+        //    << "\"x\" : " << M_positions[i].x << ", "
+        //    << "\"y\" : " << M_positions[i].y
+        //    << " }";
     }
 
     os << tab << tab << '}';
-    os << "\n]";
+    os << "\n"
+       << tab << "]";
 
     return true;
 }
