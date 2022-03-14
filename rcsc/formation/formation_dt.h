@@ -49,12 +49,8 @@ public:
     static const std::string NAME; //!< type name
 
 private:
-
-    //! player's role names
-    std::string M_role_names[11];
-
-    //! set of desired positins used by delaunay triangulation & linear interpolation
-    std::vector< formation::SampleData > M_sample_vector;
+    //! desired positins used by delaunay triangulation & linear interpolation
+    std::vector< FormationData::Data > M_points;
 
     //! delaunay triangulation
     DelaunayTriangulation M_triangulation;
@@ -66,201 +62,91 @@ public:
     */
     FormationDT();
 
-
-    /*!
-      \brief static method. get formation method name
-      \return method name string
-    */
-    static
-    std::string name()
-      {
-          //return std::string( "DelaunayTriangulation" );
-          return NAME;
-      }
-
     /*!
       \brief static factory method. create new object
       \return new object
     */
     static
     Formation::Ptr create()
-      {
-          return Formation::Ptr( new FormationDT() );
-      }
+    {
+        return Formation::Ptr( new FormationDT() );
+    }
 
     /*!
       \brief get the sample data array
       \return sample data array
-     */
-    const std::vector< formation::SampleData > & sampleVector() const
-      {
-          return M_sample_vector;
-      }
+    */
+    const std::vector< FormationData::Data > & points() const
+    {
+        return M_points;
+    }
 
     /*!
       \brief get the delaunay triangulation
       \return const reference to the triangulation instance
-     */
-    const DelaunayTriangulation & triangulation() const
-      {
-          return M_triangulation;
-      }
-
-    //--------------------------------------------------------------
-
-    /*!
-      \brief create default formation. assign role and initial positions.
-      \return snapshow variable for the initial state(ball pos=(0,0)).
     */
-    virtual
-    void createDefaultData() override;
+    const DelaunayTriangulation & triangulation() const
+    {
+        return M_triangulation;
+    }
 
     /*!
-      \brief get the name of this formation
+      \brief get the method name of the formation model
       \return name string
     */
     virtual
-    std::string methodName() const override
-      {
-          return FormationDT::name();
-      }
-
-protected:
-    /*!
-      \brief create new role parameter.
-      \param unum target player's number
-      \param role_name new role name
-      \param type side type of this parameter
-    */
-    virtual
-    void createNewRole( const int unum,
-                        const std::string & role_name,
-                        const SideType type ) override;
-    /*!
-      \brief set the role name of the specified player
-      \param unum target player's number
-      \param name role name string.
-    */
-    virtual
-    void setRoleName( const int unum,
-                      const std::string & name ) override;
-
-public:
-
-    /*!
-      \brief get the role name of the specified player
-      \param unum target player's number
-      \return role name string. if empty string is returned,
-      that means no role parameter is assigned for unum.
-    */
-    virtual
-    std::string getRoleName( const int unum ) const override;
+    std::string methodName() const override;
 
     /*!
       \brief get position for the current focus point
-      \param unum player number
+      \param num position number
       \param focus_point current focus point, usually ball position.
     */
     virtual
-    Vector2D getPosition( const int unum,
+    Vector2D getPosition( const int num,
                           const Vector2D & focus_point ) const override;
 
     /*!
       \brief get all positions for the current focus point
       \param focus_point current focus point, usually ball position
       \param positions contaner to store the result
-     */
+    */
     virtual
     void getPositions( const Vector2D & focus_point,
                        std::vector< Vector2D > & positions ) const override;
 
-    /*!
-      \brief update formation paramter using training data set
-    */
-    virtual
-    void train() override;
-
-    /*!
-      \brief read all data from the input stream.
-      \param is reference to the input stream.
-      \return result status.
-    */
-    virtual
-    bool read( std::istream & is ) override;
-    virtual
-    bool readOld( std::istream & is ) override;
-    virtual
-    bool readCSV( std::istream & is ) override;
-
-    /*!
-      \brief put formation data to the output stream.
-      \param os reference to the output stream
-      \return reference to the output stream
-    */
-    virtual
-    std::ostream & print( std::ostream & os ) const override;
-    virtual
-    std::ostream & printOld( std::ostream & os ) const override;
-    virtual
-    std::ostream & printCSV( std::ostream & os ) const override;
-
-
 private:
 
-    Vector2D interpolate( const int unum,
+    Vector2D interpolate( const int num,
                           const Vector2D & focus_point,
                           const DelaunayTriangulation::Triangle * tri ) const;
 
+public:
+
+    /*!
+      \brief update formation paramter using training data set
+      \param data training data
+      \return true if success
+    */
+    virtual
+    bool train( const FormationData & data ) override;
+
+    /*!
+      \brief create data for the editor
+      \return formation data
+     */
+    virtual
+    FormationData::Ptr toData() const override;
 
 protected:
 
     /*!
-      \brief reconstruct model using read samples
-      \return result of reconstruction
+      \brief print model data
+      \param os output stream
+      \return true if success
      */
-    bool generateModel();
-
-private:
-    /*!
-      \brief create role or set symmetry
-      \param unum player's uniform number
-      \param role_name role name
-      \param symmetry_number {0,1,-1}
-    */
-    void createRoleOrSetSymmetry( const int unum,
-                                  const std::string & role_name,
-                                  const int symmetry_number );
-
-    std::ostream & printRoleNumbers( std::ostream & os ) const;
-    std::ostream & printRoleNames( std::ostream & os ) const;
-    std::ostream & printRoleTypes( std::ostream & os ) const;
-    std::ostream & printMarkerFlags( std::ostream & os ) const;
-    std::ostream & printSetplayMarkerFlags( std::ostream & os ) const;
-    std::ostream & printSymmetryNumbers( std::ostream & os ) const;
-
-
-    //
-    // old format
-    //
-    bool readV3( std::istream & is );
-
-
-    bool readBeginRolesTag( std::istream & is );
-    bool readEndRolesTag( std::istream & is );
-
-    bool readConf( std::istream & is );
-
-    bool readEnd( std::istream & is );
-
-    bool readRolesV3( std::istream & is );
-    std::ostream & printV3( std::ostream & os ) const;
-    std::ostream & printRolesV3( std::ostream & os ) const;
-    std::ostream & printEnd( std::ostream & os ) const;
-
-    // v2
-    bool readV2( std::istream & is );
-    bool readRolesV2( std::istream & is );
-    bool readVerticesV2( std::istream & is );
+    virtual
+    bool printData( std::ostream & os ) const override;
 };
 
 }

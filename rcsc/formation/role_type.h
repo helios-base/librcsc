@@ -32,6 +32,8 @@
 #ifndef RCSC_COMMON_ROLE_TYPE_H
 #define RCSC_COMMON_ROLE_TYPE_H
 
+#include <string>
+
 namespace rcsc {
 
 /*!
@@ -70,33 +72,114 @@ private:
 public:
 
     /*!
-      \brief default constructor creates an illegal type
+      \brief default constructor
      */
     RoleType()
         : M_type( Unknown ),
           M_side( Center )
       { }
 
+    /*!
+      \brief create with given values
+      \param t role type value
+      \param s side type value
+     */
     RoleType( const Type t,
               const Side s )
         : M_type( t ),
           M_side( s )
       { }
 
+    /*!
+      \brief set the role type
+      \param t role type value
+     */
     void setType( Type t ) { M_type = t; }
+
+    /*!
+      \brief set the side type
+      \param t side type value
+     */
     void setSide( Side s ) { M_side = s; }
 
+    /*!
+      \brief get the role type
+      \return role type value
+     */
     Type type() const { return M_type; }
+
+    /*!
+      \brief get the side type
+      \return side type value
+     */
     Side side() const { return M_side; }
 
+    /*!
+      \brief check if goalie type or not
+      \return true if goalie
+     */
     bool isGoalie() const { return M_type == Goalie; }
+
+    /*!
+      \brief check if defender type or not
+      \return true if defender
+     */
     bool isDefender() const { return M_type == Defender; }
+
+    /*!
+      \brief check if midfielder type or not
+      \return true if midfielder
+     */
     bool isMidFielder() const { return M_type == MidFielder; }
+
+    /*!
+      \brief check if forward type or not
+      \return true if forward
+     */
     bool isForward() const { return M_type == Forward; }
 
+    /*!
+      \brief check if center type or not
+      \return true if center type
+     */
     bool isCenter() const { return M_side == Center; }
+
+    /*!
+      \brief check if left type or not
+      \return true if left type
+     */
     bool isLeft() const { return M_side == Left; }
+
+    /*!
+      \brief check if right type or not
+      \return true if right type
+     */
     bool isRight() const { return M_side == Right; }
+
+    /*!
+      \brief create a string value corresponding to the given role type
+      \return string value
+     */
+    static std::string to_string( const Type t );
+
+    /*!
+      \brief create a string value corresponding to the given side type
+      \return string value
+     */
+    static std::string to_string( const Side s );
+
+    /*!
+      \brief create a role type value from the given string.
+      \return role type value. Unknown for unsupported values
+     */
+    static Type to_type( const std::string & str );
+
+    /*!
+      \brief create a side type value from the given string.
+      \return role type value. Center for unsupported values
+     */
+    static Side to_side( const std::string & str );
+
 };
 
 }
