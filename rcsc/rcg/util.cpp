@@ -451,9 +451,7 @@ convert( const std::string & name,
          team_t & to )
 {
     std::memset( to.name, 0, sizeof( to.name ) );
-    std::strncpy( to.name,
-                  name.c_str(),
-                  std::min( sizeof( to.name ), name.length() ) );
+    std::strncpy( to.name, name.c_str(), sizeof( to.name ) - 1 );
     to.score = hitons( score );
 }
 
@@ -466,9 +464,7 @@ convert( const TeamT & from,
          team_t & to )
 {
     std::memset( to.name, 0, sizeof( to.name ) );
-    std::strncpy( to.name,
-                  from.name_.c_str(),
-                  std::min( sizeof( to.name ), from.name_.length() ) );
+    std::strncpy( to.name, from.name_.c_str(), sizeof( to.name ) - 1 );
     to.score = htons( from.score_ );
 }
 
@@ -482,7 +478,7 @@ convert( const team_t & from,
 {
     char buf[18];
     std::memset( buf, 0, 18 );
-    std::strncpy( buf, from.name, sizeof( from.name ) );
+    std::strncpy( buf, from.name, sizeof( buf ) - 1 );
 
     to.name_ = buf;
     to.score_ = ntohs( from.score );

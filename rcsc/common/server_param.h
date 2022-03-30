@@ -344,6 +344,9 @@ public:
     static const int ILLEGAL_DEFENSE_NUMBER;
     static const double ILLEGAL_DEFENSE_DIST_X;
     static const double ILLEGAL_DEFENSE_WIDTH;
+    // 17.0
+    static const double MAX_CATCH_ANGLE;
+    static const double MIN_CATCH_ANGLE;
 private:
 
     //////////////////////////////////////////////////////
@@ -635,6 +638,10 @@ private:
     double M_illegal_defense_width;
     std::string M_fixed_teamname_l;
     std::string M_fixed_teamname_r;
+
+    // 17.0
+    double M_max_catch_angle;
+    double M_min_catch_angle;
 
     // xxx
     int M_random_seed;
@@ -1103,6 +1110,10 @@ public:
     double illegalDefenseWidth() const { return M_illegal_defense_width; }
     const std::string & fixedTeamNameLeft() const { return M_fixed_teamname_l; }
     const std::string & fixedTeamNameRight() const { return M_fixed_teamname_r; }
+
+    // v17
+    double maxCatchAngle() const { return M_max_catch_angle; }
+    double minCatchAngle() const { return M_min_catch_angle; }
 
     // XXX
     int randomSeed() const { return M_random_seed; }
