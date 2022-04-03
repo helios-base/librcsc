@@ -1324,6 +1324,19 @@ public:
           else if ( moment > maxMoment() ) return maxMoment();
           return moment;
       }
+
+    /*!
+      \brief normalize the catch direction within [min_catch_angle, max_catch_angle]
+      \param dir input direction value (degree)
+      \return normalized direction value (degree)
+     */
+    double normalizeCatchAngle( const double dir ) const
+    {
+        return ( dir < minCatchAngle() ? minCatchAngle()
+                 : maxCatchAngle() < dir ? maxCatchAngle()
+                 : dir );
+    }
+
     /*!
       \brief normalize neck moment
       \param moment command argument moment
