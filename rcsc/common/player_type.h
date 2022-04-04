@@ -339,13 +339,14 @@ public:
      */
     double reliableCatchableDist( const double prob ) const;
 
+private:
     /*!
       \brief get the probability of the catch command to be succeeded
       \param dist distance of player and ball
       \return probability of successful catching
      */
     double getCatchProbability( const double dist ) const;
-
+public:
     /*!
       \brief get the probability of the catch command to be succeeded
       \param player_pos player position
@@ -357,7 +358,7 @@ public:
     double getCatchProbability( const Vector2D & player_pos,
                                 const AngleDeg & player_body,
                                 const Vector2D & ball_pos,
-                                const double dist_buf = 0.15,
+                                const double dist_buf = 0.055,
                                 const double dir_buf = 0.5 ) const;
 
     /*!
