@@ -341,14 +341,14 @@ public:
 
 private:
     /*!
-      \brief get the probability of the catch command to be succeeded
+      \brief get the probability of the catch command being succeeded
       \param dist distance of player and ball
       \return probability of successful catching
      */
     double getCatchProbability( const double dist ) const;
 public:
     /*!
-      \brief get the probability of the catch command to be succeeded
+      \brief get the probability of the catch command being succeeded
       \param player_pos player position
       \param player_body player's body direction
       \param ball_pos ball position

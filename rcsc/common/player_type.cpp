@@ -805,6 +805,8 @@ PlayerType::getCatchProbability( const Vector2D & player_pos,
             const double fail_prob = ( ball_rel_min_angle.x - catch_length_min_x + dist_buf ) / ( catch_stretch_length_x * 2.0 );
             return ( fail_prob < 0.0
                      ? ServerParam::i().catchProbability()
+                     : faile_prob > 1.0
+                     ? 0.0
                      : ( 1.0 - fail_prob ) * ServerParam::i().catchProbability() );
         }
     }
@@ -819,6 +821,8 @@ PlayerType::getCatchProbability( const Vector2D & player_pos,
             const double fail_prob = ( ball_rel_max_angle.x - catch_length_min_x ) / ( catch_stretch_length_x * 2.0 );
             return ( fail_prob < 0.0
                      ? ServerParam::i().catchProbability()
+                     : faile_prob > 1.0
+                     ? 0.0
                      : ( 1.0 - fail_prob ) * ServerParam::i().catchProbability() );
         }
     }
