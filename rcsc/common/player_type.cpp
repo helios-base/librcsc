@@ -536,9 +536,8 @@ PlayerType::initAdditionalParams()
     M_kickable_area = playerSize() + kickableMargin() + SP.ballSize();
 
     /////////////////////////////////////////////////////////////////////
-    const double catch_stretch_length_x = ( catchAreaLengthStretch() - 1.0 ) * SP.catchAreaLength();
-    const double catch_length_min_x = SP.catchAreaLength() - catch_stretch_length_x;
-    const double catch_length_max_x = SP.catchAreaLength() + catch_stretch_length_x;
+    const double catch_length_min_x = reliableCatchLength();
+    const double catch_length_max_x = maxCatchLength();
 
     const double catch_half_width2 = std::pow( SP.catchAreaWidth() / 2.0, 2 );
 
@@ -607,6 +606,21 @@ PlayerType::initAdditionalParams()
 }
 
 /*-------------------------------------------------------------------*/
+double
+PlayerType::maxCatchLength() const
+{
+    return catchAreaLengthStretch() * ServerParam::i().catchAreaLength();
+}
+
+/*-------------------------------------------------------------------*/
+double
+PlayerType::reliableCatchLength() const
+{
+    ///return ServerParam::i().catchAreaLength() - ( catchAreaLengthStretch() - 1.0 ) * ServerParam::i().catchAreaLength();
+    return ( 2.0 - catchAreaLengthStretch() ) * ServerParam::i().catchAreaLength();
+}
+
+/*-------------------------------------------------------------------*/
 /*!
 
 */
@@ -653,8 +667,8 @@ PlayerType::reliableCatchableDist( const double prob ) const
         return 0.0;
     }
 
-    const double catch_stretch_length_x = ( catchAreaLengthStretch() - 1.0 ) * SP.catchAreaLength();
-    const double catch_length_min_x = SP.catchAreaLength() - catch_stretch_length_x;
+    const double catch_stretch_length_x = ( catchAreaLengthStretch() - 1.0 ) * ServerParam::i().catchAreaLength();
+    const double catch_length_min_x = reliableCatchLength();
 
     const double dist_x = catch_length_min_x + ( catch_stretch_length_x * 2.0 * ( 1.0 - target_prob ) );
 
@@ -662,6 +676,7 @@ PlayerType::reliableCatchableDist( const double prob ) const
                                               + std::pow( SP.catchAreaWidth() / 2.0, 2 ) );
     return diagonal_length;
 }
+
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -697,7 +712,123 @@ PlayerType::getCatchProbability( const double dist ) const
     return ( 1.0 - fail_prob ) * SP.catchProbability();
 }
 
+/*-------------------------------------------------------------------*/
+double
+PlayerType::getCatchProbability( const Vector2D & player_pos,
+                                 const AngleDeg & player_body,
+                                 const Vector2D & ball_pos,
+                                 const double dist_buf,
+                                 const double dir_buf ) const
+{
+    const Vector2D ball_rel = ( ball_pos - player_pos ).rotatedVector( -player_body );
+    const double ball_dist = ball_rel.r();
+    const AngleDeg ball_dir = ball_rel.th();
 
+    //
+    // check the reliable region
+    //
+
+    // check the angle and the distrance to the ball
+    {
+        const double reliable_diagonal_angle = AngleDeg::atan2_deg( ServerParam::i().catchAreaWidth() * 0.5, reliableCatchLength() );
+        //const double reliable_min_angle = ServerParam::i().minCatchAngle() - diagonal_angle;
+        const double reliable_max_angle = ServerParam::i().maxCatchAngle() + reliable_diagonal_angle;
+
+        // catable in any direction
+        if ( reliable_max_angle > 180.0 )
+        {
+            return getCatchProbability( ball_dist + dist_buf );
+        }
+
+        // ball is within the reliable arc
+        if ( -reliable_max_angle + dir_buf < ball_dir.degree()
+             && ball_dir.degree() < reliable_max_angle - dir_buf
+             && ball_dist < reliableCatchableDist() - dist_buf )
+        {
+            return ServerParam::i().catchProbability();
+        }
+    }
+
+    // check the rectangle at min/max angle
+    {
+        const Vector2D ball_rel_min_angle = ball_rel.rotatedVector( -ServerParam::i().minCatchAngle() );
+        if ( 0.0 <= ball_rel_min_angle.x
+             && ball_rel_min_angle.x < reliableCatchLength() - dist_buf
+             && ball_rel_min_angle.absY() < ServerParam::i().catchAreaWidth() * 0.5 - dist_buf )
+        {
+            return ServerParam::i().catchProbability();
+        }
+    }
+    {
+        const Vector2D ball_rel_max_angle = ball_rel.rotatedVector( -ServerParam::i().maxCatchAngle() );
+        if ( 0.0 <= ball_rel_max_angle.x
+             && ball_rel_max_angle.x < reliableCatchLength() - dist_buf
+             && ball_rel_max_angle.absY() < ServerParam::i().catchAreaWidth() * 0.5 - dist_buf )
+        {
+            return ServerParam::i().catchProbability();
+        }
+    }
+
+    //
+    // check the unreliable region
+    //
+
+    // check the angle and the distrance to the ball
+    {
+        const double unreliable_diagonal_angle = AngleDeg::atan2_deg( ServerParam::i().catchAreaWidth() * 0.5, maxCatchLength() );
+        const double unreliable_max_angle = ServerParam::i().maxCatchAngle() + unreliable_diagonal_angle;
+
+        // catable in any direction
+        if ( unreliable_max_angle > 180.0 )
+        {
+            return getCatchProbability( ball_dist + dist_buf );
+        }
+
+        // ball is within the unreliable arc
+        if ( -unreliable_max_angle + dir_buf < ball_dir.degree()
+             && ball_dir.degree() < unreliable_max_angle - dir_buf
+             && ball_dist < maxCatchableDist() - dist_buf )
+        {
+            return getCatchProbability( ball_dist + dist_buf );
+        }
+    }
+
+    // check the rectangle at min/max angle
+    {
+        const Vector2D ball_rel_min_angle = ball_rel.rotatedVector( -ServerParam::i().minCatchAngle() );
+        if ( 0.0 <= ball_rel_min_angle.x
+             && ball_rel_min_angle.x < maxCatchLength() - dist_buf
+             && ball_rel_min_angle.absY() < ServerParam::i().catchAreaWidth() * 0.5 - dist_buf )
+        {
+            const double catch_stretch_length_x = ( catchAreaLengthStretch() - 1.0 ) * ServerParam::i().catchAreaLength();
+            const double catch_length_min_x = ServerParam::i().catchAreaLength() - catch_stretch_length_x;
+            const double fail_prob = ( ball_rel_min_angle.x - catch_length_min_x + dist_buf ) / ( catch_stretch_length_x * 2.0 );
+            return ( fail_prob < 0.0
+                     ? ServerParam::i().catchProbability()
+                     : faile_prob > 1.0
+                     ? 0.0
+                     : ( 1.0 - fail_prob ) * ServerParam::i().catchProbability() );
+        }
+    }
+    {
+        const Vector2D ball_rel_max_angle = ball_rel.rotatedVector( -ServerParam::i().maxCatchAngle() );
+        if ( 0.0 <= ball_rel_max_angle.x
+             && ball_rel_max_angle.x < maxCatchLength() - dist_buf
+             && ball_rel_max_angle.absY() < ServerParam::i().catchAreaWidth() * 0.5 - dist_buf )
+        {
+            const double catch_stretch_length_x = ( catchAreaLengthStretch() - 1.0 ) * ServerParam::i().catchAreaLength();
+            const double catch_length_min_x = ServerParam::i().catchAreaLength() - catch_stretch_length_x;
+            const double fail_prob = ( ball_rel_max_angle.x - catch_length_min_x ) / ( catch_stretch_length_x * 2.0 );
+            return ( fail_prob < 0.0
+                     ? ServerParam::i().catchProbability()
+                     : faile_prob > 1.0
+                     ? 0.0
+                     : ( 1.0 - fail_prob ) * ServerParam::i().catchProbability() );
+        }
+    }
+
+    return 0.0;
+}
 
 /*-------------------------------------------------------------------*/
 /*!

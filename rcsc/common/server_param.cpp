@@ -67,7 +67,6 @@ const double ServerParam::DEFAULT_GOAL_POST_RADIUS = 0.06;
 const double ServerParam::DEFAULT_WIND_WEIGHT = 10000.0;
 
 
-
 const double ServerParam::DEFAULT_GOAL_WIDTH = 14.02;
 const double ServerParam::DEFAULT_INERTIA_MOMENT = 5.0;
 
@@ -326,9 +325,9 @@ const double ServerParam::MAX_DASH_ANGLE = +180.0;
 const double ServerParam::MIN_DASH_ANGLE = -180.0;
 const double ServerParam::DASH_ANGLE_STEP = 45.0; // [14.0.0] 90.0 -> 45.0
 const double ServerParam::SIDE_DASH_RATE = 0.4; // [14.0.0] 0.25 -> 0.4
-const double ServerParam::BACK_DASH_RATE = 0.6; // [14.0.0] 0.5 -> 0.6
+const double ServerParam::BACK_DASH_RATE = 0.7; // [14.0.0] 0.5 -> 0.6, [17.0.0] 0.6 -> 0.7
 const double ServerParam::MAX_DASH_POWER = 100.0;
-const double ServerParam::MIN_DASH_POWER = -100.0;
+const double ServerParam::MIN_DASH_POWER = 0.0; // [17.0.0] -100.0 -> 0.0
 
 // 14.0.0
 const double ServerParam::TACKLE_RAND_FACTOR = 2.0;
@@ -344,6 +343,10 @@ const int ServerParam::ILLEGAL_DEFENSE_DURATION = 20;
 const int ServerParam::ILLEGAL_DEFENSE_NUMBER = 0;
 const double ServerParam::ILLEGAL_DEFENSE_DIST_X = 16.5;
 const double ServerParam::ILLEGAL_DEFENSE_WIDTH = 40.32;
+
+// 17.0
+const double ServerParam::MAX_CATCH_ANGLE = +90.0;
+const double ServerParam::MIN_CATCH_ANGLE = -90.0;
 
 /*
   It is necessary to check out whether server is NEW_QSTEP mode
@@ -660,6 +663,10 @@ ServerParam::setDefaultParam()
     M_fixed_teamname_l = "";
     M_fixed_teamname_r = "";
 
+    // 17.0
+    M_max_catch_angle = MAX_CATCH_ANGLE;
+    M_min_catch_angle = MIN_CATCH_ANGLE;
+
     // XXX
     M_random_seed = -1;
     M_long_kick_power_factor = 2.0;
@@ -967,7 +974,9 @@ ServerParam::createMap()
         ( "illegal_defense_width", "", &M_illegal_defense_width )
         ( "fixed_teamname_l", "", &M_fixed_teamname_l )
         ( "fixed_teamname_r", "", &M_fixed_teamname_r )
-
+        // 17.0
+        ( "max_catch_angle", "", &M_max_catch_angle )
+        ( "min_catch_angle", "", &M_min_catch_angle )
         //( "random_seed", "", &M_random_seed )
         ;
 }

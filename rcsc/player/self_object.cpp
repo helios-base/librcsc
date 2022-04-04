@@ -1030,11 +1030,12 @@ SelfObject::updateBallInfo( const BallObject & ball )
     //
     if ( M_last_catch_time.cycle() + SP.catchBanCycle() <= M_time.cycle() )
     {
-        M_catch_probability = playerType().getCatchProbability( ball.distFromSelf() );
-        if ( ball.distFromSelf() > ptype.reliableCatchableDist() - 0.055 )
-        {
-            M_catch_probability *= 0.95; // XXX magic number
-        }
+        M_catch_probability = playerType().getCatchProbability( pos(), body(), ball.pos(), 0.055, 0.5 );
+        //M_catch_probability = playerType().getCatchProbability( ball.distFromSelf() );
+        // if ( ball.distFromSelf() > ptype.reliableCatchableDist() - 0.055 )
+        // {
+        //     M_catch_probability *= 0.95; // XXX magic number
+        // }
     }
 
     //
