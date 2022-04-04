@@ -71,8 +71,8 @@ private:
     //
 
     double M_kickable_area; //!< cached kickable area
-    double M_reliable_catchable_dist; //!< cached reliable catchable dist
-    double M_max_catchable_dist; //!< cached maximum catchable dist
+    double M_reliable_catchable_dist; //!< cached reliable catchable dist (the length of diagonal line)
+    double M_max_catchable_dist; //!< cached maximum catchable dist (the length of diagonal line)
 
     // if player's dprate & effort is not enough,
     // player never reach player_speed_max
@@ -313,13 +313,26 @@ public:
       }
 
     /*!
-      \brief get reliable catchable distance
-      \return threshold distance not to fail
+      \brief get the max length of the catch area (ServerParam + stretch length), which the catch may be a failure.
+      \return the value calculated from ServerParam and strech parameter
+     */
+    double maxCatchLength() const;
+
+    /*!
+      \brief get the reliable length of the catch area (ServerParam - stretch length). the catch is always success if ball is within the rectangle of this length.
+      \return the value calculated from ServerParam and the strech parameter
+     */
+    double reliableCatchLength() const;
+
+
+    /*!
+      \brief get the reliable distance for the catch command. This value is the length of the diagonal line of the reliable catchable area rectangle.
+      \return the diagonal line length of the reliable catch area rectangle. if server::catch_probability < 1.0, 0.0 is always returned.
      */
     double reliableCatchableDist() const;
 
     /*!
-      \brief get reliable catchable distance
+      \brief get reliable catchable distance. This value is the length of the diagonal line of the reliable catchable area rectangle.
       \param prob threshold of catch probability
       \return threshold distance that catch probability is greater equal to prob.
       if catch_probalibity server parameter is not 1, this method returns 0.0
@@ -327,14 +340,28 @@ public:
     double reliableCatchableDist( const double prob ) const;
 
     /*!
-      \brief get catch probability
+      \brief get the probability of the catch command to be succeeded
       \param dist distance of player and ball
       \return probability of successful catching
      */
     double getCatchProbability( const double dist ) const;
 
     /*!
-      \brief get the maximum catchable distance
+      \brief get the probability of the catch command to be succeeded
+      \param player_pos player position
+      \param player_body player's body direction
+      \param ball_pos ball position
+      \param dist_buf distance buffer
+      \param dir_buf angle buffer
+     */
+    double getCatchProbability( const Vector2D & player_pos,
+                                const AngleDeg & player_body,
+                                const Vector2D & ball_pos,
+                                const double dist_buf = 0.15,
+                                const double dir_buf = 0.5 ) const;
+
+    /*!
+      \brief get the maximum distance for the catch. This value is the length of the diagonal line of the max (maybe unreliable) catchable area rectangle.
       \return maximum catchable distance
      */
     double maxCatchableDist() const
