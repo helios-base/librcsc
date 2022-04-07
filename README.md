@@ -1,5 +1,7 @@
 
-# Librcsc
+# Librcsc 
+
+[![License: LGPL v3](https://img.shields.io/badge/License-LGPL_v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
 librcsc is a basic library to develop a simulated soccer team and related tools for the RoboCup Soccer Simulation.
 All programs can work with rcssserver-16.

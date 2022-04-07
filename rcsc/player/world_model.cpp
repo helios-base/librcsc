@@ -427,12 +427,6 @@ WorldModel::WorldModel()
  */
 WorldModel::~WorldModel()
 {
-    if ( M_localize )
-    {
-        delete M_localize;
-        M_localize = nullptr;
-    }
-
     if ( M_intercept_table )
     {
         delete M_intercept_table;
@@ -547,6 +541,15 @@ WorldModel::setAudioMemory( std::shared_ptr< AudioMemory > memory )
     M_audio_memory = memory;
 }
 
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+WorldModel::setLocalization( std::shared_ptr< Localization > localization )
+{
+    M_localize = localization;
+}
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -1239,7 +1242,7 @@ WorldModel::updateAfterSee( const VisualSensor & see,
 
     //////////////////////////////////////////////////////////////////
     // self localization
-    localizeSelf( see, sense_body, current );
+    localizeSelf( see, sense_body, act, current );
 
     //////////////////////////////////////////////////////////////////
     // ball localization
@@ -2208,6 +2211,7 @@ WorldModel::updatePlayer( const PlayerObject * player,
 bool
 WorldModel::localizeSelf( const VisualSensor & see,
                           const BodySensor & sense_body,
+                          const ActionEffector & act,
                           const GameTime & current )
 {
     const bool reverse_side = is_reverse_side( *this, *M_penalty_kick_state );
@@ -2241,7 +2245,7 @@ WorldModel::localizeSelf( const VisualSensor & see,
 
 
     // estimate self position
-    if ( ! M_localize->localizeSelf( see,
+    if ( ! M_localize->localizeSelf( see, act, this->self().playerTypePtr(),
                                      angle_face, angle_face_error,
                                      &my_pos, &my_pos_error ) )
     {
@@ -2312,7 +2316,7 @@ WorldModel::localizeBall( const VisualSensor & see,
     Vector2D rvel( Vector2D::INVALIDATED );
     Vector2D vel_error( 0.0, 0.0 );
 
-    if ( ! M_localize->localizeBallRelative( see,
+    if ( ! M_localize->localizeBallRelative( see, act,
                                              self().face().degree(), self().faceError(),
                                              &rpos, &rpos_error,
                                              &rvel, &vel_error )  )

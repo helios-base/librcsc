@@ -93,6 +93,8 @@ public:
     /*!
       \brief localize self position.
       \param see analyzed see info
+      \param act action effector
+      \param ptype player type of self
       \param self_face localized face angle
       \param self_face_err localized face angle error
       \param self_pos pointer to the variable to store the localized self position
@@ -101,6 +103,8 @@ public:
     */
     virtual
     bool localizeSelf( const VisualSensor & see,
+                       const ActionEffector & act,
+                       const PlayerType * ptype,
                        const double & self_face,
                        const double & self_face_err,
                        Vector2D * self_pos,
@@ -109,6 +113,7 @@ public:
     /*!
       \brief localze ball relative info
       \param see analyzed see info
+      \param act action effector
       \param self_face localized self face angle
       \param self_face_err localized self face angle error
       \param rpos pointer to the variable to store the localized relative position
@@ -119,6 +124,7 @@ public:
     */
     virtual
     bool localizeBallRelative( const VisualSensor & see,
+                               const ActionEffector & act,
                                const double & self_face,
                                const double & self_face_err,
                                Vector2D * rpos,

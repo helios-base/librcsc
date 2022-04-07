@@ -1087,6 +1087,12 @@ ActionEffector::setCatch()
     // add diagonal angle
     AngleDeg catch_angle = ball_rel_angle + diagonal_angle;
 
+    if ( catch_angle.degree() < ServerParam::i().minCatchAngle()
+         || ServerParam::i().maxCatchAngle() < catch_angle.degree() )
+    {
+        catch_angle = ball_rel_angle - diagonal_angle;
+    }
+
     dlog.addText( Logger::ACTION,
                    __FILE__" (setCatch) ball_dir=%.1f diagonal_angle=%.1f -> catch_angle=%.1f(gloabl=%.1f)",
                   ball_rel_angle.degree(),

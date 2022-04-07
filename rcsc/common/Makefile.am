@@ -32,7 +32,6 @@ librcsc_commoninclude_HEADERS = \
 	online_client.h \
 	player_param.h \
 	player_type.h \
-	role_type.h \
 	say_message.h \
 	say_message_parser.h \
 	server_param.h \
