@@ -78,6 +78,8 @@ FormationParserV2::parseHeader( std::istream & is )
         {
             continue;
         }
+
+        break;
     }
 
 
