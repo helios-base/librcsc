@@ -120,10 +120,10 @@ enum PlayerStatus {
 // monitor protocol version 1
 // game log format versin 1 & version 2
 
-const double SHOWINFO_SCALE = 16.0; //!< scaling factor
-const float SHOWINFO_SCALEF = 16.0f; //!< scaling factor
-const int REC_OLD_VERSION = 1; //!< version number of rcg v1
-const int REC_VERSION_2 = 2; //!< recorded value of rcg v2
+constexpr double SHOWINFO_SCALE = 16.0; //!< scaling factor
+constexpr float SHOWINFO_SCALEF = 16.0f; //!< scaling factor
+constexpr int REC_OLD_VERSION = 1; //!< version number of rcg v1
+constexpr int REC_VERSION_2 = 2; //!< recorded value of rcg v2
 
 /*!
   \struct pos_t
@@ -231,11 +231,11 @@ struct dispinfo_t {
 // game log format version 3
 
 //! scaling variable
-const double SHOWINFO_SCALE2 = 65536.0;
+constexpr double SHOWINFO_SCALE2 = 65536.0;
 //! scaling variable
-const float SHOWINFO_SCALE2F = 65536.0f;
+constexpr float SHOWINFO_SCALE2F = 65536.0f;
 //! version number
-const int REC_VERSION_3 = 3;
+constexpr int REC_VERSION_3 = 3;
 
 /*!
   \struct ball_t
@@ -1125,13 +1125,17 @@ struct DispInfoT {
 
 
 //! recorded value of rcg v4
-const int REC_VERSION_4 = 4;
+constexpr int REC_VERSION_4 = 4;
 
 //! recorded value of rcg v5
-const int REC_VERSION_5 = 5;
+constexpr int REC_VERSION_5 = 5;
+
+//! recorded value of rcg v6
+constexpr int REC_VERSION_6 = 6;
+constexpr int REC_VERSION_JSON = REC_VERSION_6;
 
 //! default rcg version
-const int DEFAULT_LOG_VERSION = REC_VERSION_5;
+constexpr int DEFAULT_LOG_VERSION = REC_VERSION_5;
 
 } // end namespace
 } // end namespace
