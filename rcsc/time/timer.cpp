@@ -75,15 +75,15 @@ Timer::elapsedReal( const Type type ) const
 
     switch ( type ) {
     case MSec:
-        return nano * 0.001;
-    case Sec:
         return nano * 0.001 * 0.001;
+    case Sec:
+        return nano * 0.001 * 0.001 * 0.001;
     case Min:
-        return nano * 0.001 * 0.001 / 60.0;
+        return nano * 0.001 * 0.001 * 0.001 / 60.0;
     case Hour:
-        return nano * 0.001 * 0.001 * 0.001 / 60.0 / 60.0;
+        return nano * 0.001 * 0.001 * 0.001 * 0.001 / 60.0 / 60.0;
     case Day:
-        return nano * 0.001 * 0.001 * 0.001 / 60.0 / 60.0 / 24.0;
+        return nano * 0.001 * 0.001 * 0.001 * 0.001 / 60.0 / 60.0 / 24.0;
     default:
         break;
     }
