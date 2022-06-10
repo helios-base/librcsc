@@ -72,8 +72,7 @@
 // #define DEBUG_PRINT_LINES
 // #define DEBUG_PRINT_LAST_KICKER
 
-
-// #defin USE_VIEW_GRID_MAP
+#define USE_VIEW_GRID_MAP
 
 namespace rcsc {
 
