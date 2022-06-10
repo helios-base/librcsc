@@ -55,12 +55,9 @@ public:
 
     static const double GRID_LENGTH;
 
-    static const double PITCH_MIN_X;
     static const double PITCH_MAX_X;
-    static const double PITCH_LENGTH;
-
-    static const double PITCH_MIN_Y;
     static const double PITCH_MAX_Y;
+    static const double PITCH_LENGTH;
     static const double PITCH_WIDTH;
 
     static const int GRID_X_SIZE;
@@ -97,6 +94,11 @@ public:
       \return count value
      */
     int seenCount( const Vector2D & pos );
+
+    /*!
+      \brief output the debug data
+     */
+    void debugOutput() const;
 
 };
 
