@@ -32,12 +32,14 @@
 #ifndef RCSC_PLAYER_VIEW_GRID_MAP_H
 #define RCSC_PLAYER_VIEW_GRID_MAP_H
 
-#include <memory>
+#include <rcsc/geom/vector_2d.h>
+
+#include <vector>
+#include <utility>
 
 namespace rcsc {
 
 class GameTime;
-class Vector2D;
 class ViewArea;
 
 /*!
@@ -45,11 +47,24 @@ class ViewArea;
   \brief grid map that stores field accuracy information
  */
 class ViewGridMap {
+public:
+
+    struct Grid {
+        const rcsc::Vector2D center_;
+        int seen_count_;
+
+        Grid() = delete;
+
+        explicit
+        Grid( const rcsc::Vector2D & center )
+            : center_( center ),
+              seen_count_( 0 )
+        { }
+    };
+
 private:
 
-    struct Impl;
-
-    std::unique_ptr< Impl > M_impl;
+    std::vector< Grid > M_grid_map;
 
 public:
 
@@ -87,6 +102,11 @@ public:
      */
     void update( const GameTime & time,
                  const ViewArea & view_area );
+
+    const std::vector< Grid > & gridMap() const
+    {
+        return M_grid_map;
+    }
 
     /*!
       \brief get the count since last observation

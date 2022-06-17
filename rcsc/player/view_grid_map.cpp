@@ -97,8 +97,8 @@ grid_index( const Vector2D & pos )
                                             / ViewGridMap::GRID_LENGTH ) );
     int iy = static_cast< int >( std::ceil( ( pos.y + ViewGridMap::PITCH_MAX_Y )
                                             / ViewGridMap::GRID_LENGTH ) );
-    ix = bound( 0, ix, ViewGridMap::GRID_X_SIZE );
-    iy = bound( 0, iy, ViewGridMap::GRID_Y_SIZE );
+    ix = bound( 0, ix, ViewGridMap::GRID_X_SIZE - 1 );
+    iy = bound( 0, iy, ViewGridMap::GRID_Y_SIZE - 1 );
 
     return ix * ViewGridMap::GRID_Y_SIZE + iy;
 }
@@ -124,34 +124,23 @@ grid_center( const int idx )
 
 
 ///////////////////////////////////////////////////////////////////////
-/*!
-
-*/
-struct ViewGridMap::Impl {
-
-    std::vector< int > grid_map_;
-
-    Impl()
-        : grid_map_( ViewGridMap::GRID_X_SIZE * ViewGridMap::GRID_Y_SIZE, 0 )
-      {
-
-      }
-
-    ~Impl()
-      {
-
-      }
-};
 
 /*-------------------------------------------------------------------*/
 /*!
 
 */
 ViewGridMap::ViewGridMap()
-    : M_impl( new ViewGridMap::Impl() )
 {
-    // std::cerr << __FILE__"create ViewGridMap size=" << M_impl->grid_map_.size()
-    //           << std::endl;
+    M_grid_map.reserve( GRID_X_SIZE * GRID_Y_SIZE );
+
+    for ( int x = 0; x < GRID_X_SIZE; ++x )
+    {
+        for ( int y = 0; y < GRID_Y_SIZE; ++y )
+        {
+            M_grid_map.emplace_back( grid_center( x, y ) );
+        }
+    }
+
 }
 
 /*-------------------------------------------------------------------*/
@@ -170,9 +159,9 @@ ViewGridMap::~ViewGridMap()
 void
 ViewGridMap::incrementAll()
 {
-    for ( int & v : M_impl->grid_map_ )
+    for ( Grid & p : M_grid_map )
     {
-        v += 1;
+        p.seen_count_ += 1;
     }
 }
 
@@ -202,36 +191,25 @@ ViewGridMap::update( const GameTime & time,
         return;
     }
 
-    const AngleDeg left_angle = view_area.angle() - view_area.viewWidth() * 0.5;
-    const AngleDeg right_angle = view_area.angle() + view_area.viewWidth() * 0.5;
+    const AngleDeg left_angle = view_area.angle() - view_area.viewWidth() * 0.5 + 2.0;
+    const AngleDeg right_angle = view_area.angle() + view_area.viewWidth() * 0.5 - 2.0;
 
-    static const double VISIBLE_DIST = ServerParam::i().visibleDistance() - GRID_RADIUS;
+    static const double VISIBLE_DIST = ServerParam::i().visibleDistance() - 0.5;
 
-    int i = 0;
-    for ( std::vector< int >::iterator v = M_impl->grid_map_.begin(), end = M_impl->grid_map_.end();
-          v != end;
-          ++v, ++i )
+    for ( Grid & p : M_grid_map )
     {
-        const Vector2D pos = grid_center( i );
-
-        const double dist = view_area.origin().dist( pos );
+        const double dist = view_area.origin().dist( p.center_ );
         if ( dist < VISIBLE_DIST )
         {
-            *v = 0;
+            p.seen_count_ = 0;
         }
         else
         {
-            const AngleDeg angle = ( pos - view_area.origin() ).th();
+            const AngleDeg angle = ( p.center_ - view_area.origin() ).th();
             if ( angle.isRightOf( left_angle )
                  && angle.isLeftOf( right_angle ) )
             {
-                const double angle_thr = AngleDeg::asin_deg( GRID_RADIUS / dist );
-                if ( ( angle - left_angle ).abs() > angle_thr
-                     && ( angle - right_angle ).abs() > angle_thr )
-                {
-                    *v = 0;
-                }
-
+                p.seen_count_ = 0;
             }
         }
 
@@ -241,7 +219,7 @@ ViewGridMap::update( const GameTime & time,
     dlog.addText( Logger::WORLD,
                   __FILE__" (update) PROFILE elapsed %f [ms] grid_size=%d",
                   timer.elapsedReal(),
-                  M_impl->grid_map_.size() );
+                  M_grid_map.size() );
 #endif
 }
 
@@ -254,11 +232,12 @@ ViewGridMap::seenCount( const Vector2D & pos )
 {
     try
     {
-        return M_impl->grid_map_.at( grid_index( pos ) );
+        return M_grid_map.at( grid_index( pos ) ).seen_count_;
     }
     catch ( std::exception & e )
     {
-        std::cerr << __FILE__ ": exception caught! " << e.what()
+        std::cerr << __FILE__ ": out of the grid range " << pos
+                  << " " << e.what()
                   << std::endl;
         return 1000;
     }
@@ -268,21 +247,12 @@ ViewGridMap::seenCount( const Vector2D & pos )
 void
 ViewGridMap::debugOutput() const
 {
-    const int size = M_impl->grid_map_.size();
-    for ( int i = 0; i < size; ++i )
+    for ( const Grid & p : M_grid_map )
     {
-        const Vector2D pos = grid_center( i );
-
-        // dlog.addText( Logger::WORLD,
-        //               __FILE__" %05d (%04d %04d) pos=(%.2f %.2f) count=%d",
-        //               i, i / ViewGridMap::GRID_Y_SIZE, i % ViewGridMap::GRID_Y_SIZE,
-        //               pos.x, pos.y,
-        //               M_impl->grid_map_[i] );
-
-        const int col = std::max( 0, 255 - M_impl->grid_map_[i] * 20 );
+        const int col = std::max( 0, 255 - p.seen_count_ * 20 );
         dlog.addRect( Logger::WORLD,
-                      pos.x - GRID_LENGTH*0.125, pos.y - GRID_LENGTH*0.125,
-                      GRID_LENGTH*0.25, GRID_LENGTH*0.25,
+                      p.center_.x - GRID_LENGTH*0.05, p.center_.y - GRID_LENGTH*0.05,
+                      GRID_LENGTH*0.1, GRID_LENGTH*0.1,
                       col, col, col,
                       true );
     }
