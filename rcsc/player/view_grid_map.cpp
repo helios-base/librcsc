@@ -55,9 +55,9 @@ namespace rcsc {
 
 const double ViewGridMap::GRID_LENGTH = 1.0;
 
-const double ViewGridMap::PITCH_MAX_X = ( std::ceil( +ServerParam::DEFAULT_PITCH_LENGTH*0.5 / ViewGridMap::GRID_LENGTH )
+const double ViewGridMap::PITCH_MAX_X = ( std::ceil( ( +ServerParam::DEFAULT_PITCH_LENGTH*0.5 - 3.0 ) / ViewGridMap::GRID_LENGTH )
                                           * ViewGridMap::GRID_LENGTH );
-const double ViewGridMap::PITCH_MAX_Y = ( std::ceil( +ServerParam::DEFAULT_PITCH_WIDTH*0.5 / ViewGridMap::GRID_LENGTH )
+const double ViewGridMap::PITCH_MAX_Y = ( std::ceil( ( +ServerParam::DEFAULT_PITCH_WIDTH*0.5 - 3.0 ) / ViewGridMap::GRID_LENGTH )
                                           * ViewGridMap::GRID_LENGTH );
 
 const double ViewGridMap::PITCH_LENGTH = ViewGridMap::PITCH_MAX_X * 2.0;
