@@ -68,8 +68,10 @@ private:
                           std::vector< InterceptInfo > & self_cache );
     bool simulateNoDash( const WorldModel & wm,
                          std::vector< InterceptInfo > & self_cache );
+
     void simulateOneDash( const WorldModel & wm,
                           std::vector< InterceptInfo > & self_cache );
+
     InterceptInfo getOneAdjustDash( const WorldModel & wm,
                                     const AngleDeg & dash_angle,
                                     const Vector2D & max_forward_accel,
@@ -98,6 +100,13 @@ private:
     void simulateOmniDash( const WorldModel & wm,
                            const int max_step,
                            std::vector< InterceptInfo > & self_cache );
+    void simulateOmniDashAny( const WorldModel & wm,
+                              const int max_step,
+                              std::vector< InterceptInfo > & self_cache );
+    void simulateOmniDashOld( const WorldModel & wm,
+                              const int max_step,
+                              std::vector< InterceptInfo > & self_cache );
+
 
     void simulateFinal( const WorldModel & wm,
                         const int max_step,
