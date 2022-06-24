@@ -381,6 +381,7 @@ SelfInterceptSimulator::simulateNoDash( const WorldModel & wm,
     return true;
 }
 
+
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -403,7 +404,7 @@ SelfInterceptSimulator::simulateOneDash( const WorldModel & wm,
                                   ? ptype.maxCatchableDist()
                                   : ptype.kickableArea() );
 
-    const double dash_angle_step = std::max( 5.0, SP.dashAngleStep() );
+    const double dash_angle_step = std::max( 2.0, SP.dashAngleStep() );
     const size_t dash_angle_divs
         = static_cast< size_t >( std::floor( ( SP.maxDashAngle() - SP.minDashAngle() )
                                              / dash_angle_step ) );
@@ -506,8 +507,7 @@ SelfInterceptSimulator::simulateOneDash( const WorldModel & wm,
 
     const InterceptInfo * best = &(tmp_cache.front());
 
-    for ( std::vector< InterceptInfo >::iterator it = tmp_cache.begin() + 1,
-              end = tmp_cache.end();
+    for ( std::vector< InterceptInfo >::iterator it = tmp_cache.begin() + 1, end = tmp_cache.end();
           it != end;
           ++it )
     {
@@ -1098,16 +1098,140 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 void
 SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
                                           const int max_step,
                                           std::vector< InterceptInfo > & self_cache )
 {
+    if ( ServerParam::i().dashAngleStep() > 1.5 )
+    {
+        simulateOmniDashOld( wm, max_step, self_cache );
+    }
+    else
+    {
+        simulateOmniDashAny( wm, max_step, self_cache );
+    }
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+SelfInterceptSimulator::simulateOmniDashAny( const WorldModel & wm,
+                                             const int max_step,
+                                             std::vector< InterceptInfo > & self_cache )
+{
     const ServerParam & SP = ServerParam::i();
-    const double dash_angle_step = std::max( 15.0, SP.dashAngleStep() );
+    const PlayerType & ptype = wm.self().playerType();
+    const double max_side_speed = ( SP.maxDashPower()
+                                    * ptype.dashPowerRate()
+                                    * ptype.effortMax()
+                                    * SP.dashDirRate( 90.0 ) ) / ( 1.0 - ptype.playerDecay() );
+    const Matrix2D rotate_matrix = Matrix2D::make_rotation( -wm.self().body() );
+    const double first_ball_speed = wm.ball().vel().r();
+
+#ifdef DEBUG_PRINT_OMNI_DASH
+    dlog.addText( Logger::INTERCEPT,
+                  "===== (simulateOmniDashAny) max_step=%d", max_step );
+#endif
+
+    int success_count = 0;
+    for ( int ball_step = 1; ball_step <= max_step; ++ball_step )
+    {
+        const Vector2D ball_pos = wm.ball().inertiaPoint( ball_step );
+        const bool goalie_mode = ( wm.self().goalie()
+                                   && wm.lastKickerSide() != wm.ourSide()
+                                   && ball_pos.x < SP.ourPenaltyAreaLineX() - 0.5
+                                   && ball_pos.absY() < SP.penaltyAreaHalfWidth() - 0.5 );
+        const double control_area = ( goalie_mode
+                                      ? ptype.maxCatchableDist()
+                                      : ptype.kickableArea() );
+        const double ball_noise = ( first_ball_speed * std::pow( SP.ballDecay(), ball_step - 1 )
+                                    * SP.ballRand()
+                                    * BALL_NOISE_RATE );
+        const double control_buf =  ( goalie_mode
+                                     ? 0.0
+                                     : CONTROL_BUF + ball_noise );
+
+        const Vector2D self_inertia = wm.self().inertiaPoint( ball_step );
+
+        const Vector2D ball_rel = rotate_matrix.transform( ball_pos - self_inertia );
+        if ( ball_rel.absY() - control_area > max_side_speed * ball_step )
+        {
+            continue;
+        }
+
+        //const AngleDeg accel_angle = ( ball_pos - self_inertia ).th();
+
+        double first_dash_power = 0.0;
+        double first_dash_dir = 0.0;
+
+        Vector2D self_pos = wm.self().pos();
+        Vector2D self_vel = wm.self().vel();
+        StaminaModel stamina_model = wm.self().staminaModel();
+
+        for ( int step = 1; step <= ball_step; ++step )
+        {
+            const Vector2D required_vel = ( ball_pos - self_pos )
+                * ( ( 1.0 - ptype.playerDecay() )
+                    / ( 1.0 - std::pow( ptype.playerDecay(), ball_step - step + 1 ) ) );
+            const Vector2D required_accel = required_vel - self_vel;
+
+            const double dash_dir = SP.discretizeDashAngle( ( required_accel.th() - wm.self().body() ).degree() );
+            const double dash_rate = SP.dashDirRate( dash_dir ) * ptype.dashPowerRate() * stamina_model.effort();
+            double dash_power = std::min( SP.maxDashPower(), required_accel.r() / dash_rate );
+            dash_power = stamina_model.getSafetyDashPower( ptype, dash_power, 1.0 );
+
+            if ( step == 1 )
+            {
+                first_dash_power = dash_power;
+                first_dash_dir = dash_dir;
+            }
+
+            const Vector2D dash_accel = Vector2D::from_polar( dash_power * dash_rate, wm.self().body() + dash_dir );
+            self_vel += dash_accel;
+            self_pos += self_vel;
+            self_vel *= ptype.playerDecay();
+            stamina_model.simulateDash( ptype, dash_power );
+
+            if ( self_pos.dist2( ball_pos ) < std::pow( control_area - control_buf, 2 )
+                 || self_inertia.dist2( self_pos ) > self_inertia.dist2( ball_pos ) )
+            {
+                InterceptInfo::StaminaType stamina_type = ( stamina_model.recovery() < wm.self().staminaModel().recovery() - 1.0e-5
+                                                            && ! stamina_model.capacityIsEmpty()
+                                                            ? InterceptInfo::EXHAUST
+                                                            : InterceptInfo::NORMAL );
+                self_cache.emplace_back( stamina_type,
+                                         InterceptInfo::OMNI_DASH,
+                                         0, 0.0,
+                                         ball_step, first_dash_power, first_dash_dir,
+                                         self_pos,
+                                         self_pos.dist( ball_pos ),
+                                         stamina_model.stamina() );
+                ++success_count;
+#ifdef DEBUG_PRINT_OMNI_DASH
+                dlog.addText( Logger::INTERCEPT,
+                              "[omni]>>> found ball_step=%d self_step=%d", ball_step, step );
+#endif
+                break;
+            }
+        }
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+SelfInterceptSimulator::simulateOmniDashOld( const WorldModel & wm,
+                                             const int max_step,
+                                             std::vector< InterceptInfo > & self_cache )
+{
+    const ServerParam & SP = ServerParam::i();
+    const double dash_angle_step = std::max( 5.0, SP.dashAngleStep() );
     const size_t dash_angle_divs = static_cast< size_t >( std::floor( 360.0 / dash_angle_step ) );
 
     const PlayerType & ptype = wm.self().playerType();
