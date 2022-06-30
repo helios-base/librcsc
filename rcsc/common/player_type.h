@@ -460,6 +460,8 @@ public:
       \return estimated cycles to reach
     */
     int cyclesToReachDistance( const double & dash_dist ) const;
+
+    double getMovableDistance( const size_t step ) const;
     ////////////////////////////////////////////////
     /*!
       \brief check if this type player can over player_speed_max

@@ -958,6 +958,25 @@ PlayerType::cyclesToReachDistance( const double & dash_dist ) const
 }
 
 /*-------------------------------------------------------------------*/
+double
+PlayerType::getMovableDistance( const size_t step ) const
+{
+    if ( step == 0 )
+    {
+        return 0.0;
+    }
+
+    size_t index = step - 1;
+    if ( index >= M_dash_distance_table.size() )
+    {
+        return M_dash_distance_table.back()
+            + realSpeedMax() * ( index - M_dash_distance_table.size() + 1 );
+    }
+
+    return M_dash_distance_table[index];
+}
+
+/*-------------------------------------------------------------------*/
 /*!
 
 */
