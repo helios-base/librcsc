@@ -2068,7 +2068,7 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
 
     updatePlayersCollision(); // have to be called after player type update.
 
-#if 1
+#if 0
     // 2008-04-18: akiyama
     // set the effect of opponent kickable state to the ball velocity
     if ( ( M_kickable_opponent
