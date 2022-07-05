@@ -215,7 +215,10 @@ SelfInterceptSimulator::simulate( const WorldModel & wm,
 
     simulateOneStep( wm, self_cache );
     simulateTurnDash( wm, max_step, false, self_cache ); // forward dash
-    simulateTurnDash( wm, max_step, true, self_cache ); // back dash
+    if ( ServerParam::i().minDashPower() < ServerParam::i().maxDashPower() * -0.7 )
+    {
+        simulateTurnDash( wm, max_step, true, self_cache ); // back dash
+    }
     simulateOmniDash( wm, max_step, self_cache ); // omni dash
 
     if ( self_cache.empty() )
@@ -390,6 +393,154 @@ void
 SelfInterceptSimulator::simulateOneDash( const WorldModel & wm,
                                          std::vector< InterceptInfo > & self_cache )
 {
+    simulateOneDashOld( wm, self_cache );
+    // if ( ServerParam::i().minDashPower() < ServerParam::i().maxDashPower() * -0.7 )
+    // {
+    //     simulateOneDashOld( wm, self_cache );
+    // }
+    // else
+    // {
+    //     simulateOneDashAnyDir( wm, self_cache );
+    // }
+}
+
+
+/*-------------------------------------------------------------------*/
+void
+SelfInterceptSimulator::simulateOneDashAnyDir( const WorldModel & wm,
+                                               std::vector< InterceptInfo > & self_cache )
+{
+    const ServerParam & SP = ServerParam::i();
+    const PlayerType & ptype = wm.self().playerType();
+
+    //const Vector2D self_next = wm.self().pos() + wm.self().vel();
+    const Vector2D ball_next = wm.ball().pos() + wm.ball().vel();
+    const bool goalie_mode
+        = ( wm.self().goalie()
+            && wm.lastKickerSide() != wm.ourSide()
+            && ball_next.x < SP.ourPenaltyAreaLineX()
+            && ball_next.absY() < SP.penaltyAreaHalfWidth()
+            );
+
+    Vector2D required_vel = ball_next - wm.self().pos();
+    {
+        const double best_ball_dist = ptype.playerSize() + SP.ballSize() + ptype.kickableMargin() * 0.5;
+        const double best_move_dist = wm.self().pos().dist( ball_next ) - best_ball_dist;
+        if ( best_move_dist > 0.0 )
+        {
+            required_vel.setLength( best_move_dist );
+        }
+        else
+        {
+            required_vel *= -1.0;
+            required_vel.setLength( std::fabs( best_move_dist ) );
+        }
+    }
+
+    const Vector2D required_accel = required_vel - wm.self().vel();
+
+    StaminaModel stamina_model = wm.self().staminaModel();
+
+    const double dash_dir = SP.discretizeDashAngle( ( required_accel.th() - wm.self().body() ).degree() );
+    const double dash_rate =  SP.dashDirRate( dash_dir ) * ptype.dashPowerRate() * stamina_model.effort();
+
+    const double required_dash_power = std::min( required_accel.r() / dash_rate, SP.maxDashPower() );
+    const double safe_dash_power = stamina_model.getSafetyDashPower( ptype, required_dash_power, 1.0 );
+
+    Vector2D self_pos = wm.self().pos();
+
+    double dash_power = safe_dash_power;
+    bool ok = false;
+    {
+        // safety dash power case
+        const Vector2D dash_accel = Vector2D::from_polar( safe_dash_power * dash_rate, wm.self().body() + dash_dir );
+        const Vector2D self_vel = wm.self().vel() + dash_accel;
+        self_pos = wm.self().pos() + self_vel;
+        if ( goalie_mode
+             && ptype.getCatchProbability( self_pos, wm.self().body(), ball_next, 0.05, 1.0 ) > 0.9 )
+        {
+            ok = true;
+            stamina_model.simulateDash( ptype, safe_dash_power );
+        }
+
+        if ( ! ok
+             && self_pos.dist( ball_next ) < ptype.kickableArea() - 0.075 )
+        {
+            ok = true;
+            stamina_model.simulateDash( ptype, safe_dash_power );
+        }
+    }
+
+    if ( ! ok
+         && required_dash_power > safe_dash_power )
+    {
+        // exhaust case
+        const Vector2D dash_accel = Vector2D::from_polar( required_dash_power * dash_rate, wm.self().body() + dash_dir );
+        const Vector2D self_vel = wm.self().vel() + dash_accel;
+        self_pos = wm.self().pos() + self_vel;
+
+        if ( goalie_mode
+             && ptype.getCatchProbability( self_pos, wm.self().body(), ball_next, 0.05, 1.0 ) > 0.9 )
+        {
+            ok = true;
+            dash_power = required_dash_power;
+            stamina_model.simulateDash( ptype, dash_power );
+        }
+
+        if ( ! ok
+             && self_pos.dist( ball_next ) < ptype.kickableArea() - 0.075 )
+        {
+            ok = true;
+            dash_power = required_dash_power;
+            stamina_model.simulateDash( ptype, dash_power );
+        }
+    }
+
+    if ( ! ok )
+    {
+        // not found
+#ifdef DEBUG_PRINT_ONE_STEP
+        dlog.addText( Logger::INTERCEPT,
+                      "<<<<< 1 dash: not found" );
+#endif
+        return;
+    }
+
+    InterceptInfo::StaminaType stamina_type = InterceptInfo::NORMAL;
+    if ( stamina_model.recovery() < wm.self().staminaModel().recovery() - 1.0e-5
+         && ! stamina_model.capacityIsEmpty() )
+    {
+        stamina_type = InterceptInfo::EXHAUST;
+    }
+
+    const double result_ball_dist = self_pos.dist( ball_next );
+#ifdef DEBUG_PRINT_ONE_STEP
+    dlog.addText( Logger::INTERCEPT,
+                  "<<<<< 1 dash: power=%.1f dir=%.1f self_pos=(%.2f %.2f) ball_dist=%.3f",
+                  dash_power, dash_dir,
+                  self_pos.x, self_pos.y, result_ball_dist );
+#endif
+
+    self_cache.emplace_back( stamina_type,
+                             InterceptInfo::OMNI_DASH,
+                             0, // turn step
+                             0, // turn angle
+                             1, // dash step
+                             dash_power,
+                             dash_dir,
+                             self_pos,
+                             result_ball_dist,
+                             stamina_model.stamina() );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+SelfInterceptSimulator::simulateOneDashOld( const WorldModel & wm,
+                                            std::vector< InterceptInfo > & self_cache )
+{
     const ServerParam & SP = ServerParam::i();
     const PlayerType & ptype = wm.self().playerType();
 
@@ -450,9 +601,9 @@ SelfInterceptSimulator::simulateOneDash( const WorldModel & wm,
 #ifdef DEBUG_PRINT_ONE_STEP
                 dlog.addText( Logger::INTERCEPT,
                               "OK 1 dash: mode=%d power=%.1f dir=%.1f self_pos=(%.2f %.2f) stamina=%.1f",
-                              safe_dash.mode(),
+                              safe_dash.staminaType(),
                               safe_dash.dashPower(),
-                              safe_dash.dashAngle().degree(),
+                              safe_dash.dashDir(),
                               safe_dash.selfPos().x, safe_dash.selfPos().y,
                               safe_dash.stamina() );
 #endif
@@ -483,9 +634,9 @@ SelfInterceptSimulator::simulateOneDash( const WorldModel & wm,
 #ifdef DEBUG_PRINT_ONE_STEP
                 dlog.addText( Logger::INTERCEPT,
                               "OK 1 dash: mode=%d power=%.1f dir=%.1f self_pos=(%.2f %.2f) stamina=%.1f",
-                              exhaust_dash.mode(),
+                              exhaust_dash.staminaType(),
                               exhaust_dash.dashPower(),
-                              exhaust_dash.dashAngle().degree(),
+                              exhaust_dash.dashDir(),
                               exhaust_dash.selfPos().x, exhaust_dash.selfPos().y,
                               exhaust_dash.stamina() );
 #endif
@@ -700,7 +851,7 @@ SelfInterceptSimulator::getOneAdjustDash( const WorldModel & wm,
                   "__*** (predictOneDashAdjust) --->Success! power=%.3f rel_dir=%.1f angle=%.1f"
                   " my_pos=(%.2f %.2f) ball_dist=%.3f stamina=%.1f",
                   info.dashPower(),
-                  info.dashAngle().degree(),
+                  info.dashDir(),
                   dash_angle.degree(),
                   self_next_after_dash.x, self_next_after_dash.y,
                   info.ballDist(),
@@ -1074,10 +1225,23 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
         }
     }
 
+    bool ok = false;
 
     if ( self_pos.absX() > ball_rel.absX() - 1.0e-5
          || self_pos.r2() > ball_rel.r2()
-         || self_pos.dist2( ball_rel ) < std::pow( control_area - control_buf, 2 ) )
+         || self_pos.dist2( ball_rel ) < std::pow( ptype.kickableArea() - control_buf, 2 ) )
+    {
+        ok = true;
+    }
+
+    if ( ! ok
+         && goalie_mode
+         && ptype.getCatchProbability( self_pos, 0.0, ball_rel, 0.05, 1.0 ) > 0.9 )
+    {
+        ok = true;
+    }
+
+    if ( ok )
     {
         InterceptInfo::StaminaType stamina_type = ( stamina_model.recovery() < wm.self().staminaModel().recovery() - 1.0e-5
                                                     && ! stamina_model.capacityIsEmpty()
@@ -1112,7 +1276,6 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
         simulateOmniDashAny( wm, max_step, self_cache );
     }
 }
-
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -1196,8 +1359,26 @@ SelfInterceptSimulator::simulateOmniDashAny( const WorldModel & wm,
             self_vel *= ptype.playerDecay();
             stamina_model.simulateDash( ptype, dash_power );
 
-            if ( self_pos.dist2( ball_pos ) < std::pow( control_area - control_buf, 2 )
+            bool ok = false;
+
+            if ( self_pos.dist2( ball_pos ) < std::pow( ptype.kickableArea() - control_buf, 2 )
                  || self_inertia.dist2( self_pos ) > self_inertia.dist2( ball_pos ) )
+            {
+                ok = true;
+            }
+
+            if ( ! ok
+                 && goalie_mode
+                 && ptype.getCatchProbability( self_pos, wm.self().body(), ball_pos, 0.05, 1.0 ) > 0.9 )
+            {
+                ok = true;
+#ifdef DEBUG_PRINT_OMNI_DASH
+                dlog.addText( Logger::INTERCEPT,
+                              "[omni]>>> found in goalie mode" );
+#endif
+            }
+
+            if ( ok )
             {
                 InterceptInfo::StaminaType stamina_type = ( stamina_model.recovery() < wm.self().staminaModel().recovery() - 1.0e-5
                                                             && ! stamina_model.capacityIsEmpty()

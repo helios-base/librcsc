@@ -71,7 +71,11 @@ private:
 
     void simulateOneDash( const WorldModel & wm,
                           std::vector< InterceptInfo > & self_cache );
+    void simulateOneDashAnyDir( const WorldModel & wm,
+                                std::vector< InterceptInfo > & self_cache );
 
+    void simulateOneDashOld( const WorldModel & wm,
+                             std::vector< InterceptInfo > & self_cache );
     InterceptInfo getOneAdjustDash( const WorldModel & wm,
                                     const AngleDeg & dash_angle,
                                     const Vector2D & max_forward_accel,
