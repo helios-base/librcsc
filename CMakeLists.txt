@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(librcsc VERSION 2020.08)
+project(librcsc VERSION 2022)
 
-set(LIBRCSC_SOVERSION 16) # protocol version
+set(LIBRCSC_SOVERSION 17) # protocol version
 set(LIBRCSC_BUILDVERSION ${LIBRCSC_SOVERSION}.0.0)
 
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
