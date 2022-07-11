@@ -1082,24 +1082,32 @@ ActionEffector::setCatch()
         = AngleDeg::atan2_deg( ServerParam::i().catchAreaWidth() * 0.5,
                                ServerParam::i().catchAreaLength() );
 
-    // relative angle
-    AngleDeg ball_rel_angle = M_agent.world().ball().angleFromSelf() - M_agent.world().self().body();
+    const AngleDeg ball_rel_angle = M_agent.world().ball().angleFromSelf() - M_agent.world().self().body();
     // add diagonal angle
-    AngleDeg catch_angle = ball_rel_angle + diagonal_angle;
+    AngleDeg catch_angle = ( ball_rel_angle.degree() > 0.0
+                             ? ball_rel_angle - diagonal_angle
+                             : ball_rel_angle + diagonal_angle );
 
-    if ( catch_angle.degree() < ServerParam::i().minCatchAngle()
-         || ServerParam::i().maxCatchAngle() < catch_angle.degree() )
+    dlog.addText( Logger::ACTION,
+                   __FILE__" (setCatch) (raw) ball_angle=%.1f diagonal_angle=%.1f catch_angle=%.1f",
+                  ball_rel_angle.degree(),
+                  diagonal_angle,
+                  catch_angle.degree() );
+
+    if ( catch_angle.degree() < ServerParam::i().minCatchAngle() )
     {
-        catch_angle = ball_rel_angle - diagonal_angle;
+        catch_angle = ServerParam::i().minCatchAngle();
+    }
+
+    if ( catch_angle.degree() > ServerParam::i().maxCatchAngle() )
+    {
+        catch_angle = ServerParam::i().maxCatchAngle();
     }
 
     dlog.addText( Logger::ACTION,
-                   __FILE__" (setCatch) ball_dir=%.1f diagonal_angle=%.1f -> catch_angle=%.1f(gloabl=%.1f)",
-                  ball_rel_angle.degree(),
-                  diagonal_angle,
+                   __FILE__" (setCatch) (result) catch_angle=%.1f(gloabl=%.1f)",
                   catch_angle.degree(),
                   ( catch_angle + M_agent.world().self().body() ).degree() );
-
 
 
     //////////////////////////////////////////////////
