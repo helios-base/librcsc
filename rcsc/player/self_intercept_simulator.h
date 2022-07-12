@@ -47,6 +47,8 @@ class StaminaModel;
 class SelfInterceptSimulator {
 private:
 
+    Vector2D M_ball_vel;
+
 public:
 
     /*!
@@ -60,6 +62,11 @@ public:
                    std::vector< InterceptInfo > & self_cache );
 
 private:
+
+    const Vector2D & ballVel() const
+    {
+        return M_ball_vel;
+    }
 
     //
     // one step simulation

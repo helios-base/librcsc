@@ -213,6 +213,17 @@ SelfInterceptSimulator::simulate( const WorldModel & wm,
     rcsc::Timer timer;
 #endif
 
+    if ( wm.kickableOpponent()
+         //|| wm.kickableTeammate()
+         )
+    {
+        M_ball_vel.assign( 0.0, 0.0 );
+    }
+    else
+    {
+        M_ball_vel = wm.ball().vel();
+    }
+
     simulateOneStep( wm, self_cache );
     simulateTurnDash( wm, max_step, false, self_cache ); // forward dash
     if ( ServerParam::i().minDashPower() < ServerParam::i().maxDashPower() * -0.7 )
@@ -252,7 +263,7 @@ void
 SelfInterceptSimulator::simulateOneStep( const WorldModel & wm,
                                          std::vector< InterceptInfo > & self_cache )
 {
-    const Vector2D ball_next = wm.ball().pos() + wm.ball().vel();
+    const Vector2D ball_next = wm.ball().pos() + ballVel();
     const bool goalie_mode
         = ( wm.self().goalie()
             && wm.lastKickerSide() != wm.ourSide()
@@ -297,7 +308,7 @@ SelfInterceptSimulator::simulateNoDash( const WorldModel & wm,
     const PlayerType & ptype = wm.self().playerType();
 
     const Vector2D self_next = wm.self().pos() + wm.self().vel();
-    const Vector2D ball_next = wm.ball().pos() + wm.ball().vel();
+    const Vector2D ball_next = wm.ball().pos() + ballVel();
 
     const bool goalie_mode
         = ( wm.self().goalie()
@@ -309,7 +320,8 @@ SelfInterceptSimulator::simulateNoDash( const WorldModel & wm,
                                   ? ptype.maxCatchableDist()
                                   : ptype.kickableArea() );
 
-    const double ball_noise = wm.ball().vel().r() * ServerParam::i().ballRand() * BALL_NOISE_RATE;
+    //const double ball_noise = wm.ball().vel().r() * ServerParam::i().ballRand() * BALL_NOISE_RATE;
+    const double ball_noise = ballVel().r() * ServerParam::i().ballRand() * BALL_NOISE_RATE;
     const double ball_next_dist = self_next.dist( ball_next );
 
     if ( ball_next_dist > control_area - CONTROL_BUF - ball_noise )
@@ -348,7 +360,7 @@ SelfInterceptSimulator::simulateNoDash( const WorldModel & wm,
     {
         AngleDeg ball_angle = ( ball_next - self_next ).th() - wm.self().body();
         double kick_rate = ptype.kickRate( ball_next_dist, ball_angle.abs() );
-        Vector2D ball_next_vel = wm.ball().vel() * ServerParam::i().ballDecay();
+        Vector2D ball_next_vel = ballVel() * ServerParam::i().ballDecay();
 
         if ( ServerParam::i().maxPower() * kick_rate
              <= ball_next_vel.r() * ServerParam::i().ballDecay() * 1.1 )
@@ -414,7 +426,7 @@ SelfInterceptSimulator::simulateOneDashAnyDir( const WorldModel & wm,
     const PlayerType & ptype = wm.self().playerType();
 
     //const Vector2D self_next = wm.self().pos() + wm.self().vel();
-    const Vector2D ball_next = wm.ball().pos() + wm.ball().vel();
+    const Vector2D ball_next = wm.ball().pos() + ballVel();
     const bool goalie_mode
         = ( wm.self().goalie()
             && wm.lastKickerSide() != wm.ourSide()
@@ -544,7 +556,7 @@ SelfInterceptSimulator::simulateOneDashOld( const WorldModel & wm,
     const ServerParam & SP = ServerParam::i();
     const PlayerType & ptype = wm.self().playerType();
 
-    const Vector2D ball_next = wm.ball().pos() + wm.ball().vel();
+    const Vector2D ball_next = wm.ball().pos() + ballVel();
     const bool goalie_mode
         = ( wm.self().goalie()
             && wm.lastKickerSide() != wm.ourSide()
@@ -652,7 +664,7 @@ SelfInterceptSimulator::simulateOneDashOld( const WorldModel & wm,
     }
 
     const double safe_ball_dist
-        = std::max( control_area - 0.2 - wm.ball().vel().r() * SP.ballRand(),
+        = std::max( control_area - 0.2 - ballVel().r() * SP.ballRand(),
                     ptype.playerSize() + SP.ballSize() + ptype.kickableMargin() * 0.4 );
 
 
@@ -709,7 +721,7 @@ SelfInterceptSimulator::getOneAdjustDash( const WorldModel & wm,
     const double control_buf = control_area - 0.075;
 
     const Vector2D self_next = wm.self().pos() + wm.self().vel( );
-    const Vector2D ball_next = wm.ball().pos() + wm.ball().vel();
+    const Vector2D ball_next = wm.ball().pos() + ballVel();
     const AngleDeg dash_dir = dash_angle - wm.self().body();
 
     const Matrix2D rotate = Matrix2D::make_rotation( -dash_angle );
@@ -939,12 +951,16 @@ namespace {
 
  */
 int
-get_min_step( const WorldModel & wm )
+get_min_step( const WorldModel & wm,
+              const Vector2D & ball_vel )
 {
     const Rect2D pitch_rect = Rect2D::from_center( Vector2D( 0.0, 0.0 ),
                                                    ServerParam::i().pitchLength() + 10.0,
                                                    ServerParam::i().pitchWidth() + 10.0 );
-    Vector2D final_pos = wm.ball().inertiaFinalPoint();
+    //Vector2D final_pos = wm.ball().inertiaFinalPoint();
+    Vector2D final_pos = inertia_final_point( wm.ball().pos(),
+                                              ball_vel,
+                                              ServerParam::i().ballDecay() );
 
     if ( ! pitch_rect.contains( final_pos ) )
     {
@@ -1044,10 +1060,12 @@ SelfInterceptSimulator::simulateTurnDash( const WorldModel & wm,
 {
     const ServerParam & SP = ServerParam::i();
     const PlayerType & ptype = wm.self().playerType();
-    const int min_step = get_min_step( wm );
+    const int min_step = get_min_step( wm, ballVel() );
 
-    Vector2D ball_pos = wm.ball().inertiaPoint( min_step - 1 );
-    Vector2D ball_vel = wm.ball().vel() * std::pow( SP.ballDecay(), min_step - 1 );
+    //Vector2D ball_pos = wm.ball().inertiaPoint( min_step - 1 );
+    Vector2D ball_pos = inertia_n_step_point( wm.ball().pos(), ballVel(), min_step - 1, SP.ballDecay() );
+    //Vector2D ball_vel = wm.ball().vel() * std::pow( SP.ballDecay(), min_step - 1 );
+    Vector2D ball_vel = ballVel() * std::pow( SP.ballDecay(), min_step - 1 );
     double ball_speed = ball_vel.r();
 
     int success_count = 0;
@@ -1293,7 +1311,8 @@ SelfInterceptSimulator::simulateOmniDashAny( const WorldModel & wm,
                                     * ptype.effortMax()
                                     * SP.dashDirRate( 90.0 ) ) / ( 1.0 - ptype.playerDecay() );
     const Matrix2D rotate_matrix = Matrix2D::make_rotation( -wm.self().body() );
-    const double first_ball_speed = wm.ball().vel().r();
+    //const double first_ball_speed = wm.ball().vel().r();
+    const double first_ball_speed = ballVel().r();
 
 #ifdef DEBUG_PRINT_OMNI_DASH
     dlog.addText( Logger::INTERCEPT,
@@ -1303,7 +1322,8 @@ SelfInterceptSimulator::simulateOmniDashAny( const WorldModel & wm,
     int success_count = 0;
     for ( int ball_step = 1; ball_step <= max_step; ++ball_step )
     {
-        const Vector2D ball_pos = wm.ball().inertiaPoint( ball_step );
+        //const Vector2D ball_pos = wm.ball().inertiaPoint( ball_step );
+        const Vector2D ball_pos = inertia_n_step_point( wm.ball().pos(), ballVel(), ball_step, SP.ballDecay() );
         const bool goalie_mode = ( wm.self().goalie()
                                    && wm.lastKickerSide() != wm.ourSide()
                                    && ball_pos.x < SP.ourPenaltyAreaLineX() - 0.5
@@ -1458,7 +1478,7 @@ SelfInterceptSimulator::simulateOmniDashOld( const WorldModel & wm,
     //
     // simulation loop
     //
-    const double first_ball_speed = wm.ball().vel().r();
+    const double first_ball_speed = ballVel().r();
 
 #ifdef DEBUG_PRINT_OMNI_DASH
     dlog.addText( Logger::INTERCEPT,
@@ -1470,7 +1490,8 @@ SelfInterceptSimulator::simulateOmniDashOld( const WorldModel & wm,
     double last_y_diff = 100000.0;
     for ( int reach_step = 1; reach_step <= max_step; ++reach_step )
     {
-        const Vector2D ball_pos = wm.ball().inertiaPoint( reach_step );
+        //const Vector2D ball_pos = wm.ball().inertiaPoint( reach_step );
+        const Vector2D ball_pos = inertia_n_step_point( wm.ball().pos(), ballVel(), reach_step, SP.ballDecay() );
         const bool goalie_mode
             = ( wm.self().goalie()
                 && wm.lastKickerSide() != wm.ourSide()
@@ -1700,7 +1721,8 @@ SelfInterceptSimulator::simulateFinal( const WorldModel & wm,
     const PlayerType & ptype = wm.self().playerType();
 
     const Vector2D self_pos = wm.self().inertiaFinalPoint();
-    const Vector2D ball_pos = wm.ball().inertiaFinalPoint();
+    //const Vector2D ball_pos = wm.ball().inertiaFinalPoint();
+    const Vector2D ball_pos = inertia_final_point( wm.ball().pos(), ballVel(), ServerParam::i().ballDecay() );
     const bool goalie_mode = ( wm.self().goalie()
                                && wm.lastKickerSide() != wm.ourSide()
                                && ball_pos.x < ServerParam::i().ourPenaltyAreaLineX() - 0.5

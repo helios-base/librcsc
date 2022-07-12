@@ -340,7 +340,11 @@ InterceptTable::createBallCache()
     const double bdecay = SP.ballDecay();
 
     Vector2D bpos = M_world.ball().pos();
-    Vector2D bvel = M_world.ball().vel();
+    Vector2D bvel = ( M_world.kickableOpponent()
+                      //|| M_world.kickableTeammate()
+                      )
+        ? Vector2D( 0.0, 0.0 )
+        : M_world.ball().vel();
     double bspeed = bvel.r();
 
     for ( int i = 0; i < MAX_STEP; ++i )
