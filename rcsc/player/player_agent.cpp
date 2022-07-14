@@ -3074,13 +3074,13 @@ PlayerAgent::doAttentionto( SideID side,
         return false;
     }
 
-    if ( world().self().attentiontoUnum() == unum
-         && world().self().attentiontoSide() == side )
-    {
-        dlog.addText( Logger::ACTION,
-                      __FILE__": agent->doAttentionto. already attended." );
-        return false;
-    }
+    // if ( world().self().attentiontoUnum() == unum
+    //      && world().self().attentiontoSide() == side )
+    // {
+    //     dlog.addText( Logger::ACTION,
+    //                   __FILE__": agent->doAttentionto. already attended." );
+    //     return false;
+    // }
 
     M_effector.setAttentionto( side, unum );
     return true;
