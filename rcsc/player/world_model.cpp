@@ -2099,9 +2099,9 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
     estimateMaybeKickableTeammate();
 
     M_self.updateKickableState( M_ball,
-                                M_intercept_table->selfReachCycle(),
-                                M_intercept_table->teammateReachCycle(),
-                                M_intercept_table->opponentReachCycle() );
+                                M_intercept_table->selfReachStep(),
+                                M_intercept_table->teammateReachStep(),
+                                M_intercept_table->opponentReachStep() );
 }
 
 /*-------------------------------------------------------------------*/
@@ -4186,7 +4186,7 @@ WorldModel::estimateMaybeKickableTeammate()
         {
             dlog.addText( Logger::WORLD,
                           __FILE__":(estimateMaybeKickableTeammate) heard pass kick" );
-            s_previous_teammate_step = this->interceptTable()->teammateReachCycle();
+            s_previous_teammate_step = this->interceptTable()->teammateReachStep();
             s_previous_time = this->time();
             M_maybe_kickable_teammate = nullptr;
             return;
@@ -4198,14 +4198,14 @@ WorldModel::estimateMaybeKickableTeammate()
         {
             dlog.addText( Logger::WORLD,
                           __FILE__":(estimateMaybeKickableTeammate) found" );
-            s_previous_teammate_step = 1; //this->interceptTable()->teammateReachCycle();
+            s_previous_teammate_step = 1; //this->interceptTable()->teammateReachStep();
             s_previous_time = this->time();
             M_maybe_kickable_teammate = t;
             return;
         }
     }
 
-    s_previous_teammate_step = this->interceptTable()->teammateReachCycle();
+    s_previous_teammate_step = this->interceptTable()->teammateReachStep();
     s_previous_time = this->time();
 
     dlog.addText( Logger::WORLD,
@@ -5241,8 +5241,8 @@ WorldModel::updateInterceptTable()
         }
     }
 
-    M_self.setBallReachStep( std::min( M_intercept_table->selfReachCycle(),
-                                       M_intercept_table->selfReachCycle() ) );
+    M_self.setBallReachStep( std::min( M_intercept_table->selfReachStep(),
+                                       M_intercept_table->selfReachStep() ) );
 
     const std::map< const AbstractPlayerObject *, int > & m = M_intercept_table->playerMap();
 

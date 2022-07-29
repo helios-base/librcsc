@@ -89,9 +89,9 @@ InterceptTable::clear()
     M_opponent_reach_step = 1000;
     M_second_opponent_reach_step = 1000;
 
-    M_fastest_teammate = nullptr;
+    M_first_teammate = nullptr;
     M_second_teammate = nullptr;
-    M_fastest_opponent = nullptr;
+    M_first_opponent = nullptr;
     M_second_opponent = nullptr;
 
     M_self_cache.clear();
@@ -173,15 +173,15 @@ InterceptTable::update()
                   "<-----Intercept Self reach step = %d. exhaust reach step = %d ",
                   M_self_reach_step,
                   M_self_exhaust_reach_step );
-    if ( M_fastest_teammate )
+    if ( M_first_teammate )
     {
         dlog.addText( Logger::INTERCEPT,
                       "<-----Intercept Teammate  fastest reach step = %d."
                       " teammate %d (%.1f %.1f)",
                       M_teammate_reach_step,
-                      M_fastest_teammate->unum(),
-                      M_fastest_teammate->pos().x,
-                      M_fastest_teammate->pos().y );
+                      M_first_teammate->unum(),
+                      M_first_teammate->pos().x,
+                      M_first_teammate->pos().y );
 
     }
 
@@ -196,15 +196,15 @@ InterceptTable::update()
                       M_second_teammate->pos().y );
     }
 
-    if ( M_fastest_opponent )
+    if ( M_first_opponent )
     {
         dlog.addText( Logger::INTERCEPT,
                       "<-----Intercept Opponent  fastest reach step = %d."
                       " opponent %d (%.1f %.1f)",
                       M_opponent_reach_step,
-                      M_fastest_opponent->unum(),
-                      M_fastest_opponent->pos().x,
-                      M_fastest_opponent->pos().y );
+                      M_first_opponent->unum(),
+                      M_first_opponent->pos().x,
+                      M_first_opponent->pos().y );
     }
 
     if ( M_second_opponent )
@@ -232,7 +232,7 @@ void
 InterceptTable::hearTeammate( const int unum,
                               const int step )
 {
-    if ( M_fastest_teammate
+    if ( M_first_teammate
          && step >= M_teammate_reach_step )
     {
         return;
@@ -250,7 +250,7 @@ InterceptTable::hearTeammate( const int unum,
 
     if ( target )
     {
-        M_fastest_teammate = target;
+        M_first_teammate = target;
         M_teammate_reach_step = step;
 
         M_player_map[ target ] = step;
@@ -259,9 +259,9 @@ InterceptTable::hearTeammate( const int unum,
                       "<----- Hear Intercept Teammate  fastest reach step = %d."
                       " teammate %d (%.1f %.1f)",
                       M_teammate_reach_step,
-                      M_fastest_teammate->unum(),
-                      M_fastest_teammate->pos().x,
-                      M_fastest_teammate->pos().y );
+                      M_first_teammate->unum(),
+                      M_first_teammate->pos().x,
+                      M_first_teammate->pos().y );
     }
 }
 
@@ -273,7 +273,7 @@ void
 InterceptTable::hearOpponent( const int unum,
                               const int step )
 {
-    if ( M_fastest_opponent )
+    if ( M_first_opponent )
     {
         if ( step >= M_opponent_reach_step )
         {
@@ -284,15 +284,15 @@ InterceptTable::hearOpponent( const int unum,
             return;
         }
 
-        if ( M_fastest_opponent->unum() == unum
-             && M_fastest_opponent->posCount() == 0 )
+        if ( M_first_opponent->unum() == unum
+             && M_first_opponent->posCount() == 0 )
         {
             dlog.addText( Logger::INTERCEPT,
                           "<----- Hear Intercept Opponent . no update."
                           " opponent %d (%.1f %.1f) is seen",
-                          M_fastest_opponent->unum(),
-                          M_fastest_opponent->pos().x,
-                          M_fastest_opponent->pos().y );
+                          M_first_opponent->unum(),
+                          M_first_opponent->pos().x,
+                          M_first_opponent->pos().y );
             return;
         }
     }
@@ -311,7 +311,7 @@ InterceptTable::hearOpponent( const int unum,
 
     if ( p )
     {
-        M_fastest_opponent = p;
+        M_first_opponent = p;
         M_opponent_reach_step = step;
 
         M_player_map[ p ] = step;
@@ -320,9 +320,9 @@ InterceptTable::hearOpponent( const int unum,
                       "<----- Hear Intercept Opponent  fastest reach step = %d."
                       " opponent %d (%.1f %.1f)",
                       M_opponent_reach_step,
-                      M_fastest_opponent->unum(),
-                      M_fastest_opponent->pos().x,
-                      M_fastest_opponent->pos().y );
+                      M_first_opponent->unum(),
+                      M_first_opponent->pos().x,
+                      M_first_opponent->pos().y );
     }
 }
 
@@ -469,14 +469,14 @@ InterceptTable::predictTeammate()
     {
         M_teammate_reach_step = 0;
         min_step = 0;
-        M_fastest_teammate = M_world.kickableTeammate();
+        M_first_teammate = M_world.kickableTeammate();
 
         dlog.addText( Logger::INTERCEPT,
                       "Intercept Teammate. exist kickable teammate" );
         dlog.addText( Logger::INTERCEPT,
                       "---> set fastest teammate %d (%.1f %.1f)",
-                      M_fastest_teammate->unum(),
-                      M_fastest_teammate->pos().x, M_fastest_teammate->pos().y );
+                      M_first_teammate->unum(),
+                      M_first_teammate->pos().x, M_first_teammate->pos().y );
     }
 
     PlayerIntercept predictor( M_world, M_ball_cache );
@@ -529,7 +529,7 @@ InterceptTable::predictTeammate()
             if ( second_min_step < min_step )
             {
                 std::swap( min_step, second_min_step );
-                std::swap( M_fastest_teammate, M_second_teammate );
+                std::swap( M_first_teammate, M_second_teammate );
             }
         }
 
@@ -541,7 +541,7 @@ InterceptTable::predictTeammate()
         M_second_teammate_reach_step = second_min_step;
     }
 
-    if ( M_fastest_teammate && min_step < 1000 )
+    if ( M_first_teammate && min_step < 1000 )
     {
         M_teammate_reach_step = min_step;
     }
@@ -561,14 +561,14 @@ InterceptTable::predictOpponent()
     {
         M_opponent_reach_step = 0;
         min_step = 0;
-        M_fastest_opponent = M_world.kickableOpponent();
+        M_first_opponent = M_world.kickableOpponent();
 
         dlog.addText( Logger::INTERCEPT,
                       "Intercept Opponent. exist kickable opponent" );
         dlog.addText( Logger::INTERCEPT,
                       "---> set fastest opponent %d (%.1f %.1f)",
-                      M_fastest_opponent->unum(),
-                      M_fastest_opponent->pos().x, M_fastest_opponent->pos().y );
+                      M_first_opponent->unum(),
+                      M_first_opponent->pos().x, M_first_opponent->pos().y );
     }
 
     PlayerIntercept predictor( M_world, M_ball_cache );
@@ -616,7 +616,7 @@ InterceptTable::predictOpponent()
             if ( second_min_step < min_step )
             {
                 std::swap( min_step, second_min_step );
-                std::swap( M_fastest_opponent, M_second_opponent );
+                std::swap( M_first_opponent, M_second_opponent );
             }
         }
 
@@ -628,7 +628,7 @@ InterceptTable::predictOpponent()
         M_second_opponent_reach_step = second_min_step;
     }
 
-    if ( M_fastest_opponent && min_step < 1000 )
+    if ( M_first_opponent && min_step < 1000 )
     {
         M_opponent_reach_step = min_step;
     }

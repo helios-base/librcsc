@@ -197,7 +197,6 @@ public:
       \brief get estimated total turn steps
       \return the number of turn steps
     */
-    int turnCycle() const { return M_turn_step; }
     int turnStep() const { return M_turn_step; }
 
     /*!
@@ -210,14 +209,12 @@ public:
       \brief get estimated total dash cycles
       \return the number of dash steps
     */
-    int dashCycle() const { return M_dash_step; }
     int dashStep() const { return M_dash_step; }
 
     /*!
       \brief get esitimated total step to reach
       \return the number of total steps
     */
-    int reachCycle() const { return turnStep() + dashStep(); }
     int reachStep() const { return turnStep() + dashStep(); }
 
     /*!
@@ -301,11 +298,11 @@ private:
     int M_second_opponent_reach_step;
 
     //! const pointer to the fastest ball gettable teammate player object
-    const PlayerObject * M_fastest_teammate;
+    const PlayerObject * M_first_teammate;
     //! const pointer to the second fastest ball gettable teammate player object
     const PlayerObject * M_second_teammate;
     //! const pointer to the fastest ball gettable opponent player object
-    const PlayerObject * M_fastest_opponent;
+    const PlayerObject * M_first_opponent;
     //! const pointer to the second fastest ball gettable opponent player object
     const PlayerObject * M_second_opponent;
 
@@ -359,49 +356,42 @@ public:
       \brief get minimal ball gettable step for self without stamina exhaust
       \return step value to get the ball
     */
-    int selfReachCycle() const { return M_self_reach_step; }
     int selfReachStep() const { return M_self_reach_step; }
 
     /*!
       \brief get minimal ball gettable step for self with stamina exhaust
       \return step value to get the ball
     */
-    int selfExhaustReachCycle() const { return M_self_exhaust_reach_step; }
     int selfExhaustReachStep() const { return M_self_exhaust_reach_step; }
 
     /*!
       \brief get minimal ball gettable step for teammate
       \return step value to get the ball
     */
-    int teammateReachCycle() const { return M_teammate_reach_step; }
     int teammateReachStep() const { return M_teammate_reach_step; }
 
     /*!
       \brief get the ball access step for the second teammate
       \return step value to get the ball
     */
-    int secondTeammateReachCycle() const { return M_second_teammate_reach_step; }
     int secondTeammateReachStep() const { return M_second_teammate_reach_step; }
 
     /*!
       \brief get the ball access step for the teammate goalie
       \return step value to get the ball
     */
-    int goalieReachCycle() const { return M_goalie_reach_step; }
     int goalieReachStep() const { return M_goalie_reach_step; }
 
     /*!
       \brief get minimal ball gettable step for opponent
       \return step value to get the ball
     */
-    int opponentReachCycle() const { return M_opponent_reach_step; }
     int opponentReachStep() const { return M_opponent_reach_step; }
 
     /*!
       \brief get the ball access step for the second opponent
       \return step value to get the ball
     */
-    int secondOpponentReachCycle() const { return M_second_opponent_reach_step; }
     int secondOpponentReachStep() const { return M_second_opponent_reach_step; }
 
     /*!
@@ -409,8 +399,7 @@ public:
       \return const pointer to the PlayerObject.
       if not exist such a player, return NULL
     */
-    const PlayerObject * fastestTeammate() const { return M_fastest_teammate; }
-    const PlayerObject * firstTeammate() const { return M_fastest_teammate; }
+    const PlayerObject * firstTeammate() const { return M_first_teammate; }
 
     /*!
       \brief get the teammate object second fastest to the ball
@@ -424,8 +413,7 @@ public:
       \return const pointer to the PlayerObject.
       if not exist such a player, return NULL
     */
-    const PlayerObject * fastestOpponent() const { return M_fastest_opponent; }
-    const PlayerObject * firstOpponent() const { return M_fastest_opponent; }
+    const PlayerObject * firstOpponent() const { return M_first_opponent; }
 
     /*!
       \brief get the oppnent object second fastest to the ball

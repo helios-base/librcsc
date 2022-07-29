@@ -113,7 +113,7 @@ debug_print_results( const WorldModel & wm,
                       type_char( self_cache[i].actionType() ),
                       self_cache[i].reachCycle(),
                       self_cache[i].turnCycle(),
-                      self_cache[i].dashCycle(),
+                      self_cache[i].dashStep(),
                       self_cache[i].dashPower(),
                       self_cache[i].dashDir(),
                       self_cache[i].selfPos().x, self_cache[i].selfPos().y,
@@ -131,24 +131,24 @@ struct InterceptSorter {
     bool operator()( const InterceptInfo & lhs,
                      const InterceptInfo & rhs ) const
       {
-          if ( lhs.reachCycle() < rhs.reachCycle() )
+          if ( lhs.reachStep() < rhs.reachStep() )
           {
               return true;
           }
 
-          if ( lhs.reachCycle() > rhs.reachCycle() )
+          if ( lhs.reachStep() > rhs.reachStep() )
           {
               return false;
           }
 
           // reach steps are same
 
-          if ( lhs.turnCycle() < rhs.turnCycle() )
+          if ( lhs.turnStep() < rhs.turnStep() )
           {
               return true;
           }
 
-          if ( lhs.turnCycle() > rhs.turnCycle() )
+          if ( lhs.turnStep() > rhs.turnStep() )
           {
               return false;
           }
@@ -179,8 +179,8 @@ struct InterceptEqual {
       {
           return lhs.staminaType() == rhs.staminaType()
               && lhs.actionType() == rhs.actionType()
-              && lhs.turnCycle() == rhs.turnCycle()
-              && lhs.dashCycle() == rhs.dashCycle()
+              && lhs.turnStep() == rhs.turnStep()
+              && lhs.dashStep() == rhs.dashStep()
               && lhs.dashDir() == rhs.dashDir();
       }
 };
@@ -194,8 +194,8 @@ struct InterceptEqualSimple {
                      const InterceptInfo & rhs ) const
       {
           return lhs.actionType() == rhs.actionType()
-              && lhs.turnCycle() == rhs.turnCycle()
-              && lhs.dashCycle() == rhs.dashCycle();
+              && lhs.turnStep() == rhs.turnStep()
+              && lhs.dashStep() == rhs.dashStep();
       }
 };
 }
@@ -696,7 +696,7 @@ SelfInterceptSimulator::simulateOneDashOld( const WorldModel & wm,
 #ifdef DEBUG_PRINT_ONE_STEP
     dlog.addText( Logger::INTERCEPT,
                   "<<<<< 1 dash: best (t=%d d=%d) self_pos=(%.2f %.2f) ball_dist=%.3f stamina=%.1f",
-                  best->reachCycle(), best->turnCycle(), best->dashCycle(),
+                  best->reachStep(), best->turnStep(), best->dashStep(),
                   best->ballDist(),
                   best->selfPos().x, best->selfPos().y,
                   best->stamina() );
@@ -1115,7 +1115,7 @@ SelfInterceptSimulator::simulateTurnDash( const WorldModel & wm,
 #ifdef DEBUG_PRINT_TURN_DASH
             dlog.addText( Logger::INTERCEPT,
                           ">>>>> %d: (simulateTurnDash) OK turn=%d dash=%d",
-                          step, info.turnCycle(), info.dashCycle() );
+                          step, info.turnStep(), info.dashStep() );
 #endif
             self_cache.push_back( info );
             if ( ++success_count >= 10 )
