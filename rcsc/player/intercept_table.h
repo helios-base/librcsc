@@ -72,7 +72,12 @@ public:
         UNKNOWN_TYPE = 100,
     };
 
+    static const double MIN_VALUE;
+
 private:
+    int M_index; //!< index value in all candidates
+    double M_value; //!< evaluation value
+
     StaminaType M_stamina_type; //!< stamina type
     ActionType M_action_type; //!< action type
 
@@ -87,15 +92,15 @@ private:
     double M_ball_dist; //!< estimated final ball distance
     double M_stamina; //!< estimated final stamina value
 
-    double M_value; //!< evaluation value
-
 public:
 
     /*!
       \brief create invalid info
      */
     InterceptInfo()
-        : M_stamina_type( EXHAUST ),
+        : M_index( -1 ),
+          M_value( MIN_VALUE ),
+          M_stamina_type( EXHAUST ),
           M_action_type( UNKNOWN_TYPE ),
           M_turn_step( 10000 ),
           M_turn_angle( 0.0 ),
@@ -104,8 +109,7 @@ public:
           M_dash_dir( 0.0 ),
           M_self_pos( -10000.0, 0.0 ),
           M_ball_dist( 10000000.0 ),
-          M_stamina( 0.0 ),
-          M_value( 0.0 )
+          M_stamina( 0.0 )
       { }
 
     /*!
@@ -121,7 +125,9 @@ public:
                    const Vector2D & self_pos,
                    const double ball_dist,
                    const double stamina )
-        : M_stamina_type( stamina_type ),
+        : M_index( -1 ),
+          M_value( MIN_VALUE ),
+          M_stamina_type( stamina_type ),
           M_action_type( action_type ),
           M_turn_step( turn_step ),
           M_turn_angle( turn_angle ),
@@ -130,9 +136,20 @@ public:
           M_dash_dir( dash_dir ),
           M_self_pos( self_pos ),
           M_ball_dist( ball_dist ),
-          M_stamina( stamina ),
-          M_value( 0.0 )
+          M_stamina( stamina )
       { }
+
+    /*!
+      \brief set the evaluaion value with index count
+      \param idx index value
+      \param value evaluation value
+     */
+    void setValue( const int idx,
+                   const double value )
+    {
+        M_index = idx;
+        M_value = value;
+    }
 
     /*!
       \brief check if this object is legal one or not.
@@ -142,6 +159,21 @@ public:
       {
           return M_action_type != UNKNOWN_TYPE;
       }
+
+    int index() const
+    {
+        return M_index;
+    }
+
+
+    /*!
+      \brief get the evaluation value of this intercept candidate
+      \return evaluation value
+     */
+    double value() const
+    {
+        return M_value;
+    }
 
     /*!
       \brief get stamina type id
@@ -232,6 +264,7 @@ public:
       {
           return M_stamina;
       }
+
 };
 
 /*-------------------------------------------------------------------*/

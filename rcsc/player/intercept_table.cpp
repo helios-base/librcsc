@@ -46,6 +46,7 @@
 #include <rcsc/game_time.h>
 
 #include <algorithm>
+#include <limits>
 
 // #define DEBUG_PRINT
 
@@ -54,6 +55,8 @@ namespace rcsc {
 namespace {
 const int MAX_STEP = 50;
 }
+
+const double InterceptInfo::MIN_VALUE = -std::numeric_limits< double >::max();
 
 /*-------------------------------------------------------------------*/
 /*!
