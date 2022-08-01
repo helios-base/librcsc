@@ -273,9 +273,6 @@ public:
 class InterceptTable {
 private:
 
-    //! reference to the WorldModel instance
-    const WorldModel & M_world;
-
     //! last updated time
     GameTime M_update_time;
 
@@ -313,7 +310,6 @@ private:
     std::map< const AbstractPlayerObject *, int > M_player_map;
 
     // not used
-    InterceptTable() = delete;
     InterceptTable( const InterceptTable & ) = delete;
     InterceptTable & operator=( const InterceptTable & ) = delete;
 
@@ -321,8 +317,7 @@ public:
     /*!
       \brief init member variables, reserve cache vector memory
     */
-    explicit
-    InterceptTable( const WorldModel & world );
+    InterceptTable();
 
     /*!
       \brief destructor. nothing to do
@@ -332,24 +327,29 @@ public:
       { }
 
     /*!
-      \brief recreate all interception info
+      \brief update table information
+      \param wm const reference to the world model
     */
-    void update();
+    void update( const WorldModel & wm );
 
     /*!
-      \brief set teammate intercept info mainly by heard info
+      \brief update teammate intercept information by heard information
+      \param wm const reference to the world model
       \param unum uniform number
       \param step interception step
      */
-    void hearTeammate( const int unum,
+    void hearTeammate( const WorldModel & wm,
+                       const int unum,
                        const int step );
 
     /*!
-      \brief set opponent intercept info mainly by heard info
+      \brief update opponent intercept information by heard information
+      \param wm const reference to the world model
       \param unum uniform number
       \param step interception step
      */
-    void hearOpponent( const int unum,
+    void hearOpponent( const WorldModel & wm,
+                       const int unum,
                        const int step );
 
     /*!
@@ -448,23 +448,27 @@ private:
 
     /*!
       \brief create cache of future ball status
+      \param wm const reference to the world model
     */
-    void createBallCache();
+    void createBallCache( const WorldModel & wm );
 
     /*!
       \brief predict self interception
+      \param wm const reference to the world model
     */
-    void predictSelf();
+    void predictSelf( const WorldModel & wm );
 
     /*!
       \predict teammate interception
+      \param wm const reference to the world model
     */
-    void predictTeammate();
+    void predictTeammate( const WorldModel & wm );
 
     /*!
       \predict opponent interception
+      \param wm const reference to the world model
     */
-    void predictOpponent();
+    void predictOpponent( const WorldModel & wm );
 };
 
 }

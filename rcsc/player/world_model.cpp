@@ -356,7 +356,7 @@ const double WorldModel::DIR_STEP = 360.0 / static_cast< double >( DIR_CONF_DIVS
  */
 WorldModel::WorldModel()
     : M_localize( new LocalizationDefault() ),
-      M_intercept_table( new InterceptTable( *this ) ),
+      M_intercept_table( new InterceptTable() ),
       M_audio_memory( new AudioMemory() ),
       M_penalty_kick_state( new PenaltyKickState() ),
       M_our_side( NEUTRAL ),
@@ -5222,13 +5222,13 @@ void
 WorldModel::updateInterceptTable()
 {
     // update interception table
-    M_intercept_table->update();
+    M_intercept_table->update( *this );
 
     if ( M_audio_memory->ourInterceptTime() == time() )
     {
         for ( const AudioMemory::OurIntercept & v : M_audio_memory->ourIntercept() )
         {
-            M_intercept_table->hearTeammate( v.interceptor_, v.cycle_ );
+            M_intercept_table->hearTeammate( *this, v.interceptor_, v.cycle_ );
         }
     }
 
@@ -5237,7 +5237,7 @@ WorldModel::updateInterceptTable()
     {
         for ( const AudioMemory::OppIntercept & v : M_audio_memory->oppIntercept() )
         {
-            M_intercept_table->hearOpponent( v.interceptor_, v.cycle_ );
+            M_intercept_table->hearOpponent( *this, v.interceptor_, v.cycle_ );
         }
     }
 

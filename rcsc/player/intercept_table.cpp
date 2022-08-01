@@ -62,9 +62,8 @@ const double InterceptInfo::MIN_VALUE = -std::numeric_limits< double >::max();
 /*!
 
 */
-InterceptTable::InterceptTable( const WorldModel & world )
-    : M_world( world ),
-      M_update_time( 0, 0 )
+InterceptTable::InterceptTable()
+    : M_update_time( 0, 0 )
 {
     M_ball_cache.reserve( MAX_STEP );
     M_self_cache.reserve( ( MAX_STEP + 1 ) * 2 );
@@ -104,13 +103,13 @@ InterceptTable::clear()
 
 */
 void
-InterceptTable::update()
+InterceptTable::update( const WorldModel & wm )
 {
-    if ( M_world.time() == M_update_time )
+    if ( wm.time() == M_update_time )
     {
         return;
     }
-    M_update_time = M_world.time();
+    M_update_time = wm.time();
 
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::INTERCEPT,
@@ -122,14 +121,14 @@ InterceptTable::update()
     this->clear();
 
     // playmode check
-    if ( M_world.gameMode().type() == GameMode::TimeOver
-         || M_world.gameMode().type() == GameMode::BeforeKickOff )
+    if ( wm.gameMode().type() == GameMode::TimeOver
+         || wm.gameMode().type() == GameMode::BeforeKickOff )
     {
         return;
     }
 
-    if ( ! M_world.self().posValid()
-         || ! M_world.ball().posValid() )
+    if ( ! wm.self().posValid()
+         || ! wm.ball().posValid() )
     {
         dlog.addText( Logger::INTERCEPT,
                       __FILE__" (update) Invalid self or ball pos" );
@@ -137,37 +136,37 @@ InterceptTable::update()
     }
 
 #ifdef DEBUG
-    if ( M_world.self().isKickable()
-         || M_world.kickableTeammate()
-         || M_world.kickableOpponent() )
+    if ( wm.self().isKickable()
+         || wm.kickableTeammate()
+         || wm.kickableOpponent() )
     {
         dlog.addText( Logger::INTERCEPT,
                       __FILE__" (update) Already exist kickable player" );
     }
 #endif
 
-    createBallCache();
+    createBallCache( wm );
 
 #ifdef DEBUG
     dlog.addText( Logger::INTERCEPT,
                   "==========Intercept Predict Self==========" );
 #endif
 
-    predictSelf();
+    predictSelf( wm );
 
 #ifdef DEBUG
     dlog.addText( Logger::INTERCEPT,
                   "==========Intercept Predict Opponent==========" );
 #endif
 
-    predictOpponent();
+    predictOpponent( wm );
 
 #ifdef DEBUG
     dlog.addText( Logger::INTERCEPT,
                   "==========Intercept Predict Teammate==========" );
 #endif
 
-    predictTeammate();
+    predictTeammate( wm );
 
     dlog.addText( Logger::INTERCEPT,
                   "<-----Intercept Self reach step = %d. exhaust reach step = %d ",
@@ -229,7 +228,8 @@ InterceptTable::update()
 
 */
 void
-InterceptTable::hearTeammate( const int unum,
+InterceptTable::hearTeammate( const WorldModel & wm,
+                              const int unum,
                               const int step )
 {
     if ( M_first_teammate
@@ -239,7 +239,7 @@ InterceptTable::hearTeammate( const int unum,
     }
 
     const PlayerObject * target = nullptr;
-    for ( const PlayerObject * t : M_world.teammates() )
+    for ( const PlayerObject * t : wm.teammates() )
     {
         if ( t->unum() == unum )
         {
@@ -270,7 +270,8 @@ InterceptTable::hearTeammate( const int unum,
 
 */
 void
-InterceptTable::hearOpponent( const int unum,
+InterceptTable::hearOpponent( const WorldModel & wm,
+                              const int unum,
                               const int step )
 {
     if ( M_first_opponent )
@@ -299,7 +300,7 @@ InterceptTable::hearOpponent( const int unum,
 
     const PlayerObject * p = nullptr;
 
-    for ( const PlayerObject * i : M_world.opponents() )
+    for ( const PlayerObject * i : wm.opponents() )
     {
         if ( i->unum() == unum )
         {
@@ -331,7 +332,7 @@ InterceptTable::hearOpponent( const int unum,
 
 */
 void
-InterceptTable::createBallCache()
+InterceptTable::createBallCache( const WorldModel & wm )
 {
     const ServerParam & SP = ServerParam::i();
     const double max_x = ( SP.keepawayMode()
@@ -342,12 +343,12 @@ InterceptTable::createBallCache()
                            : SP.pitchHalfWidth() + 5.0 );
     const double bdecay = SP.ballDecay();
 
-    Vector2D bpos = M_world.ball().pos();
-    Vector2D bvel = ( M_world.kickableOpponent()
-                      //|| M_world.kickableTeammate()
+    Vector2D bpos = wm.ball().pos();
+    Vector2D bvel = ( wm.kickableOpponent()
+                      //|| wm.kickableTeammate()
                       )
         ? Vector2D( 0.0, 0.0 )
-        : M_world.ball().vel();
+        : wm.ball().vel();
     double bspeed = bvel.r();
 
     for ( int i = 0; i < MAX_STEP; ++i )
@@ -383,9 +384,9 @@ InterceptTable::createBallCache()
 
 */
 void
-InterceptTable::predictSelf()
+InterceptTable::predictSelf( const WorldModel & wm )
 {
-    if ( M_world.self().isKickable() )
+    if ( wm.self().isKickable() )
     {
         dlog.addText( Logger::INTERCEPT,
                       "Intercept Self. already kickable. no estimation loop!" );
@@ -396,15 +397,15 @@ InterceptTable::predictSelf()
 
     int max_step = std::min( MAX_STEP, static_cast< int >( M_ball_cache.size() ) );
 
-    // SelfInterceptV13 predictor( M_world );
+    // SelfInterceptV13 predictor( wm );
     // predictor.predict( max_step, M_self_cache );
     SelfInterceptSimulator sim;
-    sim.simulate( M_world, max_step, M_self_cache );
+    sim.simulate( wm, max_step, M_self_cache );
 
     if ( M_self_cache.empty() )
     {
-        std::cerr << M_world.self().unum() << ' '
-                  << M_world.time()
+        std::cerr << wm.self().unum() << ' '
+                  << wm.time()
                   << " Interecet Self cache is empty!"
                   << std::endl;
         dlog.addText( Logger::INTERCEPT,
@@ -452,7 +453,7 @@ InterceptTable::predictSelf()
     M_self_reach_step = min_step;
     M_self_exhaust_reach_step = exhaust_min_step;
 
-    //M_player_map.insert( std::pair< const AbstractPlayerObject *, int >( &(M_world.self()), min_step ) );
+    //M_player_map.insert( std::pair< const AbstractPlayerObject *, int >( &(wm.self()), min_step ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -460,16 +461,16 @@ InterceptTable::predictSelf()
 
 */
 void
-InterceptTable::predictTeammate()
+InterceptTable::predictTeammate( const WorldModel & wm )
 {
     int min_step = 1000;
     int second_min_step = 1000;
 
-    if ( M_world.kickableTeammate() )
+    if ( wm.kickableTeammate() )
     {
         M_teammate_reach_step = 0;
         min_step = 0;
-        M_first_teammate = M_world.kickableTeammate();
+        M_first_teammate = wm.kickableTeammate();
 
         dlog.addText( Logger::INTERCEPT,
                       "Intercept Teammate. exist kickable teammate" );
@@ -479,11 +480,11 @@ InterceptTable::predictTeammate()
                       M_first_teammate->pos().x, M_first_teammate->pos().y );
     }
 
-    PlayerIntercept predictor( M_world, M_ball_cache );
+    PlayerIntercept predictor( wm, M_ball_cache );
 
-    for ( const PlayerObject * t : M_world.teammatesFromBall() )
+    for ( const PlayerObject * t : wm.teammatesFromBall() )
     {
-        if ( t == M_world.kickableTeammate() )
+        if ( t == wm.kickableTeammate() )
         {
             M_player_map[ t ] = 0;
             continue;
@@ -552,16 +553,16 @@ InterceptTable::predictTeammate()
 
 */
 void
-InterceptTable::predictOpponent()
+InterceptTable::predictOpponent( const WorldModel & wm )
 {
     int min_step = 1000;
     int second_min_step = 1000;
 
-    if ( M_world.kickableOpponent() )
+    if ( wm.kickableOpponent() )
     {
         M_opponent_reach_step = 0;
         min_step = 0;
-        M_first_opponent = M_world.kickableOpponent();
+        M_first_opponent = wm.kickableOpponent();
 
         dlog.addText( Logger::INTERCEPT,
                       "Intercept Opponent. exist kickable opponent" );
@@ -571,11 +572,11 @@ InterceptTable::predictOpponent()
                       M_first_opponent->pos().x, M_first_opponent->pos().y );
     }
 
-    PlayerIntercept predictor( M_world, M_ball_cache );
+    PlayerIntercept predictor( wm, M_ball_cache );
 
-    for ( const PlayerObject * o : M_world.opponentsFromBall() )
+    for ( const PlayerObject * o : wm.opponentsFromBall() )
     {
-        if ( o == M_world.kickableOpponent() )
+        if ( o == wm.kickableOpponent() )
         {
             M_player_map[ o ] = 0;
             continue;
