@@ -37,6 +37,7 @@
 #include <rcsc/player/player_object.h>
 #include <rcsc/player/view_area.h>
 #include <rcsc/player/view_grid_map.h>
+#include <rcsc/player/intercept_table.h>
 
 #include <rcsc/time/timer.h>
 #include <rcsc/geom/vector_2d.h>
@@ -53,7 +54,6 @@ class AudioMemory;
 class ActionEffector;
 class BodySensor;
 class FullstateSensor;
-class InterceptTable;
 class Localization;
 class PenaltyKickState;
 class PlayerPredicate;
@@ -79,7 +79,7 @@ public:
 private:
 
     std::shared_ptr< Localization > M_localize; //!< localization module
-    InterceptTable * M_intercept_table; //!< interception info table
+    InterceptTable M_intercept_table; //!< interception info table
     std::shared_ptr< AudioMemory > M_audio_memory; //!< heard deqinfo memory
     PenaltyKickState * M_penalty_kick_state; //!< penalty kick mode status
 
@@ -244,7 +244,10 @@ public:
       \brief get intercept table
       \return const pointer to the intercept table instance
     */
-    const InterceptTable * interceptTable() const;
+    const InterceptTable & interceptTable() const
+    {
+        return M_intercept_table;
+    }
 
     /*!
       \brief get penalty kick state

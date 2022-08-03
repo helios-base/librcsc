@@ -41,7 +41,6 @@
 #include "visual_sensor.h"
 #include "fullstate_sensor.h"
 #include "debug_client.h"
-#include "intercept_table.h"
 #include "penalty_kick_state.h"
 #include "player_command.h"
 #include "player_predicate.h"
@@ -356,7 +355,7 @@ const double WorldModel::DIR_STEP = 360.0 / static_cast< double >( DIR_CONF_DIVS
  */
 WorldModel::WorldModel()
     : M_localize( new LocalizationDefault() ),
-      M_intercept_table( new InterceptTable() ),
+      M_intercept_table(),
       M_audio_memory( new AudioMemory() ),
       M_penalty_kick_state( new PenaltyKickState() ),
       M_our_side( NEUTRAL ),
@@ -397,7 +396,6 @@ WorldModel::WorldModel()
       M_last_kicker_unum( Unum_Unknown ),
       M_view_area_cont( MAX_RECORD, ViewArea() )
 {
-    assert( M_intercept_table );
     assert( M_penalty_kick_state );
 
     for ( int i = 0; i < 11; ++i )
@@ -426,12 +424,6 @@ WorldModel::WorldModel()
  */
 WorldModel::~WorldModel()
 {
-    if ( M_intercept_table )
-    {
-        delete M_intercept_table;
-        M_intercept_table = nullptr;
-    }
-
     if ( M_penalty_kick_state )
     {
         delete M_penalty_kick_state;
@@ -506,17 +498,6 @@ void
 WorldModel::setValid( bool is_valid )
 {
     M_valid = is_valid;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-const
-InterceptTable *
-WorldModel::interceptTable() const
-{
-    return M_intercept_table;
 }
 
 /*-------------------------------------------------------------------*/
@@ -2099,9 +2080,9 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
     estimateMaybeKickableTeammate();
 
     M_self.updateKickableState( M_ball,
-                                M_intercept_table->selfReachStep(),
-                                M_intercept_table->teammateReachStep(),
-                                M_intercept_table->opponentReachStep() );
+                                interceptTable().selfReachStep(),
+                                interceptTable().teammateReachStep(),
+                                interceptTable().opponentReachStep() );
 }
 
 /*-------------------------------------------------------------------*/
@@ -4186,7 +4167,7 @@ WorldModel::estimateMaybeKickableTeammate()
         {
             dlog.addText( Logger::WORLD,
                           __FILE__":(estimateMaybeKickableTeammate) heard pass kick" );
-            s_previous_teammate_step = this->interceptTable()->teammateReachStep();
+            s_previous_teammate_step = this->interceptTable().teammateReachStep();
             s_previous_time = this->time();
             M_maybe_kickable_teammate = nullptr;
             return;
@@ -4205,7 +4186,7 @@ WorldModel::estimateMaybeKickableTeammate()
         }
     }
 
-    s_previous_teammate_step = this->interceptTable()->teammateReachStep();
+    s_previous_teammate_step = this->interceptTable().teammateReachStep();
     s_previous_time = this->time();
 
     dlog.addText( Logger::WORLD,
@@ -4328,9 +4309,9 @@ WorldModel::updateOffsideLine()
 
 #if 1
     // add 2013-06-18
-    Vector2D ball_pos = ball().inertiaPoint( std::min( interceptTable()->selfReachStep(),
-                                                       std::min( interceptTable()->teammateReachStep(),
-                                                                 interceptTable()->opponentReachStep() ) ) );
+    Vector2D ball_pos = ball().inertiaPoint( std::min( interceptTable().selfReachStep(),
+                                                       std::min( interceptTable().teammateReachStep(),
+                                                                 interceptTable().opponentReachStep() ) ) );
     if ( ball_pos.x > new_line )
     {
         new_line = ball_pos.x;
@@ -5222,13 +5203,13 @@ void
 WorldModel::updateInterceptTable()
 {
     // update interception table
-    M_intercept_table->update( *this );
+    M_intercept_table.update( *this );
 
     if ( M_audio_memory->ourInterceptTime() == time() )
     {
         for ( const AudioMemory::OurIntercept & v : M_audio_memory->ourIntercept() )
         {
-            M_intercept_table->hearTeammate( *this, v.interceptor_, v.cycle_ );
+            M_intercept_table.hearTeammate( *this, v.interceptor_, v.cycle_ );
         }
     }
 
@@ -5237,14 +5218,14 @@ WorldModel::updateInterceptTable()
     {
         for ( const AudioMemory::OppIntercept & v : M_audio_memory->oppIntercept() )
         {
-            M_intercept_table->hearOpponent( *this, v.interceptor_, v.cycle_ );
+            M_intercept_table.hearOpponent( *this, v.interceptor_, v.cycle_ );
         }
     }
 
-    M_self.setBallReachStep( std::min( M_intercept_table->selfReachStep(),
-                                       M_intercept_table->selfReachStep() ) );
+    M_self.setBallReachStep( std::min( interceptTable().selfReachStep(),
+                                       interceptTable().selfReachStep() ) );
 
-    const std::map< const AbstractPlayerObject *, int > & m = M_intercept_table->playerMap();
+    const std::map< const AbstractPlayerObject *, int > & m = interceptTable().playerMap();
 
     for ( PlayerObject & p : M_teammates )
     {
