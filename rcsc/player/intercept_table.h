@@ -280,19 +280,19 @@ private:
     std::vector< Vector2D > M_ball_cache;
 
     //! predicted min reach step for self without stamina exhaust
-    int M_self_reach_step;
+    int M_self_step;
     //! predicted min reach step for self with stamina exhaust
-    int M_self_exhaust_reach_step;
+    int M_self_exhaust_step;
     //! predicted min reach step for teammate
-    int M_teammate_reach_step;
+    int M_teammate_step;
     //! predicted reach step for second fastest teammate
-    int M_second_teammate_reach_step;
+    int M_second_teammate_step;
     //! predicted min reach step for teammate goalie
-    int M_goalie_reach_step;
+    int M_goalie_step;
     //! predicted min reach step for opponent
-    int M_opponent_reach_step;
+    int M_opponent_step;
     //! predicted reach step for second fastest opponent
-    int M_second_opponent_reach_step;
+    int M_second_opponent_step;
 
     //! const pointer to the fastest ball gettable teammate player object
     const PlayerObject * M_first_teammate;
@@ -356,43 +356,43 @@ public:
       \brief get minimal ball gettable step for self without stamina exhaust
       \return step value to get the ball
     */
-    int selfReachStep() const { return M_self_reach_step; }
+    int selfStep() const { return M_self_step; }
 
     /*!
       \brief get minimal ball gettable step for self with stamina exhaust
       \return step value to get the ball
     */
-    int selfExhaustReachStep() const { return M_self_exhaust_reach_step; }
+    int selfExhaustStep() const { return M_self_exhaust_step; }
 
     /*!
       \brief get minimal ball gettable step for teammate
       \return step value to get the ball
     */
-    int teammateReachStep() const { return M_teammate_reach_step; }
+    int teammateStep() const { return M_teammate_step; }
 
     /*!
       \brief get the ball access step for the second teammate
       \return step value to get the ball
     */
-    int secondTeammateReachStep() const { return M_second_teammate_reach_step; }
+    int secondTeammateStep() const { return M_second_teammate_step; }
 
     /*!
       \brief get the ball access step for the teammate goalie
       \return step value to get the ball
     */
-    int goalieReachStep() const { return M_goalie_reach_step; }
+    int goalieStep() const { return M_goalie_step; }
 
     /*!
       \brief get minimal ball gettable step for opponent
       \return step value to get the ball
     */
-    int opponentReachStep() const { return M_opponent_reach_step; }
+    int opponentStep() const { return M_opponent_step; }
 
     /*!
       \brief get the ball access step for the second opponent
       \return step value to get the ball
     */
-    int secondOpponentReachStep() const { return M_second_opponent_reach_step; }
+    int secondOpponentStep() const { return M_second_opponent_step; }
 
     /*!
       \brief get the teammate object fastest to the ball

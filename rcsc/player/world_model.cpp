@@ -2080,9 +2080,9 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
     estimateMaybeKickableTeammate();
 
     M_self.updateKickableState( M_ball,
-                                interceptTable().selfReachStep(),
-                                interceptTable().teammateReachStep(),
-                                interceptTable().opponentReachStep() );
+                                interceptTable().selfStep(),
+                                interceptTable().teammateStep(),
+                                interceptTable().opponentStep() );
 }
 
 /*-------------------------------------------------------------------*/
@@ -4167,7 +4167,7 @@ WorldModel::estimateMaybeKickableTeammate()
         {
             dlog.addText( Logger::WORLD,
                           __FILE__":(estimateMaybeKickableTeammate) heard pass kick" );
-            s_previous_teammate_step = this->interceptTable().teammateReachStep();
+            s_previous_teammate_step = this->interceptTable().teammateStep();
             s_previous_time = this->time();
             M_maybe_kickable_teammate = nullptr;
             return;
@@ -4179,14 +4179,14 @@ WorldModel::estimateMaybeKickableTeammate()
         {
             dlog.addText( Logger::WORLD,
                           __FILE__":(estimateMaybeKickableTeammate) found" );
-            s_previous_teammate_step = 1; //this->interceptTable()->teammateReachStep();
+            s_previous_teammate_step = 1; //this->interceptTable().teammateStep();
             s_previous_time = this->time();
             M_maybe_kickable_teammate = t;
             return;
         }
     }
 
-    s_previous_teammate_step = this->interceptTable().teammateReachStep();
+    s_previous_teammate_step = this->interceptTable().teammateStep();
     s_previous_time = this->time();
 
     dlog.addText( Logger::WORLD,
@@ -4309,9 +4309,10 @@ WorldModel::updateOffsideLine()
 
 #if 1
     // add 2013-06-18
-    Vector2D ball_pos = ball().inertiaPoint( std::min( interceptTable().selfReachStep(),
-                                                       std::min( interceptTable().teammateReachStep(),
-                                                                 interceptTable().opponentReachStep() ) ) );
+    Vector2D ball_pos = ball().inertiaPoint( std::min( {
+                interceptTable().selfStep(),
+                interceptTable().teammateStep(),
+                interceptTable().opponentStep() } ) );
     if ( ball_pos.x > new_line )
     {
         new_line = ball_pos.x;
@@ -5222,8 +5223,8 @@ WorldModel::updateInterceptTable()
         }
     }
 
-    M_self.setBallReachStep( std::min( interceptTable().selfReachStep(),
-                                       interceptTable().selfReachStep() ) );
+    M_self.setBallReachStep( std::min( interceptTable().selfStep(),
+                                       interceptTable().selfExhaustStep() ) );
 
     const std::map< const AbstractPlayerObject *, int > & m = interceptTable().playerMap();
 
