@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file player_intercept.h
-  \brief intercept predictor for other players Header File
+  \file intercept_simulator_player.h
+  \brief intercept simulator for other players Header File
 */
 
 /*
@@ -29,8 +29,8 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_PLAYER_PLAYER_INTERCEPT_H
-#define RCSC_PLAYER_PLAYER_INTERCEPT_H
+#ifndef RCSC_PLAYER_INTERCEPT_SIMULATOR_PLAYER_H
+#define RCSC_PLAYER_INTERCEPT_SIMULATOR_PLAYER_H
 
 #include <rcsc/geom/vector_2d.h>
 #include <vector>
@@ -43,10 +43,10 @@ class PlayerObject;
 class WorldModel;
 
 /*!
-  \class PlayerIntercept
-  \brief intercept predictor for other players
+  \class InterceptSimulatorPlayer
+  \brief intercept simulator for other players
 */
-class PlayerIntercept {
+class InterceptSimulatorPlayer {
 private:
 
     /*!
@@ -91,7 +91,7 @@ private:
     const AngleDeg M_ball_move_angle;
 
     // not used
-    PlayerIntercept() = delete;
+    InterceptSimulatorPlayer() = delete;
 
 public:
 
@@ -100,13 +100,13 @@ public:
       \param world const reference to the WormdModel instance
       \param ball_pos_cache const reference to the ball position container
     */
-    PlayerIntercept( const WorldModel & world,
-                     const std::vector< Vector2D > & ball_cache );
+    InterceptSimulatorPlayer( const WorldModel & world,
+                              const std::vector< Vector2D > & ball_cache );
 
     /*!
       \brief destructor. nothing to do
     */
-    ~PlayerIntercept()
+    ~InterceptSimulatorPlayer()
       { }
 
     //////////////////////////////////////////////////////////
@@ -117,8 +117,8 @@ public:
       \param max_cycle max predict cycle. estimation loop is limited to this value.
       \return predicted cycle value
     */
-    int predict( const PlayerObject & player,
-                 const bool goalie ) const;
+    int simulate( const PlayerObject & player,
+                  const bool goalie ) const;
 
 private:
 

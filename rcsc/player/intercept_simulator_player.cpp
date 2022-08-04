@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file player_intercept.cpp
-  \brief intercept predictor for other players Source File
+  \file intercept_simulator_player.cpp
+  \brief intercept simulator for other players Source File
 */
 
 /*
@@ -33,7 +33,8 @@
 #include <config.h>
 #endif
 
-#include "player_intercept.h"
+#include "intercept_simulator_player.h"
+
 #include "world_model.h"
 #include "ball_object.h"
 #include "player_object.h"
@@ -117,10 +118,10 @@ get_penalty_step( const PlayerObject & p )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 inline
 Vector2D
-PlayerIntercept::PlayerData::inertiaPoint( const int step ) const
+InterceptSimulatorPlayer::PlayerData::inertiaPoint( const int step ) const
 {
     return ptype_.inertiaPoint( pos_, vel_, step + bonus_step_ );
 }
@@ -128,9 +129,9 @@ PlayerIntercept::PlayerData::inertiaPoint( const int step ) const
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
-PlayerIntercept::PlayerIntercept( const WorldModel & world,
-                                  const std::vector< Vector2D > & ball_cache )
+ */
+InterceptSimulatorPlayer::InterceptSimulatorPlayer( const WorldModel & world,
+                                                    const std::vector< Vector2D > & ball_cache )
     : M_world( world ),
       M_ball_cache( ball_cache ),
       M_ball_move_angle( ( ball_cache.back() - ball_cache.front() ).th() )
@@ -141,10 +142,10 @@ PlayerIntercept::PlayerIntercept( const WorldModel & world,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 int
-PlayerIntercept::predict( const PlayerObject & player,
-                          const bool goalie ) const
+InterceptSimulatorPlayer::simulate( const PlayerObject & player,
+                                    const bool goalie ) const
 {
     const PlayerType * ptype = player.playerTypePtr();
 
@@ -203,7 +204,7 @@ PlayerIntercept::predict( const PlayerObject & player,
              && ( ball_pos.absX() < pen_area_x
                   || pen_area_y < ball_pos.absY() ) )
         {
-           // never reach
+            // never reach
 #ifdef DEBUG2
             dlog.addText( Logger::INTERCEPT,
                           "--->cycle=%d goalie. out of penalty area. ball(%.2f %.2f)",
@@ -258,9 +259,9 @@ PlayerIntercept::predict( const PlayerObject & player,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 int
-PlayerIntercept::estimateMinStep( const PlayerData & data ) const
+InterceptSimulatorPlayer::estimateMinStep( const PlayerData & data ) const
 {
     Vector2D rel = data.pos_ - M_ball_cache.front();
     rel.rotate( - M_ball_move_angle );
@@ -273,19 +274,19 @@ PlayerIntercept::estimateMinStep( const PlayerData & data ) const
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 bool
-PlayerIntercept::canReachAfterTurnDash( const PlayerData & data,
-                                        const Vector2D & ball_pos,
-                                        const int total_step ) const
+InterceptSimulatorPlayer::canReachAfterTurnDash( const PlayerData & data,
+                                                 const Vector2D & ball_pos,
+                                                 const int total_step ) const
 {
     /*
       TODO
       if ( canReachAfterOmniDash() )
       {
-          return true;
+      return true;
       }
-     */
+    */
 
     int n_turn = predictTurnCycle( data, ball_pos, total_step );
 #ifdef DEBUG2
@@ -309,11 +310,11 @@ PlayerIntercept::canReachAfterTurnDash( const PlayerData & data,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 int
-PlayerIntercept::predictTurnCycle( const PlayerData & data,
-                                   const Vector2D & ball_pos,
-                                   const int total_step ) const
+InterceptSimulatorPlayer::predictTurnCycle( const PlayerData & data,
+                                            const Vector2D & ball_pos,
+                                            const int total_step ) const
 {
     Vector2D inertia_pos = data.inertiaPoint( total_step );
     Vector2D ball_rel = ball_pos - inertia_pos;
@@ -358,12 +359,12 @@ PlayerIntercept::predictTurnCycle( const PlayerData & data,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 bool
-PlayerIntercept::canReachAfterDash( const PlayerData & data,
-                                    const Vector2D & ball_pos,
-                                    const int total_step,
-                                    const int n_turn ) const
+InterceptSimulatorPlayer::canReachAfterDash( const PlayerData & data,
+                                             const Vector2D & ball_pos,
+                                             const int total_step,
+                                             const int n_turn ) const
 {
     Vector2D inertia_pos = data.inertiaPoint( total_step );
     Vector2D ball_rel = ball_pos - inertia_pos;
@@ -407,9 +408,9 @@ PlayerIntercept::canReachAfterDash( const PlayerData & data,
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 int
-PlayerIntercept::predictFinal( const PlayerData & data ) const
+InterceptSimulatorPlayer::predictFinal( const PlayerData & data ) const
 {
     Vector2D ball_pos = M_ball_cache.back();
     int ball_step = M_ball_cache.size() - 1;

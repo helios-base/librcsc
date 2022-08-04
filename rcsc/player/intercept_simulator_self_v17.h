@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file self_intercept_simulator.h
-  \brief self intercept simulator for creating candidate intercept actions
+  \file intercept_simulator_self_v17.h
+  \brief intercept simulator for self
 */
 
 /*
@@ -29,8 +29,8 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_PLAYER_SELF_INTERCEPT_SIMULATOR_H
-#define RCSC_PLAYER_SELF_INTERCEPT_SIMULATOR_H
+#ifndef RCSC_PLAYER_INTERCEPT_SIMULATOR_SELF_V17H
+#define RCSC_PLAYER_INTERCEPT_SIMULATOR_SELF_V17H
 
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/geom/vector_2d.h>
@@ -38,13 +38,12 @@
 
 namespace rcsc {
 
-
 class BallObject;
 class SelfObject;
 class WorldModel;
 class StaminaModel;
 
-class SelfInterceptSimulator {
+class InterceptSimulatorSelfV17 {
 private:
 
     Vector2D M_ball_vel;
@@ -54,8 +53,7 @@ public:
     /*!
       \brief simulate self interception, and store the results to self_cache
       \param max_step max estimation cycle
-      \param self_cache reference to the interception info container
-      to store the result
+      \param self_cache reference to the interception info container to store the results
     */
     void simulate( const WorldModel & wm,
                    const int max_step,

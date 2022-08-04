@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file self_intercept_simulator.cpp
-  \brief self intercept simulator for creating candidate intercept actions
+  \file intercept_simulator_selv_v17.cpp
+  \brief intercept simulator for self
 */
 
 /*
@@ -34,7 +34,7 @@
 #include <config.h>
 #endif
 
-#include "self_intercept_simulator.h"
+#include "intercept_simulator_self_v17.h"
 
 #include "ball_object.h"
 #include "self_object.h"
@@ -97,7 +97,7 @@ debug_print_results( const WorldModel & wm,
                      const std::vector< InterceptInfo > & self_cache )
 {
     dlog.addText( Logger::INTERCEPT,
-                        "(SelfIntercept) solution size = %zd kickable=%.3f catchable=%.3f:%.3f",
+                  "(SelfIntercept) solution size = %zd kickable=%.3f catchable=%.3f:%.3f",
                   self_cache.size(),
                   wm.self().playerType().kickableArea(),
                   wm.self().playerType().reliableCatchableDist(),
@@ -130,43 +130,43 @@ debug_print_results( const WorldModel & wm,
 struct InterceptSorter {
     bool operator()( const InterceptInfo & lhs,
                      const InterceptInfo & rhs ) const
-      {
-          if ( lhs.reachStep() < rhs.reachStep() )
-          {
-              return true;
-          }
+    {
+        if ( lhs.reachStep() < rhs.reachStep() )
+        {
+            return true;
+        }
 
-          if ( lhs.reachStep() > rhs.reachStep() )
-          {
-              return false;
-          }
+        if ( lhs.reachStep() > rhs.reachStep() )
+        {
+            return false;
+        }
 
-          // reach steps are same
+        // reach steps are same
 
-          if ( lhs.turnStep() < rhs.turnStep() )
-          {
-              return true;
-          }
+        if ( lhs.turnStep() < rhs.turnStep() )
+        {
+            return true;
+        }
 
-          if ( lhs.turnStep() > rhs.turnStep() )
-          {
-              return false;
-          }
+        if ( lhs.turnStep() > rhs.turnStep() )
+        {
+            return false;
+        }
 
-          // turn steps are same
+        // turn steps are same
 
-          // if ( lhs.type() < rhs.type() )
-          // {
-          //     return true;
-          // }
+        // if ( lhs.type() < rhs.type() )
+        // {
+        //     return true;
+        // }
 
-          if ( std::fabs( lhs.stamina() - rhs.stamina() ) < 200.0 )
-          {
-              return lhs.ballDist() < rhs.ballDist();
-          }
+        if ( std::fabs( lhs.stamina() - rhs.stamina() ) < 200.0 )
+        {
+            return lhs.ballDist() < rhs.ballDist();
+        }
 
-          return lhs.stamina() > rhs.stamina();
-      }
+        return lhs.stamina() > rhs.stamina();
+    }
 };
 
 /*-------------------------------------------------------------------*/
@@ -176,13 +176,13 @@ struct InterceptSorter {
 struct InterceptEqual {
     bool operator()( const InterceptInfo & lhs,
                      const InterceptInfo & rhs ) const
-      {
-          return lhs.staminaType() == rhs.staminaType()
-              && lhs.actionType() == rhs.actionType()
-              && lhs.turnStep() == rhs.turnStep()
-              && lhs.dashStep() == rhs.dashStep()
-              && lhs.dashDir() == rhs.dashDir();
-      }
+    {
+        return lhs.staminaType() == rhs.staminaType()
+            && lhs.actionType() == rhs.actionType()
+            && lhs.turnStep() == rhs.turnStep()
+            && lhs.dashStep() == rhs.dashStep()
+            && lhs.dashDir() == rhs.dashDir();
+    }
 };
 
 /*-------------------------------------------------------------------*/
@@ -192,11 +192,11 @@ struct InterceptEqual {
 struct InterceptEqualSimple {
     bool operator()( const InterceptInfo & lhs,
                      const InterceptInfo & rhs ) const
-      {
-          return lhs.actionType() == rhs.actionType()
-              && lhs.turnStep() == rhs.turnStep()
-              && lhs.dashStep() == rhs.dashStep();
-      }
+    {
+        return lhs.actionType() == rhs.actionType()
+            && lhs.turnStep() == rhs.turnStep()
+            && lhs.dashStep() == rhs.dashStep();
+    }
 };
 }
 
@@ -205,9 +205,9 @@ struct InterceptEqualSimple {
 
  */
 void
-SelfInterceptSimulator::simulate( const WorldModel & wm,
-                                  const int max_step,
-                                  std::vector< InterceptInfo > & self_cache )
+InterceptSimulatorSelfV17::simulate( const WorldModel & wm,
+                                     const int max_step,
+                                     std::vector< InterceptInfo > & self_cache )
 {
 #ifdef DEBUG_PROFILE
     rcsc::Timer timer;
@@ -260,8 +260,8 @@ SelfInterceptSimulator::simulate( const WorldModel & wm,
 
  */
 void
-SelfInterceptSimulator::simulateOneStep( const WorldModel & wm,
-                                         std::vector< InterceptInfo > & self_cache )
+InterceptSimulatorSelfV17::simulateOneStep( const WorldModel & wm,
+                                            std::vector< InterceptInfo > & self_cache )
 {
     const Vector2D ball_next = wm.ball().pos() + ballVel();
     const bool goalie_mode
@@ -302,8 +302,8 @@ SelfInterceptSimulator::simulateOneStep( const WorldModel & wm,
 
  */
 bool
-SelfInterceptSimulator::simulateNoDash( const WorldModel & wm,
-                                        std::vector< InterceptInfo > & self_cache )
+InterceptSimulatorSelfV17::simulateNoDash( const WorldModel & wm,
+                                           std::vector< InterceptInfo > & self_cache )
 {
     const PlayerType & ptype = wm.self().playerType();
 
@@ -402,8 +402,8 @@ SelfInterceptSimulator::simulateNoDash( const WorldModel & wm,
 
  */
 void
-SelfInterceptSimulator::simulateOneDash( const WorldModel & wm,
-                                         std::vector< InterceptInfo > & self_cache )
+InterceptSimulatorSelfV17::simulateOneDash( const WorldModel & wm,
+                                            std::vector< InterceptInfo > & self_cache )
 {
     simulateOneDashOld( wm, self_cache );
     // if ( ServerParam::i().minDashPower() < ServerParam::i().maxDashPower() * -0.7 )
@@ -419,8 +419,8 @@ SelfInterceptSimulator::simulateOneDash( const WorldModel & wm,
 
 /*-------------------------------------------------------------------*/
 void
-SelfInterceptSimulator::simulateOneDashAnyDir( const WorldModel & wm,
-                                               std::vector< InterceptInfo > & self_cache )
+InterceptSimulatorSelfV17::simulateOneDashAnyDir( const WorldModel & wm,
+                                                  std::vector< InterceptInfo > & self_cache )
 {
     const ServerParam & SP = ServerParam::i();
     const PlayerType & ptype = wm.self().playerType();
@@ -550,8 +550,8 @@ SelfInterceptSimulator::simulateOneDashAnyDir( const WorldModel & wm,
 
  */
 void
-SelfInterceptSimulator::simulateOneDashOld( const WorldModel & wm,
-                                            std::vector< InterceptInfo > & self_cache )
+InterceptSimulatorSelfV17::simulateOneDashOld( const WorldModel & wm,
+                                               std::vector< InterceptInfo > & self_cache )
 {
     const ServerParam & SP = ServerParam::i();
     const PlayerType & ptype = wm.self().playerType();
@@ -569,8 +569,8 @@ SelfInterceptSimulator::simulateOneDashOld( const WorldModel & wm,
 
     const double dash_angle_step = std::max( 2.0, SP.dashAngleStep() );
     const size_t dash_angle_divs
-        = static_cast< size_t >( std::floor( ( SP.maxDashAngle() - SP.minDashAngle() )
-                                             / dash_angle_step ) );
+                             = static_cast< size_t >( std::floor( ( SP.maxDashAngle() - SP.minDashAngle() )
+                                                                  / dash_angle_step ) );
 
     std::vector< InterceptInfo > tmp_cache;
     tmp_cache.reserve( dash_angle_divs );
@@ -710,11 +710,11 @@ SelfInterceptSimulator::simulateOneDashOld( const WorldModel & wm,
 
  */
 InterceptInfo
-SelfInterceptSimulator::getOneAdjustDash( const WorldModel & wm,
-                                          const AngleDeg & dash_angle,
-                                          const Vector2D & max_forward_accel,
-                                          const Vector2D & max_back_accel,
-                                          const double control_area )
+InterceptSimulatorSelfV17::getOneAdjustDash( const WorldModel & wm,
+                                             const AngleDeg & dash_angle,
+                                             const Vector2D & max_forward_accel,
+                                             const Vector2D & max_back_accel,
+                                             const double control_area )
 {
     const ServerParam & SP = ServerParam::i();
 
@@ -878,11 +878,11 @@ SelfInterceptSimulator::getOneAdjustDash( const WorldModel & wm,
 
  */
 double
-SelfInterceptSimulator::getOneStepDashPower( const WorldModel & wm,
-                                             const Vector2D & ball_next_rel,
-                                             const AngleDeg & dash_angle,
-                                             const double max_forward_accel_x,
-                                             const double max_back_accel_x )
+InterceptSimulatorSelfV17::getOneStepDashPower( const WorldModel & wm,
+                                                const Vector2D & ball_next_rel,
+                                                const AngleDeg & dash_angle,
+                                                const double max_forward_accel_x,
+                                                const double max_back_accel_x )
 {
     const PlayerType & ptype = wm.self().playerType();
 
@@ -904,13 +904,13 @@ SelfInterceptSimulator::getOneStepDashPower( const WorldModel & wm,
     }
 
     const double forward_trap_accel_x
-        = ball_next_rel.x
-        - std::sqrt( std::pow( best_ctrl_dist_forward, 2 )
-                     - std::pow( ball_next_rel.y, 2 ) );
+                               = ball_next_rel.x
+                               - std::sqrt( std::pow( best_ctrl_dist_forward, 2 )
+                                            - std::pow( ball_next_rel.y, 2 ) );
     const double backward_trap_accel_x
-        = ball_next_rel.x
-        + std::sqrt( std::pow( best_ctrl_dist_backward, 2 )
-                     - std::pow( ball_next_rel.y, 2 ) );
+                               = ball_next_rel.x
+                               + std::sqrt( std::pow( best_ctrl_dist_backward, 2 )
+                                            - std::pow( ball_next_rel.y, 2 ) );
 
     //
     // get the minimum dash power
@@ -1053,10 +1053,10 @@ simulate_turn_step( const WorldModel & wm,
 
  */
 void
-SelfInterceptSimulator::simulateTurnDash( const WorldModel & wm,
-                                          const int max_step,
-                                          const bool back_dash,
-                                          std::vector< InterceptInfo > & self_cache )
+InterceptSimulatorSelfV17::simulateTurnDash( const WorldModel & wm,
+                                             const int max_step,
+                                             const bool back_dash,
+                                             std::vector< InterceptInfo > & self_cache )
 {
     const ServerParam & SP = ServerParam::i();
     const PlayerType & ptype = wm.self().playerType();
@@ -1139,12 +1139,12 @@ SelfInterceptSimulator::simulateTurnDash( const WorldModel & wm,
 
  */
 InterceptInfo
-SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
-                                     const Vector2D & ball_pos,
-                                     const double control_area,
-                                     const double ball_noise,
-                                     const int step,
-                                     const bool back_dash )
+InterceptSimulatorSelfV17::getTurnDash( const WorldModel & wm,
+                                        const Vector2D & ball_pos,
+                                        const double control_area,
+                                        const double ball_noise,
+                                        const int step,
+                                        const bool back_dash )
 {
     const ServerParam & SP = ServerParam::i();
     const PlayerType & ptype = wm.self().playerType();
@@ -1281,9 +1281,9 @@ SelfInterceptSimulator::getTurnDash( const WorldModel & wm,
 
 /*-------------------------------------------------------------------*/
 void
-SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
-                                          const int max_step,
-                                          std::vector< InterceptInfo > & self_cache )
+InterceptSimulatorSelfV17::simulateOmniDash( const WorldModel & wm,
+                                             const int max_step,
+                                             std::vector< InterceptInfo > & self_cache )
 {
     if ( ServerParam::i().dashAngleStep() > 1.5 )
     {
@@ -1300,9 +1300,9 @@ SelfInterceptSimulator::simulateOmniDash( const WorldModel & wm,
 
  */
 void
-SelfInterceptSimulator::simulateOmniDashAny( const WorldModel & wm,
-                                             const int max_step,
-                                             std::vector< InterceptInfo > & self_cache )
+InterceptSimulatorSelfV17::simulateOmniDashAny( const WorldModel & wm,
+                                                const int max_step,
+                                                std::vector< InterceptInfo > & self_cache )
 {
     const ServerParam & SP = ServerParam::i();
     const PlayerType & ptype = wm.self().playerType();
@@ -1335,8 +1335,8 @@ SelfInterceptSimulator::simulateOmniDashAny( const WorldModel & wm,
                                     * SP.ballRand()
                                     * BALL_NOISE_RATE );
         const double control_buf =  ( goalie_mode
-                                     ? 0.0
-                                     : CONTROL_BUF + ball_noise );
+                                      ? 0.0
+                                      : CONTROL_BUF + ball_noise );
 
         const Vector2D self_inertia = wm.self().inertiaPoint( ball_step );
 
@@ -1427,9 +1427,9 @@ SelfInterceptSimulator::simulateOmniDashAny( const WorldModel & wm,
 
  */
 void
-SelfInterceptSimulator::simulateOmniDashOld( const WorldModel & wm,
-                                             const int max_step,
-                                             std::vector< InterceptInfo > & self_cache )
+InterceptSimulatorSelfV17::simulateOmniDashOld( const WorldModel & wm,
+                                                const int max_step,
+                                                std::vector< InterceptInfo > & self_cache )
 {
     const ServerParam & SP = ServerParam::i();
     const double dash_angle_step = std::max( 5.0, SP.dashAngleStep() );
@@ -1661,7 +1661,7 @@ SelfInterceptSimulator::simulateOmniDashOld( const WorldModel & wm,
             std::ostringstream ostr;
             for ( size_t i = 0; i < dash_list.size(); ++i )
             {
-                    ostr << '(' << dash_list[i].first << ' ' << dash_list[i].second << ')';
+                ostr << '(' << dash_list[i].first << ' ' << dash_list[i].second << ')';
             }
             dlog.addText( Logger::INTERCEPT,
                           ">>> dash %s", ostr.str().c_str() );
@@ -1714,9 +1714,9 @@ SelfInterceptSimulator::simulateOmniDashOld( const WorldModel & wm,
 
  */
 void
-SelfInterceptSimulator::simulateFinal( const WorldModel & wm,
-                                       const int max_step,
-                                       std::vector< InterceptInfo > & self_cache )
+InterceptSimulatorSelfV17::simulateFinal( const WorldModel & wm,
+                                          const int max_step,
+                                          std::vector< InterceptInfo > & self_cache )
 {
     const PlayerType & ptype = wm.self().playerType();
 

@@ -34,8 +34,10 @@
 #endif
 
 #include "intercept_table.h"
-#include "self_intercept_simulator.h"
-#include "player_intercept.h"
+
+#include "intercept_simulator_self_v17.h"
+#include "intercept_simulator_player.h"
+
 #include "world_model.h"
 #include "player_object.h"
 #include "abstract_player_object.h"
@@ -399,7 +401,7 @@ InterceptTable::predictSelf( const WorldModel & wm )
 
     // SelfInterceptV13 predictor( wm );
     // predictor.predict( max_step, M_self_cache );
-    SelfInterceptSimulator sim;
+    InterceptSimulatorSelfV17 sim;
     sim.simulate( wm, max_step, M_self_cache );
 
     if ( M_self_cache.empty() )
@@ -480,7 +482,7 @@ InterceptTable::predictTeammate( const WorldModel & wm )
                       M_first_teammate->pos().x, M_first_teammate->pos().y );
     }
 
-    PlayerIntercept predictor( wm, M_ball_cache );
+    InterceptSimulatorPlayer sim( wm, M_ball_cache );
 
     for ( const PlayerObject * t : wm.teammatesFromBall() )
     {
@@ -500,11 +502,11 @@ InterceptTable::predictTeammate( const WorldModel & wm )
             continue;
         }
 
-        int step = predictor.predict( *t, false );
+        int step = sim.simulate( *t, false );
         int goalie_step = 1000;
         if ( t->goalie() )
         {
-            goalie_step = predictor.predict( *t, true );
+            goalie_step = sim.simulate( *t, true );
             if ( step > goalie_step )
             {
                 step = goalie_step;
@@ -572,7 +574,7 @@ InterceptTable::predictOpponent( const WorldModel & wm )
                       M_first_opponent->pos().x, M_first_opponent->pos().y );
     }
 
-    PlayerIntercept predictor( wm, M_ball_cache );
+    InterceptSimulatorPlayer sim( wm, M_ball_cache );
 
     for ( const PlayerObject * o : wm.opponentsFromBall() )
     {
@@ -592,10 +594,10 @@ InterceptTable::predictOpponent( const WorldModel & wm )
             continue;
         }
 
-        int step = predictor.predict( *o, false );
+        int step = sim.simulate( *o, false );
         if ( o->goalie() )
         {
-            int goalie_step = predictor.predict( *o, true );
+            int goalie_step = sim.simulate( *o, true );
             if ( goalie_step > 0
                  && step > goalie_step )
             {
