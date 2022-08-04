@@ -68,7 +68,7 @@ InterceptTable::InterceptTable()
     : M_update_time( 0, 0 )
 {
     M_ball_cache.reserve( MAX_STEP );
-    M_self_cache.reserve( ( MAX_STEP + 1 ) * 2 );
+    M_self_results.reserve( ( MAX_STEP + 1 ) * 2 );
 
     clear();
 }
@@ -95,7 +95,7 @@ InterceptTable::clear()
     M_first_opponent = nullptr;
     M_second_opponent = nullptr;
 
-    M_self_cache.clear();
+    M_self_results.clear();
 
     M_player_map.clear();
 }
@@ -402,9 +402,9 @@ InterceptTable::predictSelf( const WorldModel & wm )
     // SelfInterceptV13 predictor( wm );
     // predictor.predict( max_step, M_self_cache );
     InterceptSimulatorSelfV17 sim;
-    sim.simulate( wm, max_step, M_self_cache );
+    sim.simulate( wm, max_step, M_self_results );
 
-    if ( M_self_cache.empty() )
+    if ( M_self_results.empty() )
     {
         std::cerr << wm.self().unum() << ' '
                   << wm.time()
@@ -417,20 +417,10 @@ InterceptTable::predictSelf( const WorldModel & wm )
         return;
     }
 
-// #ifdef SELF_INTERCEPT_USE_NO_SAVE_RECEVERY
-//     std::sort( M_self_cache.begin(),
-//                M_self_cache.end(),
-//                InterceptInfo::Cmp() );
-//     M_self_cache.erase( std::unique( M_self_cache.begin(),
-//                                      M_self_cache.end(),
-//                                      InterceptInfo::Equal() ),
-//                         M_self_cache.end() );
-// #endif
+    int min_step = 1000;
+    int exhaust_min_step = 1000;
 
-    int min_step = M_self_step;
-    int exhaust_min_step = M_self_exhaust_step;
-
-    for ( const InterceptInfo & i : M_self_cache )
+    for ( const InterceptInfo & i : M_self_results )
     {
         if ( i.staminaType() == InterceptInfo::NORMAL )
         {
@@ -450,7 +440,7 @@ InterceptTable::predictSelf( const WorldModel & wm )
 
     dlog.addText( Logger::INTERCEPT,
                   "Intercept Self. solution size = %d",
-                  M_self_cache.size() );
+                  M_self_results.size() );
 
     M_self_step = min_step;
     M_self_exhaust_step = exhaust_min_step;

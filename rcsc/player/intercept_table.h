@@ -304,7 +304,7 @@ private:
     const PlayerObject * M_second_opponent;
 
     //! interception info cache for smart interception
-    std::vector< InterceptInfo > M_self_cache;
+    std::vector< InterceptInfo > M_self_results;
 
     //! all players' intercept step container. key: pointer, value: step value
     std::map< const AbstractPlayerObject *, int > M_player_map;
@@ -426,10 +426,10 @@ public:
       \brief get self interception cache container
       \return const reference to the interception info container
     */
-    const std::vector< InterceptInfo > & selfCache() const
-      {
-          return M_self_cache;
-      }
+    const std::vector< InterceptInfo > & selfResults() const
+    {
+        return M_self_results;
+    }
 
     /*!
       \brief get all players' intercept step container.
