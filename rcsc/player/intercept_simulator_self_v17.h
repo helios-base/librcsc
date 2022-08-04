@@ -29,10 +29,11 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_PLAYER_INTERCEPT_SIMULATOR_SELF_V17H
-#define RCSC_PLAYER_INTERCEPT_SIMULATOR_SELF_V17H
+#ifndef RCSC_PLAYER_INTERCEPT_SIMULATOR_SELF_V17_H
+#define RCSC_PLAYER_INTERCEPT_SIMULATOR_SELF_V17_H
 
-#include <rcsc/player/intercept_table.h>
+#include <rcsc/player/intercept_simulator_self.h>
+
 #include <rcsc/geom/vector_2d.h>
 #include <vector>
 
@@ -43,7 +44,8 @@ class SelfObject;
 class WorldModel;
 class StaminaModel;
 
-class InterceptSimulatorSelfV17 {
+class InterceptSimulatorSelfV17
+    : public InterceptSimulatorSelf {
 private:
 
     Vector2D M_ball_vel;
@@ -51,13 +53,13 @@ private:
 public:
 
     /*!
-      \brief simulate self interception, and store the results to self_cache
+      \brief simulate self interception, and store the results to self_results
       \param max_step max estimation cycle
-      \param self_cache reference to the interception info container to store the results
+      \param self_results reference to the result container
     */
     void simulate( const WorldModel & wm,
                    const int max_step,
-                   std::vector< InterceptInfo > & self_cache );
+                   std::vector< InterceptInfo > & self_results ) override;
 
 private:
 

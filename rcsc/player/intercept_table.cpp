@@ -397,23 +397,21 @@ InterceptTable::predictSelf( const WorldModel & wm )
         return;
     }
 
-    int max_step = std::min( MAX_STEP, static_cast< int >( M_ball_cache.size() ) );
+    const int max_step = std::min( MAX_STEP, static_cast< int >( M_ball_cache.size() ) );
 
-    // SelfInterceptV13 predictor( wm );
-    // predictor.predict( max_step, M_self_cache );
-    InterceptSimulatorSelfV17 sim;
-    sim.simulate( wm, max_step, M_self_results );
+    std::shared_ptr< InterceptSimulatorSelf > sim( new InterceptSimulatorSelfV17() );
+    sim->simulate( wm, max_step, M_self_results );
 
     if ( M_self_results.empty() )
     {
         std::cerr << wm.self().unum() << ' '
                   << wm.time()
-                  << " Interecet Self cache is empty!"
+                  << ": (InterceptTable::predictSelf) Unexpected reach. empty result."
                   << std::endl;
         dlog.addText( Logger::INTERCEPT,
-                      "Intercept Self. Self cache is empty!" );
+                      __FILE__":(InterceptTable::predictSelf) empty" );
         // if self cache is empty,
-        // reach point should be the inertia final point of the ball
+        // the inertia final point of the ball will be set as an interception point
         return;
     }
 

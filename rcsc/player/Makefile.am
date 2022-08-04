@@ -45,6 +45,7 @@ librcsc_playerinclude_HEADERS = \
 	free_message.h \
 	fullstate_sensor.h \
 	intercept_simulator_player.h \
+	intercept_simulator_self.h \
 	intercept_simulator_self_v17.h \
 	intercept_table.h \
 	localization.h \
