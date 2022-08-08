@@ -48,7 +48,6 @@
 #include <rcsc/game_time.h>
 
 #include <algorithm>
-#include <limits>
 
 // #define DEBUG_PRINT
 
@@ -57,8 +56,6 @@ namespace rcsc {
 namespace {
 const int MAX_STEP = 50;
 }
-
-const double InterceptInfo::MIN_VALUE = -std::numeric_limits< double >::max();
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -418,16 +415,16 @@ InterceptTable::predictSelf( const WorldModel & wm )
     int min_step = 1000;
     int exhaust_min_step = 1000;
 
-    for ( const InterceptInfo & i : M_self_results )
+    for ( const Intercept & i : M_self_results )
     {
-        if ( i.staminaType() == InterceptInfo::NORMAL )
+        if ( i.staminaType() == Intercept::NORMAL )
         {
             if ( i.reachStep() < min_step )
             {
                 min_step = i.reachStep();
             }
         }
-        else if ( i.staminaType() == InterceptInfo::EXHAUST )
+        else if ( i.staminaType() == Intercept::EXHAUST )
         {
             if ( i.reachStep() < exhaust_min_step )
             {

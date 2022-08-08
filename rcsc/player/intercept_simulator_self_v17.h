@@ -59,7 +59,7 @@ public:
     */
     void simulate( const WorldModel & wm,
                    const int max_step,
-                   std::vector< InterceptInfo > & self_results ) override;
+                   std::vector< Intercept > & self_results ) override;
 
 private:
 
@@ -72,22 +72,22 @@ private:
     // one step simulation
     //
     void simulateOneStep( const WorldModel & wm,
-                          std::vector< InterceptInfo > & self_cache );
+                          std::vector< Intercept > & self_cache );
     bool simulateNoDash( const WorldModel & wm,
-                         std::vector< InterceptInfo > & self_cache );
+                         std::vector< Intercept > & self_cache );
 
     void simulateOneDash( const WorldModel & wm,
-                          std::vector< InterceptInfo > & self_cache );
+                          std::vector< Intercept > & self_cache );
     void simulateOneDashAnyDir( const WorldModel & wm,
-                                std::vector< InterceptInfo > & self_cache );
+                                std::vector< Intercept > & self_cache );
 
     void simulateOneDashOld( const WorldModel & wm,
-                             std::vector< InterceptInfo > & self_cache );
-    InterceptInfo getOneAdjustDash( const WorldModel & wm,
-                                    const AngleDeg & dash_angle,
-                                    const Vector2D & max_forward_accel,
-                                    const Vector2D & max_back_accel,
-                                    const double control_area );
+                             std::vector< Intercept > & self_cache );
+    Intercept getOneAdjustDash( const WorldModel & wm,
+                                const AngleDeg & dash_angle,
+                                const Vector2D & max_forward_accel,
+                                const Vector2D & max_back_accel,
+                                const double control_area );
     double getOneStepDashPower( const WorldModel & wm,
                                 const Vector2D & next_ball_rel,
                                 const AngleDeg & dash_angle,
@@ -100,28 +100,28 @@ private:
     void simulateTurnDash( const WorldModel & wm,
                            const int max_step,
                            const bool back_dash,
-                           std::vector< InterceptInfo > & self_cache );
-    InterceptInfo getTurnDash( const WorldModel & wm,
-                               const Vector2D & ball_pos,
-                               const double control_area,
-                               const double ball_noise,
-                               const int step,
-                               const bool back_dash );
+                           std::vector< Intercept > & self_cache );
+    Intercept getTurnDash( const WorldModel & wm,
+                           const Vector2D & ball_pos,
+                           const double control_area,
+                           const double ball_noise,
+                           const int step,
+                           const bool back_dash );
 
     void simulateOmniDash( const WorldModel & wm,
                            const int max_step,
-                           std::vector< InterceptInfo > & self_cache );
+                           std::vector< Intercept > & self_cache );
     void simulateOmniDashAny( const WorldModel & wm,
                               const int max_step,
-                              std::vector< InterceptInfo > & self_cache );
+                              std::vector< Intercept > & self_cache );
     void simulateOmniDashOld( const WorldModel & wm,
                               const int max_step,
-                              std::vector< InterceptInfo > & self_cache );
+                              std::vector< Intercept > & self_cache );
 
 
     void simulateFinal( const WorldModel & wm,
                         const int max_step,
-                        std::vector< InterceptInfo > & self_cache );
+                        std::vector< Intercept > & self_cache );
 };
 
 }

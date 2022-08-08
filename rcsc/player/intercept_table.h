@@ -32,6 +32,7 @@
 #ifndef RCSC_PLAYER_INTERCEPT_TABLE_H
 #define RCSC_PLAYER_INTERCEPT_TABLE_H
 
+#include <rcsc/player/intercept.h>
 #include <rcsc/geom/vector_2d.h>
 #include <rcsc/game_time.h>
 #include <vector>
@@ -42,227 +43,6 @@ namespace rcsc {
 class AbstractPlayerObject;
 class PlayerObject;
 class WorldModel;
-
-/*-------------------------------------------------------------------*/
-
-/*!
-  \class InterceptInfo
-  \brief interception data
-*/
-class InterceptInfo {
-public:
-
-    /*!
-      \enum StaminaType
-      \brief stamina type
-     */
-    enum StaminaType {
-        NORMAL = 0, //!< ball gettable without stamina exhaust
-        EXHAUST = 100, //!< fastest ball gettable, but recovery may be consumed.
-    };
-
-    /*!
-      \enum ActionType
-      \brief action type
-     */
-    enum ActionType {
-        OMNI_DASH = 0,
-        TURN_FORWARD_DASH = 1,
-        TURN_BACK_DASH = 2,
-        UNKNOWN_TYPE = 100,
-    };
-
-    static const double MIN_VALUE;
-
-private:
-    int M_index; //!< index value in all candidates
-    double M_value; //!< evaluation value
-
-    StaminaType M_stamina_type; //!< stamina type
-    ActionType M_action_type; //!< action type
-
-    int M_turn_step; //!< estimated turn step
-    double M_turn_angle; //!< angle difference between current body angle and dash angle
-
-    int M_dash_step; //!< estimated dash step
-    double M_dash_power; //!< first dash power
-    double M_dash_dir; //!< first dash direction (relative to body)
-
-    Vector2D M_self_pos; //!< estimated final self position
-    double M_ball_dist; //!< estimated final ball distance
-    double M_stamina; //!< estimated final stamina value
-
-public:
-
-    /*!
-      \brief create invalid info
-     */
-    InterceptInfo()
-        : M_index( -1 ),
-          M_value( MIN_VALUE ),
-          M_stamina_type( EXHAUST ),
-          M_action_type( UNKNOWN_TYPE ),
-          M_turn_step( 10000 ),
-          M_turn_angle( 0.0 ),
-          M_dash_step( 10000 ),
-          M_dash_power( 100000.0 ),
-          M_dash_dir( 0.0 ),
-          M_self_pos( -10000.0, 0.0 ),
-          M_ball_dist( 10000000.0 ),
-          M_stamina( 0.0 )
-      { }
-
-    /*!
-      \brief construct with all variables
-    */
-    InterceptInfo( const StaminaType stamina_type,
-                   const ActionType action_type,
-                   const int turn_step,
-                   const double turn_angle,
-                   const int dash_step,
-                   const double dash_power,
-                   const double dash_dir,
-                   const Vector2D & self_pos,
-                   const double ball_dist,
-                   const double stamina )
-        : M_index( -1 ),
-          M_value( MIN_VALUE ),
-          M_stamina_type( stamina_type ),
-          M_action_type( action_type ),
-          M_turn_step( turn_step ),
-          M_turn_angle( turn_angle ),
-          M_dash_step( dash_step ),
-          M_dash_power( dash_power ),
-          M_dash_dir( dash_dir ),
-          M_self_pos( self_pos ),
-          M_ball_dist( ball_dist ),
-          M_stamina( stamina )
-      { }
-
-    /*!
-      \brief set the evaluaion value with index count
-      \param idx index value
-      \param value evaluation value
-     */
-    void setValue( const int idx,
-                   const double value )
-    {
-        M_index = idx;
-        M_value = value;
-    }
-
-    /*!
-      \brief check if this object is legal one or not.
-      \return checked result.
-     */
-    bool isValid() const
-      {
-          return M_action_type != UNKNOWN_TYPE;
-      }
-
-    int index() const
-    {
-        return M_index;
-    }
-
-
-    /*!
-      \brief get the evaluation value of this intercept candidate
-      \return evaluation value
-     */
-    double value() const
-    {
-        return M_value;
-    }
-
-    /*!
-      \brief get stamina type id
-      \return stamina type id
-    */
-    StaminaType staminaType() const
-      {
-          return M_stamina_type;
-      }
-
-    /*!
-      \brief get interception action type
-      \return type id
-     */
-    ActionType actionType() const
-      {
-          return M_action_type;
-      }
-
-    /*!
-      \brief get estimated total turn steps
-      \return the number of turn steps
-    */
-    int turnStep() const { return M_turn_step; }
-
-    /*!
-      \brief get the estimated turn angle
-      \return turn angle value
-     */
-    double turnAngle() const { return M_turn_angle; }
-
-    /*!
-      \brief get estimated total dash cycles
-      \return the number of dash steps
-    */
-    int dashStep() const { return M_dash_step; }
-
-    /*!
-      \brief get esitimated total step to reach
-      \return the number of total steps
-    */
-    int reachStep() const { return turnStep() + dashStep(); }
-
-    /*!
-      \brief get dash power for the first dash
-      \return dash power value
-    */
-    double dashPower() const
-      {
-          return M_dash_power;
-      }
-
-    /*!
-      \brief ger dash direction for the first dash
-      \return dash direction value (relative to body)
-     */
-    double dashDir() const
-      {
-          return M_dash_dir;
-      }
-
-    /*!
-      \brief get the estimated final self position
-      \return final self position
-     */
-    const Vector2D & selfPos() const
-      {
-          return M_self_pos;
-      }
-
-    /*!
-      \brief get the estimated final ball distance
-      \return final ball distance
-     */
-    double ballDist() const
-      {
-          return M_ball_dist;
-      }
-
-    /*!
-      \brief get the estimated self stamina value
-      \return final self stamina value
-     */
-    double stamina() const
-      {
-          return M_stamina;
-      }
-
-};
 
 /*-------------------------------------------------------------------*/
 
@@ -304,7 +84,7 @@ private:
     const PlayerObject * M_second_opponent;
 
     //! interception info cache for smart interception
-    std::vector< InterceptInfo > M_self_results;
+    std::vector< Intercept > M_self_results;
 
     //! all players' intercept step container. key: pointer, value: step value
     std::map< const AbstractPlayerObject *, int > M_player_map;
@@ -426,7 +206,7 @@ public:
       \brief get self interception cache container
       \return const reference to the interception info container
     */
-    const std::vector< InterceptInfo > & selfResults() const
+    const std::vector< Intercept > & selfResults() const
     {
         return M_self_results;
     }

@@ -61,7 +61,7 @@ public:
     virtual
     void simulate( const WorldModel & wm,
                    const int max_step,
-                   std::vector< InterceptInfo > & self_results ) = 0;
+                   std::vector< Intercept > & self_results ) = 0;
 
 };
 
