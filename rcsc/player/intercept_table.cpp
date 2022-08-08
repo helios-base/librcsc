@@ -83,7 +83,7 @@ InterceptTable::clear()
     M_self_exhaust_step = 1000;
     M_teammate_step = 1000;
     M_second_teammate_step = 1000;
-    M_goalie_step = 1000;
+    M_our_goalie_step = 1000;
     M_opponent_step = 1000;
     M_second_opponent_step = 1000;
 
@@ -488,13 +488,12 @@ InterceptTable::predictTeammate( const WorldModel & wm )
         }
 
         int step = sim.simulate( *t, false );
-        int goalie_step = 1000;
         if ( t->goalie() )
         {
-            goalie_step = sim.simulate( *t, true );
-            if ( step > goalie_step )
+            M_our_goalie_step = sim.simulate( *t, true );
+            if ( step > M_our_goalie_step )
             {
-                step = goalie_step;
+                step = M_our_goalie_step;
             }
         }
 
@@ -503,11 +502,6 @@ InterceptTable::predictTeammate( const WorldModel & wm )
                       t->unum(),
                       t->pos().x, t->pos().y,
                       step );
-
-        if ( t->goalie() )
-        {
-            M_goalie_step = goalie_step;
-        }
 
         if ( step < second_min_step )
         {

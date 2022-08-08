@@ -68,7 +68,7 @@ private:
     //! predicted reach step for second fastest teammate
     int M_second_teammate_step;
     //! predicted min reach step for teammate goalie
-    int M_goalie_step;
+    int M_our_goalie_step;
     //! predicted min reach step for opponent
     int M_opponent_step;
     //! predicted reach step for second fastest opponent
@@ -160,7 +160,7 @@ public:
       \brief get the ball access step for the teammate goalie
       \return step value to get the ball
     */
-    int goalieStep() const { return M_goalie_step; }
+    int ourGoalieStep() const { return M_our_goalie_step; }
 
     /*!
       \brief get minimal ball gettable step for opponent
