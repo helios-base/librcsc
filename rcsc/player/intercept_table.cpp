@@ -467,7 +467,7 @@ InterceptTable::predictTeammate( const WorldModel & wm )
                       M_first_teammate->pos().x, M_first_teammate->pos().y );
     }
 
-    InterceptSimulatorPlayer sim( wm, M_ball_cache );
+    InterceptSimulatorPlayer sim( M_ball_cache );
 
     for ( const PlayerObject * t : wm.teammatesFromBall() )
     {
@@ -487,10 +487,10 @@ InterceptTable::predictTeammate( const WorldModel & wm )
             continue;
         }
 
-        int step = sim.simulate( *t, false );
+        int step = sim.simulate( wm, *t, false );
         if ( t->goalie() )
         {
-            M_our_goalie_step = sim.simulate( *t, true );
+            M_our_goalie_step = sim.simulate( wm, *t, true );
             if ( step > M_our_goalie_step )
             {
                 step = M_our_goalie_step;
@@ -553,7 +553,7 @@ InterceptTable::predictOpponent( const WorldModel & wm )
                       M_first_opponent->pos().x, M_first_opponent->pos().y );
     }
 
-    InterceptSimulatorPlayer sim( wm, M_ball_cache );
+    InterceptSimulatorPlayer sim( M_ball_cache );
 
     for ( const PlayerObject * o : wm.opponentsFromBall() )
     {
@@ -573,10 +573,10 @@ InterceptTable::predictOpponent( const WorldModel & wm )
             continue;
         }
 
-        int step = sim.simulate( *o, false );
+        int step = sim.simulate( wm, *o, false );
         if ( o->goalie() )
         {
-            int goalie_step = sim.simulate( *o, true );
+            int goalie_step = sim.simulate( wm, *o, true );
             if ( goalie_step > 0
                  && step > goalie_step )
             {

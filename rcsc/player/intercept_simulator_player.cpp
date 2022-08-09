@@ -130,10 +130,8 @@ InterceptSimulatorPlayer::PlayerData::inertiaPoint( const int step ) const
 /*!
 
  */
-InterceptSimulatorPlayer::InterceptSimulatorPlayer( const WorldModel & world,
-                                                    const std::vector< Vector2D > & ball_cache )
-    : M_world( world ),
-      M_ball_cache( ball_cache ),
+InterceptSimulatorPlayer::InterceptSimulatorPlayer( const std::vector< Vector2D > & ball_cache )
+    : M_ball_cache( ball_cache ),
       M_ball_move_angle( ( ball_cache.back() - ball_cache.front() ).th() )
 {
 
@@ -144,9 +142,20 @@ InterceptSimulatorPlayer::InterceptSimulatorPlayer( const WorldModel & world,
 
  */
 int
-InterceptSimulatorPlayer::simulate( const PlayerObject & player,
+InterceptSimulatorPlayer::simulate( const WorldModel & wm,
+                                    const PlayerObject & player,
                                     const bool goalie ) const
 {
+    if ( player.posCount() >= 10 )
+    {
+        return 1000;
+    }
+
+    if ( player.isKickable( 0.0 ) )
+    {
+        return 0;
+    }
+
     const PlayerType * ptype = player.playerTypePtr();
 
     if ( ! ptype )
@@ -168,8 +177,8 @@ InterceptSimulatorPlayer::simulate( const PlayerObject & player,
                            *ptype,
                            get_pos( player ),
                            get_vel( player ),
-                           get_control_area( player, M_world, goalie ),
-                           get_bonus_step( player, M_world.ourSide() ),
+                           get_control_area( player, wm, goalie ),
+                           get_bonus_step( player, wm.ourSide() ),
                            get_penalty_step( player ) );
 
     const int min_step = estimateMinStep( data );

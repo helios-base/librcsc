@@ -83,8 +83,6 @@ private:
     };
 
 
-    //! const reference to the WorldModel instance
-    const WorldModel & M_world;
     //! const reference to the predicted ball position cache instance
     const std::vector< Vector2D > & M_ball_cache;
     //! ball velocity angle
@@ -97,11 +95,10 @@ public:
 
     /*!
       \brief construct with all variables.
-      \param world const reference to the WormdModel instance
       \param ball_pos_cache const reference to the ball position container
     */
-    InterceptSimulatorPlayer( const WorldModel & world,
-                              const std::vector< Vector2D > & ball_cache );
+    explicit
+    InterceptSimulatorPlayer( const std::vector< Vector2D > & ball_cache );
 
     /*!
       \brief destructor. nothing to do
@@ -112,12 +109,14 @@ public:
     //////////////////////////////////////////////////////////
     /*!
       \brief get predicted ball gettable cycle
+      \param wm const reference to the instance of world model
       \param player const reference to the player object
       \param goalie goalie mode or not
       \param max_cycle max predict cycle. estimation loop is limited to this value.
       \return predicted cycle value
     */
-    int simulate( const PlayerObject & player,
+    int simulate( const WorldModel & wm,
+                  const PlayerObject & player,
                   const bool goalie ) const;
 
 private:
