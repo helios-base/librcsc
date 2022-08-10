@@ -130,11 +130,55 @@ InterceptSimulatorPlayer::PlayerData::inertiaPoint( const int step ) const
 /*!
 
  */
-InterceptSimulatorPlayer::InterceptSimulatorPlayer( const std::vector< Vector2D > & ball_cache )
-    : M_ball_cache( ball_cache ),
-      M_ball_move_angle( ( ball_cache.back() - ball_cache.front() ).th() )
+InterceptSimulatorPlayer::InterceptSimulatorPlayer( const Vector2D & ball_pos,
+                                                    const Vector2D & ball_vel )
+    : M_ball_move_angle( ball_vel.th() )
 {
+    createBallCache( ball_pos, ball_vel );
+}
 
+/*-------------------------------------------------------------------*/
+void
+InterceptSimulatorPlayer::createBallCache( const Vector2D & ball_pos,
+                                           const Vector2D & ball_vel )
+{
+    constexpr int MAX_STEP = 50;
+
+    const ServerParam & SP = ServerParam::i();
+    const double max_x = ( SP.keepawayMode()
+                           ? SP.keepawayLength() * 0.5
+                           : SP.pitchHalfLength() + 5.0 );
+    const double max_y = ( SP.keepawayMode()
+                           ? SP.keepawayWidth() * 0.5
+                           : SP.pitchHalfWidth() + 5.0 );
+    const double bdecay = SP.ballDecay();
+
+    M_ball_cache.clear();
+    M_ball_cache.reserve( MAX_STEP );
+
+    Vector2D bpos = ball_pos;
+    Vector2D bvel = ball_vel;
+    double bspeed = bvel.r();
+
+    for ( int i = 0; i < MAX_STEP; ++i )
+    {
+        M_ball_cache.push_back( bpos );
+
+        if ( bspeed < 0.005 && i >= 10 )
+        {
+            break;
+        }
+
+        bpos += bvel;
+        bvel *= bdecay;
+        bspeed *= bdecay;
+
+        if ( max_x < bpos.absX()
+             || max_y < bpos.absY() )
+        {
+            break;
+        }
+    }
 }
 
 /*-------------------------------------------------------------------*/

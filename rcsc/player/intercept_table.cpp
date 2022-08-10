@@ -64,7 +64,6 @@ const int MAX_STEP = 50;
 InterceptTable::InterceptTable()
     : M_update_time( 0, 0 )
 {
-    M_ball_cache.reserve( MAX_STEP );
     M_self_results.reserve( ( MAX_STEP + 1 ) * 2 );
 
     clear();
@@ -77,8 +76,6 @@ InterceptTable::InterceptTable()
 void
 InterceptTable::clear()
 {
-    M_ball_cache.clear();
-
     M_self_step = 1000;
     M_self_exhaust_step = 1000;
     M_teammate_step = 1000;
@@ -143,8 +140,6 @@ InterceptTable::update( const WorldModel & wm )
                       __FILE__" (update) Already exist kickable player" );
     }
 #endif
-
-    createBallCache( wm );
 
 #ifdef DEBUG
     dlog.addText( Logger::INTERCEPT,
@@ -331,58 +326,6 @@ InterceptTable::hearOpponent( const WorldModel & wm,
 
 */
 void
-InterceptTable::createBallCache( const WorldModel & wm )
-{
-    const ServerParam & SP = ServerParam::i();
-    const double max_x = ( SP.keepawayMode()
-                           ? SP.keepawayLength() * 0.5
-                           : SP.pitchHalfLength() + 5.0 );
-    const double max_y = ( SP.keepawayMode()
-                           ? SP.keepawayWidth() * 0.5
-                           : SP.pitchHalfWidth() + 5.0 );
-    const double bdecay = SP.ballDecay();
-
-    Vector2D bpos = wm.ball().pos();
-    Vector2D bvel = ( wm.kickableOpponent()
-                      //|| wm.kickableTeammate()
-                      )
-        ? Vector2D( 0.0, 0.0 )
-        : wm.ball().vel();
-    double bspeed = bvel.r();
-
-    for ( int i = 0; i < MAX_STEP; ++i )
-    {
-        M_ball_cache.push_back( bpos );
-
-        if ( bspeed < 0.005 && i >= 10 )
-        {
-            break;
-        }
-
-        bpos += bvel;
-        bvel *= bdecay;
-        bspeed *= bdecay;
-
-        if ( max_x < bpos.absX()
-             || max_y < bpos.absY() )
-        {
-            break;
-        }
-    }
-
-#ifdef DEBUG_PRINT
-    dlog.addText( Logger::INTERCEPT,
-                  "(InterceptTable::createBallCache) size=%d last pos=(%.2f %.2f)",
-                  M_ball_cache.size(),
-                  M_ball_cache.back().x, M_ball_cache.back().y );
-#endif
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
-void
 InterceptTable::predictSelf( const WorldModel & wm )
 {
     if ( wm.self().isKickable() )
@@ -394,7 +337,7 @@ InterceptTable::predictSelf( const WorldModel & wm )
         return;
     }
 
-    const int max_step = std::min( MAX_STEP, static_cast< int >( M_ball_cache.size() ) );
+    constexpr int max_step = 50;
 
     std::shared_ptr< InterceptSimulatorSelf > sim( new InterceptSimulatorSelfV17() );
     sim->simulate( wm, max_step, M_self_results );
@@ -467,7 +410,8 @@ InterceptTable::predictTeammate( const WorldModel & wm )
                       M_first_teammate->pos().x, M_first_teammate->pos().y );
     }
 
-    InterceptSimulatorPlayer sim( M_ball_cache );
+    InterceptSimulatorPlayer sim( wm.ball().pos(),
+                                  ( wm.kickableOpponent() ? Vector2D( 0.0, 0.0 ) : wm.ball().vel() ) );
 
     for ( const PlayerObject * t : wm.teammatesFromBall() )
     {
@@ -553,7 +497,8 @@ InterceptTable::predictOpponent( const WorldModel & wm )
                       M_first_opponent->pos().x, M_first_opponent->pos().y );
     }
 
-    InterceptSimulatorPlayer sim( M_ball_cache );
+    InterceptSimulatorPlayer sim( wm.ball().pos(),
+                                  ( wm.kickableOpponent() ? Vector2D( 0.0, 0.0 ) : wm.ball().vel() ) );
 
     for ( const PlayerObject * o : wm.opponentsFromBall() )
     {

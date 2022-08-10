@@ -52,7 +52,7 @@ private:
     /*!
       \struct PlayerData
       \brief player data
-     */
+    */
     struct PlayerData {
         const PlayerObject & player_; //!< player reference
         const PlayerType & ptype_; //!< player type
@@ -76,15 +76,15 @@ private:
               control_area_( control_area ),
               bonus_step_( bonus_step ),
               penalty_step_( penalty_step )
-          { }
+        { }
 
         Vector2D inertiaPoint( const int step ) const;
 
     };
 
 
-    //! const reference to the predicted ball position cache instance
-    const std::vector< Vector2D > & M_ball_cache;
+    //! predicted ball positions
+    std::vector< Vector2D > M_ball_cache;
     //! ball velocity angle
     const AngleDeg M_ball_move_angle;
 
@@ -95,16 +95,17 @@ public:
 
     /*!
       \brief construct with all variables.
-      \param ball_pos_cache const reference to the ball position container
+      \param ball_pos initial ball position
+      \param ball_vel initial ball velocity
     */
-    explicit
-    InterceptSimulatorPlayer( const std::vector< Vector2D > & ball_cache );
+    InterceptSimulatorPlayer( const Vector2D & ball_pos,
+                              const Vector2D & ball_vel );
 
     /*!
       \brief destructor. nothing to do
     */
     ~InterceptSimulatorPlayer()
-      { }
+    { }
 
     //////////////////////////////////////////////////////////
     /*!
@@ -122,11 +123,19 @@ public:
 private:
 
     /*!
+      \brief create predicted ball positions
+      \param ball_pos initial ball position
+      \param ball_vel initial ball velocity
+     */
+    void createBallCache( const Vector2D & ball_pos,
+                          const Vector2D & ball_vel );
+
+    /*!
       \brief estimate minimum reach step (very rough calculation)
       \param ptype player type
       \param control_area kickable/catchable area
       \param player_pos player's initial position
-     */
+    */
     int estimateMinStep( const PlayerData & data ) const;
 
 
