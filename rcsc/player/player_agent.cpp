@@ -1006,6 +1006,8 @@ PlayerAgent::handleTimeout( const int timeout_count,
     }
 
     TimeStamp cur_time;
+    cur_time.setCurrent();
+
     std::int64_t msec_from_sense = -1;
     /*
       std::cerr << "cur_sec = " << cur_time.sec()
