@@ -93,7 +93,7 @@ public:
      */
     std::int64_t elapsedSince( const TimeStamp & other ) const
       {
-          return std::chrono::duration_cast< std::chrono::milliseconds >( other.timePoint() - this->timePoint() ).count();
+          return std::chrono::duration_cast< std::chrono::milliseconds >( this->timePoint() - other.timePoint() ).count();
       }
 
 };
