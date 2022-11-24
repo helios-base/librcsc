@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file self_intercept_simulator.h
-  \brief self intercept simulator for creating candidate intercept actions
+  \file intercept_simulator_self_v17.h
+  \brief intercept simulator for self
 */
 
 /*
@@ -29,22 +29,23 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_PLAYER_SELF_INTERCEPT_SIMULATOR_H
-#define RCSC_PLAYER_SELF_INTERCEPT_SIMULATOR_H
+#ifndef RCSC_PLAYER_INTERCEPT_SIMULATOR_SELF_V17_H
+#define RCSC_PLAYER_INTERCEPT_SIMULATOR_SELF_V17_H
 
-#include <rcsc/player/intercept_table.h>
+#include <rcsc/player/intercept_simulator_self.h>
+
 #include <rcsc/geom/vector_2d.h>
 #include <vector>
 
 namespace rcsc {
-
 
 class BallObject;
 class SelfObject;
 class WorldModel;
 class StaminaModel;
 
-class SelfInterceptSimulator {
+class InterceptSimulatorSelfV17
+    : public InterceptSimulatorSelf {
 private:
 
     Vector2D M_ball_vel;
@@ -52,14 +53,13 @@ private:
 public:
 
     /*!
-      \brief simulate self interception, and store the results to self_cache
+      \brief simulate self interception, and store the results to self_results
       \param max_step max estimation cycle
-      \param self_cache reference to the interception info container
-      to store the result
+      \param self_results reference to the result container
     */
     void simulate( const WorldModel & wm,
                    const int max_step,
-                   std::vector< InterceptInfo > & self_cache );
+                   std::vector< Intercept > & self_results ) override;
 
 private:
 
@@ -72,22 +72,22 @@ private:
     // one step simulation
     //
     void simulateOneStep( const WorldModel & wm,
-                          std::vector< InterceptInfo > & self_cache );
+                          std::vector< Intercept > & self_cache );
     bool simulateNoDash( const WorldModel & wm,
-                         std::vector< InterceptInfo > & self_cache );
+                         std::vector< Intercept > & self_cache );
 
     void simulateOneDash( const WorldModel & wm,
-                          std::vector< InterceptInfo > & self_cache );
+                          std::vector< Intercept > & self_cache );
     void simulateOneDashAnyDir( const WorldModel & wm,
-                                std::vector< InterceptInfo > & self_cache );
+                                std::vector< Intercept > & self_cache );
 
     void simulateOneDashOld( const WorldModel & wm,
-                             std::vector< InterceptInfo > & self_cache );
-    InterceptInfo getOneAdjustDash( const WorldModel & wm,
-                                    const AngleDeg & dash_angle,
-                                    const Vector2D & max_forward_accel,
-                                    const Vector2D & max_back_accel,
-                                    const double control_area );
+                             std::vector< Intercept > & self_cache );
+    Intercept getOneAdjustDash( const WorldModel & wm,
+                                const AngleDeg & dash_angle,
+                                const Vector2D & max_forward_accel,
+                                const Vector2D & max_back_accel,
+                                const double control_area );
     double getOneStepDashPower( const WorldModel & wm,
                                 const Vector2D & next_ball_rel,
                                 const AngleDeg & dash_angle,
@@ -100,28 +100,28 @@ private:
     void simulateTurnDash( const WorldModel & wm,
                            const int max_step,
                            const bool back_dash,
-                           std::vector< InterceptInfo > & self_cache );
-    InterceptInfo getTurnDash( const WorldModel & wm,
-                               const Vector2D & ball_pos,
-                               const double control_area,
-                               const double ball_noise,
-                               const int step,
-                               const bool back_dash );
+                           std::vector< Intercept > & self_cache );
+    Intercept getTurnDash( const WorldModel & wm,
+                           const Vector2D & ball_pos,
+                           const double control_area,
+                           const double ball_noise,
+                           const int step,
+                           const bool back_dash );
 
     void simulateOmniDash( const WorldModel & wm,
                            const int max_step,
-                           std::vector< InterceptInfo > & self_cache );
+                           std::vector< Intercept > & self_cache );
     void simulateOmniDashAny( const WorldModel & wm,
                               const int max_step,
-                              std::vector< InterceptInfo > & self_cache );
+                              std::vector< Intercept > & self_cache );
     void simulateOmniDashOld( const WorldModel & wm,
                               const int max_step,
-                              std::vector< InterceptInfo > & self_cache );
+                              std::vector< Intercept > & self_cache );
 
 
     void simulateFinal( const WorldModel & wm,
                         const int max_step,
-                        std::vector< InterceptInfo > & self_cache );
+                        std::vector< Intercept > & self_cache );
 };
 
 }
