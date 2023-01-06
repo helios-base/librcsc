@@ -39,7 +39,7 @@ namespace rcsc {
 
 /*-------------------------------------------------------------------*/
 Formation::Ptr
-FormationParserV1::parse( std::istream & is )
+FormationParserV1::parseImpl( std::istream & is )
 {
     const std::string method = parseHeader( is );
 
