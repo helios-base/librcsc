@@ -177,7 +177,7 @@ parse_data( const ptree & doc,
 
 /*-------------------------------------------------------------------*/
 Formation::Ptr
-FormationParserJSON::parse( std::istream & is )
+FormationParserJSON::parseImpl( std::istream & is )
 {
     ptree doc;
     try

@@ -44,9 +44,17 @@ namespace rcsc {
 Formation::Ptr
 FormationParser::parse( const std::string & filepath )
 {
-    std::ifstream fin( filepath.c_str() );
+    FormationParser::Ptr parser = create( filepath );
 
-    return parse( fin );
+    if ( ! parser )
+    {
+        std::cerr << "ERROR (FormationParser::parse) could not create the formation parser instance."
+                  << std::endl;
+        return Formation::Ptr();
+    }
+
+    std::ifstream fin( filepath );
+    return parser->parseImpl( fin );
 }
 
 /*-------------------------------------------------------------------*/

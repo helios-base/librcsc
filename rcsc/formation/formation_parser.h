@@ -76,12 +76,7 @@ public:
     virtual
     std::string name() const = 0;
 
-    /*!
-      \brief parse the given file
-      \param filepath the file path to be parsed
-      \return formation instance
-     */
-    Formation::Ptr parse( const std::string & filepath );
+protected:
 
     /*!
       \brief parse the input stream
@@ -89,9 +84,7 @@ public:
       \return formation instance
      */
     virtual
-    Formation::Ptr parse( std::istream & is ) = 0;
-
-protected:
+    Formation::Ptr parseImpl( std::istream & is ) = 0;
 
     /*!
       \brief check the consistency of role names
@@ -105,14 +98,24 @@ protected:
      */
     bool checkPositionPair( const Formation::ConstPtr ptr );
 
-public:
+
+private:
 
     /*!
       \brief create formation parser instance according to the header data
       \param filepath the path string of the input file
       \return formation parser instance
      */
-    static FormationParser::Ptr create( const std::string & filepath );
+     static FormationParser::Ptr create( const std::string & filepath );
+
+public:
+
+    /*!
+      \brief parse the given file
+      \param filepath the file path to be parsed
+      \return formation instance
+     */
+    static Formation::Ptr parse( const std::string & filepath );
 
 };
 

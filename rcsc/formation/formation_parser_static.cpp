@@ -43,7 +43,7 @@ namespace rcsc {
 
 /*-------------------------------------------------------------------*/
 Formation::Ptr
-FormationParserStatic::parse( std::istream & is )
+FormationParserStatic::parseImpl( std::istream & is )
 {
     Formation::Ptr ptr( new FormationStatic() );
 

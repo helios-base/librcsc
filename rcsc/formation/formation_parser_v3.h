@@ -67,12 +67,14 @@ public:
         return "v3";
     }
 
+protected:
+
     /*!
       \brief parse the input stream
       \param is reference to the input stream to be parsed
       \return formation instance
      */
-    Formation::Ptr parse( std::istream & is ) override;
+    Formation::Ptr parseImpl( std::istream & is ) override;
 
 private:
 

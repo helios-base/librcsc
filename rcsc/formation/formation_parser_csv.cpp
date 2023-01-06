@@ -66,7 +66,7 @@ get_value_line( std::istream & is )
 
 /*-------------------------------------------------------------------*/
 Formation::Ptr
-FormationParserCSV::parse( std::istream & is )
+FormationParserCSV::parseImpl( std::istream & is )
 {
     const std::string method = parseMethodName( is );
 
