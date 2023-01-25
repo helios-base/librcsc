@@ -803,7 +803,7 @@ PlayerAgent::initImpl( CmdLineParser & cmd_parser )
     M_config.parse( cmd_parser );
 
     if ( config().version() < 8.0
-         || 18.0 <= config().version() )
+         || MAX_PROTOCOL_VERSION < config().version() )
     {
         std::cerr << "Unsupported client version: " << config().version()
                   << std::endl;
