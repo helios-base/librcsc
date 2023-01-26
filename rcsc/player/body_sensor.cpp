@@ -135,6 +135,15 @@ BodySensor::parse1( const char * msg,
     //  (collision {none|[(ball)][player][post]}))
     //  (foul (charged 0) (card {none|yellow|red}))
 
+    // ver. 18
+    // (sense_body 66 (view_mode high normal) (stamina 3503.4 1 124000) (speed 0.06 -79)
+    //  (head_angle 89) (kick 4) (dash 20) (turn 24) (say 0) (turn_neck 28) (catch 0)
+    //  (move 1) (change_view 16) (arm (movable 0) (expires 0) (target 0 0) (count 0))
+    //  (focus (target none) (count 0)) (tackle (expires 0) (count 0))
+    //  (collision {none|[(ball)][player][post]})
+    //  (foul (charged 0) (card {none|yellow|red})
+    //  (focus_point 0 0))
+
     //char ss[8];
 
     M_time = current;
@@ -365,7 +374,17 @@ BodySensor::parse1( const char * msg,
     // (foul (charged 0) (card {none|yellow|red}))
     //
     parseFoul( msg, &next );
+    msg = next;
 
+    if ( version < 18.0 )
+    {
+        return;
+    }
+
+    //
+    //  (focus_point 0 0))
+    //
+    parseFocusPoint( msg, &next );
 }
 
 /*-------------------------------------------------------------------*/
@@ -689,6 +708,37 @@ BodySensor::parseFoul( const char * msg,
         *next = const_cast< char * >( msg );
     }
 
+    return true;
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+bool
+BodySensor::parseFocusPoint( const char * msg,
+                             char ** next )
+{
+    // (focus_point <REAL> <REAL>)
+
+    double focus_dist = 0.0;
+    double focus_dir = 0.0;
+    int n_read = 0;
+
+    if ( std::sscanf( msg, " (focus_point %lf %lf) %n", &focus_dist, &focus_dir, &n_read ) != 2 )
+    {
+        std::cerr << M_time << " ERROR: Illegal focus_point in sense_body [" << msg << "]" << std::endl;
+        return false;
+    }
+
+    M_focus_dist = focus_dist;
+    M_focus_dir = focus_dir;
+
+    if ( next )
+    {
+        *next = const_cast< char * >( msg ) + n_read;
+    }
     return true;
 }
 

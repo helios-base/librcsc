@@ -111,6 +111,10 @@ public:
     int M_charged_expires; //!< foul charged expire cycle
     Card M_card; //!< yellow/red card
 
+    // v18+
+    double M_focus_dist; //!< distance to the focus point
+    double M_focus_dir; //!< direction to the focus point, relative to the body direction
+
 public:
     /*!
       \brief init member variables
@@ -168,6 +172,15 @@ private:
      */
     bool parseFoul( const char * msg,
                     char ** next );
+
+    /*!
+      \brief analyze focus point information
+      \param msg server message started with (focus_point
+      \param pointer pointer to the next character after parsing
+      \return parsing result
+     */
+    bool parseFocusPoint( const char * msg,
+                          char ** next );
 
 public:
 
