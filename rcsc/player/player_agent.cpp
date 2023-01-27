@@ -805,7 +805,7 @@ PlayerAgent::initImpl( CmdLineParser & cmd_parser )
     if ( config().version() < 8.0
          || MAX_PROTOCOL_VERSION < config().version() )
     {
-        std::cerr << "Unsupported client version: " << config().version()
+        std::cerr << "(PlayerAgent::initImpl) Unsupported client version: " << config().version()
                   << std::endl;
         return false;
     }
