@@ -66,6 +66,7 @@ public:
     int M_catch_count; //!< sensed command count
     int M_move_count; //!< sensed command count
     int M_change_view_count; //!< sensed command count
+    int M_change_focus_count; //!< sensed command count
 
     /*!
       the number of cycles till the arm is movable.
@@ -154,6 +155,15 @@ public:
                  const GameTime & current );
 
 private:
+
+    /*!
+      \brief analyze arm information in the sense_body message.
+      \param msg server message started with (arm
+      \param pointer pointer to the next character after parsing
+      \return parsing result
+     */
+    bool parseArm( const char * msg,
+                   char ** next );
 
     /*!
       \brief analyze collision information contained by sense_body message.
