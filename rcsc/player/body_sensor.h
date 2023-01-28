@@ -130,29 +130,7 @@ public:
     */
     void parse( const char * msg,
                 const double & version,
-                const GameTime & current )
-      {
-          parse1( msg, version, current );
-      }
-
-    /*!
-      \brief analyze server message usind very ugly style but very fast
-      \param msg server message
-      \param version client version
-      \param current current game time
-    */
-    void parse1( const char * msg,
-                 const double & version,
-                 const GameTime & current );
-    /*!
-      \brief analyze server message using std::sscanf.
-      \param msg server message
-      \param version client version
-      \param current current game time
-    */
-    void parse2( const char * msg,
-                 const double & version,
-                 const GameTime & current );
+                const GameTime & current );
 
 private:
 
@@ -164,6 +142,25 @@ private:
      */
     bool parseArm( const char * msg,
                    char ** next );
+
+    /*!
+      \brief analyze attentionto(focus) information in the sense_body message.
+      \param msg server message started with (focus
+      \param pointer pointer to the next character after parsing
+      \return parsing result
+     */
+    bool parseAttentionto( const char * msg,
+                           char ** next );
+
+    /*!
+      \brief analyze tackle information in the sense_body message.
+      \param msg server message started with (tackle
+      \param pointer pointer to the next character after parsing
+      \return parsing result
+     */
+    bool parseTackle( const char * msg,
+                      char ** next );
+
 
     /*!
       \brief analyze collision information contained by sense_body message.
