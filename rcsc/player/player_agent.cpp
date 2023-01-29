@@ -1310,7 +1310,8 @@ PlayerAgent::Impl::sendSettingCommands()
     std::ostringstream ostr;
 
     // set synch see mode
-    if ( agent_.config().synchSee() )
+    if ( agent_.config().version() < 18.0
+         && agent_.config().synchSee() )
     {
         ostr << "(synch_see)";
     }
@@ -2134,6 +2135,19 @@ PlayerAgent::Impl::analyzeInit( const char * msg )
     sendSettingCommands();
 
     //
+    //
+    //
+    see_state_.setProtocolVersion( agent_.config().version() );
+    if ( agent_.config().version() >= 18.0 )
+    {
+        std::cerr << agent_.world().teamName() << ' '
+                  << agent_.world().self().unum() << ": "
+                  << agent_.world().time()
+                  << " (v18+) force synch see mode."
+                  << std::endl;
+    }
+
+    //
     // call init message event handler
     //
     agent_.handleInitMessage();
@@ -2380,9 +2394,12 @@ PlayerAgent::action()
     // set command effect. these must be called before command composing.
     // set self view mode, pointto and attentionto info.
     M_worldmodel.updateJustAfterDecision( effector() );
-    // set cycles till next see, update estimated next see arrival timing
-    M_impl->see_state_.setViewMode( world().self().viewWidth(),
-                                    world().self().viewQuality() );
+    if ( effector().changeViewCommand() )
+    {
+        // set cycles till next see, update estimated next see arrival timing
+        M_impl->see_state_.setViewMode( effector().changeViewCommand()->width(),
+                                        effector().changeViewCommand()->quality() );
+    }
 
     // ------------------------------------------------------------------------
     // compose command string, and send it to the rcssserver

@@ -76,8 +76,9 @@ private:
         HISTORY_SIZE = 3
     };
 
-    //double M_protocol_version;
     static bool S_synch_see_mode;
+
+    double M_protocol_version;
 
     GameTime M_current_time; //!< update when new cycle detected
     GameTime M_last_see_time; //!< last see arrival game time
@@ -109,6 +110,19 @@ public:
     void setSynchSeeMode()
       {
           S_synch_see_mode = true;
+      }
+
+    /*!
+      \brief set the protocl version number
+      \param ver the version number
+     */
+    void setProtocolVersion( const double ver )
+      {
+          M_protocol_version = ver;
+          if ( ver >= 18.0 )
+          {
+              S_synch_see_mode = true;
+          }
       }
 
     /*!
@@ -245,7 +259,7 @@ public:
       \param new_width new view width
       \param new_quality new view quality
 
-      This method MUST be called just after change_view command sent and
+      This method MUST be called just after sending change_view command and
       only when current cycle see message is received
     */
     void setViewMode( const ViewWidth & new_width,
