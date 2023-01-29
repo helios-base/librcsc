@@ -38,6 +38,7 @@
 #include "object_table.h"
 #include "body_sensor.h"
 
+#include <rcsc/common/server_param.h>
 #include <rcsc/common/logger.h>
 #include <rcsc/geom/sector_2d.h>
 #include <rcsc/time/timer.h>
@@ -53,6 +54,8 @@ using std::max;
 // #define DEBUG_PROFILE_REMOVE
 // #define DEBUG_PRINT
 // #define DEBUG_PRINT_SHAPE
+
+//#define USE_OBJECT_TABLE
 
 namespace {
 static int g_filter_count = 0;
@@ -198,6 +201,17 @@ public:
                       double * average,
                       double * err );
 
+    /*!
+      \brief calculate the unquantized distance information
+      \param quant_dist the quantized distance information sent by the server
+      \param qstep the quantize step parameter
+      \param mean_dist the result value of the mean distance
+      \param dist_error the result error value
+     */
+    void getDistanceRange( const double quant_dist,
+                           const double qstep,
+                           double * mean_dist,
+                           double * dist_error ) const;
     // get unquantized dist range
     // void getDistRange(const double &see_dist, const double &qstep,
     //                   double *average, double *range);
@@ -476,6 +490,7 @@ LocalizationDefault::Impl::updatePointsBy( const VisualSensor::MarkerT & marker,
     double ave_dist, dist_error;
 
     // get distance range info
+#ifdef USE_OBJECT_TABLE
     if ( ! objectTable().getStaticObjInfo( marker.dist_,
                                            &ave_dist,
                                            &dist_error ) )
@@ -487,6 +502,9 @@ LocalizationDefault::Impl::updatePointsBy( const VisualSensor::MarkerT & marker,
                       marker.dist_ );
         return;
     }
+#else
+    getDistanceRange( marker.dist_, ServerParam::i().landmarkDistQuantizeStep(), &ave_dist, &dist_error );
+#endif
 
     // get dir range info
     double ave_dir, dir_error;
@@ -689,7 +707,7 @@ LocalizationDefault::Impl::generatePoints( const VisualSensor::MarkerT & marker,
     // get sector range
 
     double ave_dist, dist_error;
-
+#ifdef USE_OBJECT_TABLE
     if ( ! objectTable().getStaticObjInfo( marker.dist_,
                                            &ave_dist, &dist_error ) )
     {
@@ -697,6 +715,9 @@ LocalizationDefault::Impl::generatePoints( const VisualSensor::MarkerT & marker,
                   << std::endl;
         return;
     }
+#else
+    getDistanceRange( marker.dist_, ServerParam::i().landmarkDistQuantizeStep(), &ave_dist, &dist_error );
+#endif
 
     double ave_dir, dir_error;
     getDirRange( marker.dir_,
@@ -921,7 +942,7 @@ LocalizationDefault::Impl::getFaceDirByMarkers( const VisualSensor::MarkerCont &
     }
 
     double marker_dist1, marker_dist2, tmperr;
-
+#ifdef USE_OBJECT_TABLE
     if ( ! objectTable().getStaticObjInfo( markers.front().dist_,
                                            &marker_dist1,
                                            &tmperr ) )
@@ -942,6 +963,10 @@ LocalizationDefault::Impl::getFaceDirByMarkers( const VisualSensor::MarkerCont &
 #endif
         return angle;
     }
+#else
+    getDistanceRange( markers.front().dist_, ServerParam::i().landmarkDistQuantizeStep(), &marker_dist1, &tmperr );
+    getDistanceRange( markers.back().dist_, ServerParam::i().landmarkDistQuantizeStep(), &marker_dist2, &tmperr );
+#endif
 
     Vector2D rpos1 = Vector2D::polar2vector( marker_dist1, markers.front().dir_ );
     Vector2D rpos2 = Vector2D::polar2vector( marker_dist2, markers.back().dir_ );
@@ -958,6 +983,61 @@ LocalizationDefault::Impl::getFaceDirByMarkers( const VisualSensor::MarkerCont &
     return angle;
 }
 
+/*-------------------------------------------------------------------*/
+void
+LocalizationDefault::Impl::getDistanceRange( const double quant_dist,
+                                             const double qstep,
+                                             double * mean_dist,
+                                             double * dist_error ) const
+{
+   /*
+     === server quantize algorithm ===
+
+      d1 = log( unq_dist + EPS )
+      d2 = rint( d1 / qstep ) * qstep // quantize( d1, qstep )
+      d3 = exp( d2 )
+      quant_dist = rint( d3 / 0.1 ) * 0.1 // quantize( d3, 0.1 )
+    */
+
+    /*
+      === unquantize (inverse quantize) algorithm ===
+
+      min_d3 = (rint(quant_dist / 0.1) - 0.5) * 0.1
+      max_d3 = (rint(quant_dist / 0.1) + 0.5) * 0.1
+
+      min_d2 = log( min_d3 )
+      max_d2 = log( max_d3 )
+
+      min_d1 = (rint(min_d2 / qstep) - 0.5) * qstep
+      max_d1 = (rint(min_d2 / qstep) + 0.5) * qstep
+
+      min_d = exp( min_d1 ) - EPS
+      max_d = exp( max_d1 ) - EPS
+
+    */
+
+    double min_dist, max_dist;
+
+    if ( quant_dist < ObjectTable::SERVER_EPS )
+    {
+        min_dist = 0.0;
+    }
+    else
+    {
+        min_dist = ( rint( quant_dist / 0.1 ) - 0.5 ) * 0.1;
+        min_dist = std::min( std::log( min_dist - 0.05 ), std::log( min_dist + 0.05 ) );
+        min_dist = ( rint( min_dist / qstep ) - 0.5 ) * qstep;
+        min_dist = std::exp( min_dist );
+    }
+
+    max_dist = ( rint( quant_dist / 0.1 ) + 0.5 ) * 0.1;
+    max_dist = std::log( max_dist );
+    max_dist = ( rint( max_dist / qstep ) + 0.5 ) * qstep;
+    max_dist = std::exp( max_dist );
+
+    *mean_dist = ( max_dist + min_dist ) * 0.5;
+    *dist_error = ( max_dist - min_dist ) * 0.5;
+}
 
 
 #if 0
@@ -1244,7 +1324,7 @@ LocalizationDefault::localizeBallRelative( const VisualSensor & see,
     ////////////////////////////////////////////////////////////////////
     // get polar range info
     double average_dist, dist_error;
-
+#ifdef USE_OBJECT_TABLE
     // dist range
     if ( ! M_impl->objectTable().getMovableObjInfo( ball.dist_,
                                                     &average_dist,
@@ -1257,6 +1337,9 @@ LocalizationDefault::localizeBallRelative( const VisualSensor & see,
                       ball.dist_ );
         return false;
     }
+#else
+    M_impl->getDistanceRange( ball.dist_, ServerParam::i().distQuantizeStep(), &average_dist, &dist_error );
+#endif
 
     // dlog.addText( Logger::WORLD,
     //               __FILE__" (localizeBallRelative) self_face=%.1f err=%.3f",
@@ -1444,7 +1527,7 @@ LocalizationDefault::localizePlayer( const VisualSensor::PlayerT & from,
     ////////////////////////////////////////////////////////////////////
     // get polar range info
     double average_dist, dist_error;
-
+#ifdef USE_OBJECT_TABLE
     if ( ! M_impl->objectTable().getMovableObjInfo( from.dist_,
                                                     &average_dist,
                                                     &dist_error ) )
@@ -1456,6 +1539,9 @@ LocalizationDefault::localizePlayer( const VisualSensor::PlayerT & from,
                       from.dist_ );
         return false;
     }
+#else
+    M_impl->getDistanceRange( from.dist_, ServerParam::i().distQuantizeStep(), &average_dist, &dist_error );
+#endif
 
     double average_dir, dir_error;
 
