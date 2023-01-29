@@ -223,11 +223,8 @@ SeeState::updateBySee( const GameTime & see_time,
     // see timing is synchronized.
     //
 
-    if ( M_cycles_till_next_see > 0 )
-    {
-        M_cycles_till_next_see = 0;
-        setViewMode( vw, vq );
-    }
+    // update M_cycles_till_next_see and M_synch_type according to the current view mode
+    setViewMode( vw, vq );
 
     // update current see arrival timing.
     Timing new_timing = getNextTiming( vw, vq );
@@ -272,7 +269,7 @@ SeeState::setNewCycle( const GameTime & new_time )
 
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::SYSTEM,
-                  __FILE__" (updateBySee) set new cycle. cycle till next see = %d",
+                  __FILE__" (setNewCycle) set new cycle. cycle till next see = %d",
                   M_cycles_till_next_see );
 #endif
 }
