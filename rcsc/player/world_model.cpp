@@ -354,7 +354,8 @@ const double WorldModel::DIR_STEP = 360.0 / static_cast< double >( DIR_CONF_DIVS
 
  */
 WorldModel::WorldModel()
-    : M_localize( new LocalizationDefault() ),
+    : M_client_version( 8 ),
+      M_localize(),
       M_intercept_table(),
       M_audio_memory( new AudioMemory() ),
       M_penalty_kick_state( new PenaltyKickState() ),
@@ -439,7 +440,8 @@ bool
 WorldModel::init( const std::string & teamname,
                   const SideID ourside,
                   const int my_unum,
-                  const bool my_goalie )
+                  const bool my_goalie,
+                  const double client_version )
 {
     if ( ! M_localize )
     {
@@ -458,6 +460,8 @@ WorldModel::init( const std::string & teamname,
                   << std::endl;
         return false;
     }
+
+    M_client_version = client_version;
 
     M_our_team_name = teamname;
     M_our_side = ourside;

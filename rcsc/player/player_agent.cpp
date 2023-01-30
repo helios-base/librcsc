@@ -40,6 +40,8 @@
 #include "audio_sensor.h"
 #include "fullstate_sensor.h"
 
+#include "localization_default.h"
+
 #include "player_command.h"
 #include "say_message_builder.h"
 #include "soccer_action.h"
@@ -825,6 +827,10 @@ PlayerAgent::initImpl( CmdLineParser & cmd_parser )
                                  config().playerFaceCountThr() );
 
     AudioCodec::instance().createMap( config().audioShift() );
+
+
+    M_worldmodel.setLocalization( std::shared_ptr< Localization >( new LocalizationDefault() ) );
+    M_fullstate_worldmodel.setLocalization( std::shared_ptr< Localization >( new LocalizationDefault() ) );
 
     return true;
 }
@@ -2107,7 +2113,8 @@ PlayerAgent::Impl::analyzeInit( const char * msg )
 
     if ( ! agent_.M_worldmodel.init( agent_.config().teamName(),
                                      side, unum,
-                                     agent_.config().goalie() ) )
+                                     agent_.config().goalie(),
+                                     agent_.config().version() ) )
     {
         agent_.M_client->setServerAlive( false );
         return;
@@ -2116,7 +2123,8 @@ PlayerAgent::Impl::analyzeInit( const char * msg )
     if ( agent_.config().debugFullstate()
          && ! agent_.M_fullstate_worldmodel.init( agent_.config().teamName(),
                                                   side, unum,
-                                                  agent_.config().goalie() ) )
+                                                  agent_.config().goalie(),
+                                                  agent_.config().version() ) )
     {
         agent_.M_client->setServerAlive( false );
         return;

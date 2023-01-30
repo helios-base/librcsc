@@ -78,6 +78,8 @@ public:
 
 private:
 
+    double M_client_version;
+
     std::shared_ptr< Localization > M_localize; //!< localization module
     InterceptTable M_intercept_table; //!< interception info table
     std::shared_ptr< AudioMemory > M_audio_memory; //!< heard deqinfo memory
@@ -219,6 +221,7 @@ public:
       \param our_side our side ID
       \param unum my uniform number
       \param goalie true if I am goalie
+      \param client_version the client protocol version
       \return true if successfully initialized, false otherwise
 
       This method is called just after receive init reply
@@ -226,7 +229,8 @@ public:
     bool init( const std::string & team_name,
                const SideID our_side,
                const int unum,
-               const bool goalie );
+               const bool goalie,
+               const double client_version );
 
     /*!
       \brief get this world mode is valid or not
@@ -239,6 +243,15 @@ public:
       \param is_valid value to be set
     */
     void setValid( bool is_valid );
+
+    /*!
+      \brief get the client version.
+      \return the version numver
+     */
+    double clientVersion() const
+      {
+          return M_client_version;
+      }
 
     /*!
       \brief get intercept table
