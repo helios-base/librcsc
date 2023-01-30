@@ -32,6 +32,7 @@
 #ifndef RCSC_PLAYER_OBJECT_TABLE_H
 #define RCSC_PLAYER_OBJECT_TABLE_H
 
+#include <rcsc/player/view_mode.h>
 #include <rcsc/geom/vector_2d.h>
 #include <rcsc/types.h>
 
@@ -104,8 +105,16 @@ private:
     //! distance table for stationary objects (line, marker)
     std::vector< DataEntry > M_static_table;
 
+    std::vector< DataEntry > M_static_table_v18_narrow; //!< landmark distance table for v18+ narrow
+    std::vector< DataEntry > M_static_table_v18_normal; //!< landmark distance table for v18+ normal
+    std::vector< DataEntry > M_static_table_v18_wide; //!< landmark distance table for v18+ wide
+
     //! distance table for movable objects (ball, player)
     std::vector< DataEntry > M_movable_table;
+
+    std::vector< DataEntry > M_movable_table_v18_narrow; //!< distance table for v18+ narrow
+    std::vector< DataEntry > M_movable_table_v18_normal; //!< distance table for v18+ normal
+    std::vector< DataEntry > M_movable_table_v18_wide; //!< distance table for v18+ wide
 
 public:
     /*!
@@ -145,6 +154,30 @@ public:
     bool getMovableObjInfo( const double & see_dist,
                             double * ave,
                             double * err ) const;
+
+    /*!
+      \brief get the predefinede distance range for the landmark objects (v18+)
+      \param quant_dist seen distance value
+      \param mean_dist variable pointer to store the result mean distance
+      \param dist_error variable pointer to store the result error range
+      \return true if found the matched data
+     */
+    bool getLandmarkDistanceRangeV18( const double quant_dist,
+                                      const ViewWidth::Type view_width,
+                                      double * mean_dist,
+                                      double * dist_error ) const;
+    /*!
+      \brief get the predefinede distance range for the movable objects (v18+)
+      \param quant_dist seen distance value
+      \param mean_dist variable pointer to store the result mean distance
+      \param dist_error variable pointer to store the result error range
+      \return true if found the matched data
+     */
+    bool getDistanceRangeV18( const double quant_dist,
+                              const ViewWidth::Type view_width,
+                              double * mean_dist,
+                              double * dist_error ) const;
+
 
     /*!
       \brief static utility. round real value
