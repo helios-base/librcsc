@@ -1211,11 +1211,10 @@ LocalizationDefault::estimateSelfFace( const VisualSensor & see,
 
  */
 bool
-LocalizationDefault::localizeSelf( const VisualSensor & see,
-                                   const ActionEffector & /* act */,
-                                   const PlayerType * /* ptype */,
-                                   const double & self_face,
-                                   const double & self_face_err,
+LocalizationDefault::localizeSelf( const WorldModel & /*wm*/,
+                                   const VisualSensor & see,
+                                   const double self_face,
+                                   const double self_face_err,
                                    Vector2D * self_pos,
                                    Vector2D * self_pos_err )
 {
@@ -1305,10 +1304,10 @@ LocalizationDefault::localizeSelf( const VisualSensor & see,
 
  */
 bool
-LocalizationDefault::localizeBallRelative( const VisualSensor & see,
-                                           const ActionEffector & /* act */,
-                                           const double & self_face,
-                                           const double & self_face_err,
+LocalizationDefault::localizeBallRelative( const WorldModel & /* wm */,
+                                           const VisualSensor & see,
+                                           const double self_face,
+                                           const double self_face_err,
                                            Vector2D * rpos,
                                            Vector2D * rpos_err,
                                            Vector2D * rvel,
@@ -1518,8 +1517,8 @@ LocalizationDefault::localizeBallRelative( const VisualSensor & see,
  */
 bool
 LocalizationDefault::localizePlayer( const VisualSensor::PlayerT & from,
-                                     const double & self_face,
-                                     const double & self_face_err,
+                                     const double self_face,
+                                     const double self_face_err,
                                      const Vector2D & self_pos,
                                      const Vector2D & self_vel,
                                      PlayerT * to ) const

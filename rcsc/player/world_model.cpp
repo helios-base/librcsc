@@ -2195,7 +2195,7 @@ WorldModel::updatePlayer( const PlayerObject * player,
 bool
 WorldModel::localizeSelf( const VisualSensor & see,
                           const BodySensor & sense_body,
-                          const ActionEffector & act,
+                          const ActionEffector & /*act*/,
                           const GameTime & current )
 {
     const bool reverse_side = is_reverse_side( *this, *M_penalty_kick_state );
@@ -2229,7 +2229,7 @@ WorldModel::localizeSelf( const VisualSensor & see,
 
 
     // estimate self position
-    if ( ! M_localize->localizeSelf( see, act, this->self().playerTypePtr(),
+    if ( ! M_localize->localizeSelf( *this, see,
                                      angle_face, angle_face_error,
                                      &my_pos, &my_pos_error ) )
     {
@@ -2300,7 +2300,7 @@ WorldModel::localizeBall( const VisualSensor & see,
     Vector2D rvel( Vector2D::INVALIDATED );
     Vector2D vel_error( 0.0, 0.0 );
 
-    if ( ! M_localize->localizeBallRelative( see, act,
+    if ( ! M_localize->localizeBallRelative( *this, see,
                                              self().face().degree(), self().faceError(),
                                              &rpos, &rpos_error,
                                              &rvel, &vel_error )  )
