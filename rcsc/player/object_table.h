@@ -162,10 +162,22 @@ public:
       \param dist_error variable pointer to store the result error range
       \return true if found the matched data
      */
-    bool getLandmarkDistanceRangeV18( const double quant_dist,
-                                      const ViewWidth::Type view_width,
+    bool getLandmarkDistanceRangeV18( const ViewWidth::Type view_width,
+                                      const double quant_dist,
                                       double * mean_dist,
                                       double * dist_error ) const;
+
+    bool getLandmarkDistanceRange( const double client_version,
+                                   const ViewWidth::Type view_width,
+                                   const double quant_dist,
+                                   double * mean_dist,
+                                   double * dist_error ) const
+      {
+          return ( client_version >= 18.0
+                   ? getLandmarkDistanceRangeV18( view_width, quant_dist, mean_dist, dist_error )
+                   : getStaticObjInfo( quant_dist, mean_dist, dist_error ) );
+      }
+
     /*!
       \brief get the predefinede distance range for the movable objects (v18+)
       \param quant_dist seen distance value
@@ -173,11 +185,21 @@ public:
       \param dist_error variable pointer to store the result error range
       \return true if found the matched data
      */
-    bool getDistanceRangeV18( const double quant_dist,
-                              const ViewWidth::Type view_width,
+    bool getDistanceRangeV18( const ViewWidth::Type view_width,
+                              const double quant_dist,
                               double * mean_dist,
                               double * dist_error ) const;
 
+    bool getDistanceRange( const double client_version,
+                           const ViewWidth::Type view_width,
+                           const double quant_dist,
+                           double * mean_dist,
+                           double * dist_error ) const
+      {
+          return ( client_version >= 18.0
+                   ? getDistanceRangeV18( view_width, quant_dist, mean_dist, dist_error )
+                   : getMovableObjInfo( quant_dist, mean_dist, dist_error ) );
+      }
 
     /*!
       \brief static utility. round real value

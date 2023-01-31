@@ -2195,7 +2195,7 @@ WorldModel::updatePlayer( const PlayerObject * player,
 bool
 WorldModel::localizeSelf( const VisualSensor & see,
                           const BodySensor & sense_body,
-                          const ActionEffector & /*act*/,
+                          const ActionEffector & act,
                           const GameTime & current )
 {
     const bool reverse_side = is_reverse_side( *this, *M_penalty_kick_state );
@@ -2206,7 +2206,7 @@ WorldModel::localizeSelf( const VisualSensor & see,
     Vector2D my_pos_error( 0.0, 0.0 );
 
     // estimate self face angle
-    if ( ! M_localize->estimateSelfFace( see, &angle_face, &angle_face_error ) )
+    if ( ! M_localize->estimateSelfFace( *this, see, &angle_face, &angle_face_error ) )
     {
         return false;
     }
@@ -2229,7 +2229,7 @@ WorldModel::localizeSelf( const VisualSensor & see,
 
 
     // estimate self position
-    if ( ! M_localize->localizeSelf( *this, see,
+    if ( ! M_localize->localizeSelf( *this, see, act,
                                      angle_face, angle_face_error,
                                      &my_pos, &my_pos_error ) )
     {
@@ -2794,7 +2794,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
     for ( const VisualSensor::PlayerT & p : see.opponents() )
     {
         Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( p,
+        if ( ! M_localize->localizePlayer( *this,
+                                           p,
                                            MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
                                            &player ) )
         {
@@ -2828,7 +2829,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
     for ( const VisualSensor::PlayerT & p : see.unknownOpponents() )
     {
         Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( p,
+        if ( ! M_localize->localizePlayer( *this,
+                                           p,
                                            MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
                                            &player ) )
         {
@@ -2859,7 +2861,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
     for ( const VisualSensor::PlayerT & p : see.teammates() )
     {
         Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( p,
+        if ( ! M_localize->localizePlayer( *this,
+                                           p,
                                            MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
                                            &player ) )
         {
@@ -2893,7 +2896,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
     for ( const VisualSensor::PlayerT & p : see.unknownTeammates() )
     {
         Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( p,
+        if ( ! M_localize->localizePlayer( *this,
+                                           p,
                                            MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
                                            &player ) )
         {
@@ -2925,7 +2929,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
     {
         Localization::PlayerT player;
         // localize
-        if ( ! M_localize->localizePlayer( p,
+        if ( ! M_localize->localizePlayer( *this,
+                                           p,
                                            MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
                                            &player ) )
         {

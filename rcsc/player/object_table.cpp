@@ -2379,8 +2379,8 @@ ObjectTable::getMovableObjInfo( const double & see_dist,
 
 /*-------------------------------------------------------------------*/
 bool
-ObjectTable::getLandmarkDistanceRangeV18( const double quant_dist,
-                                          const ViewWidth::Type view_width,
+ObjectTable::getLandmarkDistanceRangeV18( const ViewWidth::Type view_width,
+                                          const double quant_dist,
                                           double * mean_dist,
                                           double * dist_error ) const
 {
@@ -2413,8 +2413,8 @@ ObjectTable::getLandmarkDistanceRangeV18( const double quant_dist,
 
 /*-------------------------------------------------------------------*/
 bool
-ObjectTable::getDistanceRangeV18( const double quant_dist,
-                                  const ViewWidth::Type view_width,
+ObjectTable::getDistanceRangeV18( const ViewWidth::Type view_width,
+                                  const double quant_dist,
                                   double * mean_dist,
                                   double * dist_error ) const
 {

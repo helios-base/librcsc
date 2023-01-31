@@ -80,13 +80,15 @@ public:
 
     /*!
       \brief estimate self facing direction.
+      \param wm world model
       \param see analyzed see information
       \param self_face pointer to the result variable
       \param self_face_err pointer to the result variable
       \return result
      */
     virtual
-    bool estimateSelfFace( const VisualSensor & see,
+    bool estimateSelfFace( const WorldModel & wm,
+                           const VisualSensor & see,
                            double * self_face,
                            double * self_face_err ) override;
 
@@ -94,6 +96,7 @@ public:
       \brief localize self position.
       \param wm world model
       \param see analyzed see info
+      \param act the last action info
       \param self_face localized face angle
       \param self_face_err localized face angle error
       \param self_pos pointer to the variable to store the localized self position
@@ -103,6 +106,7 @@ public:
     virtual
     bool localizeSelf( const WorldModel & wm,
                        const VisualSensor & see,
+                       const ActionEffector & act,
                        const double self_face,
                        const double self_face_err,
                        Vector2D * self_pos,
@@ -132,6 +136,7 @@ public:
 
     /*!
       \brief localze other player
+      \param wm world model
       \param from seen player info
       \param self_face localized self face angle
       \param self_face_err localized self face angle error
@@ -141,7 +146,8 @@ public:
       \return if failed, returns false
     */
     virtual
-    bool localizePlayer( const VisualSensor::PlayerT & from,
+    bool localizePlayer( const WorldModel & wm,
+                         const VisualSensor::PlayerT & from,
                          const double self_face,
                          const double self_face_err,
                          const Vector2D & self_pos,
