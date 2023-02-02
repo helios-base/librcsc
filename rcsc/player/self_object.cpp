@@ -483,6 +483,9 @@ SelfObject::updateAfterSenseBody( const BodySensor & sense,
     M_view_width = sense.viewWidth();
     M_view_quality = sense.viewQuality();
 
+    M_focus_dist = sense.focusDist();
+    M_focus_dir = sense.focusDir();
+
     ////////////////////////////////////////////////////
     // stamina
     M_stamina.updateBySenseBody( sense.stamina(),

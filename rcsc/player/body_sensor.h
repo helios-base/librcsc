@@ -509,6 +509,24 @@ public:
       }
 
     /*!
+      \brief get the focus distance value
+      \return the distance to the focus point
+     */
+    double focusDist() const
+      {
+          return M_focus_dist;
+      }
+
+    /*!
+      \brief get the focus direction value
+      \return the direction to the focus point, relative to the body angle
+     */
+    double focusDir() const
+      {
+          return M_focus_dist;
+      }
+
+    /*!
       \brief put data to output stream
       \param os reference to the output stream
       \return reference to the output stream
