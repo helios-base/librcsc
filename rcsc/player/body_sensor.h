@@ -354,6 +354,15 @@ public:
       }
 
     /*!
+      \brief get analyzed change_focus count
+      \return count of performed change_focus command
+    */
+    int changeFocusCount() const
+      {
+          return M_change_view_count;
+      }
+
+    /*!
       \brief get analyzed cycles till the arm is movable
       \return cycles till the arm is movable
     */

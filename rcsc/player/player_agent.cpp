@@ -2972,6 +2972,16 @@ PlayerAgent::doChangeView( const ViewWidth & width )
 }
 
 /*-------------------------------------------------------------------*/
+bool
+PlayerAgent::doChangeFocus( const double dist_moment,
+                            const AngleDeg & dir_moment )
+{
+    M_effector.setChangeFocus( dist_moment, dir_moment );
+    return true;
+}
+
+
+/*-------------------------------------------------------------------*/
 /*!
 
  */

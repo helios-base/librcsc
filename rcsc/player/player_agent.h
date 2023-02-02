@@ -267,6 +267,14 @@ public:
     */
     bool doChangeView( const ViewWidth & width );
 
+    /*!
+      \brief register change_focus command
+      \param moment_dist distance added to the current focus point
+      \param moment_dir direction added to the current focus point
+     */
+    bool doChangeFocus( const double moment_dist,
+                        const AngleDeg & moment_dir );
+
     /*
       brief register say command.
       param msg message string
