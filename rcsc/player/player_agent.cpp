@@ -2973,10 +2973,38 @@ PlayerAgent::doChangeView( const ViewWidth & width )
 
 /*-------------------------------------------------------------------*/
 bool
-PlayerAgent::doChangeFocus( const double dist_moment,
-                            const AngleDeg & dir_moment )
+PlayerAgent::doChangeFocus( const double moment_dist,
+                            const AngleDeg & moment_dir )
 {
-    M_effector.setChangeFocus( dist_moment, dir_moment );
+    double focus_dist = world().self().focusDist();
+    AngleDeg focus_dir = world().self().focusDir();
+
+    // check the range of distance
+    double command_moment_dist = moment_dist;
+    if ( focus_dist + command_moment_dist < 0.0 )
+    {
+        command_moment_dist = -focus_dist;
+    }
+    else if ( focus_dist + command_moment_dist > 40.0 )
+    {
+        command_moment_dist = 40.0 - focus_dist;
+    }
+
+    // check the range of visible angle
+    const ViewWidth next_width = M_effector.queuedNextViewWidth();
+    const double next_half_angle = next_width.width() * 0.5;
+
+    double command_moment_dir = moment_dir.degree();
+    if ( focus_dir.degree() + command_moment_dir < -next_half_angle )
+    {
+        command_moment_dir = -next_half_angle - focus_dir.degree();
+    }
+    else if ( focus_dir.degree() + command_moment_dir > next_half_angle )
+    {
+        command_moment_dir = next_half_angle - focus_dir.degree();
+    }
+
+    M_effector.setChangeFocus( command_moment_dist, command_moment_dir );
     return true;
 }
 
