@@ -228,6 +228,48 @@ public:
 /////////////////////////////////////////////////////////////////////
 
 /*!
+  \class FocusAction
+  \brief abstract change_focus action
+ */
+class FocusAction
+    : public AbstractAction {
+public:
+
+    typedef std::shared_ptr< FocusAction > Ptr;
+private:
+
+    //! not used
+    FocusAction( const FocusAction & ) = delete;
+    //! not used
+    FocusAction & operator=( const FocusAction & ) = delete;
+
+public:
+    /*!
+      \brief nothing to do, but should be a virtual method.
+    */
+    virtual
+    ~FocusAction() = default;
+
+    /*!
+      \brief pure virtual. set command to the action effector
+      \retval true if action is performed
+      \retval false if action is failed or not needed.
+    */
+    virtual
+    bool execute( PlayerAgent * agent ) = 0;
+
+    /*!
+      \brief create cloned action object
+      \return pointer to the cloned object instance.
+    */
+    virtual
+    FocusAction * clone() const = 0;
+
+};
+
+/////////////////////////////////////////////////////////////////////
+
+/*!
   \class ArmAction
   \brief abstract pointto action
 */

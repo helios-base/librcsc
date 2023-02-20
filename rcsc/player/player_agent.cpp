@@ -137,6 +137,9 @@ struct PlayerAgent::Impl {
     //! pointer to reserved action
     std::shared_ptr< ViewAction > view_action_;
 
+    //! pointer to reserved action
+    std::shared_ptr< FocusAction > focus_action_;
+
     //! intention queue
     SoccerIntention::Ptr intention_;
 
@@ -387,9 +390,17 @@ struct PlayerAgent::Impl {
     void doViewAction();
 
     /*!
+      \brief perform reserved change_focus action
+
+      This method is called after doBodyAction()
+      This method is called after doViewAction()
+    */
+    void doFocusAction();
+
+    /*!
       \brief perform reserved turn neck action
 
-      This method is called just after doViewAction()
+      This method is called just after doViewAction() and doFocusAction()
     */
     void doNeckAction();
 
@@ -2395,6 +2406,7 @@ PlayerAgent::action()
     actionImpl(); // this is pure virtual method
     M_impl->doArmAction();
     M_impl->doViewAction();
+    M_impl->doFocusAction();
     M_impl->doNeckAction();
     communicationImpl();
 
@@ -2481,6 +2493,20 @@ PlayerAgent::Impl::doViewAction()
     {
         view_action_->execute( &agent_ );
         view_action_.reset();
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+PlayerAgent::Impl::doFocusAction()
+{
+    if ( focus_action_ )
+    {
+        focus_action_->execute( &agent_ );
+        focus_action_.reset();
     }
 }
 
@@ -3215,6 +3241,23 @@ PlayerAgent::setViewAction( ViewAction * act )
     else
     {
         M_impl->view_action_.reset();
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+PlayerAgent::setFocusAction( FocusAction * act )
+{
+    if ( act )
+    {
+        M_impl->focus_action_ = std::shared_ptr< FocusAction >( act );
+    }
+    else
+    {
+        M_impl->focus_action_.reset();
     }
 }
 
