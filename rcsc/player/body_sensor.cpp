@@ -62,6 +62,7 @@ BodySensor::BodySensor()
     , M_catch_count( 0 )
     , M_move_count( 0 )
     , M_change_view_count( 0 )
+    , M_change_focus_count( 0 )
     , M_arm_movable( 0 )
     , M_arm_expires( 0 )
     , M_pointto_dist( 0.0 )
@@ -266,15 +267,15 @@ BodySensor::parse( const char * msg,
     M_move_count  = static_cast< int >( std::strtol( msg, &next, 10 ) );
     msg = next;
 
-    while ( *msg != '(' ) ++msg;
-    while ( *msg != ' ' ) ++msg; // skip "(chage_view"
+    while ( *msg != '\0' && *msg != '(' ) ++msg;
+    while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip "(chage_view"
     M_change_view_count = static_cast< int >( std::strtol( msg, &next, 10 ) );
     msg = next;
 
     if ( version >= 18.0 )
     {
-        while ( *msg != '(' ) ++msg;
-        while ( *msg != ' ' ) ++msg; // skip "(chage_focus"
+        while ( *msg != '\0' && *msg != '(' ) ++msg;
+        while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip "(change_focus"
         M_change_focus_count = static_cast< int >( std::strtol( msg, &next, 10 ) );
         msg = next;
     }
