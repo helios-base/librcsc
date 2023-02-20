@@ -6,13 +6,13 @@ add_library(rcsc_rcg OBJECT
 	parser_v2.cpp
 	parser_v3.cpp
 	parser_v4.cpp
-	parser_v5.cpp
 	serializer.cpp
 	serializer_v1.cpp
 	serializer_v2.cpp
 	serializer_v3.cpp
 	serializer_v4.cpp
 	serializer_v5.cpp
+	serializer_v6.cpp
 	util.cpp
   )
 
@@ -31,13 +31,13 @@ install(FILES
   parser_v2.h
   parser_v3.h
   parser_v4.h
-  parser_v5.h
   serializer.h
   serializer_v1.h
   serializer_v2.h
   serializer_v3.h
   serializer_v4.h
   serializer_v5.h
+  serializer_v6.h
   types.h
   util.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/rcg

@@ -69,13 +69,25 @@ ParserV4::parse( std::istream & is,
 
     // skip header line
     if ( ! std::getline( is, line )
-         || line != "ULG4" )
+         || line.length() < 4
+         || line.compare( 0, 3, "ULG" ) != 0 )
     {
+        std::cerr << "Unknown header line: [" << line << "]" << std::endl;
         return false;
     }
 
-    if ( ! handler.handleLogVersion( REC_VERSION_4 ) )
+    const int version = std::stoi( line.substr( 3 ) );
+    if ( version != REC_VERSION_4
+         && version != REC_VERSION_5
+         && version != REC_VERSION_6 )
     {
+        std::cerr << "Unsupported rcg version: [" << line << "]" << std::endl;
+        return false;
+    }
+
+    if ( ! handler.handleLogVersion( version ) )
+    {
+        std::cerr << "Unsupported game log version: [" << line << "]" << std::endl;
         return false;
     }
 
@@ -512,7 +524,7 @@ ParserV4::parseShow( const int n_line,
             p.neck_ = strtof( buf, &next ); buf = next;
             while ( *buf == ' ' ) ++buf;
 
-            // x y vx vy body neck
+            // arm
             if ( *buf != '\0' && *buf != '(' )
             {
                 p.point_x_ = strtof( buf, &next ); buf = next;
@@ -525,13 +537,30 @@ ParserV4::parseShow( const int n_line,
             while ( *buf == ' ' ) ++buf;
             p.view_quality_ = *buf; ++buf;
             p.view_width_ = strtof( buf, &next ); buf = next;
+            while ( *buf == ' ' || *buf == ')' ) ++buf;
 
-            // (s stamina effort recovery)
+            // (fp dist dir)
+            // focus point is introduced in the monitor protocol v6
+            if ( ! std::strncmp( buf, "(fp ", 4 ) )
+            {
+                buf += 4;
+                p.focus_dist_ = strtof( buf, &next ); buf = next;
+                p.focus_dir_ = strtof( buf, &next ); buf = next;
+                while ( *buf == ' ' || *buf == ')' ) ++buf;
+            }
+
+            // (s stamina effort recovery[ capacity])
+            // capacity is introduced in the monitor protocol v5
             while ( *buf != '\0' && *buf != 's' ) ++buf;
             ++buf; // skip 's' //while ( *buf != '\0' && *buf != ' ' ) ++buf;
             p.stamina_ = strtof( buf, &next ); buf = next;
             p.effort_ = strtof( buf, &next ); buf = next;
             p.recovery_ = strtof( buf, &next ); buf = next;
+            while ( *buf == ' ' ) ++buf;
+            if ( *buf != ')' )
+            {
+                p.stamina_capacity_ = strtof( buf, &next ); buf = next;
+            }
             while ( *buf != '\0' && *buf != ')' ) ++buf;
             while ( *buf == ')' ) ++buf;
 
@@ -776,9 +805,12 @@ create_v4()
     return ptr;
 }
 
-const int version = static_cast< int >( '0' ) + REC_VERSION_4;
-rcss::RegHolder v4 = Parser::creators().autoReg( &create_v4, version );
-
+const int version4 = static_cast< int >( '0' ) + REC_VERSION_4;
+const int version5 = static_cast< int >( '0' ) + REC_VERSION_5;
+const int version6 = static_cast< int >( '0' ) + REC_VERSION_6;
+rcss::RegHolder v4 = Parser::creators().autoReg( &create_v4, version4 );
+rcss::RegHolder v5 = Parser::creators().autoReg( &create_v4, version5 );
+rcss::RegHolder v6 = Parser::creators().autoReg( &create_v4, version6 );
 }
 
 } // end of namespace
