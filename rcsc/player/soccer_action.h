@@ -243,6 +243,13 @@ private:
     //! not used
     FocusAction & operator=( const FocusAction & ) = delete;
 
+protected:
+
+    /*!
+      \brief nothing to do. but accessible only from derived classes.
+    */
+    FocusAction() = default;
+
 public:
     /*!
       \brief nothing to do, but should be a virtual method.
