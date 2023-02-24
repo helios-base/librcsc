@@ -57,6 +57,7 @@ class SeeState;
 class SoccerIntention;
 class NeckAction;
 class ViewAction;
+class FocusAction;
 class VisualSensor;
 
 /*!
@@ -330,6 +331,13 @@ public:
       \param act pointer to the action. must be a dynamically allocated object.
     */
     void setViewAction( ViewAction * act );
+
+    /*!
+      \brief reserve change_focus action
+      \param act pointer to the action. must be a dynamically allocated object.
+    */
+    void setFocusAction( FocusAction * act );
+
 
     /*!
       \brief add say message to the action effector

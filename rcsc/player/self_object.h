@@ -291,6 +291,12 @@ public:
       }
 
     /*!
+      \brief get the estimated focus point according to the self localization result
+      \return the global coordinates of the estimated focus point
+     */
+    Vector2D focusPoint() const;
+
+    /*!
       \brief get time when the last catch command is performed
       \return const reference to the time object
     */

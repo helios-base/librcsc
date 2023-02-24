@@ -359,7 +359,7 @@ public:
     */
     int changeFocusCount() const
       {
-          return M_change_view_count;
+          return M_change_focus_count;
       }
 
     /*!
