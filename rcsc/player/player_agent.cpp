@@ -390,20 +390,20 @@ struct PlayerAgent::Impl {
     void doViewAction();
 
     /*!
+      \brief perform reserved turn neck action
+
+      This method is called just after doViewAction()
+    */
+    void doNeckAction();
+
+    /*!
       \brief perform reserved change_focus action
 
       This method is called after doBodyAction()
       This method is called after doViewAction()
+      This method is called after doNeckAction()
     */
     void doFocusAction();
-
-    /*!
-      \brief perform reserved turn neck action
-
-      This method is called just after doViewAction() and doFocusAction()
-    */
-    void doNeckAction();
-
 
     /*!
       \brief output debug messages to disk/server.
@@ -2406,8 +2406,8 @@ PlayerAgent::action()
     actionImpl(); // this is pure virtual method
     M_impl->doArmAction();
     M_impl->doViewAction();
-    M_impl->doFocusAction();
     M_impl->doNeckAction();
+    M_impl->doFocusAction();
     communicationImpl();
 
     // ------------------------------------------------------------------------
