@@ -65,6 +65,18 @@ private:
     double M_kick_power_rate; //!< kick power rate
     double M_foul_detect_probability; //!< foul detect probability
     double M_catchable_area_l_stretch; //!< catch area length stretch factor
+    // v18
+    double M_unum_far_length; //!< Distance where the uniform number becomes ambiguous in see message
+    double M_unum_too_far_length; //!< Distance where the uniform number becomes completely unobservable
+    double M_team_far_length; //!< Distance where the team information becomes ambiguous in see message
+    double M_team_too_far_length; //!< Distance where the team information becomes completely unobservable
+    double M_player_max_observation_length; //!< Maximum distance where players can be observed
+    double M_ball_vel_far_length; //!< Distance where the ball relatie velocity becomes ambiguous in see message
+    double M_ball_vel_too_far_length; //!< Distance where the ball relative velocityr becomes completely unobservable
+    double M_ball_max_observation_length; //!< Maximum distance where the ball can be observed
+    double M_flag_chg_far_length; //!< Distance where the flag relative velocity becomes ambiguous in see message
+    double M_flag_chg_too_far_length;//!< Distance where the flag relative velocityr becomes completely unobservable
+    double M_flag_max_observation_length; //!< Maximum distance where the flag can be observed
 
     //
     // additional parameters
@@ -298,6 +310,105 @@ public:
     double catchAreaLengthStretch() const
       {
           return M_catchable_area_l_stretch;
+      }
+
+    /*!
+      \brief get the player_type parameter
+      \return player_type parameter
+     */
+    double unumFarLength() const
+      {
+          return M_unum_far_length;
+      }
+
+    /*!
+      \brief get the player_type parameter
+      \return player_type parameter
+     */
+    double unumTooFarLength() const
+      {
+          return M_unum_too_far_length;
+      }
+
+    /*!
+      \brief get the player_type parameter
+      \return player_type parameter
+     */
+    double teamFarLength() const
+      {
+          return M_team_far_length;
+      }
+
+    /*!
+      \brief get the player_type parameter
+      \return player_type parameter
+     */
+    double teamTooFarLength() const
+      {
+          return M_team_too_far_length;
+      }
+
+    /*!
+      \brief get the player_type parameter
+      \return player_type parameter
+     */
+    double playerMaxObservationLength() const
+      {
+          return M_player_max_observation_length;
+      }
+
+    /*!
+      \brief get the player_type parameter
+      \return player_type parameter
+     */
+    double ballVelFarLength() const
+      {
+          return M_ball_vel_far_length;
+      }
+
+    /*!
+      \brief get the player_type parameter
+      \return player_type parameter
+     */
+    double ballVelTooFarLength() const
+      {
+          return M_ball_vel_too_far_length;
+      }
+
+    /*!
+      \brief get the player_type parameter
+      \return player_type parameter
+     */
+    double ballMaxObservationLength() const
+      {
+          return M_ball_max_observation_length;
+      }
+
+    /*!
+      \brief get the player_type parameter
+      \return player_type parameter
+     */
+    double flagChgFarLength() const
+      {
+          return M_flag_chg_far_length;
+      }
+
+    /*!
+      \brief get the player_type parameter
+      \return player_type parameter
+     */
+    double flagChgTooFarLength() const
+      {
+          return M_flag_chg_too_far_length;
+      }
+
+    /*!
+      \brief get the player_type parameter
+      \return player_type parameter
+     */
+    double flagMaxObservationLength() const
+      {
+          return M_flag_max_observation_length;
       }
 
     ////////////////////////////////////////////////

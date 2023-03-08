@@ -37,7 +37,9 @@
 
 #include "object_table.h"
 #include "body_sensor.h"
+#include "world_model.h"
 
+#include <rcsc/common/server_param.h>
 #include <rcsc/common/logger.h>
 #include <rcsc/geom/sector_2d.h>
 #include <rcsc/time/timer.h>
@@ -53,6 +55,8 @@ using std::max;
 // #define DEBUG_PROFILE_REMOVE
 // #define DEBUG_PRINT
 // #define DEBUG_PRINT_SHAPE
+
+#define USE_OBJECT_TABLE
 
 namespace {
 static int g_filter_count = 0;
@@ -110,23 +114,27 @@ public:
 
     /*!
       \brief update points using seen markers
+      \param wm world model
       \param markers seen marker container
       \param self_face agent's global face angle
       \param self_face_err agent's global face angle error
     */
-    void updatePointsByMarkers( const VisualSensor::MarkerCont & markers,
+    void updatePointsByMarkers( const WorldModel & wm,
+                                const VisualSensor::MarkerCont & markers,
                                 const double & self_face,
                                 const double & self_face_err );
 
     /*!
       \brief update points using seen markers
+      \param wm world model
       \param markers seen marker container
       \param behind_markers behind marker container
       \param self_pos agent's global position
       \param self_face agent's global face angle
       \param self_face_err agent's global face angle error
     */
-    void updatePointsByBehindMarker( const VisualSensor::MarkerCont & markers,
+    void updatePointsByBehindMarker( const WorldModel & wm,
+                                     const VisualSensor::MarkerCont & markers,
                                      const VisualSensor::MarkerCont & behind_markers,
                                      const Vector2D & self_pos,
                                      const double & self_face,
@@ -135,12 +143,14 @@ public:
 
     /*!
       \brief update points by one marker
+      \param wm world model
       \param marker seen marker info
       \param id estimated marker's Id
       \param self_face agent's global face angle
       \param self_face_err agent's global face angle error
     */
-    void updatePointsBy( const VisualSensor::MarkerT & marker,
+    void updatePointsBy( const WorldModel & wm,
+                         const VisualSensor::MarkerT & marker,
                          const MarkerID id,
                          const double & self_face,
                          const double & self_face_err );
@@ -154,17 +164,20 @@ public:
                         Vector2D * ave_err );
 
     /*!
-      \brief generate possible points using nearest marker
+      \brief generate candidate points using nearest marker
+      \param wm world model
       \param marker seen marker object
       \param self_face agent's global face angle
       \param self_face_err agent's global face angle error
     */
-    void generatePoints( const VisualSensor::MarkerT & marker,
+    void generatePoints( const WorldModel & wm,
+                         const VisualSensor::MarkerT & marker,
                          const MarkerID id,
                          const double & self_face,
                          const double & self_face_err );
 
-    void resamplePoints( const VisualSensor::MarkerT & marker,
+    void resamplePoints( const WorldModel & wm,
+                         const VisualSensor::MarkerT & marker,
                          const MarkerID id,
                          const double & self_face,
                          const double & self_face_err );
@@ -198,6 +211,21 @@ public:
                       double * average,
                       double * err );
 
+    /*!
+      \brief calculate the unquantized distance information using the inverse algorithm
+      \param client_version client protocol version
+      \param view_width client's view width
+      \param quant_dist the quantized distance information sent by the server
+      \param qstep the quantize step parameter
+      \param mean_dist the result value of the mean distance
+      \param dist_error the result error value
+     */
+    void inverseDistanceRange( const double client_version,
+                               const ViewWidth::Type view_width,
+                               const double quant_dist,
+                               const double qstep,
+                               double * mean_dist,
+                               double * dist_error ) const;
     // get unquantized dist range
     // void getDistRange(const double &see_dist, const double &qstep,
     //                   double *average, double *range);
@@ -208,7 +236,8 @@ public:
       \param markers seen marker container
       \return self face angle. if failed, retun VisualSensor::DIR_ERR
     */
-    double getFaceDirByMarkers( const VisualSensor::MarkerCont & markers ) const;
+    double getFaceDirByMarkers( const WorldModel & wm,
+                                const VisualSensor::MarkerCont & markers ) const;
 
     /*!
       \brief estimate self global face angle from seen lines
@@ -329,7 +358,8 @@ LocalizationDefault::Impl::getFaceDirByLines( const VisualSensor::LineCont & lin
 
  */
 void
-LocalizationDefault::Impl::updatePointsByMarkers( const VisualSensor::MarkerCont & markers,
+LocalizationDefault::Impl::updatePointsByMarkers( const WorldModel & wm,
+                                                  const VisualSensor::MarkerCont & markers,
                                                   const double & self_face,
                                                   const double & self_face_err )
 {
@@ -349,8 +379,8 @@ LocalizationDefault::Impl::updatePointsByMarkers( const VisualSensor::MarkerCont
           ++marker, ++count )
     {
         ++g_filter_count;
-        updatePointsBy( *marker, marker->id_, self_face, self_face_err );
-        resamplePoints( markers.front(), markers.front().id_, self_face, self_face_err );
+        updatePointsBy( wm, *marker, marker->id_, self_face, self_face_err );
+        resamplePoints( wm, markers.front(), markers.front().id_, self_face, self_face_err );
     }
 
 #ifdef DEBUG_PRINT
@@ -364,7 +394,8 @@ LocalizationDefault::Impl::updatePointsByMarkers( const VisualSensor::MarkerCont
 
  */
 void
-LocalizationDefault::Impl::updatePointsByBehindMarker( const VisualSensor::MarkerCont & markers,
+LocalizationDefault::Impl::updatePointsByBehindMarker( const WorldModel & wm,
+                                                       const VisualSensor::MarkerCont & markers,
                                                        const VisualSensor::MarkerCont & behind_markers,
                                                        const Vector2D & self_pos,
                                                        const double & self_face,
@@ -405,7 +436,8 @@ LocalizationDefault::Impl::updatePointsByBehindMarker( const VisualSensor::Marke
                   " update by BEHIND marker" );
 #endif
 
-    updatePointsBy( behind_markers.front(),
+    updatePointsBy( wm,
+                    behind_markers.front(),
                     marker_id,
                     self_face, self_face_err );
 
@@ -419,7 +451,7 @@ LocalizationDefault::Impl::updatePointsByBehindMarker( const VisualSensor::Marke
                        __FILE__" (updatePointsByBehindMarker) re-generate points." );
 #endif
 
-        generatePoints( behind_markers.front(), marker_id, self_face, self_face_err );
+        generatePoints( wm, behind_markers.front(), marker_id, self_face, self_face_err );
 
         if ( points().empty() )
         {
@@ -439,8 +471,8 @@ LocalizationDefault::Impl::updatePointsByBehindMarker( const VisualSensor::Marke
               ++marker, ++count )
         {
             ++g_filter_count;
-            updatePointsBy( *marker, marker->id_, self_face, self_face_err );
-            resamplePoints( markers.front(), markers.front().id_, self_face, self_face_err );
+            updatePointsBy( wm, *marker, marker->id_, self_face, self_face_err );
+            resamplePoints( wm, markers.front(), markers.front().id_, self_face, self_face_err );
         }
     }
 }
@@ -450,7 +482,8 @@ LocalizationDefault::Impl::updatePointsByBehindMarker( const VisualSensor::Marke
 
  */
 void
-LocalizationDefault::Impl::updatePointsBy( const VisualSensor::MarkerT & marker,
+LocalizationDefault::Impl::updatePointsBy( const WorldModel & wm,
+                                           const VisualSensor::MarkerT & marker,
                                            const MarkerID id,
                                            const double & self_face,
                                            const double & self_face_err )
@@ -476,9 +509,10 @@ LocalizationDefault::Impl::updatePointsBy( const VisualSensor::MarkerT & marker,
     double ave_dist, dist_error;
 
     // get distance range info
-    if ( ! objectTable().getStaticObjInfo( marker.dist_,
-                                           &ave_dist,
-                                           &dist_error ) )
+#ifdef USE_OBJECT_TABLE
+    if ( ! objectTable().getLandmarkDistanceRange( wm.clientVersion(),
+                                                   wm.self().viewWidth().type(),
+                                                   marker.dist_, &ave_dist, &dist_error ) )
     {
         std::cerr << __FILE__ << " (updatePointsBy) unexpected marker distance "
                   << marker.dist_ << std::endl;
@@ -487,6 +521,10 @@ LocalizationDefault::Impl::updatePointsBy( const VisualSensor::MarkerT & marker,
                       marker.dist_ );
         return;
     }
+#else
+    inverseDistanceRange( wm.clientVersion(), wm.self().viewWidth().type(),
+                          marker.dist_, ServerParam::i().landmarkDistQuantizeStep(), &ave_dist, &dist_error );
+#endif
 
     // get dir range info
     double ave_dir, dir_error;
@@ -659,7 +697,8 @@ LocalizationDefault::Impl::averagePoints( Vector2D * ave_pos,
 
  */
 void
-LocalizationDefault::Impl::generatePoints( const VisualSensor::MarkerT & marker,
+LocalizationDefault::Impl::generatePoints( const WorldModel & wm,
+                                           const VisualSensor::MarkerT & marker,
                                            const MarkerID id,
                                            const double & self_face,
                                            const double & self_face_err )
@@ -689,14 +728,18 @@ LocalizationDefault::Impl::generatePoints( const VisualSensor::MarkerT & marker,
     // get sector range
 
     double ave_dist, dist_error;
-
-    if ( ! objectTable().getStaticObjInfo( marker.dist_,
-                                           &ave_dist, &dist_error ) )
+#ifdef USE_OBJECT_TABLE
+    if ( ! objectTable().getLandmarkDistanceRange( wm.clientVersion(),
+                                                   wm.self().viewWidth().type(),
+                                                   marker.dist_,  &ave_dist, &dist_error ) )
     {
-        std::cerr << __FILE__ << " (generatePoints) marker dist error"
-                  << std::endl;
+        std::cerr << __FILE__ << " (generatePoints) marker dist error" << std::endl;
         return;
     }
+#else
+    inverseDistanceRange( wm.clientVersion(), wm.self().viewWidth().type(),
+                          marker.dist_, ServerParam::i().landmarkDistQuantizeStep(), &ave_dist, &dist_error );
+#endif
 
     double ave_dir, dir_error;
     getDirRange( marker.dir_,
@@ -793,7 +836,8 @@ LocalizationDefault::Impl::generatePoints( const VisualSensor::MarkerT & marker,
 
  */
 void
-LocalizationDefault::Impl::resamplePoints( const VisualSensor::MarkerT & marker,
+LocalizationDefault::Impl::resamplePoints( const WorldModel & wm,
+                                           const VisualSensor::MarkerT & marker,
                                            const MarkerID id,
                                            const double & self_face,
                                            const double & self_face_err )
@@ -814,7 +858,7 @@ LocalizationDefault::Impl::resamplePoints( const VisualSensor::MarkerT & marker,
         dlog.addText( Logger::WORLD,
                       __FILE__" (resamplePoints) no points. regenerate..." );
 #endif
-        generatePoints( marker, id, self_face, self_face_err );
+        generatePoints( wm, marker, id, self_face, self_face_err );
         return;
     }
 
@@ -880,7 +924,8 @@ LocalizationDefault::Impl::getDirRange( const double & seen_dir,
 
  */
 double
-LocalizationDefault::Impl::getFaceDirByMarkers( const VisualSensor::MarkerCont & markers ) const
+LocalizationDefault::Impl::getFaceDirByMarkers( const WorldModel & wm,
+                                                const VisualSensor::MarkerCont & markers ) const
 {
     double angle = VisualSensor::DIR_ERR;
 
@@ -921,10 +966,12 @@ LocalizationDefault::Impl::getFaceDirByMarkers( const VisualSensor::MarkerCont &
     }
 
     double marker_dist1, marker_dist2, tmperr;
-
-    if ( ! objectTable().getStaticObjInfo( markers.front().dist_,
-                                           &marker_dist1,
-                                           &tmperr ) )
+#ifdef USE_OBJECT_TABLE
+    if ( ! objectTable().getLandmarkDistanceRange( wm.clientVersion(),
+                                                   wm.self().viewWidth().type(),
+                                                   markers.front().dist_,
+                                                   &marker_dist1,
+                                                   &tmperr ) )
     {
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::WORLD,
@@ -932,9 +979,11 @@ LocalizationDefault::Impl::getFaceDirByMarkers( const VisualSensor::MarkerCont &
 #endif
         return angle;
     }
-    if ( ! objectTable().getStaticObjInfo( markers.back().dist_,
-                                           &marker_dist2,
-                                           &tmperr ) )
+    if ( ! objectTable().getLandmarkDistanceRange( wm.clientVersion(),
+                                                   wm.self().viewWidth().type(),
+                                                   markers.back().dist_,
+                                                   &marker_dist2,
+                                                   &tmperr ) )
     {
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::WORLD,
@@ -942,6 +991,12 @@ LocalizationDefault::Impl::getFaceDirByMarkers( const VisualSensor::MarkerCont &
 #endif
         return angle;
     }
+#else
+    inverseDistanceRange( wm.clientVersion(), wm.self().viewWidth().type(),
+                          markers.front().dist_, ServerParam::i().landmarkDistQuantizeStep(), &marker_dist1, &tmperr );
+    inverseDistanceRange( wm.clientVersion(), wm.self().viewWidth().type(),
+                          markers.back().dist_, ServerParam::i().landmarkDistQuantizeStep(), &marker_dist2, &tmperr );
+#endif
 
     Vector2D rpos1 = Vector2D::polar2vector( marker_dist1, markers.front().dir_ );
     Vector2D rpos2 = Vector2D::polar2vector( marker_dist2, markers.back().dir_ );
@@ -958,6 +1013,71 @@ LocalizationDefault::Impl::getFaceDirByMarkers( const VisualSensor::MarkerCont &
     return angle;
 }
 
+/*-------------------------------------------------------------------*/
+void
+LocalizationDefault::Impl::inverseDistanceRange( const double client_version,
+                                                 const ViewWidth::Type view_width,
+                                                 const double quant_dist,
+                                                 const double qstep_base,
+                                                 double * mean_dist,
+                                                 double * dist_error ) const
+{
+   /*
+     === server quantize algorithm ===
+
+      d1 = log( unq_dist + EPS )
+      d2 = rint( d1 / qstep ) * qstep // quantize( d1, qstep )
+      d3 = exp( d2 )
+      quant_dist = rint( d3 / 0.1 ) * 0.1 // quantize( d3, 0.1 )
+    */
+
+    /*
+      === unquantize (inverse quantize) algorithm ===
+
+      min_d3 = (rint(quant_dist / 0.1) - 0.5) * 0.1
+      max_d3 = (rint(quant_dist / 0.1) + 0.5) * 0.1
+
+      min_d2 = log( min_d3 )
+      max_d2 = log( max_d3 )
+
+      min_d1 = (rint(min_d2 / qstep) - 0.5) * qstep
+      max_d1 = (rint(min_d2 / qstep) + 0.5) * qstep
+
+      min_d = exp( min_d1 ) - EPS
+      max_d = exp( max_d1 ) - EPS
+
+    */
+
+    const double qstep = ( client_version < 18.0
+                           ? qstep_base
+                           : view_width == ViewWidth::NARROW
+                           ? qstep_base * 0.5
+                           : view_width == ViewWidth::NORMAL
+                           ? qstep_base * 0.75
+                           : qstep_base * 1.0 );
+
+    double min_dist, max_dist;
+
+    if ( quant_dist < ObjectTable::SERVER_EPS )
+    {
+        min_dist = 0.0;
+    }
+    else
+    {
+        min_dist = ( rint( quant_dist / 0.1 ) - 0.5 ) * 0.1;
+        min_dist = std::min( std::log( min_dist - 0.05 ), std::log( min_dist + 0.05 ) );
+        min_dist = ( rint( min_dist / qstep ) - 0.5 ) * qstep;
+        min_dist = std::exp( min_dist );
+    }
+
+    max_dist = ( rint( quant_dist / 0.1 ) + 0.5 ) * 0.1;
+    max_dist = std::log( max_dist );
+    max_dist = ( rint( max_dist / qstep ) + 0.5 ) * qstep;
+    max_dist = std::exp( max_dist );
+
+    *mean_dist = ( max_dist + min_dist ) * 0.5;
+    *dist_error = ( max_dist - min_dist ) * 0.5;
+}
 
 
 #if 0
@@ -1098,7 +1218,8 @@ LocalizationDefault::updateBySenseBody( const BodySensor & )
 
  */
 bool
-LocalizationDefault::estimateSelfFace( const VisualSensor & see,
+LocalizationDefault::estimateSelfFace( const WorldModel & wm,
+                                       const VisualSensor & see,
                                        double * self_face,
                                        double * self_face_err )
 {
@@ -1106,7 +1227,7 @@ LocalizationDefault::estimateSelfFace( const VisualSensor & see,
 
     if ( *self_face == VisualSensor::DIR_ERR )
     {
-        *self_face = M_impl->getFaceDirByMarkers( see.markers() );
+        *self_face = M_impl->getFaceDirByMarkers( wm, see.markers() );
         if ( *self_face == VisualSensor::DIR_ERR )
         {
 #ifdef DEBUG_PRINT
@@ -1131,11 +1252,11 @@ LocalizationDefault::estimateSelfFace( const VisualSensor & see,
 
  */
 bool
-LocalizationDefault::localizeSelf( const VisualSensor & see,
-                                   const ActionEffector & /* act */,
-                                   const PlayerType * /* ptype */,
-                                   const double & self_face,
-                                   const double & self_face_err,
+LocalizationDefault::localizeSelf( const WorldModel & wm,
+                                   const VisualSensor & see,
+                                   const ActionEffector & /*act*/,
+                                   const double self_face,
+                                   const double self_face_err,
                                    Vector2D * self_pos,
                                    Vector2D * self_pos_err )
 {
@@ -1164,7 +1285,8 @@ LocalizationDefault::localizeSelf( const VisualSensor & see,
 
     ////////////////////////////////////////////////////////////////////
     // generate points using the nearest marker
-    M_impl->generatePoints( see.markers().front(),
+    M_impl->generatePoints( wm,
+                            see.markers().front(),
                             see.markers().front().id_,
                             self_face,
                             self_face_err );
@@ -1184,7 +1306,8 @@ LocalizationDefault::localizeSelf( const VisualSensor & see,
 #endif
     ////////////////////////////////////////////////////////////////////
     // update points by known markers
-    M_impl->updatePointsByMarkers( see.markers(),
+    M_impl->updatePointsByMarkers( wm,
+                                   see.markers(),
                                    self_face,
                                    self_face_err );
 #ifdef DEBUG_PROFILE
@@ -1198,7 +1321,8 @@ LocalizationDefault::localizeSelf( const VisualSensor & see,
     if ( ! see.behindMarkers().empty() )
     {
         // update points by nearest behind marker
-        M_impl->updatePointsByBehindMarker( see.markers(),
+        M_impl->updatePointsByBehindMarker( wm,
+                                            see.markers(),
                                             see.behindMarkers(),
                                             *self_pos,
                                             self_face,
@@ -1225,10 +1349,10 @@ LocalizationDefault::localizeSelf( const VisualSensor & see,
 
  */
 bool
-LocalizationDefault::localizeBallRelative( const VisualSensor & see,
-                                           const ActionEffector & /* act */,
-                                           const double & self_face,
-                                           const double & self_face_err,
+LocalizationDefault::localizeBallRelative( const WorldModel & wm,
+                                           const VisualSensor & see,
+                                           const double self_face,
+                                           const double self_face_err,
                                            Vector2D * rpos,
                                            Vector2D * rpos_err,
                                            Vector2D * rvel,
@@ -1244,11 +1368,11 @@ LocalizationDefault::localizeBallRelative( const VisualSensor & see,
     ////////////////////////////////////////////////////////////////////
     // get polar range info
     double average_dist, dist_error;
-
+#ifdef USE_OBJECT_TABLE
     // dist range
-    if ( ! M_impl->objectTable().getMovableObjInfo( ball.dist_,
-                                                    &average_dist,
-                                                    &dist_error ) )
+    if ( ! M_impl->objectTable().getDistanceRange( wm.clientVersion(),
+                                                   wm.self().viewWidth().type(),
+                                                   ball.dist_, &average_dist, &dist_error ) )
     {
         std::cerr << __FILE__ << " (localizeBallRelative) unexpected ball distance "
                   << ball.dist_ << std::endl;
@@ -1257,6 +1381,10 @@ LocalizationDefault::localizeBallRelative( const VisualSensor & see,
                       ball.dist_ );
         return false;
     }
+#else
+    M_impl->inverseDistanceRange( wm.clientVersion(), wm.self().viewWidth().type(),
+                                  ball.dist_, ServerParam::i().distQuantizeStep(), &average_dist, &dist_error );
+#endif
 
     // dlog.addText( Logger::WORLD,
     //               __FILE__" (localizeBallRelative) self_face=%.1f err=%.3f",
@@ -1434,9 +1562,10 @@ LocalizationDefault::localizeBallRelative( const VisualSensor & see,
 
  */
 bool
-LocalizationDefault::localizePlayer( const VisualSensor::PlayerT & from,
-                                     const double & self_face,
-                                     const double & self_face_err,
+LocalizationDefault::localizePlayer( const WorldModel & wm,
+                                     const VisualSensor::PlayerT & from,
+                                     const double self_face,
+                                     const double self_face_err,
                                      const Vector2D & self_pos,
                                      const Vector2D & self_vel,
                                      PlayerT * to ) const
@@ -1444,10 +1573,10 @@ LocalizationDefault::localizePlayer( const VisualSensor::PlayerT & from,
     ////////////////////////////////////////////////////////////////////
     // get polar range info
     double average_dist, dist_error;
-
-    if ( ! M_impl->objectTable().getMovableObjInfo( from.dist_,
-                                                    &average_dist,
-                                                    &dist_error ) )
+#ifdef USE_OBJECT_TABLE
+    if ( ! M_impl->objectTable().getDistanceRange( wm.clientVersion(),
+                                                   wm.self().viewWidth(),
+                                                   from.dist_, &average_dist, &dist_error ) )
     {
         std::cerr << __FILE__ << " (localizePlayer) Unexpected player distance "
                   << from.dist_ << std::endl;
@@ -1456,6 +1585,10 @@ LocalizationDefault::localizePlayer( const VisualSensor::PlayerT & from,
                       from.dist_ );
         return false;
     }
+#else
+    M_impl->inverseDistanceRange( wm.clientVersion(), wm.self().viewWidth().type(),
+                                  from.dist_, ServerParam::i().distQuantizeStep(), &average_dist, &dist_error );
+#endif
 
     double average_dir, dir_error;
 

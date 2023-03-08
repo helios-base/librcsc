@@ -41,7 +41,7 @@ namespace rcsc {
 
 class ActionEffector;
 class BodySensor;
-class PlayerType;
+class WorldModel;
 
 /*!
   \class Localization
@@ -179,20 +179,23 @@ public:
 
     /*!
       \brief estimate self facing direction.
+      \param wm world model
       \param see analyzed see information
       \param self_face pointer to the result variable
       \param self_face_err pointer to the result variable
       \return result
      */
     virtual
-    bool estimateSelfFace( const VisualSensor & see,
+    bool estimateSelfFace( const WorldModel & wm,
+                           const VisualSensor & see,
                            double * self_face,
                            double * self_face_err ) = 0;
 
     /*!
       \brief localize self position.
+      \param wm world model
       \param see analyzed see info
-      \param act action effector
+      \param act the last action info
       \param self_face localized face angle
       \param self_face_err localized face angle error
       \param self_pos pointer to the variable to store the localized self position
@@ -200,18 +203,18 @@ public:
       \return if failed, returns false
     */
     virtual
-    bool localizeSelf( const VisualSensor & see,
+    bool localizeSelf( const WorldModel & wm,
+                       const VisualSensor & see,
                        const ActionEffector & act,
-                       const PlayerType * ptype,
-                       const double & self_face,
-                       const double & self_face_err,
+                       const double self_face,
+                       const double self_face_err,
                        Vector2D * self_pos,
                        Vector2D * self_pos_err ) = 0;
 
     /*!
       \brief localze ball relative info
+      \param wm world model
       \param see analyzed see info
-      \param act action effector
       \param self_face localized self face angle
       \param self_face_err localized self face angle error
       \param rpos pointer to the variable to store the localized relative position
@@ -221,10 +224,10 @@ public:
       \return if failed, returns false
     */
     virtual
-    bool localizeBallRelative( const VisualSensor & see,
-                               const ActionEffector & act,
-                               const double & self_face,
-                               const double & self_face_err,
+    bool localizeBallRelative( const WorldModel & wm,
+                               const VisualSensor & see,
+                               const double self_face,
+                               const double self_face_err,
                                Vector2D * rpos,
                                Vector2D * rpos_err,
                                Vector2D * rvel,
@@ -232,6 +235,7 @@ public:
 
     /*!
       \brief localze other player
+      \param wm world model
       \param from seen player info
       \param self_face localized self face angle
       \param self_face_err localized self face angle error
@@ -241,9 +245,10 @@ public:
       \return if failed, returns false
     */
     virtual
-    bool localizePlayer( const VisualSensor::PlayerT & from,
-                         const double & self_face,
-                         const double & self_face_err,
+    bool localizePlayer( const WorldModel & wm,
+                         const VisualSensor::PlayerT & from,
+                         const double self_face,
+                         const double self_face_err,
                          const Vector2D & self_pos,
                          const Vector2D & self_vel,
                          PlayerT * to ) const = 0;

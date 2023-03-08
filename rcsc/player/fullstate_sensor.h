@@ -78,6 +78,11 @@ public:
         double recovery_; //!< recovery value
         double stamina_capacity_; //!< stamina capacity value
 
+        //! v18+. disntance to the focus point
+        double focus_dist_;
+        //! v18+. direction to the focus point
+        double focus_dir_;
+
         //! v8+. distance from pos_ to pointing point
         double pointto_dist_;
         //! v8+. pointing direction direction relative to face(=body+neck)
@@ -108,6 +113,8 @@ public:
               stamina_( 0.0 ),
               effort_( 0.0 ),
               recovery_( 0.0 ),
+              focus_dist_( 0.0 ),
+              focus_dir_( 0.0 ),
               pointto_dist_( -1.0 ),
               pointto_dir_( 0.0 ),
               kicked_( false ),

@@ -164,15 +164,22 @@ FullstateSensor::parseV8( const char * msg,
       players : {<player>|<player> <players>}
 
       player : (v8-13)
-       ((p {l|r} <unum> {g|<player_type_id>})
-        <pos.x> <pos.y> <vel.x> <vel.y> <body_angle> <neck_angle>[ <point_dist> <point_dir>]
-        (<stamina> <effort> <recovery>[ <capacity>]))
+      ((p {l|r} <unum> {g|<player_type_id>})
+       <pos.x> <pos.y> <vel.x> <vel.y> <body_angle> <neck_angle>[ <point_dist> <point_dir>]
+       (stamina <stamina> <effort> <recovery>[ <capacity>]))
 
-      player : (v14)
-        ((p {l|r} <unum> [g] <player_type_id>)
-         <pos.x> <pos.y> <vel.x> <vel.y> <body_angle> <neck_angle>[ <point_dist> <point_dir>]
-         (<stamina> <effort> <recovery>[ <capacity>])
-         [t|k] [y|r])
+      player : (v14) tackle/kick/yellow/red
+      ((p {l|r} <unum> [g] <player_type_id>)
+       <pos.x> <pos.y> <vel.x> <vel.y> <body_angle> <neck_angle>[ <point_dist> <point_dir>]
+       (stamina <stamina> <effort> <recovery>[ <capacity>])
+       [t|k] [y|r])
+
+      player: v18+
+      ((p {l|r} <unum> [g] <player_type_id>)
+       <pos.x> <pos.y> <vel.x> <vel.y> <body_angle> <neck_angle>[ <point_dist> <point_dir>]
+       (focus_point <focus_dist> <focus_dir>)
+       (stamina <stamina> <effort> <recovery>[ <capacity>])
+       [t|k] [y|r])
 
       */
 
@@ -239,14 +246,12 @@ FullstateSensor::parseV8( const char * msg,
     M_ball.vel_.y = std::strtod( msg, &next ); msg = next;
 
     //((p {l|r} <unum>{g|<player_type_id>}) <pos.x> <pos.y>
-    //   <vel.x> <vel.y> <body_angle> <neck_angle>[ <point_dist> <point_dir>]
-    //   (<stamina> <effort> <recovery>[ <capacity>])
-    //   [t|k] [y|r])
-    //
-    //((p {l|r} <unum> [g] <player_type_id>}) <pos.x> <pos.y>
-    //   <vel.x> <vel.y> <body_angle> <neck_angle>[ <point_dist> <point_dir>]
-    //   (<stamina> <effort> <recovery>[ <capacity>])
+    //   <vel.x> <vel.y> <body_angle> <neck_angle>
+    //   <focus_dist> <focus_dir>
+    //   [<point_dist> <point_dir>]
+    //   (stamina <stamina> <effort> <recovery>[ <capacity>])
     //   [t|k|f] [y|r])
+    //
     while ( *msg != '\0' && *msg != '(' ) ++msg; // skip to "(p"
     while ( *msg != '\0' )
     {
@@ -292,24 +297,36 @@ FullstateSensor::parseV8( const char * msg,
         player.vel_.y = std::strtod( msg, &next ); msg = next;
         player.body_ = std::strtod( msg, &next ); msg = next;
         player.neck_ = std::strtod( msg, &next ); msg = next;
-        ++msg;
+
+        while ( *msg != '\0' && *msg == ' ' ) ++msg;
         if ( *msg != '(' )
         {
             player.pointto_dist_ = std::strtod( msg, &next ); msg = next;
             player.pointto_dir_ = std::strtod( msg, &next ); msg = next;
         }
-        while ( *msg != '\0' && *msg != '(' ) ++msg; // skip to "(stamina"
-        while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip to space " "
-        ++msg;
-        player.stamina_ = std::strtod( msg, &next ); msg = next;
-        player.effort_ = std::strtod( msg, &next ); msg = next;
-        player.recovery_ = std::strtod( msg, &next ); msg = next;
-        if ( *msg != ')' )
+        while ( *msg != '\0' && *msg != '(' ) ++msg; // skip to "("
+
+        if ( std::strncmp( msg, "(focus_point ", 13 ) == 0 )
         {
-            player.stamina_capacity_ = std::strtod( msg, &next ); msg = next;
+            msg += 13;
+            player.focus_dist_ = std::strtod( msg, &next ); msg = next;
+            player.focus_dir_ = std::strtod( msg, &next ); msg = next;
+            while ( *msg != '\0' && *msg != '(' ) ++msg; // skip to "("
         }
 
-        while ( *msg == ')' ) ++msg;
+        if ( std::strncmp( msg, "(stamina ", 9 ) == 0 )
+        {
+            msg += 9;
+            player.stamina_ = std::strtod( msg, &next ); msg = next;
+            player.effort_ = std::strtod( msg, &next ); msg = next;
+            player.recovery_ = std::strtod( msg, &next ); msg = next;
+            if ( *msg != ')' )
+            {
+                player.stamina_capacity_ = std::strtod( msg, &next ); msg = next;
+            }
+            while ( *msg == ')' ) ++msg;
+        }
+
         while ( *msg == ' ' ) ++msg;
 
         if ( *msg == 'k' ) // kick

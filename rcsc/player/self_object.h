@@ -76,6 +76,9 @@ private:
     ViewWidth M_view_width; //!< current view width type
     ViewQuality M_view_quality; //!< current view quality type
 
+    double M_focus_dist; //!< the distance to the current focus point
+    AngleDeg M_focus_dir; //!< the direction to the current focus point
+
     StaminaModel M_stamina; //!< current stamina info
 
     // some action effect
@@ -266,6 +269,32 @@ public:
       {
           return M_view_quality;
       }
+
+    /*!
+      \brief get the focus distance updated by the sense_body message
+      \return the distance to the focus point
+     */
+    double focusDist() const
+      {
+          return M_focus_dist;
+      }
+
+    /*!
+      \brief get the focus direction updated by the sense_body message
+      \return the value of focus direction
+      \return the direction to the focus point, relative to the body angle
+     */
+
+    const AngleDeg & focusDir() const
+      {
+          return M_focus_dir;
+      }
+
+    /*!
+      \brief get the estimated focus point according to the self localization result
+      \return the global coordinates of the estimated focus point
+     */
+    Vector2D focusPoint() const;
 
     /*!
       \brief get time when the last catch command is performed

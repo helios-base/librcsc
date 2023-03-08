@@ -220,6 +220,17 @@ PlayerChangeViewCommand::toCommandString( std::ostream & to ) const
     return to;
 }
 
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+std::ostream &
+PlayerChangeFocusCommand::toCommandString( std::ostream & to ) const
+{
+    return to << "(change_focus " << M_moment_dist << ' ' << M_moment_dir << ')';
+}
+
 /*-------------------------------------------------------------------*/
 /*!
 

@@ -40,6 +40,8 @@
 #include "audio_sensor.h"
 #include "fullstate_sensor.h"
 
+#include "localization_default.h"
+
 #include "player_command.h"
 #include "say_message_builder.h"
 #include "soccer_action.h"
@@ -134,6 +136,9 @@ struct PlayerAgent::Impl {
 
     //! pointer to reserved action
     std::shared_ptr< ViewAction > view_action_;
+
+    //! pointer to reserved action
+    std::shared_ptr< FocusAction > focus_action_;
 
     //! intention queue
     SoccerIntention::Ptr intention_;
@@ -391,6 +396,14 @@ struct PlayerAgent::Impl {
     */
     void doNeckAction();
 
+    /*!
+      \brief perform reserved change_focus action
+
+      This method is called after doBodyAction()
+      This method is called after doViewAction()
+      This method is called after doNeckAction()
+    */
+    void doFocusAction();
 
     /*!
       \brief output debug messages to disk/server.
@@ -803,9 +816,9 @@ PlayerAgent::initImpl( CmdLineParser & cmd_parser )
     M_config.parse( cmd_parser );
 
     if ( config().version() < 8.0
-         || 18.0 <= config().version() )
+         || MAX_PROTOCOL_VERSION < config().version() )
     {
-        std::cerr << "Unsupported client version: " << config().version()
+        std::cerr << "(PlayerAgent::initImpl) Unsupported client version: " << config().version()
                   << std::endl;
         return false;
     }
@@ -825,6 +838,10 @@ PlayerAgent::initImpl( CmdLineParser & cmd_parser )
                                  config().playerFaceCountThr() );
 
     AudioCodec::instance().createMap( config().audioShift() );
+
+
+    M_worldmodel.setLocalization( std::shared_ptr< Localization >( new LocalizationDefault() ) );
+    M_fullstate_worldmodel.setLocalization( std::shared_ptr< Localization >( new LocalizationDefault() ) );
 
     return true;
 }
@@ -1310,7 +1327,8 @@ PlayerAgent::Impl::sendSettingCommands()
     std::ostringstream ostr;
 
     // set synch see mode
-    if ( agent_.config().synchSee() )
+    if ( agent_.config().version() < 18.0
+         && agent_.config().synchSee() )
     {
         ostr << "(synch_see)";
     }
@@ -2106,7 +2124,8 @@ PlayerAgent::Impl::analyzeInit( const char * msg )
 
     if ( ! agent_.M_worldmodel.init( agent_.config().teamName(),
                                      side, unum,
-                                     agent_.config().goalie() ) )
+                                     agent_.config().goalie(),
+                                     agent_.config().version() ) )
     {
         agent_.M_client->setServerAlive( false );
         return;
@@ -2115,7 +2134,8 @@ PlayerAgent::Impl::analyzeInit( const char * msg )
     if ( agent_.config().debugFullstate()
          && ! agent_.M_fullstate_worldmodel.init( agent_.config().teamName(),
                                                   side, unum,
-                                                  agent_.config().goalie() ) )
+                                                  agent_.config().goalie(),
+                                                  agent_.config().version() ) )
     {
         agent_.M_client->setServerAlive( false );
         return;
@@ -2132,6 +2152,19 @@ PlayerAgent::Impl::analyzeInit( const char * msg )
     //
 
     sendSettingCommands();
+
+    //
+    //
+    //
+    see_state_.setProtocolVersion( agent_.config().version() );
+    if ( agent_.config().version() >= 18.0 )
+    {
+        std::cerr << agent_.world().teamName() << ' '
+                  << agent_.world().self().unum() << ": "
+                  << agent_.world().time()
+                  << " (v18+) force synch see mode."
+                  << std::endl;
+    }
 
     //
     // call init message event handler
@@ -2374,15 +2407,19 @@ PlayerAgent::action()
     M_impl->doArmAction();
     M_impl->doViewAction();
     M_impl->doNeckAction();
+    M_impl->doFocusAction();
     communicationImpl();
 
     // ------------------------------------------------------------------------
     // set command effect. these must be called before command composing.
     // set self view mode, pointto and attentionto info.
     M_worldmodel.updateJustAfterDecision( effector() );
-    // set cycles till next see, update estimated next see arrival timing
-    M_impl->see_state_.setViewMode( world().self().viewWidth(),
-                                    world().self().viewQuality() );
+    if ( effector().changeViewCommand() )
+    {
+        // set cycles till next see, update estimated next see arrival timing
+        M_impl->see_state_.setViewMode( effector().changeViewCommand()->width(),
+                                        effector().changeViewCommand()->quality() );
+    }
 
     // ------------------------------------------------------------------------
     // compose command string, and send it to the rcssserver
@@ -2456,6 +2493,20 @@ PlayerAgent::Impl::doViewAction()
     {
         view_action_->execute( &agent_ );
         view_action_.reset();
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+PlayerAgent::Impl::doFocusAction()
+{
+    if ( focus_action_ )
+    {
+        focus_action_->execute( &agent_ );
+        focus_action_.reset();
     }
 }
 
@@ -2947,6 +2998,65 @@ PlayerAgent::doChangeView( const ViewWidth & width )
 }
 
 /*-------------------------------------------------------------------*/
+bool
+PlayerAgent::doChangeFocus( const double moment_dist,
+                            const AngleDeg & moment_dir )
+{
+
+    double focus_dist = world().self().focusDist();
+    AngleDeg focus_dir = world().self().focusDir();
+
+    // check the range of distance
+    double command_moment_dist = moment_dist;
+    if ( focus_dist + command_moment_dist < 0.0 )
+    {
+        command_moment_dist = -focus_dist;
+        std::cerr << world().teamName() << ' ' << world().self().unum() << ": " << world().time()
+                  << " (setChangeFocus) under min dist. " << focus_dist + moment_dist << std::endl;
+        dlog.addText( Logger::ACTION,
+                       __FILE__" (setChangeFocus) under min dist. %.1f  command=%.1f",
+                      focus_dist + moment_dist, moment_dist );
+    }
+    else if ( focus_dist + command_moment_dist > 40.0 )
+    {
+        command_moment_dist = 40.0 - focus_dist;
+        std::cerr << world().teamName() << ' ' << world().self().unum() << ": " << world().time()
+                  << " (setChangeFocus) over dist. " << focus_dist + moment_dist << std::endl;
+        dlog.addText( Logger::ACTION,
+                       __FILE__" (setChangeFocus) over max dist. %.1f  command=%.1f",
+                      focus_dist + moment_dist, moment_dist );
+    }
+
+    // check the range of visible angle
+    const ViewWidth next_width = M_effector.queuedNextViewWidth();
+    const double next_half_angle = next_width.width() * 0.5;
+
+    AngleDeg command_moment_dir = moment_dir;
+    if ( focus_dir.degree() + command_moment_dir.degree() < -next_half_angle )
+    {
+        command_moment_dir = -next_half_angle - focus_dir.degree();
+        std::cerr << world().teamName() << ' ' << world().self().unum() << ": " << world().time()
+                  << " (setChangeFocus) under min angle. " << focus_dir.degree() + moment_dir.degree() << std::endl;
+        dlog.addText( Logger::ACTION,
+                       __FILE__" (setChangeFocus) under min angle. %.1f  command=%.1f",
+                      focus_dir.degree() + moment_dir.degree(), moment_dir.degree() );
+    }
+    else if ( focus_dir.degree() + command_moment_dir.degree() > next_half_angle )
+    {
+        command_moment_dir = next_half_angle - focus_dir.degree();
+        std::cerr << world().teamName() << ' ' << world().self().unum() << ": " << world().time()
+                  << " (setChangeFocus) over max angle. " << focus_dir.degree() + moment_dir.degree() << std::endl;
+        dlog.addText( Logger::ACTION,
+                       __FILE__" (setChangeFocus) over max angle. %.1f  command=%.1f",
+                      focus_dir.degree() + moment_dir.degree(), moment_dir.degree() );
+    }
+
+    M_effector.setChangeFocus( moment_dist, moment_dir );
+    return true;
+}
+
+
+/*-------------------------------------------------------------------*/
 /*!
 
  */
@@ -3152,6 +3262,23 @@ PlayerAgent::setViewAction( ViewAction * act )
     else
     {
         M_impl->view_action_.reset();
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
+PlayerAgent::setFocusAction( FocusAction * act )
+{
+    if ( act )
+    {
+        M_impl->focus_action_ = std::shared_ptr< FocusAction >( act );
+    }
+    else
+    {
+        M_impl->focus_action_.reset();
     }
 }
 

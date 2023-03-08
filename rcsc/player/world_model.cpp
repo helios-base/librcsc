@@ -354,7 +354,8 @@ const double WorldModel::DIR_STEP = 360.0 / static_cast< double >( DIR_CONF_DIVS
 
  */
 WorldModel::WorldModel()
-    : M_localize( new LocalizationDefault() ),
+    : M_client_version( 8 ),
+      M_localize(),
       M_intercept_table(),
       M_audio_memory( new AudioMemory() ),
       M_penalty_kick_state( new PenaltyKickState() ),
@@ -439,7 +440,8 @@ bool
 WorldModel::init( const std::string & teamname,
                   const SideID ourside,
                   const int my_unum,
-                  const bool my_goalie )
+                  const bool my_goalie,
+                  const double client_version )
 {
     if ( ! M_localize )
     {
@@ -458,6 +460,8 @@ WorldModel::init( const std::string & teamname,
                   << std::endl;
         return false;
     }
+
+    M_client_version = client_version;
 
     M_our_team_name = teamname;
     M_our_side = ourside;
@@ -2202,7 +2206,7 @@ WorldModel::localizeSelf( const VisualSensor & see,
     Vector2D my_pos_error( 0.0, 0.0 );
 
     // estimate self face angle
-    if ( ! M_localize->estimateSelfFace( see, &angle_face, &angle_face_error ) )
+    if ( ! M_localize->estimateSelfFace( *this, see, &angle_face, &angle_face_error ) )
     {
         return false;
     }
@@ -2225,7 +2229,7 @@ WorldModel::localizeSelf( const VisualSensor & see,
 
 
     // estimate self position
-    if ( ! M_localize->localizeSelf( see, act, this->self().playerTypePtr(),
+    if ( ! M_localize->localizeSelf( *this, see, act,
                                      angle_face, angle_face_error,
                                      &my_pos, &my_pos_error ) )
     {
@@ -2296,7 +2300,7 @@ WorldModel::localizeBall( const VisualSensor & see,
     Vector2D rvel( Vector2D::INVALIDATED );
     Vector2D vel_error( 0.0, 0.0 );
 
-    if ( ! M_localize->localizeBallRelative( see, act,
+    if ( ! M_localize->localizeBallRelative( *this, see,
                                              self().face().degree(), self().faceError(),
                                              &rpos, &rpos_error,
                                              &rvel, &vel_error )  )
@@ -2790,7 +2794,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
     for ( const VisualSensor::PlayerT & p : see.opponents() )
     {
         Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( p,
+        if ( ! M_localize->localizePlayer( *this,
+                                           p,
                                            MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
                                            &player ) )
         {
@@ -2824,7 +2829,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
     for ( const VisualSensor::PlayerT & p : see.unknownOpponents() )
     {
         Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( p,
+        if ( ! M_localize->localizePlayer( *this,
+                                           p,
                                            MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
                                            &player ) )
         {
@@ -2855,7 +2861,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
     for ( const VisualSensor::PlayerT & p : see.teammates() )
     {
         Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( p,
+        if ( ! M_localize->localizePlayer( *this,
+                                           p,
                                            MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
                                            &player ) )
         {
@@ -2889,7 +2896,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
     for ( const VisualSensor::PlayerT & p : see.unknownTeammates() )
     {
         Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( p,
+        if ( ! M_localize->localizePlayer( *this,
+                                           p,
                                            MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
                                            &player ) )
         {
@@ -2921,7 +2929,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
     {
         Localization::PlayerT player;
         // localize
-        if ( ! M_localize->localizePlayer( p,
+        if ( ! M_localize->localizePlayer( *this,
+                                           p,
                                            MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
                                            &player ) )
         {

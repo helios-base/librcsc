@@ -65,6 +65,8 @@ private:
     PlayerTurnNeckCommand * M_command_turn_neck;
     //! pointer of change_view for dynamic allocation
     PlayerChangeViewCommand * M_command_change_view;
+    //! pointer of change_focus for dynamic allocation
+    PlayerChangeFocusCommand * M_command_change_focus;
     //! pointer of say for dynamic allocation
     PlayerSayCommand * M_command_say;
     //! pointer of pointto for dynamic allocation
@@ -317,6 +319,14 @@ public:
       ViewQuality should not be changed by user
     */
     void setChangeView( const ViewWidth & width );
+
+    /*!
+      \brief create change_focus command
+      \param moment_dist distance added to the current focus point
+      \param moment_dir direction added to the current focus point
+    */
+    void setChangeFocus( const double moment_dist,
+                         const AngleDeg & moment_dir );
 
     /*!
       \brief add new say message
@@ -604,6 +614,18 @@ public:
       \return queued view width
     */
     ViewWidth queuedNextViewWidth() const;
+
+    /*!
+      \brief get the next focus distance estimated by the queued acction effect
+      \return queued focus distance
+     */
+    //double queuedNextFocusDist() const;
+
+    /*!
+      \brief get the next focus direction estimated by the queued acction effect
+      \return queued focus direction
+     */
+    //AngleDeg queuedNextFocusDir() const;
 
     /*!
       \brief check if the target point can see only by turn_neck with the buffer

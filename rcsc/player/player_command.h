@@ -66,6 +66,7 @@ public:
         // support commands
         TURN_NECK,
         CHANGE_VIEW,
+        CHANGE_FOCUS,
         SAY,
         POINTTO,
         ATTENTIONTO,
@@ -910,6 +911,81 @@ public:
       {
           return M_quality;
       }
+};
+
+//////////////////////////////////////////////////////////////////////
+/*!
+  \class PlayerChangeFocusCommand
+  \brief player's change focus command
+
+  <pre>
+  Format:
+  <- (change_focus <moment_dist> <moment_dir>)
+  </pre>
+*/
+class PlayerChangeFocusCommand
+    : public PlayerSupportCommand {
+private:
+    double M_moment_dist; //!< this value is added to the current focus distance, and the result is limited to [0.0, 40.0].
+    double M_moment_dir; //!< this value is added to the current focus direction, and the result is limited to visible angle.
+
+    PlayerChangeFocusCommand() = delete; // not used
+public:
+
+    /*!
+      \brief construct with command parameters
+      \param moment_dist moment for the distance
+      \param moment_dir moment for the direction
+     */
+    PlayerChangeFocusCommand( const double moment_dist,
+                              const double moment_dir )
+        : M_moment_dist( moment_dist ),
+          M_moment_dir( moment_dir )
+      { }
+
+    /*!
+      \brief get command type
+      \return command type Id
+    */
+    Type type() const
+      {
+          return CHANGE_FOCUS;
+      }
+
+    /*!
+      \brief put command string to ostream
+      \param to reference to the output stream
+      \return reference to the output stream
+    */
+    std::ostream & toCommandString( std::ostream & to ) const;
+
+    /*!
+      \brief get thencommand name
+      \return command name string
+    */
+    std::string name() const
+      {
+          return std::string( "change_focus" );
+      }
+
+    /*!
+      \brief get the command parameter
+      \return the value of moment distance
+    */
+    double momentDist() const
+      {
+          return M_moment_dist;
+      }
+
+    /*!
+      \brief get the command parameter
+      \return the value of moment direction
+    */
+    double momentDir() const
+      {
+          return M_moment_dir;
+      }
+
 };
 
 //////////////////////////////////////////////////////////////////////

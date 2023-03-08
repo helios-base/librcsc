@@ -57,6 +57,7 @@ ActionEffector::ActionEffector( const PlayerAgent & agent )
       M_command_body( nullptr ),
       M_command_turn_neck( nullptr ),
       M_command_change_view( nullptr ),
+      M_command_change_focus( nullptr ),
       M_command_say( nullptr ),
       M_command_pointto( nullptr ),
       M_command_attentionto( nullptr ),
@@ -113,6 +114,12 @@ ActionEffector::~ActionEffector()
     {
         delete M_command_change_view;
         M_command_change_view = nullptr;
+    }
+
+    if ( M_command_change_focus )
+    {
+        delete M_command_change_focus;
+        M_command_change_focus = nullptr;
     }
 
     if ( M_command_say )
@@ -384,6 +391,22 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
         M_command_counter[PlayerCommand::CHANGE_VIEW] = sense.changeViewCount();
     }
 
+    if ( sense.changeFocusCount() != M_command_counter[PlayerCommand::CHANGE_FOCUS] )
+    {
+        std::cout << M_agent.config().teamName() << ' '
+                  << M_agent.world().self().unum() << ": "
+                  << M_agent.world().time()
+                  << " lost change_focus? at " << M_last_action_time
+                  << " sense=" << sense.changeViewCount()
+                  << " internal=" << M_command_counter[PlayerCommand::CHANGE_FOCUS]
+                  << std::endl;
+        dlog.addText( Logger::SYSTEM,
+                       __FILE__": lost change_focus? sense= %d internal= %d",
+                      sense.changeFocusCount(),
+                      M_command_counter[PlayerCommand::CHANGE_FOCUS] );
+        M_command_counter[PlayerCommand::CHANGE_FOCUS] = sense.changeFocusCount();
+    }
+
     if ( sense.sayCount() != M_command_counter[PlayerCommand::SAY] )
     {
         std::cout << M_agent.config().teamName() << ' '
@@ -490,6 +513,14 @@ ActionEffector::makeCommand( std::ostream & to )
         M_command_change_view = nullptr;
     }
 
+    if ( M_command_change_focus )
+    {
+        M_command_change_focus->toCommandString( to );
+        incCommandCount( PlayerCommand::CHANGE_FOCUS );
+        delete M_command_change_focus;
+        M_command_change_focus = nullptr;
+    }
+
     if ( M_command_pointto )
     {
         M_command_pointto->toCommandString( to );
@@ -546,6 +577,12 @@ ActionEffector::clearAllCommands()
     {
         delete M_command_change_view;
         M_command_change_view = nullptr;
+    }
+
+    if ( M_command_change_focus )
+    {
+        delete M_command_change_focus;
+        M_command_change_focus = nullptr;
     }
 
     if ( M_command_pointto )
@@ -1305,6 +1342,29 @@ ActionEffector::setChangeView( const ViewWidth & width )
 
     M_command_change_view = new PlayerChangeViewCommand( width,
                                                          ViewQuality::HIGH );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+void
+ActionEffector::setChangeFocus( const double moment_dist,
+                                const AngleDeg & moment_dir )
+{
+    dlog.addText( Logger::ACTION,
+                   __FILE__" (setChangeFocus) register change_focus. moment_dist=%lf moment_dir=%lf",
+                  moment_dist, moment_dir );
+
+    //////////////////////////////////////////////////
+    // create command object
+    if ( M_command_change_focus )
+    {
+        delete M_command_change_focus;
+        M_command_change_focus = nullptr;
+    }
+
+    M_command_change_focus = new PlayerChangeFocusCommand( moment_dist, moment_dir.degree() );
 }
 
 /*-------------------------------------------------------------------*/
