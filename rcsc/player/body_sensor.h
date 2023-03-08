@@ -523,7 +523,7 @@ public:
      */
     double focusDir() const
       {
-          return M_focus_dist;
+          return M_focus_dir;
       }
 
     /*!
