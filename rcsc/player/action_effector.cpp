@@ -1364,7 +1364,10 @@ ActionEffector::setChangeFocus( const double moment_dist,
         M_command_change_focus = nullptr;
     }
 
-    M_command_change_focus = new PlayerChangeFocusCommand( moment_dist, moment_dir.degree() );
+    double command_moment_dist = rint( moment_dist * 1000.0 ) * 0.001;
+    double command_moment_dir = rint( moment_dir.degree() * 1000.0 ) * 0.001;
+
+    M_command_change_focus = new PlayerChangeFocusCommand( command_moment_dist, command_moment_dir );
 }
 
 /*-------------------------------------------------------------------*/
