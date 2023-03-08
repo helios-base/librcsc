@@ -3003,55 +3003,68 @@ PlayerAgent::doChangeFocus( const double moment_dist,
                             const AngleDeg & moment_dir )
 {
 
-    double focus_dist = world().self().focusDist();
-    AngleDeg focus_dir = world().self().focusDir();
-
     // check the range of distance
-    double command_moment_dist = moment_dist;
-    if ( focus_dist + command_moment_dist < 0.0 )
+    double aligned_moment_dist = moment_dist;
+    if ( world().self().focusDist() + aligned_moment_dist < 0.0 )
     {
-        command_moment_dist = -focus_dist;
-        std::cerr << world().teamName() << ' ' << world().self().unum() << ": " << world().time()
-                  << " (setChangeFocus) under min dist. " << focus_dist + moment_dist << std::endl;
-        dlog.addText( Logger::ACTION,
-                       __FILE__" (setChangeFocus) under min dist. %.1f  command=%.1f",
-                      focus_dist + moment_dist, moment_dist );
+        if ( world().self().focusDist() + aligned_moment_dist < -1.0e-5 )
+        {
+            std::cerr << world().teamName() << ' ' << world().self().unum() << ": " << world().time()
+                      << " (doChangeFocus) under min dist. " << world().self().focusDist() + moment_dist << std::endl;
+            dlog.addText( Logger::ACTION,
+                          __FILE__" (doChangeFocus) under min dist %f command=%f",
+                          world().self().focusDist() + moment_dist, moment_dist );
+        }
+        aligned_moment_dist = -world().self().focusDist();
     }
-    else if ( focus_dist + command_moment_dist > 40.0 )
+    else if ( world().self().focusDist() + aligned_moment_dist > 40.0 )
     {
-        command_moment_dist = 40.0 - focus_dist;
-        std::cerr << world().teamName() << ' ' << world().self().unum() << ": " << world().time()
-                  << " (setChangeFocus) over dist. " << focus_dist + moment_dist << std::endl;
-        dlog.addText( Logger::ACTION,
-                       __FILE__" (setChangeFocus) over max dist. %.1f  command=%.1f",
-                      focus_dist + moment_dist, moment_dist );
+        if ( world().self().focusDist() + aligned_moment_dist > 40.0 + 1.0e-5 )
+        {
+            std::cerr << world().teamName() << ' ' << world().self().unum() << ": " << world().time()
+                      << " (doChangeFocus) over dist. " << world().self().focusDist() + moment_dist << std::endl;
+            dlog.addText( Logger::ACTION,
+                          __FILE__" (doChangeFocus) over max dist %f command=%f",
+                          world().self().focusDist() + moment_dist, moment_dist );
+        }
+        aligned_moment_dist = 40.0 - world().self().focusDist();
     }
 
     // check the range of visible angle
     const ViewWidth next_width = M_effector.queuedNextViewWidth();
     const double next_half_angle = next_width.width() * 0.5;
 
-    AngleDeg command_moment_dir = moment_dir;
-    if ( focus_dir.degree() + command_moment_dir.degree() < -next_half_angle )
+    AngleDeg aligned_moment_dir = moment_dir;
+    if ( world().self().focusDir().degree() + aligned_moment_dir.degree() < -next_half_angle )
     {
-        command_moment_dir = -next_half_angle - focus_dir.degree();
-        std::cerr << world().teamName() << ' ' << world().self().unum() << ": " << world().time()
-                  << " (setChangeFocus) under min angle. " << focus_dir.degree() + moment_dir.degree() << std::endl;
-        dlog.addText( Logger::ACTION,
-                       __FILE__" (setChangeFocus) under min angle. %.1f  command=%.1f",
-                      focus_dir.degree() + moment_dir.degree(), moment_dir.degree() );
+        if ( world().self().focusDir().degree() + aligned_moment_dir.degree() < -next_half_angle - 1.0e-5 )
+        {
+            std::cerr << world().teamName() << ' ' << world().self().unum() << ": " << world().time()
+                      << " (doChangeFocus) under min angle. " << world().self().focusDir().degree() + moment_dir.degree()
+                      << " < " << -next_half_angle
+                      << std::endl;
+            dlog.addText( Logger::ACTION,
+                          __FILE__" (doChangeFocus) under min angle %f < %f. command=%f",
+                          world().self().focusDir().degree() + moment_dir.degree(), -next_half_angle, moment_dir.degree() );
+        }
+        aligned_moment_dir = -next_half_angle - world().self().focusDir().degree();
     }
-    else if ( focus_dir.degree() + command_moment_dir.degree() > next_half_angle )
+    else if ( world().self().focusDir().degree() + aligned_moment_dir.degree() > next_half_angle )
     {
-        command_moment_dir = next_half_angle - focus_dir.degree();
-        std::cerr << world().teamName() << ' ' << world().self().unum() << ": " << world().time()
-                  << " (setChangeFocus) over max angle. " << focus_dir.degree() + moment_dir.degree() << std::endl;
-        dlog.addText( Logger::ACTION,
-                       __FILE__" (setChangeFocus) over max angle. %.1f  command=%.1f",
-                      focus_dir.degree() + moment_dir.degree(), moment_dir.degree() );
+        if ( world().self().focusDir().degree() + aligned_moment_dir.degree() > next_half_angle + 1.0e-5 )
+        {
+            std::cerr << world().teamName() << ' ' << world().self().unum() << ": " << world().time()
+                      << " (doChangeFocus) over max angle " << world().self().focusDir().degree() + moment_dir.degree()
+                      << " > next_half=" << next_half_angle
+                      << std::endl;
+            dlog.addText( Logger::ACTION,
+                          __FILE__" (doChangeFocus) over max angle %f > %f. command=%f",
+                          world().self().focusDir().degree() + moment_dir.degree(), next_half_angle, moment_dir.degree() );
+        }
+        aligned_moment_dir = next_half_angle - world().self().focusDir().degree();
     }
 
-    M_effector.setChangeFocus( moment_dist, moment_dir );
+    M_effector.setChangeFocus( aligned_moment_dist, aligned_moment_dir );
     return true;
 }
 
