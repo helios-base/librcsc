@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.65)
 LT_PREREQ(2.2)
-AC_INIT([librcsc],[rc2022],[akky@users.sourceforge.jp])
+AC_INIT([librcsc],[2023],[akky@users.sourceforge.jp])
 
 #LT_PREREQ(2.2.4)
 
@@ -121,7 +121,7 @@ AC_CHECK_FUNCS([memset pow rint select socket sqrt strerror strtol])
 # check C++
 ##################################################
 
-AX_CXX_COMPILE_STDCXX_14(noext)
+AX_CXX_COMPILE_STDCXX_17(noext)
 
 ##################################################
 # check boost
