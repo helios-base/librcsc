@@ -1408,6 +1408,8 @@ PlayerAgent::Impl::setDebugFlags()
         return;
     }
 
+    dlog.setTimeRange( c.debugStartTime(), c.debugEndTime() );
+
     dlog.setLogFlag( &current_time_, Logger::SYSTEM, c.debugSystem() );
     dlog.setLogFlag( &current_time_, Logger::SENSOR, c.debugSensor() );
     dlog.setLogFlag( &current_time_, Logger::WORLD, c.debugWorld() );

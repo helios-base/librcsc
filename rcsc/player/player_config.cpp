@@ -148,6 +148,9 @@ PlayerConfig::setDefaultParam()
     //
     // debug logging
     //
+    M_debug_start_time = -1;
+    M_debug_end_time = 99999999;
+
     M_debug_log_ext = ".log";
 
     M_debug_system = false;
@@ -238,6 +241,9 @@ PlayerConfig::createParamMap()
         ( "offline_logging", "", BoolSwitch( &M_offline_logging ) )
         ( "offline_log_ext", "", &M_offline_log_ext )
         ( "offline_client_number", "", &M_offline_client_number )
+
+        ( "debug_start_time", "", &M_debug_start_time )
+        ( "debug_end_time", "", &M_debug_end_time )
 
         ( "debug_log_ext", "", &M_debug_log_ext )
 

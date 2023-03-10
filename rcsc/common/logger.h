@@ -155,6 +155,9 @@ private:
     //! log level flag
     std::int32_t M_flags;
 
+    int M_start_time;
+    int M_end_time;
+
 public:
     /*!
       \brief allocate message buffer memory
@@ -175,6 +178,14 @@ public:
     void setLogFlag( const GameTime * time,
                      const std::int32_t level,
                      const bool on = true );
+
+    /*!
+      \brief set the range of the recorded game time
+      \param start_time lower value
+      \param end_time higher value
+     */
+    void setTimeRange( const int start_time,
+                       const int end_time );
 
     /*!
       \brief check if the level is enabled
