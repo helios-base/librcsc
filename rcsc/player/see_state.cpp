@@ -467,14 +467,14 @@ SeeState::setViewMode( const ViewWidth & new_width,
             break;
         }
 
-        if ( M_protocol_version >= 18.0 )
-        {
-            M_cycles_till_next_see = 1;
-#ifdef DEBUG_PRINT
-            dlog.addText( Logger::SYSTEM,
-                          __FILE__" (setViewMode) v18+: cycle = 1" );
-#endif
-        }
+//         if ( M_protocol_version >= 18.0 )
+//         {
+//             M_cycles_till_next_see = 1;
+// #ifdef DEBUG_PRINT
+//             dlog.addText( Logger::SYSTEM,
+//                           __FILE__" (setViewMode) v18+: cycle = 1" );
+// #endif
+//         }
 
         return;
     }

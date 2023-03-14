@@ -167,15 +167,16 @@ public:
                                       double * mean_dist,
                                       double * dist_error ) const;
 
-    bool getLandmarkDistanceRange( const double client_version,
-                                   const ViewWidth::Type view_width,
+    bool getLandmarkDistanceRange( const double /*client_version*/,
+                                   const ViewWidth::Type /*view_width*/,
                                    const double quant_dist,
                                    double * mean_dist,
                                    double * dist_error ) const
       {
-          return ( client_version >= 18.0
-                   ? getLandmarkDistanceRangeV18( view_width, quant_dist, mean_dist, dist_error )
-                   : getStaticObjInfo( quant_dist, mean_dist, dist_error ) );
+          // return ( client_version >= 18.0
+          //          ? getLandmarkDistanceRangeV18( view_width, quant_dist, mean_dist, dist_error )
+          //          : getStaticObjInfo( quant_dist, mean_dist, dist_error ) );
+          return getStaticObjInfo( quant_dist, mean_dist, dist_error );
       }
 
     /*!
@@ -190,15 +191,16 @@ public:
                               double * mean_dist,
                               double * dist_error ) const;
 
-    bool getDistanceRange( const double client_version,
-                           const ViewWidth::Type view_width,
+    bool getDistanceRange( const double /*client_version*/,
+                           const ViewWidth::Type /*view_width*/,
                            const double quant_dist,
                            double * mean_dist,
                            double * dist_error ) const
       {
-          return ( client_version >= 18.0
-                   ? getDistanceRangeV18( view_width, quant_dist, mean_dist, dist_error )
-                   : getMovableObjInfo( quant_dist, mean_dist, dist_error ) );
+          // return ( client_version >= 18.0
+          //          ? getDistanceRangeV18( view_width, quant_dist, mean_dist, dist_error )
+          //          : getMovableObjInfo( quant_dist, mean_dist, dist_error ) );
+          return getMovableObjInfo( quant_dist, mean_dist, dist_error );
       }
 
     /*!
