@@ -1015,8 +1015,8 @@ LocalizationDefault::Impl::getFaceDirByMarkers( const WorldModel & wm,
 
 /*-------------------------------------------------------------------*/
 void
-LocalizationDefault::Impl::inverseDistanceRange( const double client_version,
-                                                 const ViewWidth::Type view_width,
+LocalizationDefault::Impl::inverseDistanceRange( const double /*client_version*/,
+                                                 const ViewWidth::Type /*view_width*/,
                                                  const double quant_dist,
                                                  const double qstep_base,
                                                  double * mean_dist,
@@ -1048,13 +1048,14 @@ LocalizationDefault::Impl::inverseDistanceRange( const double client_version,
 
     */
 
-    const double qstep = ( client_version < 18.0
-                           ? qstep_base
-                           : view_width == ViewWidth::NARROW
-                           ? qstep_base * 0.5
-                           : view_width == ViewWidth::NORMAL
-                           ? qstep_base * 0.75
-                           : qstep_base * 1.0 );
+    // const double qstep = ( client_version < 18.0
+    //                        ? qstep_base
+    //                        : view_width == ViewWidth::NARROW
+    //                        ? qstep_base * 0.5
+    //                        : view_width == ViewWidth::NORMAL
+    //                        ? qstep_base * 0.75
+    //                        : qstep_base * 1.0 );
+    const double qstep = qstep_base;
 
     double min_dist, max_dist;
 
