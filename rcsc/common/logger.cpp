@@ -573,7 +573,9 @@ Logger::addRect( const std::int32_t level,
 {
     if ( M_fout
          && M_time
-         && ( level & M_flags ) )
+         && ( level & M_flags )
+         && M_start_time <= M_time->cycle()
+         && M_time->cycle() <= M_end_time )
     {
         char msg[128];
         snprintf( msg, 128, "%ld,%ld %d %c %.4f %.4f %.4f %.4f ",
