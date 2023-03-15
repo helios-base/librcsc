@@ -1,5 +1,5 @@
 
-# Librcsc 
+# Librcsc
 
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL_v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
@@ -17,7 +17,7 @@ The latest librcsc depends on the following libraries:
  - (optional) Doxygen
  - (optional) Graphviz
 
-In the case of Ubuntu 16.04 or later, execute the following commands for installing a basic development environment:
+In the case of Ubuntu 20.04 or later, execute the following commands for installing a basic development environment:
 ```
 sudo apt update
 sudo apt install build-essential libboost-all-dev autoconf automake libtool
@@ -30,7 +30,7 @@ To build the library, execute commands from the root of source directory:
 make
 ```
 
-Once successfully built, you can install the library file and header files to the default installation directory (``/usr/local``): 
+Once successfully built, you can install the library file and header files to the default installation directory (``/usr/local``):
 ```
 sudo make install
 ```
@@ -95,4 +95,3 @@ This will remove all the files that where installed, but not any directories tha
 
 - Hidehisa Akiyama, Tomoharu Nakashima, HELIOS Base: An Open Source Package for the RoboCup Soccer 2D Simulation, In Sven Behnke, Manuela Veloso, Arnoud Visser, and Rong Xiong editors, RoboCup2013: Robot World XVII, Lecture Notes in Artificial Intelligence, Springer Verlag, Berlin, 2014. http://dx.doi.org/10.1007/978-3-662-44468-9_46
 - Hidehisa Akiyama, Itsuki Noda, Multi-Agent Positioning Mechanism in the Dynamic Environment, In Ubbo Visser, Fernando Ribeiro, Takeshi Ohashi, and Frank Dellaert, editors, RoboCup 2007: Robot Soccer World Cup XI Lecture Notes in Artificial Intelligence, vol. 5001, Springer, pp.377-384, July 2008. https://doi.org/10.1007/978-3-540-68847-1_38
-
