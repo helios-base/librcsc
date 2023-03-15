@@ -4,7 +4,7 @@
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL_v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
 librcsc is a basic library to develop a simulated soccer team and related tools for the RoboCup Soccer Simulation.
-All programs can work with rcssserver-16.
+All programs can work with rcssserver-18.
 
 - The RoboCup Soccer Simulator: https://rcsoccersim.github.io/
 - RoboCup Official Homepage: https://www.robocup.org/
@@ -12,7 +12,8 @@ All programs can work with rcssserver-16.
 ## Quick Start
 
 The latest librcsc depends on the following libraries:
- - Boost 1.38 or later https://www.boost.org/
+ - C++17
+ - Boost 1.41 or later https://www.boost.org/
  - (optional) Doxygen
  - (optional) Graphviz
 
