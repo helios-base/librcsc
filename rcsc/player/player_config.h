@@ -138,6 +138,9 @@ private:
     // debug logging
     //
 
+    int M_debug_start_time; //!< the start time for recording the debug log
+    int M_debug_end_time; //!< the end time for recording the debug log
+
     std::string M_debug_log_ext; //!< the extension string of debug log file
 
     bool M_debug_system; //!< debug level flag
@@ -468,6 +471,18 @@ public:
     //
     // debug logging
     //
+
+    /*!
+      \brief get the start time for receoding the debug log
+      \return the start time for receoding the debug log
+     */
+    int debugStartTime() const { return M_debug_start_time; }
+
+    /*!
+      \brief get the end time for receoding the debug log
+      \return the end time for receoding the debug log
+     */
+    int debugEndTime() const { return M_debug_end_time; }
 
     /*!
       \brief get the debug log file extention string.
