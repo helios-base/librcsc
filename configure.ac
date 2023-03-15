@@ -127,7 +127,7 @@ AX_CXX_COMPILE_STDCXX_17(noext)
 # check boost
 ##################################################
 
-AX_BOOST_BASE([1.38.0])
+AX_BOOST_BASE([1.41.0])
 AX_BOOST_SYSTEM
 CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"
 LDFLAGS="$LDFLAGS $BOOST_LDFLAGS"
