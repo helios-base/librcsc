@@ -15,7 +15,6 @@ SUBDIRS = \
 	common \
 	monitor \
 	player \
-	action \
 	coach \
 	trainer \
 	.
@@ -39,7 +38,6 @@ librcsc_la_LIBADD = \
 	formation/librcsc_formation.la \
 	monitor/librcsc_monitor.la \
 	player/librcsc_player.la \
-	action/librcsc_action.la \
 	coach/librcsc_coach.la \
 	trainer/librcsc_trainer.la
 
@@ -59,7 +57,7 @@ librcsc_la_LIBADD = \
 
 ##	action/librcsc_action_obsolete.la
 
-librcsc_la_LDFLAGS = -version-info 16:0:0
+librcsc_la_LDFLAGS = -version-info 18:0:0
 #libXXXX_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 #    1. Start with version information of `0:0:0' for each libtool library.
 #

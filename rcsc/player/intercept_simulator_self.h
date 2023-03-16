@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file version.h
-  \brief version number Header File
+  \file intercept_simulator_self.h
+  \brief base class of the self intercept simulator
 */
 
 /*
@@ -29,29 +29,41 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_VERSION_H
-#define RCSC_VERSION_H
+#ifndef RCSC_PLAYER_INTERCEPT_SIMULATOR_SELF_H
+#define RCSC_PLAYER_INTERCEPT_SIMULATOR_SELF_H
+
+#include <rcsc/player/intercept_table.h>
 
 namespace rcsc {
 
-//! supported client protocol version
-constexpr double MAX_PROTOCOL_VERSION = 18.0;
+class WorldModel;
 
-/*-------------------------------------------------------------------*/
-/*!
-  \brief get the copyright message.
-  \return copyright message.
- */
-const char *
-copyright();
+class InterceptSimulatorSelf {
+private:
 
-/*-------------------------------------------------------------------*/
-/*!
-  \brief get the package version number string.
-  \return package version number string.
- */
-const char *
-version();
+protected:
+
+    //! protected constructor since this is an abstract class
+    InterceptSimulatorSelf() = default;
+
+public:
+
+    //! virtual destructor
+    virtual
+    ~InterceptSimulatorSelf() = default;
+
+    /*!
+      \brief pure virtual function. simulate self interception, and store the results to self_results
+      \param wm world model
+      \param max_step max prediction step
+      \param self_results reference to the result container
+     */
+    virtual
+    void simulate( const WorldModel & wm,
+                   const int max_step,
+                   std::vector< Intercept > & self_results ) = 0;
+
+};
 
 }
 

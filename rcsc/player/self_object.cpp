@@ -175,6 +175,24 @@ SelfObject::faceValid() const
 }
 
 /*-------------------------------------------------------------------*/
+Vector2D
+SelfObject::focusPoint() const
+{
+    if ( ! posValid()
+         || ! faceValid() )
+    {
+        return Vector2D::INVALIDATED;
+    }
+
+    Vector2D result = pos();
+    if ( focusDist() > 1.0e-10 )
+    {
+        result += Vector2D::from_polar( focusDist(), face() + focusDir() );
+    }
+    return result;
+}
+
+/*-------------------------------------------------------------------*/
 /*!
 
 */
@@ -482,6 +500,9 @@ SelfObject::updateAfterSenseBody( const BodySensor & sense,
     // view mode
     M_view_width = sense.viewWidth();
     M_view_quality = sense.viewQuality();
+
+    M_focus_dist = sense.focusDist();
+    M_focus_dir = sense.focusDir();
 
     ////////////////////////////////////////////////////
     // stamina

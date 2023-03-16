@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file player_intercept.h
-  \brief intercept predictor for other players Header File
+  \file intercept_simulator_player.h
+  \brief intercept simulator for other players Header File
 */
 
 /*
@@ -29,8 +29,8 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_PLAYER_PLAYER_INTERCEPT_H
-#define RCSC_PLAYER_PLAYER_INTERCEPT_H
+#ifndef RCSC_PLAYER_INTERCEPT_SIMULATOR_PLAYER_H
+#define RCSC_PLAYER_INTERCEPT_SIMULATOR_PLAYER_H
 
 #include <rcsc/geom/vector_2d.h>
 #include <vector>
@@ -43,16 +43,16 @@ class PlayerObject;
 class WorldModel;
 
 /*!
-  \class PlayerIntercept
-  \brief intercept predictor for other players
+  \class InterceptSimulatorPlayer
+  \brief intercept simulator for other players
 */
-class PlayerIntercept {
+class InterceptSimulatorPlayer {
 private:
 
     /*!
       \struct PlayerData
       \brief player data
-     */
+    */
     struct PlayerData {
         const PlayerObject & player_; //!< player reference
         const PlayerType & ptype_; //!< player type
@@ -76,58 +76,66 @@ private:
               control_area_( control_area ),
               bonus_step_( bonus_step ),
               penalty_step_( penalty_step )
-          { }
+        { }
 
         Vector2D inertiaPoint( const int step ) const;
 
     };
 
 
-    //! const reference to the WorldModel instance
-    const WorldModel & M_world;
-    //! const reference to the predicted ball position cache instance
-    const std::vector< Vector2D > & M_ball_cache;
+    //! predicted ball positions
+    std::vector< Vector2D > M_ball_cache;
     //! ball velocity angle
     const AngleDeg M_ball_move_angle;
 
     // not used
-    PlayerIntercept() = delete;
+    InterceptSimulatorPlayer() = delete;
 
 public:
 
     /*!
       \brief construct with all variables.
-      \param world const reference to the WormdModel instance
-      \param ball_pos_cache const reference to the ball position container
+      \param ball_pos initial ball position
+      \param ball_vel initial ball velocity
     */
-    PlayerIntercept( const WorldModel & world,
-                     const std::vector< Vector2D > & ball_cache );
+    InterceptSimulatorPlayer( const Vector2D & ball_pos,
+                              const Vector2D & ball_vel );
 
     /*!
       \brief destructor. nothing to do
     */
-    ~PlayerIntercept()
-      { }
+    ~InterceptSimulatorPlayer()
+    { }
 
     //////////////////////////////////////////////////////////
     /*!
       \brief get predicted ball gettable cycle
+      \param wm const reference to the instance of world model
       \param player const reference to the player object
       \param goalie goalie mode or not
       \param max_cycle max predict cycle. estimation loop is limited to this value.
       \return predicted cycle value
     */
-    int predict( const PlayerObject & player,
-                 const bool goalie ) const;
+    int simulate( const WorldModel & wm,
+                  const PlayerObject & player,
+                  const bool goalie ) const;
 
 private:
+
+    /*!
+      \brief create predicted ball positions
+      \param ball_pos initial ball position
+      \param ball_vel initial ball velocity
+     */
+    void createBallCache( const Vector2D & ball_pos,
+                          const Vector2D & ball_vel );
 
     /*!
       \brief estimate minimum reach step (very rough calculation)
       \param ptype player type
       \param control_area kickable/catchable area
       \param player_pos player's initial position
-     */
+    */
     int estimateMinStep( const PlayerData & data ) const;
 
 

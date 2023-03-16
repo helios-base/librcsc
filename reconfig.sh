@@ -1,5 +1,5 @@
 #!/bin/sh
 
 ./bootstrap
-./configure --prefix=$HOME/local --disable-unit-test
+./configure --prefix=$HOME/local 
 

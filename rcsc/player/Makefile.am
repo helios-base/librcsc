@@ -10,6 +10,9 @@ librcsc_player_la_SOURCES = \
 	body_sensor.cpp \
 	debug_client.cpp \
 	fullstate_sensor.cpp \
+	intercept.cpp \
+	intercept_simulator_player.cpp \
+	intercept_simulator_self_v17.cpp \
 	intercept_table.cpp \
 	localization_default.cpp \
 	object_table.cpp \
@@ -17,21 +20,16 @@ librcsc_player_la_SOURCES = \
 	player_command.cpp \
 	player_agent.cpp \
 	player_config.cpp \
-	player_intercept.cpp \
 	player_object.cpp \
 	player_state.cpp \
 	say_message_builder.cpp \
 	see_state.cpp \
-	self_intercept_simulator.cpp \
 	self_object.cpp \
 	soccer_action.cpp \
 	view_grid_map.cpp \
 	view_mode.cpp \
 	visual_sensor.cpp \
 	world_model.cpp
-
-#	ball_state.cpp
-
 
 librcsc_playerincludedir = $(includedir)/rcsc/player
 
@@ -44,6 +42,10 @@ librcsc_playerinclude_HEADERS = \
 	debug_client.h \
 	free_message.h \
 	fullstate_sensor.h \
+	intercept.h \
+	intercept_simulator_player.h \
+	intercept_simulator_self.h \
+	intercept_simulator_self_v17.h \
 	intercept_table.h \
 	localization.h \
 	localization_default.h \
@@ -53,13 +55,11 @@ librcsc_playerinclude_HEADERS = \
 	player_agent.h \
 	player_config.h \
 	player_evaluator.h \
-	player_intercept.h \
 	player_object.h \
 	player_predicate.h \
 	player_state.h \
 	say_message_builder.h \
 	see_state.h \
-	self_intercept_simulator.h \
 	self_object.h \
 	soccer_action.h \
 	soccer_intention.h \
@@ -68,9 +68,6 @@ librcsc_playerinclude_HEADERS = \
 	view_mode.h \
 	visual_sensor.h \
 	world_model.h
-
-#	ball_state.h
-
 
 AM_CPPFLAGS = -I$(top_srcdir)
 AM_CFLAGS = -Wall -W

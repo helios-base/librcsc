@@ -41,7 +41,6 @@
 #include "visual_sensor.h"
 #include "fullstate_sensor.h"
 #include "debug_client.h"
-#include "intercept_table.h"
 #include "penalty_kick_state.h"
 #include "player_command.h"
 #include "player_predicate.h"
@@ -72,8 +71,7 @@
 // #define DEBUG_PRINT_LINES
 // #define DEBUG_PRINT_LAST_KICKER
 
-
-// #defin USE_VIEW_GRID_MAP
+#define USE_VIEW_GRID_MAP
 
 namespace rcsc {
 
@@ -356,8 +354,9 @@ const double WorldModel::DIR_STEP = 360.0 / static_cast< double >( DIR_CONF_DIVS
 
  */
 WorldModel::WorldModel()
-    : M_localize( new LocalizationDefault() ),
-      M_intercept_table( new InterceptTable( *this ) ),
+    : M_client_version( 8 ),
+      M_localize(),
+      M_intercept_table(),
       M_audio_memory( new AudioMemory() ),
       M_penalty_kick_state( new PenaltyKickState() ),
       M_our_side( NEUTRAL ),
@@ -398,7 +397,6 @@ WorldModel::WorldModel()
       M_last_kicker_unum( Unum_Unknown ),
       M_view_area_cont( MAX_RECORD, ViewArea() )
 {
-    assert( M_intercept_table );
     assert( M_penalty_kick_state );
 
     for ( int i = 0; i < 11; ++i )
@@ -427,12 +425,6 @@ WorldModel::WorldModel()
  */
 WorldModel::~WorldModel()
 {
-    if ( M_intercept_table )
-    {
-        delete M_intercept_table;
-        M_intercept_table = nullptr;
-    }
-
     if ( M_penalty_kick_state )
     {
         delete M_penalty_kick_state;
@@ -448,7 +440,8 @@ bool
 WorldModel::init( const std::string & teamname,
                   const SideID ourside,
                   const int my_unum,
-                  const bool my_goalie )
+                  const bool my_goalie,
+                  const double client_version )
 {
     if ( ! M_localize )
     {
@@ -467,6 +460,8 @@ WorldModel::init( const std::string & teamname,
                   << std::endl;
         return false;
     }
+
+    M_client_version = client_version;
 
     M_our_team_name = teamname;
     M_our_side = ourside;
@@ -507,17 +502,6 @@ void
 WorldModel::setValid( bool is_valid )
 {
     M_valid = is_valid;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-const
-InterceptTable *
-WorldModel::interceptTable() const
-{
-    return M_intercept_table;
 }
 
 /*-------------------------------------------------------------------*/
@@ -2100,9 +2084,9 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
     estimateMaybeKickableTeammate();
 
     M_self.updateKickableState( M_ball,
-                                M_intercept_table->selfReachCycle(),
-                                M_intercept_table->teammateReachCycle(),
-                                M_intercept_table->opponentReachCycle() );
+                                interceptTable().selfStep(),
+                                interceptTable().teammateStep(),
+                                interceptTable().opponentStep() );
 }
 
 /*-------------------------------------------------------------------*/
@@ -2222,7 +2206,7 @@ WorldModel::localizeSelf( const VisualSensor & see,
     Vector2D my_pos_error( 0.0, 0.0 );
 
     // estimate self face angle
-    if ( ! M_localize->estimateSelfFace( see, &angle_face, &angle_face_error ) )
+    if ( ! M_localize->estimateSelfFace( *this, see, &angle_face, &angle_face_error ) )
     {
         return false;
     }
@@ -2245,7 +2229,7 @@ WorldModel::localizeSelf( const VisualSensor & see,
 
 
     // estimate self position
-    if ( ! M_localize->localizeSelf( see, act, this->self().playerTypePtr(),
+    if ( ! M_localize->localizeSelf( *this, see, act,
                                      angle_face, angle_face_error,
                                      &my_pos, &my_pos_error ) )
     {
@@ -2316,7 +2300,7 @@ WorldModel::localizeBall( const VisualSensor & see,
     Vector2D rvel( Vector2D::INVALIDATED );
     Vector2D vel_error( 0.0, 0.0 );
 
-    if ( ! M_localize->localizeBallRelative( see, act,
+    if ( ! M_localize->localizeBallRelative( *this, see,
                                              self().face().degree(), self().faceError(),
                                              &rpos, &rpos_error,
                                              &rvel, &vel_error )  )
@@ -2810,7 +2794,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
     for ( const VisualSensor::PlayerT & p : see.opponents() )
     {
         Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( p,
+        if ( ! M_localize->localizePlayer( *this,
+                                           p,
                                            MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
                                            &player ) )
         {
@@ -2844,7 +2829,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
     for ( const VisualSensor::PlayerT & p : see.unknownOpponents() )
     {
         Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( p,
+        if ( ! M_localize->localizePlayer( *this,
+                                           p,
                                            MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
                                            &player ) )
         {
@@ -2875,7 +2861,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
     for ( const VisualSensor::PlayerT & p : see.teammates() )
     {
         Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( p,
+        if ( ! M_localize->localizePlayer( *this,
+                                           p,
                                            MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
                                            &player ) )
         {
@@ -2909,7 +2896,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
     for ( const VisualSensor::PlayerT & p : see.unknownTeammates() )
     {
         Localization::PlayerT player;
-        if ( ! M_localize->localizePlayer( p,
+        if ( ! M_localize->localizePlayer( *this,
+                                           p,
                                            MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
                                            &player ) )
         {
@@ -2941,7 +2929,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
     {
         Localization::PlayerT player;
         // localize
-        if ( ! M_localize->localizePlayer( p,
+        if ( ! M_localize->localizePlayer( *this,
+                                           p,
                                            MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
                                            &player ) )
         {
@@ -4187,7 +4176,7 @@ WorldModel::estimateMaybeKickableTeammate()
         {
             dlog.addText( Logger::WORLD,
                           __FILE__":(estimateMaybeKickableTeammate) heard pass kick" );
-            s_previous_teammate_step = this->interceptTable()->teammateReachCycle();
+            s_previous_teammate_step = this->interceptTable().teammateStep();
             s_previous_time = this->time();
             M_maybe_kickable_teammate = nullptr;
             return;
@@ -4199,14 +4188,14 @@ WorldModel::estimateMaybeKickableTeammate()
         {
             dlog.addText( Logger::WORLD,
                           __FILE__":(estimateMaybeKickableTeammate) found" );
-            s_previous_teammate_step = 1; //this->interceptTable()->teammateReachCycle();
+            s_previous_teammate_step = 1; //this->interceptTable().teammateStep();
             s_previous_time = this->time();
             M_maybe_kickable_teammate = t;
             return;
         }
     }
 
-    s_previous_teammate_step = this->interceptTable()->teammateReachCycle();
+    s_previous_teammate_step = this->interceptTable().teammateStep();
     s_previous_time = this->time();
 
     dlog.addText( Logger::WORLD,
@@ -4329,9 +4318,10 @@ WorldModel::updateOffsideLine()
 
 #if 1
     // add 2013-06-18
-    Vector2D ball_pos = ball().inertiaPoint( std::min( interceptTable()->selfReachStep(),
-                                                       std::min( interceptTable()->teammateReachStep(),
-                                                                 interceptTable()->opponentReachStep() ) ) );
+    Vector2D ball_pos = ball().inertiaPoint( std::min( {
+                interceptTable().selfStep(),
+                interceptTable().teammateStep(),
+                interceptTable().opponentStep() } ) );
     if ( ball_pos.x > new_line )
     {
         new_line = ball_pos.x;
@@ -5223,13 +5213,13 @@ void
 WorldModel::updateInterceptTable()
 {
     // update interception table
-    M_intercept_table->update();
+    M_intercept_table.update( *this );
 
     if ( M_audio_memory->ourInterceptTime() == time() )
     {
         for ( const AudioMemory::OurIntercept & v : M_audio_memory->ourIntercept() )
         {
-            M_intercept_table->hearTeammate( v.interceptor_, v.cycle_ );
+            M_intercept_table.hearTeammate( *this, v.interceptor_, v.cycle_ );
         }
     }
 
@@ -5238,14 +5228,14 @@ WorldModel::updateInterceptTable()
     {
         for ( const AudioMemory::OppIntercept & v : M_audio_memory->oppIntercept() )
         {
-            M_intercept_table->hearOpponent( v.interceptor_, v.cycle_ );
+            M_intercept_table.hearOpponent( *this, v.interceptor_, v.cycle_ );
         }
     }
 
-    M_self.setBallReachStep( std::min( M_intercept_table->selfReachCycle(),
-                                       M_intercept_table->selfReachCycle() ) );
+    M_self.setBallReachStep( std::min( interceptTable().selfStep(),
+                                       interceptTable().selfExhaustStep() ) );
 
-    const std::map< const AbstractPlayerObject *, int > & m = M_intercept_table->playerMap();
+    const std::map< const AbstractPlayerObject *, int > & m = interceptTable().playerMap();
 
     for ( PlayerObject & p : M_teammates )
     {

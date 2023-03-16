@@ -353,6 +353,21 @@ PlayerType::setDefault()
     M_kick_power_rate = SP.kickPowerRate();
     M_foul_detect_probability = SP.foulDetectProbability();
     M_catchable_area_l_stretch = 1.0;
+
+    const double maximum_dist_in_pitch = std::sqrt( std::pow( ServerParam::DEFAULT_PITCH_LENGTH, 2 )
+                                                    + std::pow( ServerParam::DEFAULT_PITCH_WIDTH, 2 ) );
+    // v18
+    M_unum_far_length = 20.0;
+    M_unum_too_far_length = 40.0;
+    M_team_far_length = maximum_dist_in_pitch;
+    M_team_too_far_length = maximum_dist_in_pitch;
+    M_player_max_observation_length = maximum_dist_in_pitch;
+    M_ball_vel_far_length = 20.0;
+    M_ball_vel_too_far_length = 40.0;
+    M_ball_max_observation_length = maximum_dist_in_pitch;
+    M_flag_chg_far_length = 20.0;
+    M_flag_chg_too_far_length = 40.0;
+    M_flag_max_observation_length = maximum_dist_in_pitch;
 }
 
 /*-------------------------------------------------------------------*/
@@ -462,6 +477,50 @@ PlayerType::parseV8( const char * msg )
         else if ( ! std::strcmp( name, "catchable_area_l_stretch" ) )
         {
             M_catchable_area_l_stretch = val;
+        }
+        else if ( ! std::strcmp( name, "unum_far_length" ) )
+        {
+            M_unum_far_length = val;
+        }
+        else if ( ! std::strcmp( name, "unum_too_far_length" ) )
+        {
+            M_unum_too_far_length = val;
+        }
+        else if ( ! std::strcmp( name, "team_far_length" ) )
+        {
+            M_team_far_length = val;
+        }
+        else if ( ! std::strcmp( name, "team_too_far_length" ) )
+        {
+            M_team_too_far_length = val;
+        }
+        else if ( ! std::strcmp( name, "player_max_observation_length" ) )
+        {
+            M_player_max_observation_length = val;
+        }
+        else if ( ! std::strcmp( name, "ball_vel_far_length" ) )
+        {
+            M_ball_vel_far_length = val;
+        }
+        else if ( ! std::strcmp( name, "ball_vel_too_far_length" ) )
+        {
+            M_ball_vel_too_far_length = val;
+        }
+        else if ( ! std::strcmp( name, "ball_max_observation_length" ) )
+        {
+            M_ball_max_observation_length = val;
+        }
+        else if ( ! std::strcmp( name, "flag_chg_far_length" ) )
+        {
+            M_flag_chg_far_length = val;
+        }
+        else if ( ! std::strcmp( name, "flag_chg_too_far_length" ) )
+        {
+            M_flag_chg_too_far_length = val;
+        }
+        else if ( ! std::strcmp( name, "flag_max_observation_length" ) )
+        {
+            M_flag_max_observation_length = val;
         }
         else
         {
@@ -955,6 +1014,25 @@ PlayerType::cyclesToReachDistance( const double & dash_dist ) const
     cycle += static_cast< int >( std::ceil( rest_dist / realSpeedMax() ) );
 
     return cycle;
+}
+
+/*-------------------------------------------------------------------*/
+double
+PlayerType::getMovableDistance( const size_t step ) const
+{
+    if ( step == 0 )
+    {
+        return 0.0;
+    }
+
+    size_t index = step - 1;
+    if ( index >= M_dash_distance_table.size() )
+    {
+        return M_dash_distance_table.back()
+            + realSpeedMax() * ( index - M_dash_distance_table.size() + 1 );
+    }
+
+    return M_dash_distance_table[index];
 }
 
 /*-------------------------------------------------------------------*/

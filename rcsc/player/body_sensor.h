@@ -66,6 +66,7 @@ public:
     int M_catch_count; //!< sensed command count
     int M_move_count; //!< sensed command count
     int M_change_view_count; //!< sensed command count
+    int M_change_focus_count; //!< sensed command count
 
     /*!
       the number of cycles till the arm is movable.
@@ -111,6 +112,10 @@ public:
     int M_charged_expires; //!< foul charged expire cycle
     Card M_card; //!< yellow/red card
 
+    // v18+
+    double M_focus_dist; //!< distance to the focus point
+    double M_focus_dir; //!< direction to the focus point, relative to the body direction
+
 public:
     /*!
       \brief init member variables
@@ -125,31 +130,37 @@ public:
     */
     void parse( const char * msg,
                 const double & version,
-                const GameTime & current )
-      {
-          parse1( msg, version, current );
-      }
-
-    /*!
-      \brief analyze server message usind very ugly style but very fast
-      \param msg server message
-      \param version client version
-      \param current current game time
-    */
-    void parse1( const char * msg,
-                 const double & version,
-                 const GameTime & current );
-    /*!
-      \brief analyze server message using std::sscanf.
-      \param msg server message
-      \param version client version
-      \param current current game time
-    */
-    void parse2( const char * msg,
-                 const double & version,
-                 const GameTime & current );
+                const GameTime & current );
 
 private:
+
+    /*!
+      \brief analyze arm information in the sense_body message.
+      \param msg server message started with (arm
+      \param pointer pointer to the next character after parsing
+      \return parsing result
+     */
+    bool parseArm( const char * msg,
+                   char ** next );
+
+    /*!
+      \brief analyze attentionto(focus) information in the sense_body message.
+      \param msg server message started with (focus
+      \param pointer pointer to the next character after parsing
+      \return parsing result
+     */
+    bool parseAttentionto( const char * msg,
+                           char ** next );
+
+    /*!
+      \brief analyze tackle information in the sense_body message.
+      \param msg server message started with (tackle
+      \param pointer pointer to the next character after parsing
+      \return parsing result
+     */
+    bool parseTackle( const char * msg,
+                      char ** next );
+
 
     /*!
       \brief analyze collision information contained by sense_body message.
@@ -168,6 +179,15 @@ private:
      */
     bool parseFoul( const char * msg,
                     char ** next );
+
+    /*!
+      \brief analyze focus point information
+      \param msg server message started with (focus_point
+      \param pointer pointer to the next character after parsing
+      \return parsing result
+     */
+    bool parseFocusPoint( const char * msg,
+                          char ** next );
 
 public:
 
@@ -334,6 +354,15 @@ public:
       }
 
     /*!
+      \brief get analyzed change_focus count
+      \return count of performed change_focus command
+    */
+    int changeFocusCount() const
+      {
+          return M_change_focus_count;
+      }
+
+    /*!
       \brief get analyzed cycles till the arm is movable
       \return cycles till the arm is movable
     */
@@ -477,6 +506,24 @@ public:
     Card card() const
       {
           return M_card;
+      }
+
+    /*!
+      \brief get the focus distance value
+      \return the distance to the focus point
+     */
+    double focusDist() const
+      {
+          return M_focus_dist;
+      }
+
+    /*!
+      \brief get the focus direction value
+      \return the direction to the focus point, relative to the body angle
+     */
+    double focusDir() const
+      {
+          return M_focus_dir;
       }
 
     /*!

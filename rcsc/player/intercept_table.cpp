@@ -34,8 +34,10 @@
 #endif
 
 #include "intercept_table.h"
-#include "self_intercept_simulator.h"
-#include "player_intercept.h"
+
+#include "intercept_simulator_self_v17.h"
+#include "intercept_simulator_player.h"
+
 #include "world_model.h"
 #include "player_object.h"
 #include "abstract_player_object.h"
@@ -59,12 +61,10 @@ const int MAX_STEP = 50;
 /*!
 
 */
-InterceptTable::InterceptTable( const WorldModel & world )
-    : M_world( world ),
-      M_update_time( 0, 0 )
+InterceptTable::InterceptTable()
+    : M_update_time( 0, 0 )
 {
-    M_ball_cache.reserve( MAX_STEP );
-    M_self_cache.reserve( ( MAX_STEP + 1 ) * 2 );
+    M_self_results.reserve( ( MAX_STEP + 1 ) * 2 );
 
     clear();
 }
@@ -76,22 +76,20 @@ InterceptTable::InterceptTable( const WorldModel & world )
 void
 InterceptTable::clear()
 {
-    M_ball_cache.clear();
+    M_self_step = 1000;
+    M_self_exhaust_step = 1000;
+    M_teammate_step = 1000;
+    M_second_teammate_step = 1000;
+    M_our_goalie_step = 1000;
+    M_opponent_step = 1000;
+    M_second_opponent_step = 1000;
 
-    M_self_reach_step = 1000;
-    M_self_exhaust_reach_step = 1000;
-    M_teammate_reach_step = 1000;
-    M_second_teammate_reach_step = 1000;
-    M_goalie_reach_step = 1000;
-    M_opponent_reach_step = 1000;
-    M_second_opponent_reach_step = 1000;
-
-    M_fastest_teammate = nullptr;
+    M_first_teammate = nullptr;
     M_second_teammate = nullptr;
-    M_fastest_opponent = nullptr;
+    M_first_opponent = nullptr;
     M_second_opponent = nullptr;
 
-    M_self_cache.clear();
+    M_self_results.clear();
 
     M_player_map.clear();
 }
@@ -101,13 +99,13 @@ InterceptTable::clear()
 
 */
 void
-InterceptTable::update()
+InterceptTable::update( const WorldModel & wm )
 {
-    if ( M_world.time() == M_update_time )
+    if ( wm.time() == M_update_time )
     {
         return;
     }
-    M_update_time = M_world.time();
+    M_update_time = wm.time();
 
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::INTERCEPT,
@@ -119,14 +117,14 @@ InterceptTable::update()
     this->clear();
 
     // playmode check
-    if ( M_world.gameMode().type() == GameMode::TimeOver
-         || M_world.gameMode().type() == GameMode::BeforeKickOff )
+    if ( wm.gameMode().type() == GameMode::TimeOver
+         || wm.gameMode().type() == GameMode::BeforeKickOff )
     {
         return;
     }
 
-    if ( ! M_world.self().posValid()
-         || ! M_world.ball().posValid() )
+    if ( ! wm.self().posValid()
+         || ! wm.ball().posValid() )
     {
         dlog.addText( Logger::INTERCEPT,
                       __FILE__" (update) Invalid self or ball pos" );
@@ -134,51 +132,49 @@ InterceptTable::update()
     }
 
 #ifdef DEBUG
-    if ( M_world.self().isKickable()
-         || M_world.kickableTeammate()
-         || M_world.kickableOpponent() )
+    if ( wm.self().isKickable()
+         || wm.kickableTeammate()
+         || wm.kickableOpponent() )
     {
         dlog.addText( Logger::INTERCEPT,
                       __FILE__" (update) Already exist kickable player" );
     }
 #endif
 
-    createBallCache();
-
 #ifdef DEBUG
     dlog.addText( Logger::INTERCEPT,
                   "==========Intercept Predict Self==========" );
 #endif
 
-    predictSelf();
+    predictSelf( wm );
 
 #ifdef DEBUG
     dlog.addText( Logger::INTERCEPT,
                   "==========Intercept Predict Opponent==========" );
 #endif
 
-    predictOpponent();
+    predictOpponent( wm );
 
 #ifdef DEBUG
     dlog.addText( Logger::INTERCEPT,
                   "==========Intercept Predict Teammate==========" );
 #endif
 
-    predictTeammate();
+    predictTeammate( wm );
 
     dlog.addText( Logger::INTERCEPT,
                   "<-----Intercept Self reach step = %d. exhaust reach step = %d ",
-                  M_self_reach_step,
-                  M_self_exhaust_reach_step );
-    if ( M_fastest_teammate )
+                  M_self_step,
+                  M_self_exhaust_step );
+    if ( M_first_teammate )
     {
         dlog.addText( Logger::INTERCEPT,
                       "<-----Intercept Teammate  fastest reach step = %d."
                       " teammate %d (%.1f %.1f)",
-                      M_teammate_reach_step,
-                      M_fastest_teammate->unum(),
-                      M_fastest_teammate->pos().x,
-                      M_fastest_teammate->pos().y );
+                      M_teammate_step,
+                      M_first_teammate->unum(),
+                      M_first_teammate->pos().x,
+                      M_first_teammate->pos().y );
 
     }
 
@@ -187,21 +183,21 @@ InterceptTable::update()
         dlog.addText( Logger::INTERCEPT,
                       "<-----Intercept Teammate  2nd     reach step = %d."
                       " teammate %d (%.1f %.1f)",
-                      M_second_teammate_reach_step,
+                      M_second_teammate_step,
                       M_second_teammate->unum(),
                       M_second_teammate->pos().x,
                       M_second_teammate->pos().y );
     }
 
-    if ( M_fastest_opponent )
+    if ( M_first_opponent )
     {
         dlog.addText( Logger::INTERCEPT,
                       "<-----Intercept Opponent  fastest reach step = %d."
                       " opponent %d (%.1f %.1f)",
-                      M_opponent_reach_step,
-                      M_fastest_opponent->unum(),
-                      M_fastest_opponent->pos().x,
-                      M_fastest_opponent->pos().y );
+                      M_opponent_step,
+                      M_first_opponent->unum(),
+                      M_first_opponent->pos().x,
+                      M_first_opponent->pos().y );
     }
 
     if ( M_second_opponent )
@@ -209,7 +205,7 @@ InterceptTable::update()
         dlog.addText( Logger::INTERCEPT,
                       "<-----Intercept Opponent  2nd     reach step = %d."
                       " opponent %d (%.1f %.1f)",
-                      M_second_opponent_reach_step,
+                      M_second_opponent_step,
                       M_second_opponent->unum(),
                       M_second_opponent->pos().x,
                       M_second_opponent->pos().y );
@@ -226,17 +222,18 @@ InterceptTable::update()
 
 */
 void
-InterceptTable::hearTeammate( const int unum,
+InterceptTable::hearTeammate( const WorldModel & wm,
+                              const int unum,
                               const int step )
 {
-    if ( M_fastest_teammate
-         && step >= M_teammate_reach_step )
+    if ( M_first_teammate
+         && step >= M_teammate_step )
     {
         return;
     }
 
     const PlayerObject * target = nullptr;
-    for ( const PlayerObject * t : M_world.teammates() )
+    for ( const PlayerObject * t : wm.teammates() )
     {
         if ( t->unum() == unum )
         {
@@ -247,18 +244,18 @@ InterceptTable::hearTeammate( const int unum,
 
     if ( target )
     {
-        M_fastest_teammate = target;
-        M_teammate_reach_step = step;
+        M_first_teammate = target;
+        M_teammate_step = step;
 
         M_player_map[ target ] = step;
 
         dlog.addText( Logger::INTERCEPT,
                       "<----- Hear Intercept Teammate  fastest reach step = %d."
                       " teammate %d (%.1f %.1f)",
-                      M_teammate_reach_step,
-                      M_fastest_teammate->unum(),
-                      M_fastest_teammate->pos().x,
-                      M_fastest_teammate->pos().y );
+                      M_teammate_step,
+                      M_first_teammate->unum(),
+                      M_first_teammate->pos().x,
+                      M_first_teammate->pos().y );
     }
 }
 
@@ -267,36 +264,37 @@ InterceptTable::hearTeammate( const int unum,
 
 */
 void
-InterceptTable::hearOpponent( const int unum,
+InterceptTable::hearOpponent( const WorldModel & wm,
+                              const int unum,
                               const int step )
 {
-    if ( M_fastest_opponent )
+    if ( M_first_opponent )
     {
-        if ( step >= M_opponent_reach_step )
+        if ( step >= M_opponent_step )
         {
             dlog.addText( Logger::INTERCEPT,
                           "<----- Hear Intercept Opponent. no update."
                           " exist faster reach step %d >= %d",
-                          step, M_opponent_reach_step );
+                          step, M_opponent_step );
             return;
         }
 
-        if ( M_fastest_opponent->unum() == unum
-             && M_fastest_opponent->posCount() == 0 )
+        if ( M_first_opponent->unum() == unum
+             && M_first_opponent->posCount() == 0 )
         {
             dlog.addText( Logger::INTERCEPT,
                           "<----- Hear Intercept Opponent . no update."
                           " opponent %d (%.1f %.1f) is seen",
-                          M_fastest_opponent->unum(),
-                          M_fastest_opponent->pos().x,
-                          M_fastest_opponent->pos().y );
+                          M_first_opponent->unum(),
+                          M_first_opponent->pos().x,
+                          M_first_opponent->pos().y );
             return;
         }
     }
 
     const PlayerObject * p = nullptr;
 
-    for ( const PlayerObject * i : M_world.opponents() )
+    for ( const PlayerObject * i : wm.opponents() )
     {
         if ( i->unum() == unum )
         {
@@ -308,18 +306,18 @@ InterceptTable::hearOpponent( const int unum,
 
     if ( p )
     {
-        M_fastest_opponent = p;
-        M_opponent_reach_step = step;
+        M_first_opponent = p;
+        M_opponent_step = step;
 
         M_player_map[ p ] = step;
 
         dlog.addText( Logger::INTERCEPT,
                       "<----- Hear Intercept Opponent  fastest reach step = %d."
                       " opponent %d (%.1f %.1f)",
-                      M_opponent_reach_step,
-                      M_fastest_opponent->unum(),
-                      M_fastest_opponent->pos().x,
-                      M_fastest_opponent->pos().y );
+                      M_opponent_step,
+                      M_first_opponent->unum(),
+                      M_first_opponent->pos().x,
+                      M_first_opponent->pos().y );
     }
 }
 
@@ -328,108 +326,48 @@ InterceptTable::hearOpponent( const int unum,
 
 */
 void
-InterceptTable::createBallCache()
+InterceptTable::predictSelf( const WorldModel & wm )
 {
-    const ServerParam & SP = ServerParam::i();
-    const double max_x = ( SP.keepawayMode()
-                           ? SP.keepawayLength() * 0.5
-                           : SP.pitchHalfLength() + 5.0 );
-    const double max_y = ( SP.keepawayMode()
-                           ? SP.keepawayWidth() * 0.5
-                           : SP.pitchHalfWidth() + 5.0 );
-    const double bdecay = SP.ballDecay();
-
-    Vector2D bpos = M_world.ball().pos();
-    Vector2D bvel = M_world.ball().vel();
-    double bspeed = bvel.r();
-
-    for ( int i = 0; i < MAX_STEP; ++i )
-    {
-        M_ball_cache.push_back( bpos );
-
-        if ( bspeed < 0.005 && i >= 10 )
-        {
-            break;
-        }
-
-        bpos += bvel;
-        bvel *= bdecay;
-        bspeed *= bdecay;
-
-        if ( max_x < bpos.absX()
-             || max_y < bpos.absY() )
-        {
-            break;
-        }
-    }
-
-#ifdef DEBUG_PRINT
-    dlog.addText( Logger::INTERCEPT,
-                  "(InterceptTable::createBallCache) size=%d last pos=(%.2f %.2f)",
-                  M_ball_cache.size(),
-                  M_ball_cache.back().x, M_ball_cache.back().y );
-#endif
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
-void
-InterceptTable::predictSelf()
-{
-    if ( M_world.self().isKickable() )
+    if ( wm.self().isKickable() )
     {
         dlog.addText( Logger::INTERCEPT,
                       "Intercept Self. already kickable. no estimation loop!" );
-        M_self_reach_step = 0;
-        M_self_exhaust_reach_step = 0;
+        M_self_step = 0;
+        M_self_exhaust_step = 0;
         return;
     }
 
-    int max_step = std::min( MAX_STEP, static_cast< int >( M_ball_cache.size() ) );
+    constexpr int max_step = 50;
 
-    // SelfInterceptV13 predictor( M_world );
-    // predictor.predict( max_step, M_self_cache );
-    SelfInterceptSimulator sim;
-    sim.simulate( M_world, max_step, M_self_cache );
+    std::shared_ptr< InterceptSimulatorSelf > sim( new InterceptSimulatorSelfV17() );
+    sim->simulate( wm, max_step, M_self_results );
 
-    if ( M_self_cache.empty() )
+    if ( M_self_results.empty() )
     {
-        std::cerr << M_world.self().unum() << ' '
-                  << M_world.time()
-                  << " Interecet Self cache is empty!"
+        std::cerr << wm.self().unum() << ' '
+                  << wm.time()
+                  << ": (InterceptTable::predictSelf) Unexpected reach. empty result."
                   << std::endl;
         dlog.addText( Logger::INTERCEPT,
-                      "Intercept Self. Self cache is empty!" );
+                      __FILE__":(InterceptTable::predictSelf) empty" );
         // if self cache is empty,
-        // reach point should be the inertia final point of the ball
+        // the inertia final point of the ball will be set as an interception point
         return;
     }
 
-// #ifdef SELF_INTERCEPT_USE_NO_SAVE_RECEVERY
-//     std::sort( M_self_cache.begin(),
-//                M_self_cache.end(),
-//                InterceptInfo::Cmp() );
-//     M_self_cache.erase( std::unique( M_self_cache.begin(),
-//                                      M_self_cache.end(),
-//                                      InterceptInfo::Equal() ),
-//                         M_self_cache.end() );
-// #endif
+    int min_step = 1000;
+    int exhaust_min_step = 1000;
 
-    int min_step = M_self_reach_step;
-    int exhaust_min_step = M_self_exhaust_reach_step;
-
-    for ( const InterceptInfo & i : M_self_cache )
+    for ( const Intercept & i : M_self_results )
     {
-        if ( i.staminaType() == InterceptInfo::NORMAL )
+        if ( i.staminaType() == Intercept::NORMAL )
         {
             if ( i.reachStep() < min_step )
             {
                 min_step = i.reachStep();
             }
         }
-        else if ( i.staminaType() == InterceptInfo::EXHAUST )
+        else if ( i.staminaType() == Intercept::EXHAUST )
         {
             if ( i.reachStep() < exhaust_min_step )
             {
@@ -440,12 +378,12 @@ InterceptTable::predictSelf()
 
     dlog.addText( Logger::INTERCEPT,
                   "Intercept Self. solution size = %d",
-                  M_self_cache.size() );
+                  M_self_results.size() );
 
-    M_self_reach_step = min_step;
-    M_self_exhaust_reach_step = exhaust_min_step;
+    M_self_step = min_step;
+    M_self_exhaust_step = exhaust_min_step;
 
-    //M_player_map.insert( std::pair< const AbstractPlayerObject *, int >( &(M_world.self()), min_step ) );
+    //M_player_map.insert( std::pair< const AbstractPlayerObject *, int >( &(wm.self()), min_step ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -453,30 +391,31 @@ InterceptTable::predictSelf()
 
 */
 void
-InterceptTable::predictTeammate()
+InterceptTable::predictTeammate( const WorldModel & wm )
 {
     int min_step = 1000;
     int second_min_step = 1000;
 
-    if ( M_world.kickableTeammate() )
+    if ( wm.kickableTeammate() )
     {
-        M_teammate_reach_step = 0;
+        M_teammate_step = 0;
         min_step = 0;
-        M_fastest_teammate = M_world.kickableTeammate();
+        M_first_teammate = wm.kickableTeammate();
 
         dlog.addText( Logger::INTERCEPT,
                       "Intercept Teammate. exist kickable teammate" );
         dlog.addText( Logger::INTERCEPT,
                       "---> set fastest teammate %d (%.1f %.1f)",
-                      M_fastest_teammate->unum(),
-                      M_fastest_teammate->pos().x, M_fastest_teammate->pos().y );
+                      M_first_teammate->unum(),
+                      M_first_teammate->pos().x, M_first_teammate->pos().y );
     }
 
-    PlayerIntercept predictor( M_world, M_ball_cache );
+    InterceptSimulatorPlayer sim( wm.ball().pos(),
+                                  ( wm.kickableOpponent() ? Vector2D( 0.0, 0.0 ) : wm.ball().vel() ) );
 
-    for ( const PlayerObject * t : M_world.teammatesFromBall() )
+    for ( const PlayerObject * t : wm.teammatesFromBall() )
     {
-        if ( t == M_world.kickableTeammate() )
+        if ( t == wm.kickableTeammate() )
         {
             M_player_map[ t ] = 0;
             continue;
@@ -492,14 +431,13 @@ InterceptTable::predictTeammate()
             continue;
         }
 
-        int step = predictor.predict( *t, false );
-        int goalie_step = 1000;
+        int step = sim.simulate( wm, *t, false );
         if ( t->goalie() )
         {
-            goalie_step = predictor.predict( *t, true );
-            if ( step > goalie_step )
+            M_our_goalie_step = sim.simulate( wm, *t, true );
+            if ( step > M_our_goalie_step )
             {
-                step = goalie_step;
+                step = M_our_goalie_step;
             }
         }
 
@@ -509,11 +447,6 @@ InterceptTable::predictTeammate()
                       t->pos().x, t->pos().y,
                       step );
 
-        if ( t->goalie() )
-        {
-            M_goalie_reach_step = goalie_step;
-        }
-
         if ( step < second_min_step )
         {
             second_min_step = step;
@@ -522,7 +455,7 @@ InterceptTable::predictTeammate()
             if ( second_min_step < min_step )
             {
                 std::swap( min_step, second_min_step );
-                std::swap( M_fastest_teammate, M_second_teammate );
+                std::swap( M_first_teammate, M_second_teammate );
             }
         }
 
@@ -531,12 +464,12 @@ InterceptTable::predictTeammate()
 
     if ( M_second_teammate && second_min_step < 1000 )
     {
-        M_second_teammate_reach_step = second_min_step;
+        M_second_teammate_step = second_min_step;
     }
 
-    if ( M_fastest_teammate && min_step < 1000 )
+    if ( M_first_teammate && min_step < 1000 )
     {
-        M_teammate_reach_step = min_step;
+        M_teammate_step = min_step;
     }
 }
 
@@ -545,30 +478,31 @@ InterceptTable::predictTeammate()
 
 */
 void
-InterceptTable::predictOpponent()
+InterceptTable::predictOpponent( const WorldModel & wm )
 {
     int min_step = 1000;
     int second_min_step = 1000;
 
-    if ( M_world.kickableOpponent() )
+    if ( wm.kickableOpponent() )
     {
-        M_opponent_reach_step = 0;
+        M_opponent_step = 0;
         min_step = 0;
-        M_fastest_opponent = M_world.kickableOpponent();
+        M_first_opponent = wm.kickableOpponent();
 
         dlog.addText( Logger::INTERCEPT,
                       "Intercept Opponent. exist kickable opponent" );
         dlog.addText( Logger::INTERCEPT,
                       "---> set fastest opponent %d (%.1f %.1f)",
-                      M_fastest_opponent->unum(),
-                      M_fastest_opponent->pos().x, M_fastest_opponent->pos().y );
+                      M_first_opponent->unum(),
+                      M_first_opponent->pos().x, M_first_opponent->pos().y );
     }
 
-    PlayerIntercept predictor( M_world, M_ball_cache );
+    InterceptSimulatorPlayer sim( wm.ball().pos(),
+                                  ( wm.kickableOpponent() ? Vector2D( 0.0, 0.0 ) : wm.ball().vel() ) );
 
-    for ( const PlayerObject * o : M_world.opponentsFromBall() )
+    for ( const PlayerObject * o : wm.opponentsFromBall() )
     {
-        if ( o == M_world.kickableOpponent() )
+        if ( o == wm.kickableOpponent() )
         {
             M_player_map[ o ] = 0;
             continue;
@@ -584,10 +518,10 @@ InterceptTable::predictOpponent()
             continue;
         }
 
-        int step = predictor.predict( *o, false );
+        int step = sim.simulate( wm, *o, false );
         if ( o->goalie() )
         {
-            int goalie_step = predictor.predict( *o, true );
+            int goalie_step = sim.simulate( wm, *o, true );
             if ( goalie_step > 0
                  && step > goalie_step )
             {
@@ -609,7 +543,7 @@ InterceptTable::predictOpponent()
             if ( second_min_step < min_step )
             {
                 std::swap( min_step, second_min_step );
-                std::swap( M_fastest_opponent, M_second_opponent );
+                std::swap( M_first_opponent, M_second_opponent );
             }
         }
 
@@ -618,12 +552,12 @@ InterceptTable::predictOpponent()
 
     if ( M_second_opponent && second_min_step < 1000 )
     {
-        M_second_opponent_reach_step = second_min_step;
+        M_second_opponent_step = second_min_step;
     }
 
-    if ( M_fastest_opponent && min_step < 1000 )
+    if ( M_first_opponent && min_step < 1000 )
     {
-        M_opponent_reach_step = min_step;
+        M_opponent_step = min_step;
     }
 }
 

@@ -35,10 +35,10 @@
 namespace rcsc {
 
 //! max player number in one team
-const int MAX_PLAYER = 11;
+constexpr int MAX_PLAYER = 11;
 
 //! uniform number that represents the unknown player
-const int Unum_Unknown = -1;
+constexpr int Unum_Unknown = -1;
 
 /*!
   \enum SideID
@@ -119,9 +119,9 @@ enum LineID {
 };
 
 //! Id of the unknown player type
-const int Hetero_Unknown = -1;
+constexpr int Hetero_Unknown = -1;
 //! Id of the default player type
-const int Hetero_Default = 0;
+constexpr int Hetero_Default = 0;
 
 /*!
   \enum PlayMode

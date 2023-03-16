@@ -39,7 +39,7 @@ namespace rcsc {
 
 /*-------------------------------------------------------------------*/
 Formation::Ptr
-FormationParserV3::parse( std::istream & is )
+FormationParserV3::parseImpl( std::istream & is )
 {
     const std::string method = parseHeader( is );
 
@@ -302,7 +302,23 @@ FormationParserV3::parseData( std::istream & is,
         }
     }
 
-    return true;
+    std::string line;
+    while ( std::getline( is, line ) )
+    {
+        if ( line.empty()
+             || line[0] == '#'
+             || ! line.compare( 0, 2, "//" ) )
+        {
+            continue;
+        }
+
+        if ( ! line.compare( 0, 13, "End Samples" ) )
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /*-------------------------------------------------------------------*/

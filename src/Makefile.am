@@ -10,6 +10,8 @@ bin_PROGRAMS = \
 	rcgverconv \
 	rcgversion
 
+noinst_PROGRAMS = \
+	object_table_printer
 
 rclmscheduler_SOURCES = \
 	scheduler.cpp
@@ -71,6 +73,12 @@ rcgversion_SOURCES = \
 rcgversion_LDFLAGS = \
 	-L$(top_builddir)/rcsc
 rcgversion_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
+
+object_table_printer_SOURCES = \
+	object_table_printer.cpp
+object_table_printer_LDFLAGS = \
+	-L$(top_builddir)/rcsc
+object_table_printer_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
 
 AM_CPPFLAGS = -I$(top_srcdir)
 AM_CXXFLAGS = -Wall -W

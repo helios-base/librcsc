@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file version.h
-  \brief version number Header File
+  \file intercept_table.cpp
+  \brief interception info holder Source File
 */
 
 /*
@@ -29,30 +29,16 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_VERSION_H
-#define RCSC_VERSION_H
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include "intercept.h"
+
+#include <limits>
 
 namespace rcsc {
 
-//! supported client protocol version
-constexpr double MAX_PROTOCOL_VERSION = 18.0;
-
-/*-------------------------------------------------------------------*/
-/*!
-  \brief get the copyright message.
-  \return copyright message.
- */
-const char *
-copyright();
-
-/*-------------------------------------------------------------------*/
-/*!
-  \brief get the package version number string.
-  \return package version number string.
- */
-const char *
-version();
+const double Intercept::MIN_VALUE = -std::numeric_limits< double >::max();
 
 }
-
-#endif

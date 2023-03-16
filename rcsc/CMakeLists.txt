@@ -15,7 +15,6 @@ add_subdirectory(color)
 add_subdirectory(common)
 add_subdirectory(monitor)
 add_subdirectory(player)
-add_subdirectory(action)
 add_subdirectory(coach)
 add_subdirectory(trainer)
 
@@ -35,7 +34,6 @@ add_library(rcsc SHARED
   $<TARGET_OBJECTS:rcsc_common>
   $<TARGET_OBJECTS:rcsc_monitor>
   $<TARGET_OBJECTS:rcsc_player>
-  $<TARGET_OBJECTS:rcsc_action>
   $<TARGET_OBJECTS:rcsc_coach>
   $<TARGET_OBJECTS:rcsc_trainer>
   )

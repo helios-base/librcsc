@@ -62,6 +62,7 @@ BodySensor::BodySensor()
     , M_catch_count( 0 )
     , M_move_count( 0 )
     , M_change_view_count( 0 )
+    , M_change_focus_count( 0 )
     , M_arm_movable( 0 )
     , M_arm_expires( 0 )
     , M_pointto_dist( 0.0 )
@@ -87,9 +88,9 @@ BodySensor::BodySensor()
 
 */
 void
-BodySensor::parse1( const char * msg,
-                    const double & version,
-                    const GameTime & current )
+BodySensor::parse( const char * msg,
+                   const double & version,
+                   const GameTime & current )
 {
     // ver. 4 & under
     // (sense_body 0 (view_mode high normal) (stamina 4000 1) (speed 0)
@@ -134,6 +135,15 @@ BodySensor::parse1( const char * msg,
     //  (focus (target none) (count 0)) (tackle (expires 0) (count 0))
     //  (collision {none|[(ball)][player][post]}))
     //  (foul (charged 0) (card {none|yellow|red}))
+
+    // ver. 18
+    // (sense_body 66 (view_mode high normal) (stamina 3503.4 1 124000) (speed 0.06 -79)
+    //  (head_angle 89) (kick 4) (dash 20) (turn 24) (say 0) (turn_neck 28) (catch 0)
+    //  (move 1) (change_view 16) (arm (movable 0) (expires 0) (target 0 0) (count 0))
+    //  (focus (target none) (count 0)) (tackle (expires 0) (count 0))
+    //  (collision {none|[(ball)][player][post]})
+    //  (foul (charged 0) (card {none|yellow|red})
+    //  (focus_point 0 0))
 
     //char ss[8];
 
@@ -257,90 +267,45 @@ BodySensor::parse1( const char * msg,
     M_move_count  = static_cast< int >( std::strtol( msg, &next, 10 ) );
     msg = next;
 
-    while ( *msg != '(' ) ++msg;
-    while ( *msg != ' ' ) ++msg; // skip "(chage_view"
+    while ( *msg != '\0' && *msg != '(' ) ++msg;
+    while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip "(chage_view"
     M_change_view_count = static_cast< int >( std::strtol( msg, &next, 10 ) );
     msg = next;
+
+    if ( version >= 18.0 )
+    {
+        while ( *msg != '\0' && *msg != '(' ) ++msg;
+        while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip "(change_focus"
+        M_change_focus_count = static_cast< int >( std::strtol( msg, &next, 10 ) );
+        msg = next;
+    }
 
     if ( version < 8.0 )
     {
         return;
     }
 
-    // `(arm (movable <MOVABLE>) (expires <EXPIRES>)
-    //   (target <DIST> <DIR>) (count <COUNT>))'
     while ( *msg != '\0' && *msg != '(' ) ++msg;
-    while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip "(arm"
-    while ( *msg != '\0' && *msg != '(' ) ++msg;
-    while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip "(movable"
-    M_arm_movable = static_cast< int >( std::strtol( msg, &next, 10 ) );
-    msg = next;
-
-    while ( *msg != '\0' && *msg != '(' ) ++msg;
-    while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip "(expires"
-    M_arm_expires = static_cast< int >( std::strtol( msg, &next, 10 ) );
-    msg = next;
-
-    while ( *msg != '\0' && *msg != '(' ) ++msg;
-    while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip "(target"
-    ++msg;
-    M_pointto_dist = std::strtod( msg, &next );
-    msg = next;
-    M_pointto_dir = std::strtod( msg, &next );
-    msg = next;
-
-    while ( *msg != '\0' && *msg != '(' ) ++msg;
-    while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip "(count"
-    M_pointto_count = static_cast< int >( std::strtol( msg, &next, 10 ) );
-    msg = next;
-
-    // `(focus (target <SIDE> [<UNUM>]) (count <COUNT>)'
-    // <SIDE> := "none" | "l" | "r"
-    while ( *msg != '\0' && *msg != '(' ) ++msg;
-    while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip "(focus"
-    while ( *msg != '\0' && *msg != '(' ) ++msg;
-    while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip "(target"
-    ++msg; // skip space
-    if ( *msg == 'n' ) // "none"
+    if ( ! parseArm( msg, &next ) )
     {
-        M_attentionto_side = NEUTRAL;
-        M_attentionto_unum = Unum_Unknown;
+        return;
     }
-    else if ( *msg == 'l' )
-    {
-        M_attentionto_side = LEFT;
-        ++msg;
-        M_attentionto_unum = static_cast< int >( std::strtol( msg, &next, 10 ) );
-        msg = next;
-    }
-    else if ( *msg == 'r' )
-    {
-        M_attentionto_side = RIGHT;
-        ++msg;
-        M_attentionto_unum = static_cast< int >( std::strtol( msg, &next, 10 ) );
-        msg = next;
-    }
-    else
-    {
-        std::cerr << "sense_body: focus ?? [" << msg << std::endl;
-    }
-
-    while ( *msg != '\0' && *msg != '(' ) ++msg;
-    while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip "(count"
-    M_attentionto_count = static_cast< int >( std::strtol( msg, &next, 10 ) );
     msg = next;
 
-    // `(tackle (expires <EXPIRES>) (count <COUNT>))'
+    // (focus (target <SIDE> [<UNUM>]) (count <COUNT>)
     while ( *msg != '\0' && *msg != '(' ) ++msg;
-    while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip "(tackle"
-    while ( *msg != '\0' && *msg != '(' ) ++msg;
-    while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip "(expires"
-    M_tackle_expires = static_cast< int >( std::strtol( msg, &next, 10 ) );
+    if ( ! parseAttentionto( msg, &next ) )
+    {
+        return;
+    }
     msg = next;
 
+    // (tackle (expires <EXPIRES>) (count <COUNT>))
     while ( *msg != '\0' && *msg != '(' ) ++msg;
-    while ( *msg != '\0' && *msg != ' ' ) ++msg; // skip "(count"
-    M_tackle_count = static_cast< int >( std::strtol( msg, &next, 10 ) );
+    if ( ! parseTackle( msg, &next ) )
+    {
+        return;
+    }
     msg = next;
 
     if ( version < 12.0 )
@@ -348,11 +313,8 @@ BodySensor::parse1( const char * msg,
         return;
     }
 
-    while ( *msg != '\0' && *msg != '(' ) ++msg;
-
-    //
     // (collision {none|[(ball)][(player)][(post)]})
-    //
+    while ( *msg != '\0' && *msg != '(' ) ++msg;
     parseCollision( msg, &next );
     msg = next;
 
@@ -364,10 +326,23 @@ BodySensor::parse1( const char * msg,
     //
     // (foul (charged 0) (card {none|yellow|red}))
     //
+    while ( *msg != '\0' && *msg != '(' ) ++msg;
     parseFoul( msg, &next );
+    msg = next;
 
+    if ( version < 18.0 )
+    {
+        return;
+    }
+
+    //
+    //  (focus_point 0.0 0.0))
+    //
+    while ( *msg != '\0' && *msg != '(' ) ++msg;
+    parseFocusPoint( msg, &next );
 }
 
+#if 0
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -436,9 +411,23 @@ BodySensor::parse2( const char * msg,
             M_attentionto_unum = Unum_Unknown;
         }
 
+        char *next = nullptr;
         if ( version >= 12.0 )
         {
-            parseCollision( msg + n_read, NULL );
+            parseCollision( msg + n_read, &next );
+            msg = next;
+        }
+
+        if ( version >= 14.0 )
+        {
+            parseFoul( msg, &next );
+            msg = next;
+        }
+
+        if ( version >= 18.0 )
+        {
+            parseFocusPoint( msg, &next );
+            msg = next;
         }
     }
     else if ( version >= 7.0
@@ -539,6 +528,127 @@ BodySensor::parse2( const char * msg,
         std::cerr << "sense_body: Unknown View Width" << std::endl;
         break;
     }
+}
+#endif
+
+/*-------------------------------------------------------------------*/
+bool
+BodySensor::parseArm( const char * msg,
+                      char ** next )
+{
+    int movable, expires, count;
+    double dist, dir;
+    int n_read = 0;
+    if ( std::sscanf( msg,
+                      " ( arm ( movable %d ) ( expires %d ) ( target %lf %lf ) ( count %d ) ) %n",
+                      &movable, &expires, &dist, &dir, &count, &n_read ) != 5 )
+    {
+        std::cerr << M_time << " sense_body. illegal arm [" << msg << "]" << std::endl;
+        return false;
+    }
+
+    M_arm_movable = movable;
+    M_arm_expires = expires;
+    M_pointto_dist = dist;
+    M_pointto_dir = dir;
+    M_pointto_count = count;
+
+    *next = const_cast< char * >( msg ) + n_read;
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+BodySensor::parseAttentionto( const char * msg,
+                              char ** next )
+{
+    // `(focus (target <SIDE> [<UNUM>]) (count <COUNT>)'
+    // <SIDE> := "none" | "l" | "r"
+
+    char side[8];
+    int unum = Unum_Unknown;
+    int count = 0;
+    int n_read = 0;
+
+    if ( std::strncmp( "(focus ", msg, 7 ) )
+    {
+        std::cerr << "ERROR: " << M_time
+                  << " (BodySensor::parseAttentionto)  [" << msg << "]" << std::endl;
+        return false;
+    }
+
+    msg += 7;
+    if ( std::sscanf( msg, " ( target %7[^)] %d ) %n", side, &unum, &n_read ) != 2
+         && std::sscanf( msg, " ( target %7[^)] ) %n", side, &n_read ) != 1 )
+    {
+        std::cerr << "ERROR: " << M_time
+                  << " (BodySensor::parseAttentionto)  [" << msg << "]" << std::endl;
+        return false;
+    }
+    msg += n_read;
+
+    if ( std::sscanf( msg, " ( count %d ) %n", &count, &n_read ) != 1 )
+    {
+        std::cerr << "ERROR: " << M_time
+                  << " (BodySensor::parseAttentionto)  [" << msg << "]" << std::endl;
+        return false;
+    }
+    msg += n_read;
+
+    if ( side[0] == 'n' )
+    {
+        M_attentionto_side = NEUTRAL;
+        M_attentionto_unum = Unum_Unknown;
+    }
+    else if ( side[0] == 'l' )
+    {
+        M_attentionto_side = LEFT;
+        M_attentionto_unum = unum;
+    }
+    else if ( side[0] == 'r' )
+    {
+        M_attentionto_side = RIGHT;
+        M_attentionto_unum = unum;
+    }
+    else
+    {
+        std::cerr << "ERROR: " << M_time
+                  << " (BodySensor::parseAttentionto) Unknown side [" << side << "]"
+                  << std::endl;
+        return false;
+    }
+
+    M_attentionto_count = count;
+
+    // skip to the next element
+    while ( *msg != '\0' && *msg != '(' ) ++msg;
+    *next = const_cast< char * >( msg );
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+BodySensor::parseTackle( const char * msg,
+                         char ** next )
+{
+    // `(tackle (expires <EXPIRES>) (count <COUNT>))'
+    int expires, count;
+    int n_read = 0;
+    if ( std::sscanf( msg,
+                      " ( tackle ( expires %d ) ( count %d ) ) %n",
+                      &expires, &count, &n_read ) != 2 )
+    {
+        std::cerr << "ERROR: " << M_time
+                  << " (BodySensor::parseTackle) [" << msg << "]" << std::endl;
+        return false;
+    }
+
+    M_tackle_expires = expires;
+    M_tackle_count = count;
+
+    *next = const_cast< char * >( msg ) + n_read;
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
@@ -689,6 +799,37 @@ BodySensor::parseFoul( const char * msg,
         *next = const_cast< char * >( msg );
     }
 
+    return true;
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+bool
+BodySensor::parseFocusPoint( const char * msg,
+                             char ** next )
+{
+    // (focus_point <REAL> <REAL>)
+
+    double focus_dist = 0.0;
+    double focus_dir = 0.0;
+    int n_read = 0;
+
+    if ( std::sscanf( msg, " (focus_point %lf %lf) %n", &focus_dist, &focus_dir, &n_read ) != 2 )
+    {
+        std::cerr << M_time << " ERROR: Illegal focus_point in sense_body [" << msg << "]" << std::endl;
+        return false;
+    }
+
+    M_focus_dist = focus_dist;
+    M_focus_dir = focus_dir;
+
+    if ( next )
+    {
+        *next = const_cast< char * >( msg ) + n_read;
+    }
     return true;
 }
 

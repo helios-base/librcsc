@@ -41,7 +41,7 @@
 #include "parser_v2.h"
 #include "parser_v3.h"
 #include "parser_v4.h"
-#include "parser_v5.h"
+//#include "parser_v5.h"
 
 namespace rcsc {
 namespace rcg {
@@ -65,8 +65,6 @@ Parser::creators()
 Parser::Ptr
 Parser::create( std::istream & is )
 {
-    Parser::Ptr ptr;
-
     char header[5];
     int version = REC_OLD_VERSION;
 
@@ -74,7 +72,17 @@ Parser::create( std::istream & is )
 
     if ( is.gcount() != 4 )
     {
-        return ptr;
+        std::cerr << "(rcsc::rcg::Parser::create) no header." << std::endl;
+        return Parser::Ptr();
+    }
+
+    if ( header[0] == 'J'
+         && header[1] == 'S'
+         && header[2] == 'O'
+         && header[3] == 'N' )
+    {
+        std::cerr << "(rcsc::rcg::Parser::create) JSON not supported." << std::endl;
+        return Parser::Ptr();
     }
 
     if ( header[0] == 'U'
@@ -84,12 +92,21 @@ Parser::create( std::istream & is )
         version = static_cast< int >( header[3] );
     }
 
+    std::cerr << "(rcsc::rcg::Parser::create) rcg version = "
+              << ( version == static_cast< int >( '0' ) + REC_VERSION_6 ? REC_VERSION_6
+                   : version == static_cast< int >( '0' ) + REC_VERSION_5 ? REC_VERSION_5
+                   : version == static_cast< int >( '0' ) + REC_VERSION_4 ? REC_VERSION_4
+                   : version )
+              << std::endl;
+
+    Parser::Ptr ptr;
     Parser::Creator creator;
     if ( Parser::creators().getCreator( creator, version ) )
     {
         ptr = creator();
     }
-    else if ( version == static_cast< int >( '0' ) + REC_VERSION_5 ) ptr = Parser::Ptr( new ParserV5() );
+    else if ( version == static_cast< int >( '0' ) + REC_VERSION_6 ) ptr = Parser::Ptr( new ParserV4() );
+    else if ( version == static_cast< int >( '0' ) + REC_VERSION_5 ) ptr = Parser::Ptr( new ParserV4() );
     else if ( version == static_cast< int >( '0' ) + REC_VERSION_4 ) ptr = Parser::Ptr( new ParserV4() );
     else if ( version == REC_VERSION_3 ) ptr = Parser::Ptr( new ParserV3() );
     else if ( version == REC_VERSION_2 ) ptr = Parser::Ptr( new ParserV2() );

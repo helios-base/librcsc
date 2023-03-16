@@ -120,10 +120,10 @@ enum PlayerStatus {
 // monitor protocol version 1
 // game log format versin 1 & version 2
 
-const double SHOWINFO_SCALE = 16.0; //!< scaling factor
-const float SHOWINFO_SCALEF = 16.0f; //!< scaling factor
-const int REC_OLD_VERSION = 1; //!< version number of rcg v1
-const int REC_VERSION_2 = 2; //!< recorded value of rcg v2
+constexpr double SHOWINFO_SCALE = 16.0; //!< scaling factor
+constexpr float SHOWINFO_SCALEF = 16.0f; //!< scaling factor
+constexpr int REC_OLD_VERSION = 1; //!< version number of rcg v1
+constexpr int REC_VERSION_2 = 2; //!< recorded value of rcg v2
 
 /*!
   \struct pos_t
@@ -231,11 +231,11 @@ struct dispinfo_t {
 // game log format version 3
 
 //! scaling variable
-const double SHOWINFO_SCALE2 = 65536.0;
+constexpr double SHOWINFO_SCALE2 = 65536.0;
 //! scaling variable
-const float SHOWINFO_SCALE2F = 65536.0f;
+constexpr float SHOWINFO_SCALE2F = 65536.0f;
 //! version number
-const int REC_VERSION_3 = 3;
+constexpr int REC_VERSION_3 = 3;
 
 /*!
   \struct ball_t
@@ -617,6 +617,9 @@ struct PlayerT {
 
     float view_width_; //!< view width (degree). high: value>0, low: value<0
 
+    float focus_dist_; //!< distance to the focus point
+    float focus_dir_; //!< direction to the focus point, relative to the face angle
+
     float stamina_; //!< satamina value
     float effort_; //!< effort value
     float recovery_; //!< recovery value
@@ -633,6 +636,7 @@ struct PlayerT {
     UInt16 tackle_count_; //!< tackle command count
     UInt16 pointto_count_; //!< pointto command count
     UInt16 attentionto_count_; //!< attentionto command count
+    UInt16 change_focus_count_; //!< change_focus command count
 
     /*!
       \brief initialize all variables
@@ -654,6 +658,8 @@ struct PlayerT {
           point_x_( SHOWINFO_SCALE2F ),
           point_y_( SHOWINFO_SCALE2F ),
           view_width_( SHOWINFO_SCALE2F ),
+          focus_dist_( 0.0f ),
+          focus_dir_( 0.0f ),
           stamina_( SHOWINFO_SCALE2F ),
           effort_( SHOWINFO_SCALE2F ),
           recovery_( SHOWINFO_SCALE2F ),
@@ -668,7 +674,8 @@ struct PlayerT {
           say_count_( 0xFFFF ),
           tackle_count_( 0xFFFF ),
           pointto_count_( 0xFFFF ),
-          attentionto_count_( 0xFFFF )
+          attentionto_count_( 0xFFFF ),
+          change_focus_count_( 0xFFFF )
       { }
 
     /*!
@@ -971,6 +978,9 @@ struct PlayerT {
 
     double viewWidth() const { return view_width_; }
 
+    double focusDist() const { return focus_dist_; }
+    double focusDir() const { return focus_dir_; }
+
     double stamina() const { return stamina_; }
     double effort() const { return effort_; }
     double recovery() const { return recovery_; }
@@ -987,6 +997,7 @@ struct PlayerT {
     int tackleCount() const { return tackle_count_; }
     int pointtoCount() const { return pointto_count_; }
     int attentiontoCount() const { return attentionto_count_; }
+    int changeFocusCount() const { return change_focus_count_; }
 
     bool hasFullEffort( const double max_effort ) const
       {
@@ -1125,13 +1136,17 @@ struct DispInfoT {
 
 
 //! recorded value of rcg v4
-const int REC_VERSION_4 = 4;
-
+constexpr int REC_VERSION_4 = 4;
 //! recorded value of rcg v5
-const int REC_VERSION_5 = 5;
+constexpr int REC_VERSION_5 = 5;
+//! recorded value of rcg v6
+constexpr int REC_VERSION_6 = 6;
+
+//! recorded value of json rcg
+constexpr int REC_VERSION_JSON = -1;
 
 //! default rcg version
-const int DEFAULT_LOG_VERSION = REC_VERSION_5;
+constexpr int DEFAULT_LOG_VERSION = REC_VERSION_6;
 
 } // end namespace
 } // end namespace

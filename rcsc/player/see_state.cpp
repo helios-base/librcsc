@@ -49,14 +49,15 @@ bool SeeState::S_synch_see_mode = false;
 
 */
 SeeState::SeeState()
-    : M_current_time( -1, 0 )
-    , M_last_see_time( -1, 0 )
-    , M_synch_type( SYNCH_NO )
-    , M_last_timing( TIME_NOSYNCH )
-    , M_current_see_count( 0 )
-    , M_cycles_till_next_see( 100 )
-    , M_view_width( ViewWidth::NORMAL )
-    , M_view_quality( ViewQuality::HIGH )
+    : M_protocol_version( 1.0 ),
+      M_current_time( -1, 0 ),
+      M_last_see_time( -1, 0 ),
+      M_synch_type( SYNCH_NO ),
+      M_last_timing( TIME_NOSYNCH ),
+      M_current_see_count( 0 ),
+      M_cycles_till_next_see( 100 ),
+      M_view_width( ViewWidth::NORMAL ),
+      M_view_quality( ViewQuality::HIGH )
 {
     for ( int i = 0; i < HISTORY_SIZE; i++ )
     {
@@ -222,11 +223,8 @@ SeeState::updateBySee( const GameTime & see_time,
     // see timing is synchronized.
     //
 
-    if ( M_cycles_till_next_see > 0 )
-    {
-        M_cycles_till_next_see = 0;
-        setViewMode( vw, vq );
-    }
+    // update M_cycles_till_next_see and M_synch_type according to the current view mode
+    setViewMode( vw, vq );
 
     // update current see arrival timing.
     Timing new_timing = getNextTiming( vw, vq );
@@ -271,7 +269,7 @@ SeeState::setNewCycle( const GameTime & new_time )
 
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::SYSTEM,
-                  __FILE__" (updateBySee) set new cycle. cycle till next see = %d",
+                  __FILE__" (setNewCycle) set new cycle. cycle till next see = %d",
                   M_cycles_till_next_see );
 #endif
 }
@@ -435,15 +433,6 @@ void
 SeeState::setViewMode( const ViewWidth & new_width,
                        const ViewQuality & new_quality )
 {
-//     if ( M_last_see_time != M_current_time )
-//     {
-// #ifdef DEBUG_PRINT
-//         dlog.addText( Logger::SYSTEM,
-//                       __FILE__" (setViewMode) no current cycle see arrival" );
-// #endif
-//         return;
-//     }
-
     M_view_width = new_width;
     M_view_quality = new_quality;
 
@@ -477,6 +466,15 @@ SeeState::setViewMode( const ViewWidth & new_width,
         default:
             break;
         }
+
+//         if ( M_protocol_version >= 18.0 )
+//         {
+//             M_cycles_till_next_see = 1;
+// #ifdef DEBUG_PRINT
+//             dlog.addText( Logger::SYSTEM,
+//                           __FILE__" (setViewMode) v18+: cycle = 1" );
+// #endif
+//         }
 
         return;
     }
