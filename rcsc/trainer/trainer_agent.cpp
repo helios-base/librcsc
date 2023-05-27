@@ -1346,7 +1346,7 @@ TrainerAgent::doMovePlayer( const std::string & teamname,
                             const int unum,
                             const Vector2D & pos,
                             const AngleDeg & angle,
-                            const Vector2D & vel)
+                            const Vector2D & vel )
 {
     TrainerMovePlayerCommand com( teamname, unum, pos, angle, vel );
     return sendCommand( com );
