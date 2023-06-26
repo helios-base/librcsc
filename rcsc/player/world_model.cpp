@@ -2526,14 +2526,15 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
             Vector2D rpos_diff = rpos - prevBall().rpos();
             Vector2D tmp_vel = rpos_diff + self().lastMove();
             Vector2D tmp_vel_error = rpos_error + self().velError();
-            if ( self().collidesWithBall() )
-            {
-                tmp_vel *= -0.1;
-                tmp_vel_error *= 0.1;
-            }
             tmp_vel *= ServerParam::i().ballDecay();
             tmp_vel_error *= ServerParam::i().ballDecay();
 
+            // collision
+            // if ( self().collidesWithBall() )
+            // {
+            //     tmp_vel *= -0.1;
+            //     tmp_vel_error *= 0.1;
+            // }
 #ifdef DEBUG_PRINT_BALL_UPDATE
             dlog.addText( Logger::WORLD,
                           "________ rpos(%.3f %.3f) prev_rpos(%.3f %.3f)",
@@ -2576,19 +2577,23 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
             dlog.addText( Logger::WORLD,
                           __FILE__" (estimateBallVelByPosDiff) update" );
 #endif
-            if ( vel.isValid()
-                 && prevBall().rpos().r2() < std::pow( ServerParam::i().visibleDistance() - 0.2, 2 )
-                 && tmp_vel.r() * 0.5 < vel.r() ) // if the ball collides with other players, the seen vel would be much smaller.
-            {
-                vel = tmp_vel;
-                vel_error = tmp_vel_error;
-                vel_count = 0;
-            }
-            else
+            if ( ! vel.isValid() )
             {
                 vel = tmp_vel;
                 vel_error = tmp_vel_error;
                 vel_count = 1;
+            }
+            else
+            {
+                // the player has observed the ball velocity by see message
+                if ( ! self().collidesWithBall()
+                     && prevBall().rpos().r2() < std::pow( ServerParam::i().visibleDistance() - 0.2, 2 )
+                     && tmp_vel.r() * 0.5 < vel.r() ) // if the ball collides with other players, the seen vel would be much smaller.
+                {
+                    vel = tmp_vel;
+                    vel_error = tmp_vel_error;
+                    vel_count = 1;
+                }
             }
         }
     }
