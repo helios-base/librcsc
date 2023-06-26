@@ -59,8 +59,8 @@
 #include <cassert>
 #include <cmath>
 
-#define DEBUG_PROFILE
-#define DEBUG_PRINT
+// #define DEBUG_PROFILE
+// #define DEBUG_PRINT
 
 // #define DEBUG_PRINT_SELF_UPDATE
 // #define DEBUG_PRINT_BALL_UPDATE
@@ -2378,12 +2378,17 @@ WorldModel::localizeBall( const VisualSensor & see,
         gvel = self().vel() + rvel;
         vel_error += self().velError();
         vel_count = 0;
+#ifdef DEBUG_PRINT_BALL_UPDATE
+        dlog.addText( Logger::WORLD,
+                      __FILE__" (localizeBall) self_vel=(%.3f %.3f) ball_rvel=(%.3f %.3f) r=%.3f th=%.1f gvel=(%.3f %.3f)",
+                      self().vel().x, self().vel().y, rvel.x, rvel.y, rvel.r(), rvel.th().degree(), gvel.x, gvel.y );
+#endif
     }
 
     //////////////////////////////////////////////////////////////////
     // calc global velocity using rpos diff (if ball is out of view cone and within vis_dist)
 
-    if ( ! gvel.isValid() )
+    //if ( ! gvel.isValid() )
     {
         estimateBallVelByPosDiff( see, act, rpos, rpos_error,
                                   gvel, vel_error, vel_count );
@@ -2521,6 +2526,11 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
             Vector2D rpos_diff = rpos - prevBall().rpos();
             Vector2D tmp_vel = rpos_diff + self().lastMove();
             Vector2D tmp_vel_error = rpos_error + self().velError();
+            if ( self().collidesWithBall() )
+            {
+                tmp_vel *= -0.1;
+                tmp_vel_error *= 0.1;
+            }
             tmp_vel *= ServerParam::i().ballDecay();
             tmp_vel_error *= ServerParam::i().ballDecay();
 
@@ -2566,12 +2576,24 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
             dlog.addText( Logger::WORLD,
                           __FILE__" (estimateBallVelByPosDiff) update" );
 #endif
-            vel = tmp_vel;
-            vel_error = tmp_vel_error;
-            vel_count = 1;
+            if ( vel.isValid()
+                 && prevBall().rpos().r2() < std::pow( ServerParam::i().visibleDistance() - 0.2, 2 )
+                 && tmp_vel.r() * 0.5 < vel.r() ) // if the ball collides with other players, the seen vel would be much smaller.
+            {
+                vel = tmp_vel;
+                vel_error = tmp_vel_error;
+                vel_count = 0;
+            }
+            else
+            {
+                vel = tmp_vel;
+                vel_error = tmp_vel_error;
+                vel_count = 1;
+            }
         }
     }
-    else if ( ball().rposCount() == 2 )
+    else if ( ! vel.isValid()
+              && ball().rposCount() == 2 )
     {
 #ifdef DEBUG_PRINT_BALL_UPDATE
         dlog.addText( Logger::WORLD,
@@ -2639,7 +2661,8 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
 
         }
     }
-    else if ( ball().rposCount() == 3 )
+    else if ( ! vel.isValid()
+              && ball().rposCount() == 3 )
     {
 #ifdef DEBUG_PRINT_BALL_UPDATE
         dlog.addText( Logger::WORLD,
