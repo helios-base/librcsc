@@ -4557,7 +4557,7 @@ WorldModel::updateTheirOffenseLine()
 void
 WorldModel::updateTheirDefenseLine()
 {
-    double first = 0.0, second = 0.0;
+    double first_x = 0.0, second_x = 0.0;
     int first_count = 1000, second_count = 1000;
 
     const PlayerObject * first_player = nullptr;
@@ -4566,11 +4566,42 @@ WorldModel::updateTheirDefenseLine()
     for ( const PlayerObject * p : M_opponents_from_self )
     {
         // 2015-07-14
-        const PlayerType * ptype = p->playerTypePtr();
-        double x = p->pos().x;
-        double adjust = 0.0;
-        if ( x > ball().pos().x + 3.0 )
+        // 2023-06-24
+        double player_x = p->pos().x;
+        if ( p->posCount() > 0
+             && player_x > ball().pos().x + 3.0 )
         {
+            const PlayerType * ptype = p->playerTypePtr();
+#if 1
+            Vector2D opponent_pos = ( p->seenPos().isValid()
+                                      ? p->seenPos()
+                                      : p->pos() );
+            Vector2D opponent_vel = p->seenVel();
+            Vector2D accel_unit = ( p->bodyCount() <= 3
+                                    ? Vector2D::from_polar( 1.0, p->body() )
+                                    : Vector2D( -1.0, 0.0 ) );
+            const int max_count = std::min( 3, p->posCount() );
+            for ( int i = 0; i < max_count; ++i )
+            {
+                if ( i == 0
+                     && p->bodyCount() <= 3
+                     && accel_unit.th().abs() < 160.0 )
+                {
+                    // turn
+                    opponent_pos += opponent_vel;
+                    opponent_vel *= ptype->playerDecay();
+                    accel_unit.assign( -1.0, 0.0 );
+                    continue;
+                }
+                opponent_vel += accel_unit * ( ServerParam::i().maxDashPower() * ptype->dashRate( ptype->effortMax() ) );
+                opponent_pos += opponent_vel;
+                opponent_vel *= ptype->playerDecay();
+            }
+            player_x = opponent_pos.x;
+            dlog.addText( Logger::WORLD,
+                          "(updateTheirDefenseLine) opponent=%d world_x=%.1f predict_x=%.1f",
+                          p->unum(), p->pos().x, player_x );
+#else
             double rate = 0.1;
             if ( p->vel().x < -ptype->realSpeedMax()*ptype->playerDecay() * 0.8
                  || ball().pos().x > 25.0 )
@@ -4580,28 +4611,29 @@ WorldModel::updateTheirDefenseLine()
             // dlog.addText( Logger::WORLD,
             //               "(updateTheirDefenseLine) %d rate=%.1f",
             //               p->unum(), rate );
-            adjust = rate * ptype->realSpeedMax() * std::min( 3, p->posCount() );
+            double adjust = rate * ptype->realSpeedMax() * std::min( 3, p->posCount() );
+            // dlog.addText( Logger::WORLD,
+            //               "(updateTheirDefenseLine) %d x=%.1f adjust=%.1f",
+            //               (*it)->unum(), x, adjust );
+            player_x -= adjust;
+#endif
         }
-        // dlog.addText( Logger::WORLD,
-        //               "(updateTheirDefenseLine) %d x=%.1f adjust=%.1f",
-        //               (*it)->unum(), x, adjust );
-        x -= adjust;
 
-        if ( x > second )
+        if ( player_x > second_x )
         {
-            second = x;
+            second_x = player_x;
             second_count = p->posCount();
             second_player = p;
-            if ( second > first )
+            if ( second_x > first_x )
             {
-                std::swap( first, second );
+                std::swap( first_x, second_x );
                 std::swap( first_count, second_count );
                 std::swap( first_player, second_player );
             }
         }
     }
 
-    double new_line = second;
+    double new_line = second_x;
     int count = second_count;
 
     // dlog.addText( Logger::WORLD,
@@ -4613,12 +4645,12 @@ WorldModel::updateTheirDefenseLine()
         if ( 20.0 < ball().pos().x
              && ball().pos().x < ServerParam::i().theirPenaltyAreaLineX() )
         {
-            if ( first < ServerParam::i().theirPenaltyAreaLineX() )
+            if ( first_x < ServerParam::i().theirPenaltyAreaLineX() )
             {
                 // dlog.addText( Logger::WORLD,
                 //               "(updateTheirDefenseLine) no goalie. %.1f -> %.1f",
                 //               second, first );
-                new_line = first;
+                new_line = first_x;
                 count = 30;
             }
         }
