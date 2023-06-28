@@ -48,13 +48,28 @@ namespace {
 
 /*-------------------------------------------------------------------*/
 std::string
-parse_method_name( const ptree & doc )
+get_version( const ptree & doc )
+{
+    boost::optional< std::string > v = doc.get_optional< std::string >( "version" );
+
+    if ( ! v )
+    {
+        std::cerr << "(FormationParserJSON::get_version) No version" << std::endl;
+        return std::string();
+    }
+
+    return *v;
+}
+
+/*-------------------------------------------------------------------*/
+std::string
+get_method_name( const ptree & doc )
 {
     boost::optional< std::string > v = doc.get_optional< std::string >( "method" );
 
     if ( ! v )
     {
-        std::cerr << "(FormationParserJSON..parse_method_name) No method name" << std::endl;
+        std::cerr << "(FormationParserJSON::get_method_name) No method name" << std::endl;
         return std::string();
     }
 
@@ -190,7 +205,7 @@ FormationParserJSON::parseImpl( std::istream & is )
         return Formation::Ptr();
     }
 
-    const std::string method = parse_method_name( doc );
+    const std::string method = get_method_name( doc );
 
     Formation::Ptr ptr = Formation::create( method );
     if ( ! ptr )
@@ -198,6 +213,8 @@ FormationParserJSON::parseImpl( std::istream & is )
         std::cerr << "(FormationParserJSON::parse) Could not create the formation " << method << std::endl;
         return Formation::Ptr();
     }
+
+    ptr->setVersion( get_version( doc ) );
 
     if ( ! parse_role( doc, ptr ) ) return Formation::Ptr();
     if ( ! parse_data( doc, ptr ) ) return Formation::Ptr();
