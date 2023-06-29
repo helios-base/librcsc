@@ -228,7 +228,7 @@ ViewGridMap::update( const GameTime & time,
 
 */
 int
-ViewGridMap::seenCount( const Vector2D & pos )
+ViewGridMap::seenCount( const Vector2D & pos ) const
 {
     try
     {

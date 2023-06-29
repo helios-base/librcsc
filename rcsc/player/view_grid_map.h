@@ -113,7 +113,7 @@ public:
       \param pos target point
       \return count value
      */
-    int seenCount( const Vector2D & pos );
+    int seenCount( const Vector2D & pos ) const;
 
     /*!
       \brief output the debug data
