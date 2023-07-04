@@ -4601,14 +4601,15 @@ WorldModel::updateTheirDefenseLine()
         {
             const PlayerType * ptype = p->playerTypePtr();
 #if 1
-            Vector2D opponent_pos = ( p->seenPos().isValid()
-                                      ? p->seenPos()
-                                      : p->pos() );
-            Vector2D opponent_vel = p->seenVel();
+            Vector2D opponent_pos = p->pos();
+            Vector2D opponent_vel = p->vel();
             Vector2D accel_unit = ( p->bodyCount() <= 3
                                     ? Vector2D::from_polar( 1.0, p->body() )
                                     : Vector2D( -1.0, 0.0 ) );
             const int max_count = std::min( 3, p->posCount() );
+            // dlog.addText( Logger::WORLD,
+            //               "(updateTheirDefenseLine) opponent=%d accel_unit=(%.3f %.3f) max_count=%d pos=(%.1f %.1f)",
+            //               p->unum(), accel_unit.x, accel_unit.y, max_count, opponent_pos.x, opponent_pos.y );
             for ( int i = 0; i < max_count; ++i )
             {
                 if ( i == 0
@@ -4621,8 +4622,12 @@ WorldModel::updateTheirDefenseLine()
                     accel_unit.assign( -1.0, 0.0 );
                     continue;
                 }
-                opponent_vel += accel_unit * ( ServerParam::i().maxDashPower() * ptype->dashRate( ptype->effortMax() ) );
+                opponent_vel += accel_unit * ( 0.7 * ( ServerParam::i().maxDashPower() * ptype->dashRate( ptype->effortMax() ) ) );
                 opponent_pos += opponent_vel;
+                // dlog.addText( Logger::WORLD,
+                //               "(updateTheirDefenseLine) opponent=%d accel_unit=(%.3f %.3f) loop=%d pos=(%.1f %.1f) vel=(%.2f %.2f)",
+                //               p->unum(), accel_unit.x, accel_unit.y, i, opponent_pos.x, opponent_pos.y,
+                //               opponent_vel.x, opponent_vel.y );
                 opponent_vel *= ptype->playerDecay();
             }
             player_x = opponent_pos.x;
