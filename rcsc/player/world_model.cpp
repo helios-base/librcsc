@@ -1388,7 +1388,7 @@ WorldModel::updateAfterFullstate( const FullstateSensor & fullstate,
     }
 
     // update opponents
-    for ( const FullstateSensor::PlayerT fp : fullstate.theirPlayers() )
+    for ( const FullstateSensor::PlayerT & fp : fullstate.theirPlayers() )
     {
         if ( fp.unum_ < 1 || 11 < fp.unum_ )
         {
