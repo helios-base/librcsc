@@ -61,6 +61,11 @@ private:
     //! pointer of body action for dynamic allocation
     PlayerBodyCommand * M_command_body;
 
+    //! left leg command
+    // PlayerLegCommand * M_command_left_leg;
+    //! right leg command
+    // PlayerLegCommand * M_command_right_leg;
+
     //! pointer of turn_neck for dynamic allocation
     PlayerTurnNeckCommand * M_command_turn_neck;
     //! pointer of change_view for dynamic allocation
@@ -83,6 +88,8 @@ private:
 
     //! last body command type
     PlayerCommand::Type M_last_body_command_type[2];
+    // PlayerCommand::Type M_last_left_leg_command_type[2];
+    // PlayerCommand::Type M_last_right_leg_command_type[2];
 
     //! checker of turn_neck. true if turn_neck was done at last
     bool M_done_turn_neck;

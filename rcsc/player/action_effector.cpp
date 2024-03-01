@@ -55,6 +55,8 @@ namespace rcsc {
 ActionEffector::ActionEffector( const PlayerAgent & agent )
     : M_agent( agent ),
       M_command_body( nullptr ),
+      // M_command_left_leg( nullptr ),
+      // M_command_right_leg( nullptr ),
       M_command_turn_neck( nullptr ),
       M_command_change_view( nullptr ),
       M_command_change_focus( nullptr ),
