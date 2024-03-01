@@ -269,6 +269,20 @@ StaminaModel::simulateDash( const PlayerType & player_type,
 }
 
 /*-------------------------------------------------------------------*/
+void
+StaminaModel::simulateDash( const PlayerType & player_type,
+                            const double left_dash_power,
+                            const double right_dash_power )
+{
+    double left_stamina = ( left_dash_power < 0.0 ? -left_dash_power : left_dash_power * 0.5 );
+    double right_stamina = ( right_dash_power < 0.0 ? -right_dash_power : right_dash_power * 0.5 );
+    M_stamina -= ( left_stamina + right_stamina );
+    M_stamina = std::max( 0.0, M_stamina );
+
+    simulateWait( player_type );
+}
+
+/*-------------------------------------------------------------------*/
 /*!
 
 */

@@ -214,6 +214,16 @@ public:
                        const double & dash_power );
 
     /*!
+      \brief simulate stamina variables after one dash.
+      \param player_type heterogeneous player type
+      \param left_dash_power dash power for simulation
+      \param right_dash_power dash power for simulation
+     */
+    void simulateDash( const PlayerType & player_type,
+                       const double left_dash_power,
+                       const double right_dash_power );
+
+    /*!
       \brief simulate stamina variables after nr dashes.
       \param player_type heterogeneous player type
       \param n_dash number of dash cycles

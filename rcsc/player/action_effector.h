@@ -107,8 +107,13 @@ private:
     // dash effect
     Vector2D M_dash_accel; //!< estimated last dash accel
     //Vector2D M_dash_accel_error;
-    double M_dash_power; //!< last dash power to update stamina
-    double M_dash_dir; //!< last dash direction relative to body (or reverse body)
+    double M_dash_rotation; //!< rotation degree by differntial drive
+    //double M_dash_power; //!< last dash power for updating stamina
+    //double M_dash_dir; //!< last dash direction relative to body (or reverse body)
+    double M_left_dash_power;
+    double M_left_dash_dir;
+    double M_right_dash_power;
+    double M_right_dash_dir;
 
     // move effect
     Vector2D M_move_pos; //!< last move coordinates
@@ -271,6 +276,21 @@ public:
     */
     void setDash( const double & power,
                   const AngleDeg & rel_dir );
+
+    /*!
+      \brief register dash command for each leg.
+      \param left_power dash power for left leg
+      \param left_dir dash direction for left leg
+      \param right_power dash power for right leg
+      \param right_dir dash direction for right leg
+
+      power is normalized by server parameter
+      useless dash power is reduceed automatically.
+    */
+    void setDash( const double left_power,
+                  const AngleDeg left_dir,
+                  const double right_power,
+                  const AngleDeg right_dir );
 
     /*!
       \brief create turn command and its effect with turn parameter
@@ -455,16 +475,16 @@ public:
     //////////////////////////////////////////
     /*!
       \brief get estimated dash action effect
-      \param accel variable pointer to store the estimated dash accel
-      \param power variable pointer to store the used dash power
     */
     void getDashInfo( Vector2D * accel,
-                      /*Vector2D * acc_err,*/
-                      double * power ) const
+                      double * rotation,
+                      double * left_power,
+                      double * right_power ) const
       {
           if ( accel ) *accel = M_dash_accel;
-          //if ( acc_err ) *acc_err = M_dash_accel_error;
-          if ( power ) *power = M_dash_power;
+          if ( rotation ) *rotation = M_dash_rotation;
+          if ( left_power ) *left_power = M_left_dash_power;
+          if ( right_power ) *right_power = M_right_dash_power;
       }
 
     //////////////////////////////////////////
