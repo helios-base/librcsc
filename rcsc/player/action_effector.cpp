@@ -69,14 +69,10 @@ ActionEffector::ActionEffector( const PlayerAgent & agent )
       M_kick_accel_error( 0.0, 0.0 ),
       M_turn_actual( 0.0 ),
       M_turn_error( 0.0 ),
-      M_dash_accel( 0.0, 0.0 ),
-      // M_dash_accel_error(0.0, 0.0),
-      M_dash_rotation( 0.0 ),
-      //M_dash_power( 0.0 ),
       M_left_dash_power( 0.0 ),
-      M_left_dash_dir( 0.0 ),
       M_right_dash_power( 0.0 ),
-      M_right_dash_dir( 0.0 ),
+      M_dash_accel( 0.0, 0.0 ),
+      M_dash_rotation( 0.0 ),
       M_move_pos( 0.0, 0.0 ),
       M_catch_time( 0, 0 ),
       M_tackle_power( 0.0 ),
@@ -172,18 +168,11 @@ ActionEffector::reset()
     M_kick_accel_error.assign( 0.0, 0.0 );
     M_turn_actual = M_turn_error = 0.0;
     M_dash_accel.assign( 0.0, 0.0 );
-    //M_dash_accel_error.assign( 0.0, 0.0 );
     M_dash_rotation = 0.0;
-    // M_dash_power = 0.0;
-    // M_dash_dir = 0.0;
     M_left_dash_power = 0.0;
-    M_left_dash_dir = 0.0;
     M_right_dash_power = 0.0;
-    M_right_dash_dir = 0.0;
     M_left_dash_power = 0.0;
-    M_left_dash_dir = 0.0;
     M_right_dash_power = 0.0;
-    M_right_dash_dir = 0.0;
     M_move_pos.assign( 0.0, 0.0 );
     M_catch_time.assign( 0, 0 );
     M_tackle_power = 0.0;
@@ -890,9 +879,7 @@ ActionEffector::setDash( const double & power,
      */
 
     M_left_dash_power = command_power;
-    M_left_dash_dir = command_dir;
     M_right_dash_power = command_power;
-    M_right_dash_dir = command_dir;
 
     M_dash_rotation = 0.0;
     M_dash_accel.setPolar( accel_mag, accel_angle );
@@ -1067,9 +1054,7 @@ ActionEffector::setDash( const double left_power,
     const Vector2D new_vel = ( vel_r + vel_l ) * 0.5;
 
     M_left_dash_power = left_command_power;
-    M_left_dash_dir = left_command_dir;
     M_right_dash_power = right_command_power;
-    M_right_dash_dir = right_command_dir;
 
     M_dash_rotation = AngleDeg::rad2deg( omega );
     M_dash_accel = new_vel - wm.self().vel();

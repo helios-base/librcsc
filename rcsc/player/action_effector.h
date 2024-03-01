@@ -105,15 +105,10 @@ private:
     double M_turn_error;  //!< estimated turn moment error
 
     // dash effect
+    double M_left_dash_power; //!< command power: need to estimate the consumed stamina
+    double M_right_dash_power; //!< command power: need to estimate the consumed stamina
     Vector2D M_dash_accel; //!< estimated last dash accel
-    //Vector2D M_dash_accel_error;
     double M_dash_rotation; //!< rotation degree by differntial drive
-    //double M_dash_power; //!< last dash power for updating stamina
-    //double M_dash_dir; //!< last dash direction relative to body (or reverse body)
-    double M_left_dash_power;
-    double M_left_dash_dir;
-    double M_right_dash_power;
-    double M_right_dash_dir;
 
     // move effect
     Vector2D M_move_pos; //!< last move coordinates
