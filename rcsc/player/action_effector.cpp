@@ -69,6 +69,7 @@ ActionEffector::ActionEffector( const PlayerAgent & agent )
       M_kick_accel_error( 0.0, 0.0 ),
       M_turn_actual( 0.0 ),
       M_turn_error( 0.0 ),
+      M_dash_power( 0.0 ),
       M_left_dash_power( 0.0 ),
       M_right_dash_power( 0.0 ),
       M_dash_accel( 0.0, 0.0 ),
@@ -169,6 +170,7 @@ ActionEffector::reset()
     M_turn_actual = M_turn_error = 0.0;
     M_dash_accel.assign( 0.0, 0.0 );
     M_dash_rotation = 0.0;
+    M_dash_power = 0.0;
     M_left_dash_power = 0.0;
     M_right_dash_power = 0.0;
     M_left_dash_power = 0.0;
@@ -290,7 +292,8 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
         }
         M_last_body_command_type[0] = PlayerCommand::ILLEGAL;
         M_dash_accel.assign( 0.0, 0.0 );
-        //M_dash_accel_error.assign( 0.0, 0.0 );
+        M_dash_rotation = 0.0;
+        M_dash_power = 0.0;
         M_left_dash_power = 0.0;
         M_right_dash_power = 0.0;
         M_command_counter[PlayerCommand::DASH] = sense.dashCount();
@@ -878,6 +881,7 @@ ActionEffector::setDash( const double & power,
      *                       ServerParam::playerAccelMax() );
      */
 
+    M_dash_power = command_power;
     M_left_dash_power = command_power;
     M_right_dash_power = command_power;
 
@@ -1053,6 +1057,8 @@ ActionEffector::setDash( const double left_power,
     const double omega = ( vel_r_body - vel_l_body ) / ( wm.self().playerType().playerSize() * 2.0 );
     const Vector2D new_vel = ( vel_r + vel_l ) * 0.5;
 
+    M_dash_power = ( left_command_power < 0.0 ? -left_command_power : left_command_power*0.5
+                     + right_command_power < 0.0 ? -right_command_power : left_command_power*0.5 );
     M_left_dash_power = left_command_power;
     M_right_dash_power = right_command_power;
 

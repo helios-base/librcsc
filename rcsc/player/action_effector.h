@@ -105,6 +105,7 @@ private:
     double M_turn_error;  //!< estimated turn moment error
 
     // dash effect
+    double M_dash_power; //!< command power: need to estimate the consumed stamina
     double M_left_dash_power; //!< command power: need to estimate the consumed stamina
     double M_right_dash_power; //!< command power: need to estimate the consumed stamina
     Vector2D M_dash_accel; //!< estimated last dash accel
@@ -471,6 +472,13 @@ public:
     /*!
       \brief get estimated dash action effect
     */
+    void getDashInfo( Vector2D * accel,
+                      double * power ) const
+      {
+          if ( accel ) *accel = M_dash_accel;
+          if ( power ) *power = M_dash_power;
+      }
+
     void getDashInfo( Vector2D * accel,
                       double * rotation,
                       double * left_power,
