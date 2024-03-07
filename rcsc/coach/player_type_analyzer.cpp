@@ -909,6 +909,11 @@ PlayerTypeAnalyzer::checkPlayerDecay()
 
         Data & data = M_opponent_data[p->unum() - 1];
 
+        // If the player rotates by the two legs dash model,
+        // turn and acceleration occur simultaneously.
+        // In that case, it is impossible to determine the player type based on the player decay noise.
+        if ( data.turned_ ) continue;
+
         if ( data.maybe_collide_ ) continue;
         if ( data.maybe_referee_ ) continue;
         if ( ! data.turned_
