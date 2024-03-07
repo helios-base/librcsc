@@ -1054,7 +1054,7 @@ ActionEffector::setDash( const double left_power,
     const double vel_l_body = body_unit.x * vel_l.x + body_unit.y * vel_l.y;
     const double vel_r_body = body_unit.x * vel_r.x + body_unit.y * vel_r.y;
 
-    const double omega = ( vel_r_body - vel_l_body ) / ( wm.self().playerType().playerSize() * 2.0 );
+    const double omega = ( vel_l_body - vel_r_body ) / ( wm.self().playerType().playerSize() * 2.0 );
     const Vector2D new_vel = ( vel_r + vel_l ) * 0.5;
 
     M_dash_power = ( left_command_power < 0.0 ? -left_command_power : left_command_power*0.5
@@ -1770,12 +1770,21 @@ AngleDeg
 ActionEffector::queuedNextSelfBody() const
 {
     AngleDeg next_angle = M_agent.world().self().body();
+
     if ( M_command_body
          && M_command_body->type() == PlayerCommand::TURN )
     {
         double moment = 0.0;
         getTurnInfo( &moment, NULL );
         next_angle += moment;
+    }
+
+    if ( M_command_body
+         && M_command_body->type() == PlayerCommand::TURN )
+    {
+        double dash_rotation = 0.0;
+        getDashInfo( nullptr, &dash_rotation, nullptr, nullptr );
+        next_angle += dash_rotation;
     }
 
     return next_angle;
