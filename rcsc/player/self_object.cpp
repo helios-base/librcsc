@@ -282,6 +282,9 @@ SelfObject::update( const ActionEffector & act,
 
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::WORLD,
+                  __FILE__" (update) estimated turn=%.1f dash_rot=%.1f",
+                  turn_moment, dash_rotation );
+    dlog.addText( Logger::WORLD,
                   __FILE__" (update) estimated stamina=%.1f effort=%f recovery=%f capacity=%.1f",
                   M_stamina.stamina(),
                   M_stamina.effort(),
@@ -312,6 +315,12 @@ SelfObject::update( const ActionEffector & act,
     {
         M_pos += M_vel;
     }
+
+#ifdef DEBUG_PRINT
+    dlog.addText( Logger::WORLD,
+                  __FILE__" (update) estimated body=%.1f neck=%.1f face=%.1f",
+                  M_body.degree(), M_neck.degree(), M_face.degree() );
+#endif
 
     // rcssserver/src/object.C
     // PVector MPObject::noise()
