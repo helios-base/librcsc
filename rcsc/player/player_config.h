@@ -83,6 +83,7 @@ private:
     bool M_debug_fullstate; //!< if true, the virtual fullstate worldmodel is used.
 
     bool M_synch_see; //!< if true, synchronous see mode is used.
+    bool M_gaussian_see; //!< gaussian observation mode or not
 
     // confidence value
 
@@ -326,6 +327,12 @@ public:
       \return synch_see mode flag
      */
     bool synchSee() const { return M_synch_see; }
+
+    /*!
+      \brief get the gaussian_see mode flag
+      \return gaussian_see mode flag
+     */
+    bool gaussianSee() const { return M_gaussian_see; }
 
     // confidence value
 
