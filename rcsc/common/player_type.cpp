@@ -325,6 +325,10 @@ PlayerType::toServerString() const
        << "(kick_power_rate " << M_kick_power_rate << ')'
        << "(foul_detect_probability " << M_foul_detect_probability << ')'
        << "(catchable_area_l_stretch " << M_catchable_area_l_stretch << ')'
+       << "(dist_noise_rate " << distNoiseRate() << ')'
+       << "(focus_dist_noise_rate " << focusDistNoiseRate() << ')'
+       << "(land_dist_noise_rate " << landDistNoiseRate() << ')'
+       << "(land_focus_dist_noise_rate " << landFocusDistNoiseRate() << ')'
        << ')';
 
     return os.str();
@@ -368,6 +372,12 @@ PlayerType::setDefault()
     M_flag_chg_far_length = 20.0;
     M_flag_chg_too_far_length = 40.0;
     M_flag_max_observation_length = maximum_dist_in_pitch;
+
+    // v19
+    M_dist_noise_rate = SP.distNoiseRate();
+    M_focus_dist_noise_rate = SP.focusDistNoiseRate();
+    M_land_dist_noise_rate = SP.landDistNoiseRate();
+    M_land_focus_dist_noise_rate = SP.landFocusDistNoiseRate();
 }
 
 /*-------------------------------------------------------------------*/
@@ -398,10 +408,11 @@ PlayerType::parseV8( const char * msg )
     if ( std::sscanf( msg, " ( player_type ( %s %d ) %n ",
                       name, &id, &n_read ) != 2
          || n_read == 0
+         || std::strcmp( name, "id" ) != 0
          || id < 0 )
     {
-        std::cerr << __FILE__ << ":(PlayerType::parseV8) "
-                  << "ERROR: could not read id value " << msg << std::endl;
+        std::cerr << "(PlayerType::parseV8) "
+                  << "ERROR: could not read the id value " << msg << std::endl;
         return;
     }
     msg += n_read;
@@ -416,7 +427,7 @@ PlayerType::parseV8( const char * msg )
                           name, &val, &n_read ) != 2
              || n_read == 0 )
         {
-            std::cerr << __FILE__ << ":(PlayerType::parseV8) "
+            std::cerr << "(PlayerType::parseV8) "
                       << " ERROR: illegal parameter format " << msg << std::endl;
             break;
         }
@@ -522,9 +533,25 @@ PlayerType::parseV8( const char * msg )
         {
             M_flag_max_observation_length = val;
         }
+        else if ( ! std::strcmp( name, "dist_noise_rate" ) )
+        {
+            M_dist_noise_rate = val;
+        }
+        else if ( ! std::strcmp( name, "focus_dist_noise_rate" ) )
+        {
+            M_focus_dist_noise_rate = val;
+        }
+        else if ( ! std::strcmp( name, "land_dist_noise_rate" ) )
+        {
+            M_land_dist_noise_rate = val;
+        }
+        else if ( ! std::strcmp( name, "land_focus_dist_noise_rate" ) )
+        {
+            M_land_focus_dist_noise_rate = val;
+        }
         else
         {
-            std::cerr << __FILE__ << ":(PlayerType::parseV8) "
+            std::cerr << "(PlayerType::parseV8) "
                       << " ERROR: unsupported parameter name " << name << std::endl;
             break;
         }

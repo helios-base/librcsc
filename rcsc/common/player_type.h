@@ -78,6 +78,12 @@ private:
     double M_flag_chg_too_far_length;//!< Distance where the flag relative velocityr becomes completely unobservable
     double M_flag_max_observation_length; //!< Maximum distance where the flag can be observed
 
+    // v19
+    double M_dist_noise_rate; //!< noise rate for movable objects in Gaussian see mode
+    double M_focus_dist_noise_rate; //!< focus noise rate for movable objects in Gaussian see mode
+    double M_land_dist_noise_rate; //!< noise rate for landmark objects in Gaussian see mode
+    double M_land_focus_dist_noise_rate; //!< focus noise rate for landmark objects in Gaussian see mode
+
     //
     // additional parameters
     //
@@ -410,6 +416,32 @@ public:
       {
           return M_flag_max_observation_length;
       }
+
+    // v19
+
+    /*!
+      \brief get the distance noise rate value for movable objects in Gaussian see mode.
+      \return distance noise rate value
+     */
+    double distNoiseRate() const { return M_dist_noise_rate; }
+
+    /*!
+      \brief get the focus distance noise rate value for movable objects in Gaussian see mode.
+      \return distance noise rate value
+     */
+    double focusDistNoiseRate() const { return M_focus_dist_noise_rate; }
+
+    /*!
+      \brief get the distance noise rate value for landmark objects in Gaussian see mode.
+      \return distance noise rate value
+     */
+    double landDistNoiseRate() const { return M_land_dist_noise_rate; }
+
+    /*!
+      \brief get the focus distance noise rate value for landmark objects in Gaussian see mode.
+      \return distance noise rate value
+     */
+    double landFocusDistNoiseRate() const { return M_land_focus_dist_noise_rate; }
 
     ////////////////////////////////////////////////
     // additional parameters
