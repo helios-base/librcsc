@@ -53,28 +53,6 @@ quantize( const double val,
     return rint( val / prec ) * prec;
 }
 
-#if 0
-/*-------------------------------------------------------------------*/
-template < typename T >
-void
-to_sexp( std::ostream & os,
-         const char * name,
-         const T & value )
-{
-    os << '(' << name << ' ' << value << ')';
-}
-
-/*-------------------------------------------------------------------*/
-template <>
-void
-to_sexp< std::string >( std::ostream & os,
-                        const char * name,
-                        const std::string & value )
-{
-    os << '(' << name << ' ' << std::quoted( value ) << ')';
-}
-#endif
-
 /*-------------------------------------------------------------------*/
 bool
 set_integer( ParamMap & param_map,
