@@ -1382,11 +1382,72 @@ struct ServerParamT {
 private:
     ParamMap param_map_;
 
-    // IntMap int_map_;
-    // DoubleMap double_map_;
-    // BoolMap bool_map_;
-    // StringMap string_map_;
 };
+
+
+/*!
+  \struct PlayerParamT
+  \brief heterogenious player trade-off parameters
+ */
+struct PlayerParamT {
+    int player_types_;
+    int subs_max_;
+    int pt_max_;
+
+    bool allow_mult_default_type_;
+
+    double player_speed_max_delta_min_;
+    double player_speed_max_delta_max_;
+    double stamina_inc_max_delta_factor_;
+
+    double player_decay_delta_min_;
+    double player_decay_delta_max_;
+    double inertia_moment_delta_factor_;
+
+    double dash_power_rate_delta_min_;
+    double dash_power_rate_delta_max_;
+    double player_size_delta_factor_;
+
+    double kickable_margin_delta_min_;
+    double kickable_margin_delta_max_;
+    double kick_rand_delta_factor_;
+
+    double extra_stamina_delta_min_;
+    double extra_stamina_delta_max_;
+    double effort_max_delta_factor_;
+    double effort_min_delta_factor_;
+
+    double new_dash_power_rate_delta_min_;
+    double new_dash_power_rate_delta_max_;
+    double new_stamina_inc_max_delta_factor_;
+
+    int random_seed_;
+
+    double kick_power_rate_delta_min_;
+    double kick_power_rate_delta_max_;
+    double foul_detect_probability_delta_factor_;
+
+    double catchable_area_l_stretch_min_;
+    double catchable_area_l_stretch_max_;
+
+    PlayerParamT();
+
+    /*!
+      \brief print s-expression message
+     */
+    std::ostream & toSExp( std::ostream & os ) const;
+
+    bool setInt( const std::string & name,
+                 const int value );
+    bool setDouble( const std::string & name,
+                    const double value );
+    bool setBool( const std::string & name,
+                  const bool value );
+private:
+
+    ParamMap param_map_;
+};
+
 
 
 //! recorded value of rcg v4

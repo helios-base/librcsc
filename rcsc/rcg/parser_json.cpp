@@ -102,179 +102,6 @@ public:
 //
 //
 
-class StateVersion
-    : public State {
-public:
-    StateVersion( Context & context )
-        : State( context )
-      { }
-
-    bool onString( const std::string & val ) override
-      {
-          std::cerr << "(StateVersion::onString) " << val << std::endl;
-          return true;
-      }
-
-    bool onEndObject() override
-      {
-          M_finished = true;
-          return true;
-      }
-
-};
-
-//
-//
-//
-
-class StateTimeStamp
-    : public State {
-public:
-    StateTimeStamp( Context & context )
-        : State( context )
-      { }
-
-    bool onString( const std::string & val ) override
-      {
-          std::cerr << "(StateVersion::onString) " << val << std::endl;
-          return true;
-      }
-
-    bool onEndObject() override
-      {
-          M_finished = true;
-          return true;
-      }
-
-};
-
-
-//
-//
-//
-
-class StateServerParam
-    : public State {
-private:
-    int M_depth;
-    std::string M_name;
-
-    ServerParamT M_param;
-
-public:
-
-    StateServerParam( Context & context )
-        : State( context ),
-          M_depth( 0 )
-      { }
-
-    bool onStartObject( const size_t ) override
-      {
-          ++M_depth;
-          return true;
-      }
-
-    bool onEndObject() override
-      {
-          if ( M_depth > 0 )
-          {
-              --M_depth;
-          }
-
-          if ( M_depth == 0 )
-          {
-              M_finished = true;
-              // M_context.handleServerParam( M_param );
-              // M_param.toSExp( std::cout );
-              // std::cout << std::endl;
-          }
-
-          return true;
-      }
-
-    bool onKey( const std::string & val ) override
-      {
-          if ( M_depth != 1 )
-          {
-              std::cerr << "(StateServerParam::onKey) ERROR depth " << M_depth
-                        << " val=" << val << std::endl;
-              return false;
-          }
-          M_name = val;
-          //std::cerr << "(StateServerParam::onKey) " << val << std::endl;
-          return true;
-      }
-
-    bool onBoolean( const bool val ) override
-      {
-          if ( M_name.empty() )
-          {
-              std::cerr << "(StateServerParam::onBoolean) ERROR no name. val=" << val << std::endl;
-              return false;
-          }
-
-          M_param.setBool( M_name, val );
-          M_name.clear();
-          return true;
-      }
-
-    bool onInteger( const int val ) override
-      {
-          if ( M_name.empty() )
-          {
-              std::cerr << "(StateServerParam::onInteger) ERROR no name. val=" << val << std::endl;
-              return false;
-          }
-
-          M_param.setInt( M_name, val );
-          M_name.clear();
-          return true;
-      }
-
-    bool onUnsigned( const unsigned int val ) override
-      {
-          if ( M_name.empty() )
-          {
-              std::cerr << "(StateServerParam::onUnsingned) ERROR no name. val=" << val << std::endl;
-              return false;
-          }
-
-          M_param.setInt( M_name, static_cast< int >( val ) );
-          M_name.clear();
-          return true;
-      }
-
-    bool onFloat( const double val ) override
-      {
-          if ( M_name.empty() )
-          {
-              std::cerr << "(StateServerParam::onFloat) ERROR no name. val=" << val << std::endl;
-              return false;
-          }
-
-          M_param.setDouble( M_name, val );
-          M_name.clear();
-          return true;
-      }
-
-    bool onString( const std::string & val ) override
-      {
-          if ( M_name.empty() )
-          {
-              std::cerr << "(StateServerParam::onString) ERROR no name. val=" << val << std::endl;
-              return false;
-          }
-
-          M_param.setString( M_name, val );
-          M_name.clear();
-          return true;
-      }
-
-};
-
-//
-//
-//
 
 class Context
     : public nlohmann::json::json_sax_t {
@@ -293,14 +120,8 @@ private:
     const Context & operator=( const Context & ) = delete;
 public:
 
-    Context( Handler & handler )
-        : M_handler( handler ),
-          M_depth( 0 )
-      {
-          M_state_map["version"] = State::Ptr( new StateVersion( *this ) );
-          M_state_map["timestamp"] = State::Ptr( new StateTimeStamp( *this ) );
-          M_state_map["server_param"] = State::Ptr( new StateServerParam( *this ) );
-      }
+    explicit
+    Context( Handler & handler );
 
     void clearState()
       {
@@ -440,7 +261,324 @@ public:
                     << std::endl;
           return false;
       }
+
+    //
+    //
+    //
+
+    void handleServerParam( const ServerParamT & param )
+      {
+          //M_handler.handleServerParam( param );
+          param.toSExp( std::cout );
+          std::cout << std::endl;
+      }
+
+    void handlePlayerParam( const PlayerParamT & param )
+      {
+          //M_handler.handlePlayerParam( param );
+          param.toSExp( std::cout );
+          std::cout << std::endl;
+      }
+
 };
+
+
+//
+//
+//
+
+class StateVersion
+    : public State {
+public:
+    StateVersion( Context & context )
+        : State( context )
+      { }
+
+    bool onString( const std::string & val ) override
+      {
+          std::cerr << "(StateVersion::onString) " << val << std::endl;
+          return true;
+      }
+
+    bool onEndObject() override
+      {
+          M_finished = true;
+          return true;
+      }
+
+};
+
+//
+//
+//
+
+class StateTimeStamp
+    : public State {
+public:
+    StateTimeStamp( Context & context )
+        : State( context )
+      { }
+
+    bool onString( const std::string & val ) override
+      {
+          std::cerr << "(StateVersion::onString) " << val << std::endl;
+          return true;
+      }
+
+    bool onEndObject() override
+      {
+          M_finished = true;
+          return true;
+      }
+
+};
+
+
+//
+//
+//
+
+class StateServerParam
+    : public State {
+private:
+    int M_depth;
+    std::string M_name;
+
+    ServerParamT M_param;
+
+public:
+
+    StateServerParam( Context & context )
+        : State( context ),
+          M_depth( 0 )
+      { }
+
+    bool onStartObject( const size_t ) override
+      {
+          ++M_depth;
+          return true;
+      }
+
+    bool onEndObject() override
+      {
+          if ( M_depth > 0 )
+          {
+              --M_depth;
+          }
+
+          if ( M_depth == 0 )
+          {
+              M_finished = true;
+              M_context.handleServerParam( M_param );
+          }
+
+          return true;
+      }
+
+    bool onKey( const std::string & val ) override
+      {
+          if ( M_depth != 1 )
+          {
+              std::cerr << "(StateServerParam::onKey) ERROR depth " << M_depth
+                        << " val=" << val << std::endl;
+              return false;
+          }
+          M_name = val;
+          return true;
+      }
+
+    bool onBoolean( const bool val ) override
+      {
+          if ( M_name.empty() )
+          {
+              std::cerr << "(StateServerParam::onBoolean) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param.setBool( M_name, val );
+          M_name.clear();
+          return true;
+      }
+
+    bool onInteger( const int val ) override
+      {
+          if ( M_name.empty() )
+          {
+              std::cerr << "(StateServerParam::onInteger) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param.setInt( M_name, val );
+          M_name.clear();
+          return true;
+      }
+
+    bool onUnsigned( const unsigned int val ) override
+      {
+          if ( M_name.empty() )
+          {
+              std::cerr << "(StateServerParam::onUnsingned) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param.setInt( M_name, static_cast< int >( val ) );
+          M_name.clear();
+          return true;
+      }
+
+    bool onFloat( const double val ) override
+      {
+          if ( M_name.empty() )
+          {
+              std::cerr << "(StateServerParam::onFloat) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param.setDouble( M_name, val );
+          M_name.clear();
+          return true;
+      }
+
+    bool onString( const std::string & val ) override
+      {
+          if ( M_name.empty() )
+          {
+              std::cerr << "(StateServerParam::onString) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param.setString( M_name, val );
+          M_name.clear();
+          return true;
+      }
+};
+
+
+//
+//
+//
+
+class StatePlayerParam
+    : public State {
+private:
+    int M_depth;
+    std::string M_name;
+
+    PlayerParamT M_param;
+
+public:
+
+    StatePlayerParam( Context & context )
+        : State( context ),
+          M_depth( 0 )
+      { }
+
+    bool onStartObject( const size_t ) override
+      {
+          ++M_depth;
+          return true;
+      }
+
+    bool onEndObject() override
+      {
+          if ( M_depth > 0 )
+          {
+              --M_depth;
+          }
+
+          if ( M_depth == 0 )
+          {
+              M_finished = true;
+              M_context.handlePlayerParam( M_param );
+          }
+
+          return true;
+      }
+
+    bool onKey( const std::string & val ) override
+      {
+          if ( M_depth != 1 )
+          {
+              std::cerr << "(StatePlayerParam::onKey) ERROR depth " << M_depth
+                        << " val=" << val << std::endl;
+              return false;
+          }
+          M_name = val;
+          //std::cerr << "(StateServerParam::onKey) " << val << std::endl;
+          return true;
+      }
+
+    bool onBoolean( const bool val ) override
+      {
+          if ( M_name.empty() )
+          {
+              std::cerr << "(StatePlayerParam::onBoolean) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param.setBool( M_name, val );
+          M_name.clear();
+          return true;
+      }
+
+    bool onInteger( const int val ) override
+      {
+          if ( M_name.empty() )
+          {
+              std::cerr << "(StatePlayerParam::onInteger) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param.setInt( M_name, val );
+          M_name.clear();
+          return true;
+      }
+
+    bool onUnsigned( const unsigned int val ) override
+      {
+          if ( M_name.empty() )
+          {
+              std::cerr << "(StatePlayerParam::onUnsingned) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param.setInt( M_name, static_cast< int >( val ) );
+          M_name.clear();
+          return true;
+      }
+
+    bool onFloat( const double val ) override
+      {
+          if ( M_name.empty() )
+          {
+              std::cerr << "(StatePlayerParam::onFloat) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param.setDouble( M_name, val );
+          M_name.clear();
+          return true;
+      }
+
+};
+
+//
+//
+//
+
+/*-------------------------------------------------------------------*/
+Context::Context( Handler & handler )
+    : M_handler( handler ),
+      M_depth( 0 )
+{
+    M_state_map["version"] = State::Ptr( new StateVersion( *this ) );
+    M_state_map["timestamp"] = State::Ptr( new StateTimeStamp( *this ) );
+    M_state_map["server_param"] = State::Ptr( new StateServerParam( *this ) );
+    M_state_map["player_param"] = State::Ptr( new StatePlayerParam( *this ) );
+}
+
+/*-------------------------------------------------------------------*/
+
 
 //
 // class ParserJSON

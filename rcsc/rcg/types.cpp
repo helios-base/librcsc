@@ -172,7 +172,7 @@ struct ValuePrinter {
       }
     std::ostream & operator()( const bool * v )
       {
-          return os_ << *v;
+          return os_ << std::boolalpha << *v;
       }
     std::ostream & operator()( const std::string * v )
       {
@@ -181,6 +181,10 @@ struct ValuePrinter {
 };
 
 }
+
+/*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 
 /*-------------------------------------------------------------------*/
 ServerParamT::ServerParamT()
@@ -666,6 +670,123 @@ ServerParamT::setString( const std::string & name,
                          const std::string & value )
 {
     return set_string( param_map_, name, value );
+}
+
+/*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
+
+/*-------------------------------------------------------------------*/
+PlayerParamT::PlayerParamT()
+    : player_types_( 18 ),
+      subs_max_( 3 ),
+      pt_max_( 1 ),
+      allow_mult_default_type_( false ),
+      player_speed_max_delta_min_( 0.0 ),
+      player_speed_max_delta_max_( 0.0 ),
+      stamina_inc_max_delta_factor_( 0.0 ),
+      player_decay_delta_min_( -0.05 ),
+      player_decay_delta_max_( 0.1 ),
+      inertia_moment_delta_factor_( 25.0 ),
+      dash_power_rate_delta_min_( 0.0 ),
+      dash_power_rate_delta_max_( 0.0 ),
+      player_size_delta_factor_( -100.0 ),
+      kickable_margin_delta_min_( -0.1 ),
+      kickable_margin_delta_max_( 0.1 ),
+      kick_rand_delta_factor_( 1.0 ),
+      extra_stamina_delta_min_( 0.0 ),
+      extra_stamina_delta_max_( 100.0 ),
+      effort_max_delta_factor_( -0.002 ),
+      effort_min_delta_factor_( -0.002 ),
+      new_dash_power_rate_delta_min_( -0.0005 ),
+      new_dash_power_rate_delta_max_( 0.0015 ),
+      new_stamina_inc_max_delta_factor_( -6000.0 ),
+      random_seed_( -1 ),
+      kick_power_rate_delta_min_( 0.0 ),
+      kick_power_rate_delta_max_( 0.0 ),
+      foul_detect_probability_delta_factor_( 0.0 ),
+      catchable_area_l_stretch_min_( 0.0 ),
+      catchable_area_l_stretch_max_( 0.0 )
+{
+    param_map_.insert( ParamMap::value_type( "player_types", &player_types_ ) );
+    param_map_.insert( ParamMap::value_type( "subs_max", &subs_max_ ) );
+    param_map_.insert( ParamMap::value_type( "pt_max", &pt_max_ ) );
+    param_map_.insert( ParamMap::value_type( "allow_mult_default_type", &allow_mult_default_type_ ) );
+    param_map_.insert( ParamMap::value_type( "player_speed_max_delta_min", &player_speed_max_delta_min_ ) );
+    param_map_.insert( ParamMap::value_type( "player_speed_max_delta_max", &player_speed_max_delta_max_ ) );
+    param_map_.insert( ParamMap::value_type( "stamina_inc_max_delta_factor", &stamina_inc_max_delta_factor_ ) );
+    param_map_.insert( ParamMap::value_type( "player_decay_delta_min", &player_decay_delta_min_ ) );
+    param_map_.insert( ParamMap::value_type( "player_decay_delta_max", &player_decay_delta_max_ ) );
+    param_map_.insert( ParamMap::value_type( "inertia_moment_delta_factor", &inertia_moment_delta_factor_ ) );
+    param_map_.insert( ParamMap::value_type( "dash_power_rate_delta_min", &dash_power_rate_delta_min_ ) );
+    param_map_.insert( ParamMap::value_type( "dash_power_rate_delta_max", &dash_power_rate_delta_max_ ) );
+    param_map_.insert( ParamMap::value_type( "player_size_delta_factor", &player_size_delta_factor_ ) );
+    param_map_.insert( ParamMap::value_type( "kickable_margin_delta_min", &kickable_margin_delta_min_ ) );
+    param_map_.insert( ParamMap::value_type( "kickable_margin_delta_max", &kickable_margin_delta_max_ ) );
+    param_map_.insert( ParamMap::value_type( "kick_rand_delta_factor", &kick_rand_delta_factor_ ) );
+    param_map_.insert( ParamMap::value_type( "extra_stamina_delta_min", &extra_stamina_delta_min_ ) );
+    param_map_.insert( ParamMap::value_type( "extra_stamina_delta_max", &extra_stamina_delta_max_ ) );
+    param_map_.insert( ParamMap::value_type( "effort_max_delta_factor", &effort_max_delta_factor_ ) );
+    param_map_.insert( ParamMap::value_type( "effort_min_delta_factor", &effort_min_delta_factor_ ) );
+    param_map_.insert( ParamMap::value_type( "random_seed", &random_seed_ ) );
+    param_map_.insert( ParamMap::value_type( "new_dash_power_rate_delta_min", &new_dash_power_rate_delta_min_ ) );
+    param_map_.insert( ParamMap::value_type( "new_dash_power_rate_delta_max", &new_dash_power_rate_delta_max_ ) );
+    param_map_.insert( ParamMap::value_type( "new_stamina_inc_max_delta_factor", &new_stamina_inc_max_delta_factor_ ) );
+    // 14.0.0
+    param_map_.insert( ParamMap::value_type( "kick_power_rate_delta_min", &kick_power_rate_delta_min_ ) );
+    param_map_.insert( ParamMap::value_type( "kick_power_rate_delta_max", &kick_power_rate_delta_max_ ) );
+    param_map_.insert( ParamMap::value_type( "foul_detect_probability_delta_factor", &foul_detect_probability_delta_factor_ ) );
+    param_map_.insert( ParamMap::value_type( "catchable_area_l_stretch_min", &catchable_area_l_stretch_min_ ) );
+    param_map_.insert( ParamMap::value_type( "catchable_area_l_stretch_max", &catchable_area_l_stretch_max_ ) );
+}
+
+/*-------------------------------------------------------------------*/
+std::ostream &
+PlayerParamT::toSExp( std::ostream & os ) const
+{
+    std::map< ParamMap::key_type, ParamMap::mapped_type > sorted_map;
+    for ( const ParamMap::value_type & v : param_map_ )
+    {
+        sorted_map.insert( v );
+    }
+
+    os << "(player_param ";
+
+    ValuePrinter printer( os );
+    for ( const decltype( sorted_map )::value_type & v : sorted_map )
+    {
+        os << '(' << v.first << ' ';
+        std::visit( printer, v.second );
+        os << ')';
+    }
+
+    os << ')';
+
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+PlayerParamT::setInt( const std::string & name,
+                      const int value )
+{
+    return set_integer( param_map_, name, value );
+}
+
+/*-------------------------------------------------------------------*/
+bool
+PlayerParamT::setDouble( const std::string & name,
+                         const double value )
+{
+    return set_double( param_map_, name, value );
+}
+
+/*-------------------------------------------------------------------*/
+bool
+PlayerParamT::setBool( const std::string & name,
+                       const bool value )
+{
+    return set_boolean( param_map_, name, value );
 }
 
 }
