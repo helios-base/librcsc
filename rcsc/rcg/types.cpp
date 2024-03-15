@@ -39,6 +39,9 @@
 #include <iostream>
 #include <iomanip>
 
+namespace rcsc {
+namespace rcg {
+
 namespace {
 
 /*-------------------------------------------------------------------*/
@@ -71,10 +74,135 @@ to_sexp< std::string >( std::ostream & os,
     os << '(' << name << ' ' << std::quoted( value ) << ')';
 }
 #endif
+
+/*-------------------------------------------------------------------*/
+bool
+set_integer( ParamMap & param_map,
+             const std::string & name,
+             const int value )
+{
+    ParamMap::iterator it = param_map.find( name );
+    if ( it != param_map.end() )
+    {
+        int ** int_ptr = std::get_if< int * >( &it->second );
+        if ( int_ptr )
+        {
+            **int_ptr = value;
+            return true;
+        }
+
+        double ** double_ptr = std::get_if< double * >( &it->second );
+        if ( double_ptr )
+        {
+            **double_ptr = static_cast< double >( value );
+            return true;
+        }
+
+        bool ** bool_ptr = std::get_if< bool * >( &it->second );
+        if ( bool_ptr )
+        {
+            **bool_ptr = ( value == 0 ? false : true );
+            return true;
+        }
+    }
+
+    std::cerr << "Unsupported parameter. name=" << name << " value=" << value << std::endl;
+    return false;
 }
 
-namespace rcsc {
-namespace rcg {
+/*-------------------------------------------------------------------*/
+bool
+set_double( ParamMap & param_map,
+            const std::string & name,
+            const double value )
+{
+    ParamMap::iterator it = param_map.find( name );
+    if ( it != param_map.end() )
+    {
+        double ** double_ptr = std::get_if< double * >( &it->second );
+        if ( double_ptr )
+        {
+            **double_ptr = value;
+            return true;
+        }
+    }
+
+    std::cerr << "Unsupported parameter. name=" << name << " value=" << value << std::endl;
+    return false;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+set_boolean( ParamMap & param_map,
+             const std::string & name,
+             const bool value )
+{
+    ParamMap::iterator it = param_map.find( name );
+    if ( it != param_map.end() )
+    {
+        bool ** bool_ptr = std::get_if< bool * >( &it->second );
+        if ( bool_ptr )
+        {
+            **bool_ptr = value;
+            return true;
+        }
+    }
+
+    std::cerr << "Unsupported bool parameter. name=" << name << " value=" << value << std::endl;
+    return false;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+set_string( ParamMap & param_map,
+            const std::string & name,
+            const std::string & value )
+{
+    ParamMap::iterator it = param_map.find( name );
+    if ( it != param_map.end() )
+    {
+        std::string ** string_ptr = std::get_if< std::string * >( &it->second );
+        if ( string_ptr )
+        {
+            **string_ptr = value;
+            return true;
+        }
+    }
+
+    std::cerr << "Unsupported string parameter. name=" << name << " value=" << value << std::endl;
+    return false;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief visitor function to print the parameter variables stored as std::variant
+ */
+struct ValuePrinter {
+    std::ostream & os_;
+
+    ValuePrinter( std::ostream & os )
+        : os_( os )
+      { }
+
+    std::ostream & operator()( const int * v )
+      {
+          return os_ << *v;
+      }
+    std::ostream & operator()( const double * v )
+      {
+          return os_ << *v;
+      }
+    std::ostream & operator()( const bool * v )
+      {
+          return os_ << *v;
+      }
+    std::ostream & operator()( const std::string * v )
+      {
+          return os_ << std::quoted( *v );
+      }
+};
+
+}
 
 /*-------------------------------------------------------------------*/
 ServerParamT::ServerParamT()
@@ -505,34 +633,7 @@ ServerParamT::ServerParamT()
     param_map_.insert( ParamMap::value_type( "land_focus_dist_noise_rate", &land_focus_dist_noise_rate_ ) );
 }
 
-namespace {
-struct ValuePrinter {
-
-    std::ostream & os_;
-
-    ValuePrinter( std::ostream & os )
-        : os_( os )
-      { }
-
-    std::ostream & operator()( const int * v )
-      {
-          return os_ << *v;
-      }
-    std::ostream & operator()( const double * v )
-      {
-          return os_ << *v;
-      }
-    std::ostream & operator()( const bool * v )
-      {
-          return os_ << *v;
-      }
-    std::ostream & operator()( const std::string * v )
-      {
-          return os_ << std::quoted( *v );
-      }
-};
-}
-
+/*-------------------------------------------------------------------*/
 std::ostream &
 ServerParamT::toSExp( std::ostream & os ) const
 {
@@ -544,10 +645,11 @@ ServerParamT::toSExp( std::ostream & os ) const
 
     os << "(server_param ";
 
+    ValuePrinter printer( os );
     for ( const decltype( sorted_map )::value_type & v : sorted_map )
     {
         os << '(' << v.first << ' ';
-        std::visit( ValuePrinter( os ), v.second );
+        std::visit( printer, v.second );
         os << ')';
     }
 
@@ -561,33 +663,7 @@ bool
 ServerParamT::setInt( const std::string & name,
                       const int value )
 {
-    ParamMap::iterator it = param_map_.find( name );
-    if ( it != param_map_.end() )
-    {
-        int ** int_ptr = std::get_if< int * >( &it->second );
-        if ( int_ptr )
-        {
-            **int_ptr = value;
-            return true;
-        }
-
-        double ** double_ptr = std::get_if< double * >( &it->second );
-        if ( double_ptr )
-        {
-            **double_ptr = static_cast< double >( value );
-            return true;
-        }
-
-        bool ** bool_ptr = std::get_if< bool * >( &it->second );
-        if ( bool_ptr )
-        {
-            **bool_ptr = ( value == 0 ? false : true );
-            return true;
-        }
-    }
-
-    std::cerr << "Unsupported parameter. name=" << name << " value=" << value << std::endl;
-    return false;
+    return set_integer( param_map_, name, value );
 }
 
 /*-------------------------------------------------------------------*/
@@ -595,19 +671,7 @@ bool
 ServerParamT::setDouble( const std::string & name,
                          const double value )
 {
-    ParamMap::iterator it = param_map_.find( name );
-    if ( it != param_map_.end() )
-    {
-        double ** double_ptr = std::get_if< double * >( &it->second );
-        if ( double_ptr )
-        {
-            **double_ptr = value;
-            return true;
-        }
-    }
-    std::cerr << "Unsupported parameter. name=" << name << " value=" << value << std::endl;
-    return false;
-
+    return set_double( param_map_, name, value );
 }
 
 /*-------------------------------------------------------------------*/
@@ -615,19 +679,7 @@ bool
 ServerParamT::setBool( const std::string & name,
                        const bool value )
 {
-    ParamMap::iterator it = param_map_.find( name );
-    if ( it != param_map_.end() )
-    {
-        bool ** bool_ptr = std::get_if< bool * >( &it->second );
-        if ( bool_ptr )
-        {
-            **bool_ptr = value;
-            return true;
-        }
-    }
-
-    std::cerr << "Unsupported bool parameter. name=" << name << " value=" << value << std::endl;
-    return false;
+    return set_boolean( param_map_, name, value );
 }
 
 /*-------------------------------------------------------------------*/
@@ -635,19 +687,7 @@ bool
 ServerParamT::setString( const std::string & name,
                          const std::string & value )
 {
-    ParamMap::iterator it = param_map_.find( name );
-    if ( it != param_map_.end() )
-    {
-        std::string ** string_ptr = std::get_if< std::string * >( &it->second );
-        if ( string_ptr )
-        {
-            **string_ptr = value;
-            return true;
-        }
-    }
-
-    std::cerr << "Unsupported string parameter. name=" << name << " value=" << value << std::endl;
-    return false;
+    return set_string( param_map_, name, value );
 }
 
 }
