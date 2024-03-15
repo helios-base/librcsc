@@ -35,6 +35,7 @@
 
 #include "types.h"
 
+#include <map>
 #include <iostream>
 #include <iomanip>
 
@@ -49,6 +50,7 @@ quantize( const double val,
     return rint( val / prec ) * prec;
 }
 
+#if 0
 /*-------------------------------------------------------------------*/
 template < typename T >
 void
@@ -68,7 +70,7 @@ to_sexp< std::string >( std::ostream & os,
 {
     os << '(' << name << ' ' << std::quoted( value ) << ')';
 }
-
+#endif
 }
 
 namespace rcsc {
@@ -534,9 +536,15 @@ struct ValuePrinter {
 std::ostream &
 ServerParamT::toSExp( std::ostream & os ) const
 {
+    std::map< ParamMap::key_type, ParamMap::mapped_type > sorted_map;
+    for ( const ParamMap::value_type & v : param_map_ )
+    {
+        sorted_map.insert( v );
+    }
+
     os << "(server_param ";
 
-    for ( const ParamMap::value_type & v : param_map_ )
+    for ( const decltype( sorted_map )::value_type & v : sorted_map )
     {
         os << '(' << v.first << ' ';
         std::visit( ValuePrinter( os ), v.second );
