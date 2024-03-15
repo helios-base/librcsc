@@ -42,6 +42,7 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <variant>
 #include <memory>
 #include <string>
 
@@ -49,6 +50,8 @@ namespace rcsc {
 namespace rcg {
 
 class Context;
+using ParamValue = std::variant< int, double, bool, std::string >;
+
 
 //
 //
@@ -76,10 +79,10 @@ public:
 
     virtual bool onKey( const std::string & ) { return false; }
     virtual bool onNull() { return false; }
-    virtual bool onBoolean( bool ) { return false; }
-    virtual bool onInteger( int ) { return false; }
-    virtual bool onUnsigned( unsigned int ) { return false; }
-    virtual bool onFloat( unsigned int ) { return false; }
+    virtual bool onBoolean( const bool ) { return false; }
+    virtual bool onInteger( const int ) { return false; }
+    virtual bool onUnsigned( const unsigned int ) { return false; }
+    virtual bool onFloat( const double ) { return false; }
     virtual bool onString( const std::string & ) { return false; }
     virtual bool onStartObject( const size_t ) { return false; }
     virtual bool onEndObject() { return false; }
@@ -88,7 +91,11 @@ public:
 
     virtual bool handle( Handler & ) { return false; }
 
-    virtual bool isFinished() = 0;
+
+    bool isFinished() const
+      {
+          return M_finished;
+      }
 };
 
 //
@@ -114,10 +121,6 @@ public:
           return true;
       }
 
-    bool isFinished() override
-      {
-          return M_finished;
-      }
 };
 
 //
@@ -131,12 +134,11 @@ public:
         : State( context )
       { }
 
-    virtual bool onString( const std::string & val )
+    bool onString( const std::string & val ) override
       {
           std::cerr << "(StateVersion::onString) " << val << std::endl;
           return true;
       }
-
 
     bool onEndObject() override
       {
@@ -144,10 +146,133 @@ public:
           return true;
       }
 
-    bool isFinished() override
+};
+
+
+//
+//
+//
+
+class StateServerParam
+    : public State {
+private:
+    int M_depth;
+    std::string M_param_name;
+    std::unordered_map< std::string, ParamValue > M_param_map;
+public:
+
+    StateServerParam( Context & context )
+        : State( context ),
+          M_depth( 0 )
+      { }
+
+    bool onStartObject( const size_t ) override
       {
-          return M_finished;
+          ++M_depth;
+          return true;
       }
+
+    bool onEndObject() override
+      {
+          if ( M_depth > 0 )
+          {
+              --M_depth;
+          }
+
+          if ( M_depth == 0 )
+          {
+              M_finished = true;
+              // for ( const decltype( M_param_map )::value_type & v : M_param_map )
+              // {
+              //     std::cerr << "(" << v.first << ' ';
+              //     std::visit( []( const auto & x ) { std::cerr << x; }, v.second );
+              //     std::cerr << ")\n";
+              // }
+              //std::cerr << "param size = " << M_param_map.size() << std::endl;
+              //M_context.handleServerParam( M_param_map );
+          }
+
+          return true;
+      }
+
+    bool onKey( const std::string & val ) override
+      {
+          if ( M_depth != 1 )
+          {
+              std::cerr << "(StateServerParam::onKey) ERROR depth " << M_depth
+                        << " val=" << val << std::endl;
+              return false;
+          }
+          M_param_name = val;
+          //std::cerr << "(StateServerParam::onKey) " << val << std::endl;
+          return true;
+      }
+
+    bool onBoolean( const bool val ) override
+      {
+          if ( M_param_name.empty() )
+          {
+              std::cerr << "(StateServerParam::onBoolean) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param_map[M_param_name] = val;
+          M_param_name.clear();
+          return true;
+      }
+
+    bool onInteger( const int val ) override
+      {
+          if ( M_param_name.empty() )
+          {
+              std::cerr << "(StateServerParam::onInteger) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param_map[M_param_name] = val;
+          M_param_name.clear();
+          return true;
+      }
+
+    bool onUnsigned( const unsigned int val ) override
+      {
+          if ( M_param_name.empty() )
+          {
+              std::cerr << "(StateServerParam::onUnsingned) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param_map[M_param_name] = static_cast< int >( val );
+          M_param_name.clear();
+          return true;
+      }
+
+    bool onFloat( const double val ) override
+      {
+          if ( M_param_name.empty() )
+          {
+              std::cerr << "(StateServerParam::onFloat) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param_map[M_param_name] = val;
+          M_param_name.clear();
+          return true;
+      }
+
+    bool onString( const std::string & val ) override
+      {
+          if ( M_param_name.empty() )
+          {
+              std::cerr << "(StateServerParam::onString) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param_map[M_param_name] = val;
+          M_param_name.clear();
+          return true;
+      }
+
 };
 
 //
@@ -177,7 +302,7 @@ public:
       {
           M_state_map["version"] = State::Ptr( new StateVersion( *this ) );
           M_state_map["timestamp"] = State::Ptr( new StateTimeStamp( *this ) );
-
+          M_state_map["server_param"] = State::Ptr( new StateServerParam( *this ) );
       }
 
     void clearState()
