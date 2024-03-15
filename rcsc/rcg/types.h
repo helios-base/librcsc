@@ -34,6 +34,8 @@
 
 #include <rcsc/types.h>
 
+#include <variant>
+#include <unordered_map>
 #include <string>
 #include <cmath>
 #include <cstdint>
@@ -1132,6 +1134,258 @@ struct DispInfoT {
     PlayMode pmode_; //!< playmode id
     TeamT team_[2]; //!< team data
     ShowInfoT show_; //!< positional data
+};
+
+using IntMap =  std::unordered_map< std::string, int * >;
+using DoubleMap = std::unordered_map< std::string, double * >;
+using BoolMap = std::unordered_map< std::string, bool * >;
+using StringMap = std::unordered_map< std::string, std::string * >;
+
+//using ParamPtr = std::variant< int*, double*, bool*, std::string* >;
+//using ParamMap = std::unordered_map< std::string, ParamPtr >;
+using ParamMap = std::unordered_map< std::string, std::variant< int*, double*, bool*, std::string* > >;
+
+/*!
+  \struct ServerParamT
+  \brief server parameters
+ */
+struct ServerParamT {
+    double goal_width_;
+    double inertia_moment_;
+    double player_size_;
+    double player_decay_;
+    double player_rand_;
+    double player_weight_;
+    double player_speed_max_;
+    double player_accel_max_;
+    double stamina_max_;
+    double stamina_inc_max_;
+    double recover_init_;
+    double recover_dec_thr_;
+    double recover_min_;
+    double recover_dec_;
+    double effort_init_;
+    double effort_dec_thr_;
+    double effort_min_;
+    double effort_dec_;
+    double effort_inc_thr_;
+    double effort_inc_;
+    double kick_rand_;
+    bool team_actuator_noise_;
+    double player_rand_factor_l_;
+    double player_rand_factor_r_;
+    double kick_rand_factor_l_;
+    double kick_rand_factor_r_;
+    double ball_size_;
+    double ball_decay_;
+    double ball_rand_;
+    double ball_weight_;
+    double ball_speed_max_;
+    double ball_accel_max_;
+    double dash_power_rate_;
+    double kick_power_rate_;
+    double kickable_margin_;
+    double control_radius_;
+    double catch_probability_;
+    double catchable_area_l_;
+    double catchable_area_w_;
+    int goalie_max_moves_;
+    double max_power_;
+    double min_power_;
+    double max_moment_;
+    double min_moment_;
+    double max_neck_moment_;
+    double min_neck_moment_;
+    double max_neck_angle_;
+    double min_neck_angle_;
+    double visible_angle_;
+    double visible_distance_;
+    double audio_cut_dist_;
+    double dist_quantize_step_;
+    double landmark_dist_quantize_step_;
+    double corner_kick_margin_;
+    double wind_dir_;
+    double wind_force_;
+    double wind_angle_;
+    double wind_rand_;
+    bool wind_none_;
+    bool use_wind_random_;
+    int half_time_;
+    int drop_ball_time_;
+    int port_;
+    int coach_port_;
+    int online_coach_port_;
+    int say_coach_count_max_;
+    int say_coach_msg_size_;
+    int simulator_step_;
+    int send_step_; // player's see message interval for (normal,high) mode
+    int recv_step_;
+    int sense_body_step_;
+    int say_msg_size_;
+    int clang_win_size_;
+    int clang_define_win_;
+    int clang_meta_win_;
+    int clang_advice_win_;
+    int clang_info_win_;
+    int clang_del_win_;
+    int clang_rule_win_;
+    int clang_mess_delay_;
+    int clang_mess_per_cycle_;
+    int hear_max_;
+    int hear_inc_;
+    int hear_decay_;
+    int catch_ban_cycle_;
+    bool coach_mode_;
+    bool coach_with_referee_mode_;
+    bool use_old_coach_hear_; // old_coach_hear
+    int online_coach_look_step_; // send_vi_step: online coach's see_global interval
+    bool use_offside_;
+    double offside_active_area_size_;
+    bool kick_off_offside_; // forbid_kick_off_offside
+    bool verbose_;
+    double offside_kick_margin_;
+    int slow_down_factor_;
+    bool synch_mode_;
+    int synch_offset_;
+    int synch_micro_sleep_;
+    int start_goal_l_;
+    int start_goal_r_;
+    bool fullstate_l_;
+    bool fullstate_r_;
+    double slowness_on_top_for_left_team_;
+    double slowness_on_top_for_right_team_;
+    std::string landmark_file_;
+    bool send_comms_;
+    bool text_logging_;
+    bool game_logging_;
+    int game_log_version_;
+    std::string text_log_dir_;
+    std::string game_log_dir_;
+    std::string text_log_fixed_name_;
+    std::string game_log_fixed_name_;
+    bool text_log_fixed_;
+    bool game_log_fixed_;
+    bool text_log_dated_;
+    bool game_log_dated_;
+    std::string log_date_format_;
+    bool log_times_;
+    bool record_messages_;
+    int text_log_compression_;
+    int game_log_compression_;
+    bool profile_;
+    int point_to_ban_;
+    int point_to_duration_;
+    double tackle_dist_;
+    double tackle_back_dist_;
+    double tackle_width_;
+    double tackle_exponent_;
+    int tackle_cycles_;
+    double tackle_power_rate_;
+    int freeform_wait_period_;
+    int freeform_send_period_;
+    bool free_kick_faults_;
+    bool back_passes_;
+    bool proper_goal_kicks_;
+    double stopped_ball_vel_;
+    int max_goal_kicks_;
+    bool auto_mode_;
+    int kick_off_wait_;
+    int connect_wait_;
+    int game_over_wait_;
+    std::string team_l_start_;
+    std::string team_r_start_;
+    bool keepaway_mode_;
+    double keepaway_length_;
+    double keepaway_width_;
+    bool keepaway_logging_;
+    std::string keepaway_log_dir_;
+    std::string keepaway_log_fixed_name_;
+    bool keepaway_log_fixed_;
+    bool keepaway_log_dated_;
+    int keepaway_start_;
+    int nr_normal_halfs_;
+    int nr_extra_halfs_;
+    bool penalty_shoot_outs_;
+    int pen_before_setup_wait_;
+    int pen_setup_wait_;
+    int pen_ready_wait_;
+    int pen_taken_wait_;
+    int pen_nr_kicks_;
+    int pen_max_extra_kicks_;
+    double pen_dist_x_;
+    bool pen_random_winner_;
+    double pen_max_goalie_dist_x_;
+    bool pen_allow_mult_kicks_;
+    bool pen_coach_moves_players_;
+    // v11
+    double ball_stuck_area_;
+    std::string coach_msg_file_;
+    // v12
+    double max_tackle_power_;
+    double max_back_tackle_power_;
+    double player_speed_max_min_;
+    double extra_stamina_;
+    int synch_see_offset_;
+    int max_monitors_;
+    // v12.1.3
+    int extra_half_time_;
+    // v13
+    double stamina_capacity_;
+    double max_dash_angle_;
+    double min_dash_angle_;
+    double dash_angle_step_;
+    double side_dash_rate_;
+    double back_dash_rate_;
+    double max_dash_power_;
+    double min_dash_power_;
+    // 14.0
+    double tackle_rand_factor_;
+    double foul_detect_probability_;
+    double foul_exponent_;
+    int foul_cycles_;
+    bool golden_goal_;
+    // v15
+    double red_card_probability_;
+    // v16.0
+    int illegal_defense_duration_;
+    int illegal_defense_number_;
+    double illegal_defense_dist_x_;
+    double illegal_defense_width_;
+    std::string fixed_teamname_l_;
+    std::string fixed_teamname_r_;
+    // v17
+    double max_catch_angle_;
+    double min_catch_angle_;
+    // v19
+    double dist_noise_rate_;
+    double focus_dist_noise_rate_;
+    double land_dist_noise_rate_;
+    double land_focus_dist_noise_rate_;
+
+    ServerParamT();
+
+    /*!
+      \brief print s-expression message
+     */
+    std::ostream & toSExp( std::ostream & os ) const;
+
+    // bool fromSExp( const std::string & msg );
+
+    bool setInt( const std::string & name,
+                 const int value );
+    bool setDouble( const std::string & name,
+                    const double value );
+    bool setBool( const std::string & name,
+                  const bool value );
+    bool setString( const std::string & name,
+                    const std::string & value );
+private:
+    ParamMap param_map_;
+
+    // IntMap int_map_;
+    // DoubleMap double_map_;
+    // BoolMap bool_map_;
+    // StringMap string_map_;
 };
 
 

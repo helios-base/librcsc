@@ -18,7 +18,8 @@ librcsc_rcg_la_SOURCES = \
 	serializer_v4.cpp \
 	serializer_v5.cpp \
 	serializer_v6.cpp \
-	util.cpp
+	util.cpp \
+	types.cpp
 
 librcsc_rcgincludedir = $(includedir)/rcsc/rcg
 
