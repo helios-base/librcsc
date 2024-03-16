@@ -275,6 +275,81 @@ set_string( const std::string & name,
     return false;
 }
 
+/*-------------------------------------------------------------------*/
+bool
+parse_server_message( const std::string & msg,
+                      ParamMap & param_map )
+{
+    int n_read = 0;
+
+    //
+    // reach message type
+    //
+    char message_name[32];
+    if ( std::sscanf( msg.c_str(), " ( %31s %n ", message_name, &n_read ) != 1 )
+    {
+        std::cerr << "(parse_server_message) ERROR: failed to parse the message type [" << msg << "]" << std::endl;
+        return false;
+    }
+
+    for ( std::string::size_type pos = msg.find_first_of( '(', n_read );
+          pos != std::string::npos;
+          pos = msg.find_first_of( '(', pos ) )
+    {
+        std::string::size_type end_pos = msg.find_first_of( ' ', pos );
+        if ( end_pos == std::string::npos )
+        {
+            std::cerr << "(parse_server_message) ERROR: Could not find the seprator space. at " << pos
+                      << " [" << msg << "]" << std::endl;
+            return false;
+        }
+        pos += 1;
+
+        const std::string name_str( msg, pos, end_pos - pos );
+
+        pos = end_pos; // pos indcates the position of the white space after the param name
+
+        // search end paren or double quatation
+        end_pos = msg.find_first_of( ")\"", end_pos ); //"
+        if ( end_pos == std::string::npos )
+        {
+            std::cerr << "(parse_server_message) Could not find the parameter value for [" << name_str << ']'
+                      << std::endl;
+            return false;
+        }
+
+        // found quated value
+        if ( msg[end_pos] == '\"' )
+        {
+            pos = end_pos;
+            end_pos = msg.find_first_of( '\"', end_pos + 1 ); //"
+            if ( end_pos == std::string::npos )
+            {
+                std::cerr << "(parse_server_message) Could not parse the quated value for [" << name_str << ']'
+                          << std::endl;
+                return false;
+            }
+            end_pos += 1; // skip double quatation
+        }
+        else
+        {
+            pos += 1; // skip the white space after the param name
+        }
+
+        // pos indicates the first position of the value string
+        // end_pos indicates the position of the end of paren
+
+        std::string value_str( msg, pos, end_pos - pos );
+        pos = end_pos;
+
+        // pos indicates the position of the end of paren
+
+        // set the value to the parameter map
+        set_value( name_str, value_str, param_map );
+    }
+
+    return true;
+}
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -742,7 +817,7 @@ ServerParamT::ServerParamT()
 
 /*-------------------------------------------------------------------*/
 std::ostream &
-ServerParamT::toSExp( std::ostream & os ) const
+ServerParamT::toServerString( std::ostream & os ) const
 {
     std::map< ParamMap::key_type, ParamMap::mapped_type > sorted_map;
     for ( const ParamMap::value_type & v : param_map_ )
@@ -763,6 +838,13 @@ ServerParamT::toSExp( std::ostream & os ) const
     os << ')';
 
     return os;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+ServerParamT::fromServerString( const std::string & msg )
+{
+    return parse_server_message( msg, param_map_ );
 }
 
 /*-------------------------------------------------------------------*/
@@ -875,7 +957,7 @@ PlayerParamT::PlayerParamT()
 
 /*-------------------------------------------------------------------*/
 std::ostream &
-PlayerParamT::toSExp( std::ostream & os ) const
+PlayerParamT::toServerString( std::ostream & os ) const
 {
     std::map< ParamMap::key_type, ParamMap::mapped_type > sorted_map;
     for ( const ParamMap::value_type & v : param_map_ )
@@ -896,6 +978,13 @@ PlayerParamT::toSExp( std::ostream & os ) const
     os << ')';
 
     return os;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+PlayerParamT::fromServerString( const std::string & msg )
+{
+    return parse_server_message( msg, param_map_ );
 }
 
 /*-------------------------------------------------------------------*/

@@ -261,14 +261,14 @@ public:
     void handleServerParam( const ServerParamT & param )
       {
           //M_handler.handleServerParam( param );
-          param.toSExp( std::cout );
+          param.toServerString( std::cout );
           std::cout << std::endl;
       }
 
     void handlePlayerParam( const PlayerParamT & param )
       {
           //M_handler.handlePlayerParam( param );
-          param.toSExp( std::cout );
+          param.toServerString( std::cout );
           std::cout << std::endl;
       }
 

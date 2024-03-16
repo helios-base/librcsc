@@ -1362,9 +1362,9 @@ struct ServerParamT {
     /*!
       \brief print s-expression message
      */
-    std::ostream & toSExp( std::ostream & os ) const;
+    std::ostream & toServerString( std::ostream & os ) const;
 
-    //bool fromSExp( const std::string & msg );
+    bool fromServerString( const std::string & msg );
 
     bool setValue( const std::string & name,
                    const std::string & value );
@@ -1433,7 +1433,12 @@ struct PlayerParamT {
     /*!
       \brief print s-expression message
      */
-    std::ostream & toSExp( std::ostream & os ) const;
+    std::ostream & toServerString( std::ostream & os ) const;
+
+    /*!
+      \brief read parameters from the s-expression style message
+     */
+    bool fromServerString( const std::string & msg );
 
     bool setInt( const std::string & name,
                  const int value );
