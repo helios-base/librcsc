@@ -19,7 +19,8 @@ librcsc_rcg_la_SOURCES = \
 	serializer_v5.cpp \
 	serializer_v6.cpp \
 	util.cpp \
-	types.cpp
+	types.cpp \
+	xpm_tile.cpp
 
 librcsc_rcgincludedir = $(includedir)/rcsc/rcg
 
@@ -40,7 +41,8 @@ librcsc_rcginclude_HEADERS = \
 	serializer_v5.h \
 	serializer_v6.h \
 	types.h \
-	util.h
+	util.h \
+	xpm_tile.h
 
 librcsc_rcg_la_LDFLAGS = -version-info 6:0:0
 #libXXXX_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
