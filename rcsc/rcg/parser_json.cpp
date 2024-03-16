@@ -57,6 +57,9 @@ using ParamValue = std::variant< int, double, bool, std::string >;
 //
 //
 
+/*!
+  \brief abstract state class for handling RCG data types.
+*/
 class State {
 public:
     using Ptr = std::shared_ptr< State >;
@@ -67,12 +70,11 @@ private:
     const State & operator=( const State & ) = delete;
 protected:
     Context & M_context;
-    bool M_finished;
 
     State( Context & context )
-        : M_context( context ),
-          M_finished( false )
+        : M_context( context )
       { }
+
 public:
     virtual
     ~State() = default;
@@ -88,21 +90,15 @@ public:
     virtual bool onEndObject() { return false; }
     virtual bool onStartArray( const size_t ) { return false; }
     virtual bool onEndArray() { return false; }
-
-    virtual bool handle( Handler & ) { return false; }
-
-
-    bool isFinished() const
-      {
-          return M_finished;
-      }
 };
 
 //
 //
 //
 
+/*!
 
+*/
 class Context
     : public nlohmann::json::json_sax_t {
 private:
@@ -218,12 +214,8 @@ public:
               {
                   return false;
               }
-
-              if ( M_state->isFinished() )
-              {
-                  clearState();
-              }
           }
+
           return true;
       }
 
@@ -287,6 +279,9 @@ public:
 //
 //
 
+/*!
+
+*/
 class StateVersion
     : public State {
 public:
@@ -302,7 +297,7 @@ public:
 
     bool onEndObject() override
       {
-          M_finished = true;
+          M_context.clearState();
           return true;
       }
 
@@ -312,6 +307,9 @@ public:
 //
 //
 
+/*!
+
+*/
 class StateTimeStamp
     : public State {
 public:
@@ -327,7 +325,7 @@ public:
 
     bool onEndObject() override
       {
-          M_finished = true;
+          M_context.clearState();
           return true;
       }
 
@@ -368,8 +366,8 @@ public:
 
           if ( M_depth == 0 )
           {
-              M_finished = true;
               M_context.handleServerParam( M_param );
+              M_context.clearState();
           }
 
           return true;
@@ -488,8 +486,8 @@ public:
 
           if ( M_depth == 0 )
           {
-              M_finished = true;
               M_context.handlePlayerParam( M_param );
+              M_context.clearState();
           }
 
           return true;
