@@ -54,10 +54,134 @@ quantize( const double val,
 }
 
 /*-------------------------------------------------------------------*/
+std::string
+clean_string( std::string str )
+{
+    if( str.empty() )
+    {
+        return str;
+    }
+
+    if ( *str.begin() == '\'' )
+    {
+        if( *str.rbegin() == '\''  )
+        {
+            str = str.substr( 1, str.length() - 2 );
+        }
+        else
+        {
+            return str;
+        }
+
+        // replace escape character
+        for ( std::string::size_type escape_pos = str.find( "\\'" );
+              escape_pos != std::string::npos;
+              escape_pos = str.find( "\\'" ) )
+        {
+            // replace "\'" with "'"
+            str.replace( escape_pos, 2, "'" );
+        }
+    }
+    else if ( *str.begin() == '"' )
+    {
+        if ( *str.rbegin() == '"'  )
+        {
+            str = str.substr( 1, str.length() - 2 );
+        }
+        else
+        {
+            return str;
+        }
+
+        // replace escape character
+        for( std::string::size_type escape_pos = str.find( "\\\"" );
+             escape_pos != std::string::npos;
+             escape_pos = str.find( "\\\"" ) )
+        {
+            // replace "\"" with """
+            str.replace( escape_pos, 2, "\"" );
+        }
+    }
+
+    return str;
+}
+
+/*-------------------------------------------------------------------*/
 bool
-set_integer( ParamMap & param_map,
-             const std::string & name,
-             const int value )
+set_value( const std::string & name,
+           const std::string & value,
+           ParamMap & param_map )
+{
+    ParamMap::iterator it = param_map.find( name );
+    if ( it != param_map.end() )
+    {
+        int ** int_ptr = std::get_if< int * >( &it->second );
+        if ( int_ptr )
+        {
+            try
+            {
+                **int_ptr = std::stoi( value );
+                return true;
+            }
+            catch ( std::exception & e )
+            {
+                std::cerr << e.what()
+                          << " name=" << name << " value=" << value << std::endl;
+                return false;
+            }
+        }
+
+        double ** double_ptr = std::get_if< double * >( &it->second );
+        if ( double_ptr )
+        {
+            try
+            {
+                **double_ptr = std::stod( value );
+            }
+            catch ( std::exception & e )
+            {
+                std::cerr << e.what()
+                          << " name=" << name << " value=" << value << std::endl;
+                return false;
+            }
+            return true;
+        }
+
+        bool ** bool_ptr = std::get_if< bool * >( &it->second );
+        if ( bool_ptr )
+        {
+            if ( value == "0" || value == "false" || value == "off" )
+            {
+                **bool_ptr = false;
+            }
+            else if ( value == "1" || value == "true" || value == "on" )
+            {
+                **bool_ptr = true;
+            }
+            else
+            {
+                std::cerr << "Unknown bool value. name=" << name << " value=" << value << std::endl;
+            }
+            return true;
+        }
+
+        std::string ** string_ptr = std::get_if< std::string * >( &it->second );
+        if ( string_ptr )
+        {
+            **string_ptr = clean_string( value );
+            return true;
+        }
+    }
+
+    std::cerr << "Unsupported parameter. name=" << name << " value=" << value << std::endl;
+    return false;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+set_integer( const std::string & name,
+             const int value,
+             ParamMap & param_map )
 {
     ParamMap::iterator it = param_map.find( name );
     if ( it != param_map.end() )
@@ -90,9 +214,9 @@ set_integer( ParamMap & param_map,
 
 /*-------------------------------------------------------------------*/
 bool
-set_double( ParamMap & param_map,
-            const std::string & name,
-            const double value )
+set_double( const std::string & name,
+            const double value,
+            ParamMap & param_map )
 {
     ParamMap::iterator it = param_map.find( name );
     if ( it != param_map.end() )
@@ -111,9 +235,9 @@ set_double( ParamMap & param_map,
 
 /*-------------------------------------------------------------------*/
 bool
-set_boolean( ParamMap & param_map,
-             const std::string & name,
-             const bool value )
+set_boolean( const std::string & name,
+             const bool value,
+             ParamMap & param_map )
 {
     ParamMap::iterator it = param_map.find( name );
     if ( it != param_map.end() )
@@ -132,9 +256,9 @@ set_boolean( ParamMap & param_map,
 
 /*-------------------------------------------------------------------*/
 bool
-set_string( ParamMap & param_map,
-            const std::string & name,
-            const std::string & value )
+set_string( const std::string & name,
+            const std::string & value,
+            ParamMap & param_map )
 {
     ParamMap::iterator it = param_map.find( name );
     if ( it != param_map.end() )
@@ -150,6 +274,7 @@ set_string( ParamMap & param_map,
     std::cerr << "Unsupported string parameter. name=" << name << " value=" << value << std::endl;
     return false;
 }
+
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -642,10 +767,18 @@ ServerParamT::toSExp( std::ostream & os ) const
 
 /*-------------------------------------------------------------------*/
 bool
+ServerParamT::setValue( const std::string & name,
+                        const std::string & value )
+{
+    return set_value( name, value, param_map_ );
+}
+
+/*-------------------------------------------------------------------*/
+bool
 ServerParamT::setInt( const std::string & name,
                       const int value )
 {
-    return set_integer( param_map_, name, value );
+    return set_integer( name, value, param_map_ );
 }
 
 /*-------------------------------------------------------------------*/
@@ -653,7 +786,7 @@ bool
 ServerParamT::setDouble( const std::string & name,
                          const double value )
 {
-    return set_double( param_map_, name, value );
+    return set_double( name, value, param_map_ );
 }
 
 /*-------------------------------------------------------------------*/
@@ -661,7 +794,7 @@ bool
 ServerParamT::setBool( const std::string & name,
                        const bool value )
 {
-    return set_boolean( param_map_, name, value );
+    return set_boolean( name, value, param_map_ );
 }
 
 /*-------------------------------------------------------------------*/
@@ -669,7 +802,7 @@ bool
 ServerParamT::setString( const std::string & name,
                          const std::string & value )
 {
-    return set_string( param_map_, name, value );
+    return set_string( name, value, param_map_ );
 }
 
 /*-------------------------------------------------------------------*/
@@ -770,7 +903,7 @@ bool
 PlayerParamT::setInt( const std::string & name,
                       const int value )
 {
-    return set_integer( param_map_, name, value );
+    return set_integer( name, value, param_map_ );
 }
 
 /*-------------------------------------------------------------------*/
@@ -778,7 +911,7 @@ bool
 PlayerParamT::setDouble( const std::string & name,
                          const double value )
 {
-    return set_double( param_map_, name, value );
+    return set_double( name, value, param_map_ );
 }
 
 /*-------------------------------------------------------------------*/
@@ -786,7 +919,7 @@ bool
 PlayerParamT::setBool( const std::string & name,
                        const bool value )
 {
-    return set_boolean( param_map_, name, value );
+    return set_boolean( name, value, param_map_ );
 }
 
 }

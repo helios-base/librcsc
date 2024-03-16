@@ -1136,11 +1136,6 @@ struct DispInfoT {
     ShowInfoT show_; //!< positional data
 };
 
-using IntMap =  std::unordered_map< std::string, int * >;
-using DoubleMap = std::unordered_map< std::string, double * >;
-using BoolMap = std::unordered_map< std::string, bool * >;
-using StringMap = std::unordered_map< std::string, std::string * >;
-
 //using ParamPtr = std::variant< int*, double*, bool*, std::string* >;
 //using ParamMap = std::unordered_map< std::string, ParamPtr >;
 using ParamMap = std::unordered_map< std::string, std::variant< int*, double*, bool*, std::string* > >;
@@ -1369,7 +1364,10 @@ struct ServerParamT {
      */
     std::ostream & toSExp( std::ostream & os ) const;
 
-    // bool fromSExp( const std::string & msg );
+    //bool fromSExp( const std::string & msg );
+
+    bool setValue( const std::string & name,
+                   const std::string & value );
 
     bool setInt( const std::string & name,
                  const int value );
