@@ -54,6 +54,26 @@ quantize( const double val,
 }
 
 /*-------------------------------------------------------------------*/
+template < typename T >
+void
+to_sexp( std::ostream & os,
+         const char * name,
+         const T & value )
+{
+    os << '(' << name << ' ' << value << ')';
+}
+
+/*-------------------------------------------------------------------*/
+// template <>
+// void
+// to_sexp< std::string >( std::ostream & os,
+//                         const char * name,
+//                         const std::string & value )
+// {
+//     os << '(' << name << ' ' << std::quoted( value ) << ')';
+// }
+
+/*-------------------------------------------------------------------*/
 std::string
 clean_string( std::string str )
 {
@@ -379,6 +399,33 @@ struct ValuePrinter {
           return os_ << std::quoted( *v );
       }
 };
+
+/*-------------------------------------------------------------------*/
+std::ostream &
+print_server_message( std::ostream & os,
+                      const std::string & message_name,
+                      const ParamMap & param_map )
+{
+    std::map< ParamMap::key_type, ParamMap::mapped_type > sorted_map;
+    for ( const ParamMap::value_type & v : param_map )
+    {
+        sorted_map.insert( v );
+    }
+
+    os << '(' << message_name << ' ';
+
+    ValuePrinter printer( os );
+    for ( const decltype( sorted_map )::value_type & v : sorted_map )
+    {
+        os << '(' << v.first << ' ';
+        std::visit( printer, v.second );
+        os << ')';
+    }
+
+    os << ')';
+
+    return os;
+}
 
 }
 
@@ -819,25 +866,7 @@ ServerParamT::ServerParamT()
 std::ostream &
 ServerParamT::toServerString( std::ostream & os ) const
 {
-    std::map< ParamMap::key_type, ParamMap::mapped_type > sorted_map;
-    for ( const ParamMap::value_type & v : param_map_ )
-    {
-        sorted_map.insert( v );
-    }
-
-    os << "(server_param ";
-
-    ValuePrinter printer( os );
-    for ( const decltype( sorted_map )::value_type & v : sorted_map )
-    {
-        os << '(' << v.first << ' ';
-        std::visit( printer, v.second );
-        os << ')';
-    }
-
-    os << ')';
-
-    return os;
+    return print_server_message( os, "server_param", param_map_ );
 }
 
 /*-------------------------------------------------------------------*/
@@ -959,25 +988,7 @@ PlayerParamT::PlayerParamT()
 std::ostream &
 PlayerParamT::toServerString( std::ostream & os ) const
 {
-    std::map< ParamMap::key_type, ParamMap::mapped_type > sorted_map;
-    for ( const ParamMap::value_type & v : param_map_ )
-    {
-        sorted_map.insert( v );
-    }
-
-    os << "(player_param ";
-
-    ValuePrinter printer( os );
-    for ( const decltype( sorted_map )::value_type & v : sorted_map )
-    {
-        os << '(' << v.first << ' ';
-        std::visit( printer, v.second );
-        os << ')';
-    }
-
-    os << ')';
-
-    return os;
+    return print_server_message( os, "player_param", param_map_ );
 }
 
 /*-------------------------------------------------------------------*/
@@ -1009,6 +1020,142 @@ PlayerParamT::setBool( const std::string & name,
                        const bool value )
 {
     return set_boolean( name, value, param_map_ );
+}
+
+/*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
+
+/*-------------------------------------------------------------------*/
+PlayerTypeT::PlayerTypeT()
+    : id_( 0 ),
+      player_speed_max_( 1.2 ),
+      stamina_inc_max_( 45.0 ),
+      player_decay_( 0.4 ),
+      inertia_moment_( 5.0 ),
+      dash_power_rate_( 0.06 ),
+      player_size_( 0.3 ),
+      kickable_margin_( 0.7 ),
+      kick_rand_( 0.1 ),
+      extra_stamina_( 0.0 ),
+      effort_max_( 1.0 ),
+      effort_min_( 0.6 ),
+      kick_power_rate_( 0.027 ),
+      foul_detect_probability_( 0.5 ),
+      catchable_area_l_stretch_( 1.0 )
+{
+    param_map_.insert( ParamMap::value_type( "id", &id_ ) );
+
+    param_map_.insert( ParamMap::value_type( "player_speed_max", &player_speed_max_ ) );
+    param_map_.insert( ParamMap::value_type( "stamina_inc_max", &stamina_inc_max_ ) );
+    param_map_.insert( ParamMap::value_type( "player_decay", &player_decay_ ) );
+    param_map_.insert( ParamMap::value_type( "inertia_moment", &inertia_moment_ ) );
+    param_map_.insert( ParamMap::value_type( "dash_power_rate", &dash_power_rate_ ) );
+    param_map_.insert( ParamMap::value_type( "player_size", &player_size_ ) );
+    param_map_.insert( ParamMap::value_type( "kickable_margin", &kickable_margin_ ) );
+    param_map_.insert( ParamMap::value_type( "kick_rand", &kick_rand_ ) );
+    param_map_.insert( ParamMap::value_type( "extra_stamina", &extra_stamina_ ) );
+    param_map_.insert( ParamMap::value_type( "effort_max", &effort_max_ ) );
+    param_map_.insert( ParamMap::value_type( "effort_min", &effort_min_ ) );
+    // 14.0.0
+    param_map_.insert( ParamMap::value_type( "kick_power_rate", &kick_power_rate_ ) );
+    param_map_.insert( ParamMap::value_type( "foul_detect_probability", &foul_detect_probability_ ) );
+    param_map_.insert( ParamMap::value_type( "catchable_area_l_stretch", &catchable_area_l_stretch_ ) );
+    // 18.0
+    param_map_.insert( ParamMap::value_type( "unum_far_length", &unum_far_length_ ) );
+    param_map_.insert( ParamMap::value_type( "unum_too_far_length", &unum_too_far_length_ ) );
+    param_map_.insert( ParamMap::value_type( "team_far_length", &team_far_length_ ) );
+    param_map_.insert( ParamMap::value_type( "team_too_far_length", &team_too_far_length_ ) );
+    param_map_.insert( ParamMap::value_type( "player_max_observation_length", &player_max_observation_length_ ) );
+    param_map_.insert( ParamMap::value_type( "ball_vel_far_length", &ball_vel_far_length_ ) );
+    param_map_.insert( ParamMap::value_type( "ball_vel_too_far_length", &ball_vel_too_far_length_ ) );
+    param_map_.insert( ParamMap::value_type( "ball_max_observation_length", &ball_max_observation_length_ ) );
+    param_map_.insert( ParamMap::value_type( "flag_chg_far_length", &flag_chg_far_length_ ) );
+    param_map_.insert( ParamMap::value_type( "flag_chg_too_far_length", &flag_chg_too_far_length_ ) );
+    param_map_.insert( ParamMap::value_type( "flag_max_observation_length", &flag_max_observation_length_ ) );
+    // 19.0
+    param_map_.insert( ParamMap::value_type( "dist_noise_rate", &dist_noise_rate_ ) );
+    param_map_.insert( ParamMap::value_type( "focus_dist_noise_rate", &focus_dist_noise_rate_ ) );
+    param_map_.insert( ParamMap::value_type( "land_dist_noise_rate", &land_dist_noise_rate_ ) );
+    param_map_.insert( ParamMap::value_type( "land_focus_dist_noise_rate", &land_focus_dist_noise_rate_ ) );
+}
+
+/*-------------------------------------------------------------------*/
+std::ostream &
+PlayerTypeT::toServerString( std::ostream & os ) const
+{
+    //return print_server_message( os, "player_type", param_map_ );
+
+    os << "(player_type ";
+    to_sexp( os, "id", id_ );
+
+    to_sexp( os, "player_speed_max", quantize( player_speed_max_, 0.00001 ) );
+    to_sexp( os, "stamina_inc_max", quantize( stamina_inc_max_, 0.00001 ) );
+    to_sexp( os, "player_decay", quantize(player_decay_, 0.000001 ) );
+    to_sexp( os, "inertia_moment", quantize( inertia_moment_, 0.00001 ) );
+    to_sexp( os, "dash_power_rate", quantize( dash_power_rate_, 0.00000001 ) );
+    to_sexp( os, "player_size", quantize( player_size_, 0.00001 ) );
+    to_sexp( os, "kickable_margin", quantize( kickable_margin_, 0.000001 ) );
+    to_sexp( os, "kick_rand", quantize( kick_rand_, 0.000001 ) );
+    to_sexp( os, "extra_stamina", quantize( extra_stamina_, 0.00001 ) );
+    to_sexp( os, "effort_max", quantize( effort_max_, 0.000001 ) );
+    to_sexp( os, "effort_min", quantize( effort_min_, 0.000001 ) );
+    // 14.0
+    to_sexp( os, "kick_power_rate", quantize( kick_power_rate_, 0.000001 ) );
+    to_sexp( os, "foul_detect_probability", quantize( foul_detect_probability_, 0.000001 ) );
+    to_sexp( os, "catchable_area_l_stretch", quantize( catchable_area_l_stretch_, 0.000001 ) );
+    // 18.0
+    to_sexp( os, "unum_far_length", quantize( unum_far_length_, 0.000001 ) );
+    to_sexp( os, "unum_too_far_length", quantize( unum_too_far_length_, 0.000001 ) );
+    to_sexp( os, "team_far_length", quantize( team_far_length_, 0.000001 ) );
+    to_sexp( os, "team_too_far_length", quantize( team_too_far_length_, 0.000001 ) );
+    to_sexp( os, "player_max_observation_length", quantize( player_max_observation_length_, 0.000001 ) );
+    to_sexp( os, "ball_vel_far_length", quantize( ball_vel_far_length_, 0.000001 ) );
+    to_sexp( os, "ball_vel_too_far_length", quantize( ball_vel_too_far_length_, 0.000001 ) );
+    to_sexp( os, "ball_max_observation_length", quantize( ball_max_observation_length_, 0.000001 ) );
+    to_sexp( os, "flag_chg_far_length", quantize( flag_chg_far_length_, 0.000001 ) );
+    to_sexp( os, "flag_chg_too_far_length", quantize( flag_chg_too_far_length_, 0.000001 ) );
+    to_sexp( os, "flag_max_observation_length", quantize( flag_max_observation_length_, 0.000001 ) );
+    // 19.0
+    to_sexp( os, "dist_noise_rate", dist_noise_rate_ );
+    to_sexp( os, "focus_dist_noise_rate", dist_noise_rate_ );
+    to_sexp( os, "land_dist_noise_rate", dist_noise_rate_ );
+    to_sexp( os, "land_focus_dist_noise_rate", dist_noise_rate_ );
+
+    os << ')';
+
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+PlayerTypeT::fromServerString( const std::string & msg )
+{
+    return parse_server_message( msg, param_map_ );
+}
+
+/*-------------------------------------------------------------------*/
+bool
+PlayerTypeT::setValue( const std::string & name,
+                       const std::string & value )
+{
+    return set_value( name, value, param_map_ );
+}
+
+/*-------------------------------------------------------------------*/
+bool
+PlayerTypeT::setInt( const std::string & name,
+                     const int value )
+{
+    return set_integer( name, value, param_map_ );
+}
+
+/*-------------------------------------------------------------------*/
+bool
+PlayerTypeT::setDouble( const std::string & name,
+                        const double value )
+{
+    return set_double( name, value, param_map_ );
 }
 
 }

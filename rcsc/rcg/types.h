@@ -1452,6 +1452,67 @@ private:
 };
 
 
+/*!
+  \struct PlayerTypeT
+  \brief player type parameters
+ */
+struct PlayerTypeT {
+    int id_;
+    double player_speed_max_;
+    double stamina_inc_max_;
+    double player_decay_;
+    double inertia_moment_;
+    double dash_power_rate_;
+    double player_size_;
+    double kickable_margin_;
+    double kick_rand_;
+    double extra_stamina_;
+    double effort_max_;
+    double effort_min_;
+
+    double kick_power_rate_;
+    double foul_detect_probability_;
+    double catchable_area_l_stretch_;
+
+    // v18
+    double unum_far_length_;
+    double unum_too_far_length_;
+    double team_far_length_;
+    double team_too_far_length_;
+    double player_max_observation_length_;
+    double ball_vel_far_length_;
+    double ball_vel_too_far_length_;
+    double ball_max_observation_length_;
+    double flag_chg_far_length_;
+    double flag_chg_too_far_length_;
+    double flag_max_observation_length_;
+
+    // v19
+    double dist_noise_rate_;
+    double focus_dist_noise_rate_;
+    double land_dist_noise_rate_;
+    double land_focus_dist_noise_rate_;
+
+    PlayerTypeT();
+
+    /*!
+      \brief print s-expression message
+     */
+    std::ostream & toServerString( std::ostream & os ) const;
+
+    bool fromServerString( const std::string & msg );
+
+    bool setValue( const std::string & name,
+                   const std::string & value );
+    bool setInt( const std::string & name,
+                 const int value );
+    bool setDouble( const std::string & name,
+                    const double value );
+
+private:
+    ParamMap param_map_;
+
+};
 
 //! recorded value of rcg v4
 constexpr int REC_VERSION_4 = 4;

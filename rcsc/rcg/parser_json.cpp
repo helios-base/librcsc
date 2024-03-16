@@ -272,6 +272,13 @@ public:
           std::cout << std::endl;
       }
 
+    void handlePlayerType( const PlayerTypeT & param )
+      {
+          //M_handler.handlePlayerType( param );
+          param.toServerString( std::cout );
+          std::cout << std::endl;
+      }
+
 };
 
 
@@ -340,7 +347,7 @@ class StateServerParam
     : public State {
 private:
     int M_depth;
-    std::string M_name;
+    std::string M_param_name;
 
     ServerParamT M_param;
 
@@ -381,72 +388,72 @@ public:
                         << " val=" << val << std::endl;
               return false;
           }
-          M_name = val;
+          M_param_name = val;
           return true;
       }
 
     bool onBoolean( const bool val ) override
       {
-          if ( M_name.empty() )
+          if ( M_param_name.empty() )
           {
               std::cerr << "(StateServerParam::onBoolean) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
-          M_param.setBool( M_name, val );
-          M_name.clear();
+          M_param.setBool( M_param_name, val );
+          M_param_name.clear();
           return true;
       }
 
     bool onInteger( const int val ) override
       {
-          if ( M_name.empty() )
+          if ( M_param_name.empty() )
           {
               std::cerr << "(StateServerParam::onInteger) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
-          M_param.setInt( M_name, val );
-          M_name.clear();
+          M_param.setInt( M_param_name, val );
+          M_param_name.clear();
           return true;
       }
 
     bool onUnsigned( const unsigned int val ) override
       {
-          if ( M_name.empty() )
+          if ( M_param_name.empty() )
           {
               std::cerr << "(StateServerParam::onUnsingned) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
-          M_param.setInt( M_name, static_cast< int >( val ) );
-          M_name.clear();
+          M_param.setInt( M_param_name, static_cast< int >( val ) );
+          M_param_name.clear();
           return true;
       }
 
     bool onFloat( const double val ) override
       {
-          if ( M_name.empty() )
+          if ( M_param_name.empty() )
           {
               std::cerr << "(StateServerParam::onFloat) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
-          M_param.setDouble( M_name, val );
-          M_name.clear();
+          M_param.setDouble( M_param_name, val );
+          M_param_name.clear();
           return true;
       }
 
     bool onString( const std::string & val ) override
       {
-          if ( M_name.empty() )
+          if ( M_param_name.empty() )
           {
               std::cerr << "(StateServerParam::onString) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
-          M_param.setString( M_name, val );
-          M_name.clear();
+          M_param.setString( M_param_name, val );
+          M_param_name.clear();
           return true;
       }
 };
@@ -460,7 +467,7 @@ class StatePlayerParam
     : public State {
 private:
     int M_depth;
-    std::string M_name;
+    std::string M_param_name;
 
     PlayerParamT M_param;
 
@@ -501,63 +508,156 @@ public:
                         << " val=" << val << std::endl;
               return false;
           }
-          M_name = val;
+          M_param_name = val;
           //std::cerr << "(StateServerParam::onKey) " << val << std::endl;
           return true;
       }
 
     bool onBoolean( const bool val ) override
       {
-          if ( M_name.empty() )
+          if ( M_param_name.empty() )
           {
               std::cerr << "(StatePlayerParam::onBoolean) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
-          M_param.setBool( M_name, val );
-          M_name.clear();
+          M_param.setBool( M_param_name, val );
+          M_param_name.clear();
           return true;
       }
 
     bool onInteger( const int val ) override
       {
-          if ( M_name.empty() )
+          if ( M_param_name.empty() )
           {
               std::cerr << "(StatePlayerParam::onInteger) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
-          M_param.setInt( M_name, val );
-          M_name.clear();
+          M_param.setInt( M_param_name, val );
+          M_param_name.clear();
           return true;
       }
 
     bool onUnsigned( const unsigned int val ) override
       {
-          if ( M_name.empty() )
+          if ( M_param_name.empty() )
           {
               std::cerr << "(StatePlayerParam::onUnsingned) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
-          M_param.setInt( M_name, static_cast< int >( val ) );
-          M_name.clear();
+          M_param.setInt( M_param_name, static_cast< int >( val ) );
+          M_param_name.clear();
           return true;
       }
 
     bool onFloat( const double val ) override
       {
-          if ( M_name.empty() )
+          if ( M_param_name.empty() )
           {
               std::cerr << "(StatePlayerParam::onFloat) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
-          M_param.setDouble( M_name, val );
-          M_name.clear();
+          M_param.setDouble( M_param_name, val );
+          M_param_name.clear();
+          return true;
+      }
+};
+
+//
+//
+//
+
+class StatePlayerType
+    : public State {
+public:
+    private:
+    int M_depth;
+    std::string M_param_name;
+
+    PlayerTypeT M_param;
+public:
+
+    StatePlayerType( Context & context )
+        : State( context ),
+          M_depth( 0 )
+      { }
+
+    bool onStartObject( const size_t ) override
+      {
+          ++M_depth;
           return true;
       }
 
+    bool onEndObject() override
+      {
+          if ( M_depth > 0 )
+          {
+              --M_depth;
+          }
+
+          if ( M_depth == 0 )
+          {
+              M_context.handlePlayerType( M_param );
+              M_context.clearState();
+          }
+
+          return true;
+      }
+
+    bool onKey( const std::string & val ) override
+      {
+          if ( M_depth != 1 )
+          {
+              std::cerr << "(StatePlayerType::onKey) ERROR depth " << M_depth
+                        << " val=" << val << std::endl;
+              return false;
+          }
+
+          M_param_name = val;
+          return true;
+      }
+
+    bool onInteger( const int val ) override
+      {
+          if ( M_param_name.empty() )
+          {
+              std::cerr << "(StatePlayerType::onInteger) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param.setInt( M_param_name, val );
+          M_param_name.clear();
+          return true;
+      }
+
+    bool onUnsigned( const unsigned int val ) override
+      {
+          if ( M_param_name.empty() )
+          {
+              std::cerr << "(StatePlayerType::onUnsingned) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param.setInt( M_param_name, static_cast< int >( val ) );
+          M_param_name.clear();
+          return true;
+      }
+
+    bool onFloat( const double val ) override
+      {
+          if ( M_param_name.empty() )
+          {
+              std::cerr << "(StatePlayerType::onFloat) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_param.setDouble( M_param_name, val );
+          M_param_name.clear();
+          return true;
+      }
 };
 
 //
@@ -573,6 +673,7 @@ Context::Context( Handler & handler )
     M_state_map["timestamp"] = State::Ptr( new StateTimeStamp( *this ) );
     M_state_map["server_param"] = State::Ptr( new StateServerParam( *this ) );
     M_state_map["player_param"] = State::Ptr( new StatePlayerParam( *this ) );
+    M_state_map["player_type"] = State::Ptr( new StatePlayerType( *this ) );
 }
 
 /*-------------------------------------------------------------------*/
