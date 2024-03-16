@@ -37,6 +37,7 @@
 
 #include "handler.h"
 #include "types.h"
+#include "xpm_tile.h"
 
 #include "nlohmann/json.hpp"
 
@@ -108,8 +109,9 @@ private:
     std::shared_ptr< State > M_state;
     int M_depth;
 
+    using StateCreator = std::function< std::shared_ptr< State >() >;
     //! key, state map
-    std::unordered_map< std::string, std::shared_ptr< State > > M_state_map;
+    std::unordered_map< std::string, StateCreator > M_state_map;
 
     Context() = delete;
     Context( const Context & ) = delete;
@@ -131,10 +133,10 @@ public:
               return M_state->onKey( val );
           }
 
-          std::unordered_map< std::string, std::shared_ptr< State > >::iterator it = M_state_map.find( val );
+          std::unordered_map< std::string, StateCreator >::iterator it = M_state_map.find( val );
           if ( it != M_state_map.end() )
           {
-              M_state = it->second;
+              M_state = it->second();
               std::cerr << "(key) new state " << it->first << std::endl;
           }
 
@@ -277,6 +279,18 @@ public:
           //M_handler.handlePlayerType( param );
           param.toServerString( std::cout );
           std::cout << std::endl;
+      }
+
+    void handleTeamGraphic( const SideID side,
+                            const int x,
+                            const int y,
+                            const std::shared_ptr< XpmTile > tile )
+      {
+          //M_handler.handleTeamGraphic();
+          std::cout << "team_graphic " << side_char( side )
+                    << " (" << x << ',' << y << ") ["
+                    << tile->header() << "]" << std::endl;
+
       }
 
 };
@@ -572,8 +586,7 @@ public:
 
 class StatePlayerType
     : public State {
-public:
-    private:
+private:
     int M_depth;
     std::string M_param_name;
 
@@ -660,6 +673,140 @@ public:
       }
 };
 
+
+//
+//
+//
+
+class StateTeamGraphic
+    : public State {
+private:
+    std::string M_key;
+    int M_depth;
+    bool M_in_array;
+
+    // xpm tile information
+    SideID M_side;
+    int M_x;
+    int M_y;
+    XpmTile::Ptr M_xpm_tile;
+public:
+
+    StateTeamGraphic( Context & context )
+        : State( context ),
+          M_depth( 0 ),
+          M_in_array( false ),
+          M_side( NEUTRAL ),
+          M_x( -1 ),
+          M_y( -1 ),
+          M_xpm_tile( new XpmTile() )
+      { }
+
+    bool onStartObject( const size_t ) override
+      {
+          ++M_depth;
+          return true;
+      }
+
+    bool onEndObject() override
+      {
+          if ( M_depth > 0 )
+          {
+              --M_depth;
+          }
+
+          if ( M_depth == 0 )
+          {
+              M_context.handleTeamGraphic( M_side, M_x, M_y, M_xpm_tile );
+              M_context.clearState();
+          }
+
+          return true;
+      }
+
+    bool onStartArray( const size_t )
+      {
+          if ( M_key == "xpm" )
+          {
+              M_in_array = true;
+              return true;
+          }
+
+          std::cerr << "(StateTeamGraphic::onStartArray) ERROR unknown key=" << M_key << std::endl;
+          return false;
+      }
+
+    bool onEndArray()
+      {
+          M_in_array = false;
+          M_key.clear();
+          return true;
+      }
+
+    bool onKey( const std::string & val ) override
+      {
+          if ( M_depth != 1 )
+          {
+              std::cerr << "(StateTeamGraphic::onKey) ERROR depth " << M_depth
+                        << " val=" << val << std::endl;
+              return false;
+          }
+
+          M_key = val;
+          return true;
+      }
+
+    bool onInteger( const int val ) override
+      {
+          if ( M_key == "x" )
+          {
+              M_x = val;
+              M_key.clear();
+              return true;
+          }
+
+          if ( M_key == "y" )
+          {
+              M_y = val;
+              M_key.clear();
+              return true;
+          }
+
+          std::cerr << "(StateTeamGraphic::onInteger) ERROR. unknown key=" << M_key << std::endl;
+          return false;
+      }
+
+    bool onUnsigned( const unsigned int val ) override
+      {
+          return onInteger( static_cast< int >( val ) );
+      }
+
+    bool onString( const std::string & val ) override
+      {
+          if ( M_key == "xpm" )
+          {
+              if ( ! M_in_array )
+              {
+                  std::cerr << "(StateServerParam::onString) ERROR. illegal xpm state. " << val << std::endl;
+                  return false;
+              }
+
+              return M_xpm_tile->addData( val.c_str() );
+          }
+
+          if ( M_key == "side" )
+          {
+              M_side = ( val == "l" ? LEFT : val == "r" ? RIGHT : NEUTRAL );
+              M_key.clear();
+              return true;
+          }
+
+          std::cerr << "(StateServerParam::onString) ERROR. unknown key " << M_key << std::endl;
+          return false;
+      }
+
+};
+
 //
 //
 //
@@ -669,11 +816,12 @@ Context::Context( Handler & handler )
     : M_handler( handler ),
       M_depth( 0 )
 {
-    M_state_map["version"] = State::Ptr( new StateVersion( *this ) );
-    M_state_map["timestamp"] = State::Ptr( new StateTimeStamp( *this ) );
-    M_state_map["server_param"] = State::Ptr( new StateServerParam( *this ) );
-    M_state_map["player_param"] = State::Ptr( new StatePlayerParam( *this ) );
-    M_state_map["player_type"] = State::Ptr( new StatePlayerType( *this ) );
+    M_state_map["version"] = [this]() { return State::Ptr( new StateVersion( *this ) ); };
+    M_state_map["timestamp"] = [this]() { return State::Ptr( new StateTimeStamp( *this ) ); };
+    M_state_map["server_param"] = [this]() { return State::Ptr( new StateServerParam( *this ) ); };
+    M_state_map["player_param"] = [this]() { return State::Ptr( new StatePlayerParam( *this ) ); };
+    M_state_map["player_type"] = [this]() { return State::Ptr( new StatePlayerType( *this ) ); };
+    M_state_map["team_graphic"] = [this]() { return State::Ptr( new StateTeamGraphic( *this ) ); };
 }
 
 /*-------------------------------------------------------------------*/

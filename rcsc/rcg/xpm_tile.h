@@ -49,7 +49,7 @@ public:
     static constexpr size_t HEIGHT = 8; //!< fixed tile height
     static constexpr size_t CPP = 1; //!< fixed char per pixel
 
-    typedef std::shared_ptr< XpmTile > Ptr;
+    using Ptr = std::shared_ptr< XpmTile >;
 
 private:
 
@@ -111,6 +111,7 @@ public:
      */
     bool addData( const char * data );
 
+private:
     bool setHeader( const char * data );
     bool addColor( const char * data );
     bool addPixelLine( const char * data );
