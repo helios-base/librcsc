@@ -296,19 +296,25 @@ public:
     // for JSON
     //
 
+    virtual
+    bool handleServerParam( const ServerParamT & param ) = 0;
+
+    virtual
+    bool handlePlayerParam( const PlayerParamT & param ) = 0;
+
+    virtual
+    bool handlePlayerType( const PlayerTypeT & param ) = 0;
+
     /*!
       \brief handle team_graphic message
       \param msg raw message string
       \return result status
     */
     virtual
-    bool handleTeamGraphic( const SideID /*side*/,
-                            const int /*x*/,
-                            const int /*y*/,
-                            const std::vector< std::string > & /*xpm_data*/ )
-      {
-          return true;
-      }
+    bool handleTeamGraphic( const SideID side,
+                            const int x,
+                            const int y,
+                            const std::vector< std::string > & xpm_data ) = 0;
 
 };
 

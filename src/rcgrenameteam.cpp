@@ -33,10 +33,6 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-
 #include <rcsc/gz.h>
 #include <rcsc/rcg.h>
 
@@ -45,7 +41,9 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
+#include <iomanip>
 
 class TeamNameRenamer
     : public rcsc::rcg::Handler {
@@ -66,34 +64,33 @@ public:
                      const std::string & left_team_name,
                      const std::string & right_team_name );
 
-    virtual
-    bool handleLogVersion( const int ver );
+    bool handleLogVersion( const int ver ) override;
 
-    virtual
-    bool handleEOF();
+    bool handleEOF() override;
 
-    virtual
-    bool handleShow( const rcsc::rcg::ShowInfoT & show );
-    virtual
+    bool handleShow( const rcsc::rcg::ShowInfoT & show ) override;
     bool handleMsg( const int time,
                     const int board,
-                    const std::string & msg );
-    virtual
+                    const std::string & msg ) override;
     bool handleDraw( const int time,
-                     const rcsc::rcg::drawinfo_t & draw );
-    virtual
+                     const rcsc::rcg::drawinfo_t & draw ) override;
     bool handlePlayMode( const int time,
-                         const rcsc::PlayMode pm );
-    virtual
+                         const rcsc::PlayMode pm ) override;
     bool handleTeam( const int time,
                      const rcsc::rcg::TeamT & team_l,
-                     const rcsc::rcg::TeamT & team_r );
-    virtual
-    bool handleServerParam( const std::string & msg );
-    virtual
-    bool handlePlayerParam( const std::string & msg );
-    virtual
-    bool handlePlayerType( const std::string & msg );
+                     const rcsc::rcg::TeamT & team_r ) override;
+
+    bool handleServerParam( const std::string & msg ) override;
+    bool handlePlayerParam( const std::string & msg ) override;
+    bool handlePlayerType( const std::string & msg ) override;
+
+    bool handleServerParam( const rcsc::rcg::ServerParamT & param ) override;
+    bool handlePlayerParam( const rcsc::rcg::PlayerParamT & param ) override;
+    bool handlePlayerType( const rcsc::rcg::PlayerTypeT & param ) override;
+    bool handleTeamGraphic( const rcsc::SideID side,
+                            const int x,
+                            const int y,
+                            const std::vector< std::string > & xpm ) override;
 };
 
 
@@ -104,9 +101,9 @@ public:
 TeamNameRenamer::TeamNameRenamer( std::ostream & os,
                                   const std::string & left_team_name,
                                   const std::string & right_team_name )
-    : M_os( os )
-    , M_left_team_name( left_team_name )
-    , M_right_team_name( right_team_name )
+    : M_os( os ),
+      M_left_team_name( left_team_name ),
+      M_right_team_name( right_team_name )
 {
     M_serializer = rcsc::rcg::Serializer::create( 1 );
 }
@@ -284,7 +281,7 @@ TeamNameRenamer::handlePlayerParam( const std::string & msg )
 bool
 TeamNameRenamer::handlePlayerType( const std::string & msg )
 {
-   if ( ! M_serializer )
+    if ( ! M_serializer )
     {
         return false;
     }
@@ -293,6 +290,66 @@ TeamNameRenamer::handlePlayerType( const std::string & msg )
     return true;
 }
 
+/*-------------------------------------------------------------------*/
+bool
+TeamNameRenamer::handleServerParam( const rcsc::rcg::ServerParamT & param )
+{
+    if ( ! M_serializer )
+    {
+        return false;
+    }
+
+    std::ostringstream ostr;
+    param.toServerString( ostr );
+    M_serializer->serializeParam( M_os, ostr.str() );
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+TeamNameRenamer::handlePlayerParam( const rcsc::rcg::PlayerParamT & param )
+{
+    if ( ! M_serializer )
+    {
+        return false;
+    }
+
+    std::ostringstream ostr;
+    param.toServerString( ostr );
+    M_serializer->serializeParam( M_os, ostr.str() );
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+TeamNameRenamer::handlePlayerType( const rcsc::rcg::PlayerTypeT & param )
+{
+    if ( ! M_serializer )
+    {
+        return false;
+    }
+
+    std::ostringstream ostr;
+    param.toServerString( ostr );
+    M_serializer->serializeParam( M_os, ostr.str() );
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+TeamNameRenamer::handleTeamGraphic( const rcsc::SideID side,
+                                    const int x,
+                                    const int y,
+                                    const std::vector< std::string > & xpm )
+{
+    if ( ! M_serializer )
+    {
+        return false;
+    }
+
+    M_serializer->serialize( M_os, side, x, y, xpm );
+    return true;
+}
 
 ///////////////////////////////////////////////////////////
 

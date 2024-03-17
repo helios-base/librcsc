@@ -9,14 +9,11 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <algorithm>
 #include <cmath>
 #include <cstring>
-
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
 
 class Reverser
     : public rcsc::rcg::Handler {
@@ -55,6 +52,13 @@ public:
     bool handlePlayerParam( const std::string & msg );
     bool handlePlayerType( const std::string & msg );
 
+    bool handleServerParam( const rcsc::rcg::ServerParamT & param ) override;
+    bool handlePlayerParam( const rcsc::rcg::PlayerParamT & param ) override;
+    bool handlePlayerType( const rcsc::rcg::PlayerTypeT & param ) override;
+    bool handleTeamGraphic( const rcsc::SideID side,
+                            const int x,
+                            const int y,
+                            const std::vector< std::string > & xpm ) override;
 private:
 
     rcsc::rcg::BallT reverse( const rcsc::rcg::BallT & ball );
@@ -231,6 +235,68 @@ Reverser::handlePlayerType( const std::string & msg )
     }
 
     M_serializer->serializeParam( M_os, msg );
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+Reverser::handleServerParam( const rcsc::rcg::ServerParamT & param )
+{
+    if ( ! M_serializer )
+    {
+        return false;
+    }
+
+    std::ostringstream ostr;
+    param.toServerString( ostr );
+    M_serializer->serializeParam( M_os, ostr.str() );
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+Reverser::handlePlayerParam( const rcsc::rcg::PlayerParamT & param )
+{
+    if ( ! M_serializer )
+    {
+        return false;
+    }
+
+    std::ostringstream ostr;
+    param.toServerString( ostr );
+    M_serializer->serializeParam( M_os, ostr.str() );
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+Reverser::handlePlayerType( const rcsc::rcg::PlayerTypeT & param )
+{
+    if ( ! M_serializer )
+    {
+        return false;
+    }
+
+    std::ostringstream ostr;
+    param.toServerString( ostr );
+    M_serializer->serializeParam( M_os, ostr.str() );
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
+Reverser::handleTeamGraphic( const rcsc::SideID side,
+                             const int x,
+                             const int y,
+                             const std::vector< std::string > & xpm )
+{
+    if ( ! M_serializer )
+    {
+        return false;
+    }
+
+    const rcsc::SideID reverse = static_cast< rcsc::SideID >( side * -1 );
+    M_serializer->serialize( M_os, reverse, x, y, xpm );
     return true;
 }
 

@@ -261,27 +261,21 @@ public:
 
     void handleServerParam( const ServerParamT & param )
       {
-          std::ostringstream os;
-          param.toServerString( os );
-          M_handler.handleServerParam( os.str() );
+          M_handler.handleServerParam( param );
           //param.toServerString( std::cout );
           //std::cout << std::endl;
       }
 
     void handlePlayerParam( const PlayerParamT & param )
       {
-          std::ostringstream os;
-          param.toServerString( os );
-          M_handler.handlePlayerParam( os.str() );
+          M_handler.handlePlayerParam( param );
           // param.toServerString( std::cout );
           // std::cout << std::endl;
       }
 
     void handlePlayerType( const PlayerTypeT & param )
       {
-          std::ostringstream os;
-          param.toServerString( os );
-          M_handler.handlePlayerType( os.str() );
+          M_handler.handlePlayerType( param );
           // param.toServerString( std::cout );
           // std::cout << std::endl;
       }
@@ -291,7 +285,7 @@ public:
                             const int y,
                             const std::vector< std::string > & xpm_data )
       {
-          //M_handler.handleTeamGraphic( side, x, y, xpm_data );
+          M_handler.handleTeamGraphic( side, x, y, xpm_data );
           // std::cout << "team_graphic " << side_char( side )
           //           << " (" << x << ',' << y << ") ";
           // for ( const std::string & s : xpm_data )

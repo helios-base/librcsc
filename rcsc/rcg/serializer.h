@@ -38,6 +38,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include <ostream>
 
 namespace rcsc {
@@ -224,6 +225,19 @@ protected:
     std::ostream & serializeImpl( std::ostream & os,
                                   const dispinfo_t2 & disp2 );
 
+    /*!
+      \brief write team_graphic
+      \param os output stream
+      \param side team side
+      \param x index of the xpm_tile
+      \param y index of the xpm_tile
+      \param xpm xpm tile
+     */
+    std::ostream & serializeAsMsg( std::ostream & os,
+                                   const rcsc::SideID side,
+                                   const int x,
+                                   const int y,
+                                   const std::vector< std::string > & xpm );
 
 
 public:
@@ -404,6 +418,22 @@ public:
     virtual
     std::ostream & serialize( std::ostream & os,
                               const DispInfoT & disp ) = 0;
+
+
+    /*!
+      \brief write team_graphic
+      \param os output stream
+      \param side team side
+      \param x index of the xpm_tile
+      \param y index of the xpm_tile
+      \param xpm xpm tile
+     */
+    virtual
+    std::ostream & serialize( std::ostream & os,
+                              const rcsc::SideID side,
+                              const int x,
+                              const int y,
+                              const std::vector< std::string > & xpm ) = 0;
 
 };
 

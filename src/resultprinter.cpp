@@ -43,13 +43,6 @@
 #include <cstring>
 #include <ctime>
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef HAVE_WINDOWS_H
-#include <windows.h>
-#endif
-
 struct Point {
     double x;
     double y;
@@ -120,9 +113,31 @@ public:
                      const rcsc::rcg::TeamT & team_l,
                      const rcsc::rcg::TeamT & team_r );
     bool handleServerParam( const std::string & msg );
-    bool handlePlayerParam( const std::string & msg );
-    bool handlePlayerType( const std::string & msg );
+    bool handlePlayerParam( const std::string & )
+      {
+          return true;
+      }
+    bool handlePlayerType( const std::string & )
+      {
+          return true;
+      }
 
+    bool handleServerParam( const rcsc::rcg::ServerParamT & param ) override;
+    bool handlePlayerParam( const rcsc::rcg::PlayerParamT & ) override
+      {
+          return true;
+      }
+    bool handlePlayerType( const rcsc::rcg::PlayerTypeT & ) override
+      {
+          return true;
+      }
+    bool handleTeamGraphic( const rcsc::SideID,
+                            const int,
+                            const int,
+                            const std::vector< std::string > & ) override
+      {
+          return true;
+      }
 private:
 
     bool crossGoalLine( const Point & ball_pos,
@@ -509,22 +524,13 @@ ResultPrinter::handleServerParam( const std::string & line )
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
-*/
 bool
-ResultPrinter::handlePlayerParam( const std::string & )
+ResultPrinter::handleServerParam( const rcsc::rcg::ServerParamT & param )
 {
-    return true;
-}
+    M_goal_width = param.goal_width_;
+    M_ball_size = param.ball_size_;
+    M_half_time = param.half_time_;
 
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
-bool
-ResultPrinter::handlePlayerType( const std::string & )
-{
     return true;
 }
 

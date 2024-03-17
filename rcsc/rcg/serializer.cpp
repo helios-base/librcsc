@@ -55,6 +55,8 @@
 #include <cstring>
 #include <cmath>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 namespace rcsc {
 namespace rcg {
@@ -452,6 +454,28 @@ Serializer::serializeImpl( std::ostream & os,
     }
 
     return os;
+}
+
+/*-------------------------------------------------------------------*/
+std::ostream &
+Serializer::serializeAsMsg( std::ostream & os,
+                            const rcsc::SideID side,
+                            const int x,
+                            const int y,
+                            const std::vector< std::string > & xpm )
+{
+
+    std::ostringstream ostr;
+    ostr << "(team_graphic_" << side_char( side )
+         << '(' << x << ' ' << y;
+
+    for ( const std::string & s : xpm )
+    {
+        ostr << ' ' << std::quoted( s );
+    }
+    ostr << ')';
+
+    return serialize( os, 1, ostr.str() );
 }
 
 } // end of namespace

@@ -12,6 +12,7 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 
 #include <rcsc/gz.h>
@@ -119,32 +120,46 @@ public:
     explicit
     TextPrinter( std::ostream & os );
 
-    virtual
-    bool handleEOF();
+    bool handleEOF() override;
 
-    virtual
-    bool handleShow( const rcsc::rcg::ShowInfoT & show );
-    virtual
+    bool handleShow( const rcsc::rcg::ShowInfoT & show ) override;
     bool handleMsg( const int time,
                     const int board,
-                    const std::string & msg );
-    virtual
+                    const std::string & msg ) override;
     bool handleDraw( const int time,
-                     const rcsc::rcg::drawinfo_t & draw );
-    virtual
+                     const rcsc::rcg::drawinfo_t & draw ) override;
     bool handlePlayMode( const int time,
-                         const rcsc::PlayMode pm );
-    virtual
+                         const rcsc::PlayMode pm ) override;
     bool handleTeam( const int time,
                      const rcsc::rcg::TeamT & team_l,
-                     const rcsc::rcg::TeamT & team_r );
-    virtual
-    bool handleServerParam( const std::string & msg );
-    virtual
-    bool handlePlayerParam( const std::string & msg );
-    virtual
-    bool handlePlayerType( const std::string & msg );
+                     const rcsc::rcg::TeamT & team_r ) override;
 
+    bool handleServerParam( const std::string & msg ) override;
+    bool handlePlayerParam( const std::string & ) override
+      {
+          return true;
+      }
+    bool handlePlayerType( const std::string & ) override
+      {
+          return true;
+      }
+
+    bool handleServerParam( const rcsc::rcg::ServerParamT & param ) override;
+    bool handlePlayerParam( const rcsc::rcg::PlayerParamT & ) override
+      {
+          return true;
+      }
+    bool handlePlayerType( const rcsc::rcg::PlayerTypeT & ) override
+      {
+          return true;
+      }
+    bool handleTeamGraphic( const rcsc::SideID,
+                            const int,
+                            const int,
+                            const std::vector< std::string > & ) override
+      {
+          return true;
+      }
 private:
     const
     std::string & getPlayModeString( const rcsc::PlayMode playmode ) const;
@@ -321,23 +336,12 @@ TextPrinter::handleServerParam( const std::string & msg )
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 bool
-TextPrinter::handlePlayerParam( const std::string & )
+TextPrinter::handleServerParam( const rcsc::rcg::ServerParamT & param )
 {
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-TextPrinter::handlePlayerType( const std::string & )
-{
-    return true;
+    std::ostringstream os;
+    param.toServerString( os );
+    return handleServerParam( os.str() );
 }
 
 /*-------------------------------------------------------------------*/

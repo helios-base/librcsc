@@ -236,6 +236,22 @@ public:
     std::ostream & serialize( std::ostream & os,
                               const DispInfoT & disp ) override;
 
+    /*!
+      \brief write team_graphic
+      \param os output stream
+      \param side team side
+      \param x index of the xpm_tile
+      \param y index of the xpm_tile
+      \param xpm xpm tile
+     */
+    std::ostream & serialize( std::ostream & os,
+                              const rcsc::SideID side,
+                              const int x,
+                              const int y,
+                              const std::vector< std::string > & xpm ) override
+      {
+          return serializeAsMsg( os, side, x, y, xpm );
+      }
 };
 
 } // end of namespace rcg

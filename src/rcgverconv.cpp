@@ -39,6 +39,7 @@
 #include <memory>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <cmath>
 #include <cstring>
@@ -60,24 +61,32 @@ public:
     VersionConverter( std::ostream & os,
                       const int version );
 
-    bool handleLogVersion( const int ver );
+    bool handleLogVersion( const int ver ) override;
 
-    bool handleEOF();
+    bool handleEOF() override;
 
     bool handleShow( const rcsc::rcg::ShowInfoT & show );
     bool handleMsg( const int time,
                     const int board,
-                    const std::string & msg );
+                    const std::string & msg ) override;
     bool handleDraw( const int time,
-                     const rcsc::rcg::drawinfo_t & draw );
+                     const rcsc::rcg::drawinfo_t & draw ) override;
     bool handlePlayMode( const int time,
-                         const rcsc::PlayMode pm );
+                         const rcsc::PlayMode pm ) override;
     bool handleTeam( const int time,
                      const rcsc::rcg::TeamT & team_l,
-                     const rcsc::rcg::TeamT & team_r );
-    bool handleServerParam( const std::string & msg );
-    bool handlePlayerParam( const std::string & msg );
-    bool handlePlayerType( const std::string & msg );
+                     const rcsc::rcg::TeamT & team_r ) override;
+    bool handleServerParam( const std::string & msg ) override;
+    bool handlePlayerParam( const std::string & msg ) override;
+    bool handlePlayerType( const std::string & msg ) override;
+
+    bool handleServerParam( const rcsc::rcg::ServerParamT & param ) override;
+    bool handlePlayerParam( const rcsc::rcg::PlayerParamT & param ) override;
+    bool handlePlayerType( const rcsc::rcg::PlayerTypeT & param ) override;
+    bool handleTeamGraphic( const rcsc::SideID side,
+                            const int x,
+                            const int y,
+                            const std::vector< std::string > & xpm ) override;
 };
 
 
@@ -269,6 +278,63 @@ VersionConverter::handlePlayerType( const std::string & msg )
     return true;
 }
 
+/*-------------------------------------------------------------------*/
+bool
+VersionConverter::handleServerParam( const rcsc::rcg::ServerParamT & param )
+{
+    if ( ! M_serializer )
+    {
+        return false;
+    }
+
+    std::ostringstream ostr;
+    param.toServerString( ostr );
+    M_serializer->serializeParam( M_os, ostr.str() );
+    return true;
+}
+
+bool
+VersionConverter::handlePlayerParam( const rcsc::rcg::PlayerParamT & param )
+{
+    if ( ! M_serializer )
+    {
+        return false;
+    }
+
+    std::ostringstream ostr;
+    param.toServerString( ostr );
+    M_serializer->serializeParam( M_os, ostr.str() );
+    return true;
+}
+
+bool
+VersionConverter::handlePlayerType( const rcsc::rcg::PlayerTypeT & param )
+{
+    if ( ! M_serializer )
+    {
+        return false;
+    }
+
+    std::ostringstream ostr;
+    param.toServerString( ostr );
+    M_serializer->serializeParam( M_os, ostr.str() );
+    return true;
+}
+
+bool
+VersionConverter::handleTeamGraphic( const rcsc::SideID side,
+                                     const int x,
+                                     const int y,
+                                     const std::vector< std::string > & xpm )
+{
+    if ( ! M_serializer )
+    {
+        return false;
+    }
+
+    M_serializer->serialize( M_os, side, x, y, xpm );
+    return true;
+}
 
 ///////////////////////////////////////////////////////////
 

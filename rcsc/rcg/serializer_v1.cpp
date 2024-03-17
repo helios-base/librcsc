@@ -320,7 +320,6 @@ SerializerV1::serialize( std::ostream & os,
     return serialize( os, disp.show_ );
 }
 
-
 /*-------------------------------------------------------------------*/
 /*!
 
