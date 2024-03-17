@@ -677,8 +677,6 @@ ParserV4::parsePlayMode( const int n_line,
       (playmode <Time> <Playmode>)
     */
 
-    static const char * playmode_strings[] = PLAYMODE_STRINGS;
-
     int time = 0;
     char pm_string[32];
 
@@ -691,19 +689,7 @@ ParserV4::parsePlayMode( const int n_line,
         return false;
     }
 
-    PlayMode pm = PM_Null;
-    for ( int n = 0; n < PM_MAX; ++n )
-    {
-        if ( ! std::strcmp( playmode_strings[n], pm_string ) )
-        {
-            pm = static_cast< PlayMode >( n );
-            break;
-        }
-    }
-
-    handler.handlePlayMode( time, pm );
-
-    return true;
+    return handler.handlePlayMode( time, pm_string );
 }
 
 /*-------------------------------------------------------------------*/

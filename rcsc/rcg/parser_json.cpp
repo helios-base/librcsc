@@ -261,21 +261,27 @@ public:
 
     void handleServerParam( const ServerParamT & param )
       {
-          //M_handler.handleServerParam( param );
-          param.toServerString( std::cout );
-          std::cout << std::endl;
+          std::ostringstream os;
+          param.toServerString( os );
+          M_handler.handleServerParam( os.str() );
+          //param.toServerString( std::cout );
+          //std::cout << std::endl;
       }
 
     void handlePlayerParam( const PlayerParamT & param )
       {
-          //M_handler.handlePlayerParam( param );
+          std::ostringstream os;
+          param.toServerString( os );
+          M_handler.handlePlayerParam( os.str() );
           // param.toServerString( std::cout );
           // std::cout << std::endl;
       }
 
     void handlePlayerType( const PlayerTypeT & param )
       {
-          //M_handler.handlePlayerType( param );
+          std::ostringstream os;
+          param.toServerString( os );
+          M_handler.handlePlayerType( os.str() );
           // param.toServerString( std::cout );
           // std::cout << std::endl;
       }

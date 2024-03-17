@@ -35,6 +35,7 @@
 #include <rcsc/rcg/types.h>
 
 #include <string>
+#include <vector>
 
 namespace rcsc {
 namespace rcg {
@@ -277,6 +278,37 @@ public:
     */
     virtual
     bool handlePlayerType( const std::string & msg ) = 0;
+
+    //
+    //
+    //
+
+    /*!
+      \brief wrapper of handlePlayMode(int,PlayMode)
+      \param playmode playmode name
+      \return result status
+    */
+    bool handlePlayMode( const int time,
+                         const std::string & playmode );
+
+
+    //
+    // for JSON
+    //
+
+    /*!
+      \brief handle team_graphic message
+      \param msg raw message string
+      \return result status
+    */
+    virtual
+    bool handleTeamGraphic( const SideID /*side*/,
+                            const int /*x*/,
+                            const int /*y*/,
+                            const std::vector< std::string > & /*xpm_data*/ )
+      {
+          return true;
+      }
 
 };
 
