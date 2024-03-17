@@ -1600,9 +1600,6 @@ ServerParam::convertFrom( const rcg::ServerParamT & from )
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
-*/
 void
 ServerParam::convertTo( rcg::server_params_t & to ) const
 {
@@ -1764,9 +1761,224 @@ ServerParam::convertTo( rcg::server_params_t & to ) const
 }
 
 /*-------------------------------------------------------------------*/
-/*!
+void
+ServerParam::convertTo( rcg::ServerParamT & to ) const
+{
+    to.goal_width_ = M_goal_width;
+    to.inertia_moment_ = M_inertia_moment;
+    to.player_size_ = M_player_size;;
+    to.player_decay_ = M_player_decay;
+    to.player_rand_ = M_player_rand;
+    to.player_weight_ = M_player_weight;
+    to.player_speed_max_ = M_player_speed_max;
+    to.player_accel_max_ = M_player_accel_max;
+    to.stamina_max_ = M_stamina_max;
+    to.stamina_inc_max_ = M_stamina_inc_max;
+    to.recover_init_ = M_recover_init;
+    to.recover_dec_thr_ = M_recover_dec_thr;
+    to.recover_min_ = M_recover_min;
+    to.recover_dec_ = M_recover_dec;
+    to.effort_init_ = M_effort_init;
+    to.effort_dec_thr_ = M_effort_dec_thr;
+    to.effort_min_ = M_effort_min;
+    to.effort_dec_ = M_effort_dec;
+    to.effort_inc_thr_ = M_effort_inc_thr;
+    to.effort_inc_ = M_effort_inc;
+    to.kick_rand_ = M_kick_rand;
+    to.team_actuator_noise_ = M_team_actuator_noise;
+    to.player_rand_factor_l_ = M_player_rand_factor_l;
+    to.player_rand_factor_r_ = M_player_rand_factor_r;
+    to.kick_rand_factor_l_ = M_kick_rand_factor_l;
+    to.kick_rand_factor_r_ = M_kick_rand_factor_r;
+    to.ball_size_ = M_ball_size;
+    to.ball_decay_ = M_ball_decay;
+    to.ball_rand_ = M_ball_rand;
+    to.ball_weight_ = M_ball_weight;
+    to.ball_speed_max_ = M_ball_speed_max;
+    to.ball_accel_max_ = M_ball_accel_max;
+    to.dash_power_rate_ = M_dash_power_rate;
+    to.kick_power_rate_ = M_kick_power_rate;
+    to.kickable_margin_ = M_kickable_margin;
+    to.control_radius_ = M_control_radius;
+    to.catch_probability_ = M_catch_probability;
+    to.catchable_area_l_ = M_catch_area_l;
+    to.catchable_area_w_ = M_catch_area_w;
+    to.goalie_max_moves_ = M_goalie_max_moves;
+    to.max_power_ = M_max_power;
+    to.min_power_ = M_min_power;
+    to.max_moment_ = M_max_moment;
+    to.min_moment_ = M_min_moment;
+    to.max_neck_moment_ = M_max_neck_moment;
+    to.min_neck_moment_ = M_min_neck_moment;
+    to.max_neck_angle_ = M_max_neck_angle;
+    to.min_neck_angle_ = M_min_neck_angle;
+    to.visible_angle_ = M_visible_angle;
+    to.visible_distance_ = M_visible_distance;
+    to.audio_cut_dist_ = M_audio_cut_dist;
+    to.dist_quantize_step_ = M_dist_quantize_step;
+    to.landmark_dist_quantize_step_ = M_landmark_dist_quantize_step;
+    to.corner_kick_margin_ = M_corner_kick_margin;
+    to.wind_dir_ = M_wind_dir;
+    to.wind_force_ = M_wind_force;
+    to.wind_angle_ = M_wind_angle;
+    to.wind_rand_ = M_wind_rand;
+    to.wind_none_ = M_wind_none;
+    to.use_wind_random_ = M_use_wind_random;
+    to.half_time_ = M_half_time;
+    to.drop_ball_time_ = M_drop_ball_time;
+    to.port_ = M_player_port;
+    to.coach_port_ = M_trainer_port;
+    to.online_coach_port_ = M_online_coach_port;
+    to.coach_say_count_max_ = M_coach_say_count_max;
+    to.coach_say_msg_size_ = M_coach_say_msg_size;
+    to.simulator_step_ = M_simulator_step;
+    to.send_step_ = M_send_step;
+    to.recv_step_ = M_recv_step;
+    to.sense_body_step_ = M_sense_body_step;
+    to.player_say_msg_size_ = M_player_say_msg_size;
+    to.clang_win_size_ = M_clang_win_size;
+    to.clang_define_win_ = M_clang_define_win;
+    to.clang_meta_win_ = M_clang_meta_win;
+    to.clang_advice_win_ = M_clang_advice_win;
+    to.clang_info_win_ = M_clang_info_win;
+    to.clang_del_win_ = M_clang_del_win;
+    to.clang_rule_win_ = M_clang_rule_win;
+    to.clang_mess_delay_ = M_clang_mess_delay;
+    to.clang_mess_per_cycle_ = M_clang_mess_per_cycle;
+    to.player_hear_max_ = M_player_hear_max;
+    to.player_hear_inc_ = M_player_hear_inc;
+    to.player_hear_decay_ = M_player_hear_decay;
+    to.catch_ban_cycle_ = M_catch_ban_cycle;
+    to.coach_mode_ = M_coach_mode;
+    to.coach_with_referee_mode_ = M_coach_with_referee_mode;
+    to.use_old_coach_hear_ = M_use_old_coach_hear;
+    to.online_coach_look_step_ = M_online_coach_look_step;
+    to.use_offside_ = M_use_offside;
+    to.offside_active_area_size_ = M_offside_active_area_size;
+    to.kickoff_offside_ = M_kickoff_offside;
+    to.verbose_ = M_verbose_mode;
+    to.offside_kick_margin_ = M_offside_kick_margin;
+    to.slow_down_factor_ = M_slow_down_factor;
+    to.synch_mode_ = M_synch_mode;
+    to.synch_offset_ = M_synch_offset;
+    to.synch_micro_sleep_ = M_synch_micro_sleep;
+    to.start_goal_l_ = M_start_goal_l;
+    to.start_goal_r_ = M_start_goal_r;
+    to.fullstate_l_ = M_fullstate_l;
+    to.fullstate_r_ = M_fullstate_r;
+    to.slowness_on_top_for_left_team_ = M_slowness_on_top_for_left_team;
+    to.slowness_on_top_for_right_team_ = M_slowness_on_top_for_right_team;
+    to.landmark_file_ = M_landmark_file;
+    to.send_comms_ = M_send_comms;
+    to.text_logging_ = M_text_logging;
+    to.game_logging_ = M_game_logging;
+    to.game_log_version_ = M_game_log_version;
+    to.text_log_dir_ = M_text_log_dir;
+    to.game_log_dir_ = M_game_log_dir;
+    to.text_log_fixed_name_ = M_text_log_fixed_name;
+    to.game_log_fixed_name_ = M_game_log_fixed_name;
+    to.text_log_fixed_ = M_use_text_log_fixed;
+    to.game_log_fixed_ = M_use_game_log_fixed;
+    to.text_log_dated_ = M_use_text_log_dated;
+    to.game_log_dated_ = M_use_game_log_dated;
+    to.log_date_format_ = M_log_date_format;
+    to.log_times_ = M_log_times;
+    to.record_messages_ = M_record_message;
+    to.text_log_compression_ = M_text_log_compression;
+    to.game_log_compression_ = M_game_log_compression;
+    to.profile_ = M_use_profile;
+    to.point_to_ban_ = M_point_to_ban;
+    to.point_to_duration_ = M_point_to_duration;
+    to.tackle_dist_ = M_tackle_dist;
+    to.tackle_back_dist_ = M_tackle_back_dist;
+    to.tackle_width_ = M_tackle_width;
+    to.tackle_exponent_ = M_tackle_exponent;
+    to.tackle_cycles_ = M_tackle_cycles;;
+    to.tackle_power_rate_ = M_tackle_power_rate;
+    to.freeform_wait_period_ = M_freeform_wait_period;
+    to.freeform_send_period_ = M_freeform_send_period;
+    to.free_kick_faults_ = M_free_kick_faults;
+    to.back_passes_ = M_back_passes;
+    to.proper_goal_kicks_ = M_proper_goal_kicks;
+    to.stopped_ball_vel_ = M_stopped_ball_vel;
+    to.max_goal_kicks_ = M_max_goal_kicks;
+    to.auto_mode_ = M_auto_mode;
+    to.kick_off_wait_ = M_kick_off_wait;
+    to.connect_wait_ = M_connect_wait;
+    to.game_over_wait_ = M_game_over_wait;
+    to.team_l_start_ = M_team_l_start;
+    to.team_r_start_ = M_team_r_start;
+    to.keepaway_mode_ = M_keepaway_mode;
+    to.keepaway_length_ = M_keepaway_length;
+    to.keepaway_width_ = M_keepaway_width;
+    to.keepaway_logging_ = M_keepaway_logging;
+    to.keepaway_log_dir_ = M_keepaway_log_dir;
+    to.keepaway_log_fixed_name_ = M_keepaway_log_fixed_name;
+    to.keepaway_log_fixed_ = M_keepaway_log_fixed;
+    to.keepaway_log_dated_ = M_keepaway_log_dated;
+    to.keepaway_start_ = M_keepaway_start;
+    to.nr_normal_halfs_ = M_nr_normal_halfs;
+    to.nr_extra_halfs_ = M_nr_extra_halfs;
+    to.penalty_shoot_outs_ = M_penalty_shoot_outs;
+    to.pen_before_setup_wait_ = M_pen_before_setup_wait;
+    to.pen_setup_wait_ = M_pen_setup_wait;
+    to.pen_ready_wait_ = M_pen_ready_wait;
+    to.pen_taken_wait_ = M_pen_taken_wait;
+    to.pen_nr_kicks_ = M_pen_nr_kicks;
+    to.pen_max_extra_kicks_ = M_pen_max_extra_kicks;
+    to.pen_dist_x_ = M_pen_dist_x;
+    to.pen_random_winner_ = M_pen_random_winner;
+    to.pen_max_goalie_dist_x_ = M_pen_max_goalie_dist_x;
+    to.pen_allow_mult_kicks_ = M_pen_allow_mult_kicks;
+    to.pen_coach_moves_players_ = M_pen_coach_moves_players;
+    // v11
+    to.ball_stuck_area_ = M_ball_stuck_area;
+    to.coach_msg_file_ = M_coach_msg_file;
+    // v12
+    to.max_tackle_power_ = M_max_tackle_power;
+    to.max_back_tackle_power_ = M_max_back_tackle_power;
+    to.player_speed_max_min_ = M_player_speed_max_min;
+    to.extra_stamina_ = M_extra_stamina;
+    to.synch_see_offset_ = M_synch_see_offset;
+    to.max_monitors_ = M_max_monitors;
+    // v12.1.3
+    to.extra_half_time_ = M_extra_half_time;
+    // v13
+    to.stamina_capacity_ = M_stamina_capacity;
+    to.max_dash_angle_ = M_max_dash_angle;
+    to.min_dash_angle_ = M_min_dash_angle;
+    to.dash_angle_step_ = M_dash_angle_step;
+    to.side_dash_rate_ = M_side_dash_rate;
+    to.back_dash_rate_ = M_back_dash_rate;
+    to.max_dash_power_ = M_max_dash_power;
+    to.min_dash_power_ = M_min_dash_power;
+    // 14.0
+    to.tackle_rand_factor_ = M_tackle_rand_factor;
+    to.foul_detect_probability_ = M_foul_detect_probability;
+    to.foul_exponent_ = M_foul_exponent;
+    to.foul_cycles_ = M_foul_cycles;
+    to.golden_goal_ = M_golden_goal;
+    // v15
+    to.red_card_probability_ = M_red_card_probability;
+    // v16.0
+    to.illegal_defense_duration_ = M_illegal_defense_duration;
+    to.illegal_defense_number_ = M_illegal_defense_number;
+    to.illegal_defense_dist_x_ = M_illegal_defense_dist_x;
+    to.illegal_defense_width_ = M_illegal_defense_width;
+    to.fixed_teamname_l_ = M_fixed_teamname_l;
+    to.fixed_teamname_r_ = M_fixed_teamname_r;
+    // v17
+    to.max_catch_angle_ = M_max_catch_angle;
+    to.min_catch_angle_ = M_min_catch_angle;
+    // v19
+    // to.dist_noise_rate_;
+    // to.focus_dist_noise_rate_;
+    // to.land_dist_noise_rate_;
+    // to.land_focus_dist_noise_rate_;
 
-*/
+}
+
+/*-------------------------------------------------------------------*/
 std::string
 ServerParam::toServerString() const
 {

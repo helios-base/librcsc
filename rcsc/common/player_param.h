@@ -211,6 +211,12 @@ public:
     void convertTo( rcg::player_params_t & to ) const;
 
     /*!
+      \brief convert parameters to rcg data
+      \param to reference to the data structure variable
+     */
+    void convertTo( rcg::PlayerParamT & to ) const;
+
+    /*!
       \brief convert to the rcss parameter message
       \return parameter message string
      */

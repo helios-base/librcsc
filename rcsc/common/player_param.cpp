@@ -414,9 +414,6 @@ PlayerParam::convertFrom( const rcg::PlayerParamT & from )
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
-*/
 void
 PlayerParam::convertTo( rcg::player_params_t & to ) const
 {
@@ -459,6 +456,51 @@ PlayerParam::convertTo( rcg::player_params_t & to ) const
 
     to.catchable_area_l_stretch_min = rcg::hdtonl( M_catchable_area_l_stretch_min );
     to.catchable_area_l_stretch_max = rcg::hdtonl( M_catchable_area_l_stretch_max );
+}
+
+/*-------------------------------------------------------------------*/
+void
+PlayerParam::convertTo( rcg::PlayerParamT & to ) const
+{
+    to.player_types_ = M_player_types;
+    to.substitute_max_ = M_subs_max;
+    to.pt_max_ = M_pt_max;
+
+    to.allow_mult_default_type_ = M_allow_mult_default_type;
+
+    to.player_speed_max_delta_min_ = M_player_speed_max_delta_min;
+    to.player_speed_max_delta_max_ = M_player_speed_max_delta_max;
+    to.stamina_inc_max_delta_factor_ = M_stamina_inc_max_delta_factor;
+
+    to.player_decay_delta_min_ = M_player_decay_delta_min;
+    to.player_decay_delta_max_ = M_player_decay_delta_max;
+    to.inertia_moment_delta_factor_ = M_inertia_moment_delta_factor;
+
+    to.dash_power_rate_delta_min_ = M_dash_power_rate_delta_min;
+    to.dash_power_rate_delta_max_ = M_dash_power_rate_delta_max;
+    to.player_size_delta_factor_ = M_player_size_delta_factor;
+
+    to.kickable_margin_delta_min_ = M_kickable_margin_delta_min;
+    to.kickable_margin_delta_max_ = M_kickable_margin_delta_max;
+    to.kick_rand_delta_factor_ = M_kick_rand_delta_factor;
+
+    to.extra_stamina_delta_min_ = M_extra_stamina_delta_min;
+    to.extra_stamina_delta_max_ = M_extra_stamina_delta_max;
+    to.effort_max_delta_factor_ = M_effort_max_delta_factor;
+    to.effort_min_delta_factor_ = M_effort_min_delta_factor;
+
+    to.new_dash_power_rate_delta_min_ = M_new_dash_power_rate_delta_min;
+    to.new_dash_power_rate_delta_max_ = M_new_dash_power_rate_delta_max;
+    to.new_stamina_inc_max_delta_factor_ = M_new_stamina_inc_max_delta_factor;
+
+    to.random_seed_ = M_random_seed;
+
+    to.kick_power_rate_delta_min_ = M_kick_power_rate_delta_min;
+    to.kick_power_rate_delta_max_ = M_kick_power_rate_delta_max;
+    to.foul_detect_probability_delta_factor_ = M_foul_detect_probability_delta_factor;
+
+    to.catchable_area_l_stretch_min_ = M_catchable_area_l_stretch_min;
+    to.catchable_area_l_stretch_max_ = M_catchable_area_l_stretch_max;
 }
 
 /*-------------------------------------------------------------------*/

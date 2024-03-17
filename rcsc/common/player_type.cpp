@@ -318,9 +318,6 @@ PlayerType::PlayerType( const int id,
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
-*/
 void
 PlayerType::convertTo( rcg::player_type_t & to ) const
 {
@@ -343,9 +340,40 @@ PlayerType::convertTo( rcg::player_type_t & to ) const
 }
 
 /*-------------------------------------------------------------------*/
-/*!
+void
+PlayerType::convertTo( rcg::PlayerTypeT & to ) const
+{
+    to.id_ = M_id;
+    to.player_speed_max_ = M_player_speed_max;
+    to.stamina_inc_max_ = M_stamina_inc_max;
+    to.player_decay_ = M_player_decay;
+    to.inertia_moment_ = M_inertia_moment;
+    to.dash_power_rate_ = M_dash_power_rate;
+    to.player_size_ = M_player_size;
+    to.kickable_margin_ = M_kickable_margin;
+    to.kick_rand_ = M_kick_rand;
+    to.extra_stamina_ = M_extra_stamina;
+    to.effort_max_ = M_effort_max;
+    to.effort_min_ = M_effort_min;
+    // v14
+    to.kick_power_rate_ = M_kick_power_rate;
+    to.foul_detect_probability_ = M_foul_detect_probability;
+    to.catchable_area_l_stretch_ = M_catchable_area_l_stretch;
+    // v18
+    to.unum_far_length_ = M_unum_far_length;
+    to.unum_too_far_length_ = M_unum_too_far_length;
+    to.team_far_length_ = M_team_far_length;
+    to.team_too_far_length_ = M_team_too_far_length;
+    to.player_max_observation_length_ = M_player_max_observation_length;
+    to.ball_vel_far_length_ = M_ball_vel_far_length;
+    to.ball_vel_too_far_length_ = M_ball_vel_too_far_length;
+    to.ball_max_observation_length_ = M_ball_max_observation_length;
+    to.flag_chg_far_length_ = M_flag_chg_far_length;
+    to.flag_chg_too_far_length_ = M_flag_chg_too_far_length;
+    to.flag_max_observation_length_ = M_flag_max_observation_length;
+}
 
-*/
+/*-------------------------------------------------------------------*/
 std::string
 PlayerType::toServerString() const
 {
@@ -367,6 +395,17 @@ PlayerType::toServerString() const
        << "(kick_power_rate " << M_kick_power_rate << ')'
        << "(foul_detect_probability " << M_foul_detect_probability << ')'
        << "(catchable_area_l_stretch " << M_catchable_area_l_stretch << ')'
+       << "(unum_far_length " <<  M_unum_far_length << ')'
+       << "(unum_too_far_length " << M_unum_too_far_length << ')'
+       << "(team_far_length " << M_team_far_length << ')'
+       << "(team_too_far_length " << M_team_too_far_length << ')'
+       << "(player_max_observation_length " << M_player_max_observation_length << ')'
+       << "(ball_vel_far_length " << M_ball_vel_far_length << ')'
+       << "(ball_vel_too_far_length " << M_ball_vel_too_far_length << ')'
+       << "(ball_max_observation_length " << M_ball_max_observation_length << ')'
+       << "(flag_chg_far_length " << M_flag_chg_far_length << ')'
+       << "(flag_chg_too_far_length " << M_flag_chg_too_far_length << ')'
+       << "(flag_max_observation_length " << M_flag_max_observation_length << ')'
        << ')';
 
     return os.str();

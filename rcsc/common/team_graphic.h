@@ -236,6 +236,17 @@ public:
     bool parse( const char * server_msg );
 
     /*!
+      \brief create tiled xpm from the raw xpm data
+      \param x xpm tile index
+      \param y xpm tile index
+      \param xpm_tile raw xpm string array
+      \return true if successfully parsed
+    */
+    bool addXpmTile( const int x,
+                     const int y,
+                     const std::vector< std::string > & xpm_tile );
+
+    /*!
       \brief read xpm data from the input file
       \param file_path input file path
       \return parsing result

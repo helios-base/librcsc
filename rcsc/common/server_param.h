@@ -747,6 +747,12 @@ public:
     void convertTo( rcg::server_params_t & to ) const;
 
     /*!
+      \brief convert from the data type in the rcg parser library.
+      \param from monitor protocol data structure
+     */
+    void convertTo( rcg::ServerParamT & to ) const;
+
+    /*!
       \brief convert to the rcss parameter message
       \return parameter message string
      */

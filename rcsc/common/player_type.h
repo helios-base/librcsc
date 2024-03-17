@@ -158,6 +158,12 @@ public:
     void convertTo( rcg::player_type_t & to ) const;
 
     /*!
+      \brief conver to the data format in the rcg library
+      \param to reference to the data variable.
+     */
+    void convertTo( rcg::PlayerTypeT & to ) const;
+
+    /*!
       \brief convert to the rcss parameter message
       \return parameter message string
      */
