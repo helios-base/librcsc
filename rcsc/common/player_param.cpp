@@ -368,6 +368,52 @@ PlayerParam::convertFrom( const rcg::player_params_t & from )
 }
 
 /*-------------------------------------------------------------------*/
+void
+PlayerParam::convertFrom( const rcg::PlayerParamT & from )
+{
+    M_player_types = from.player_types_; //!< the number of player types
+    M_subs_max = from.substitute_max_; //!< max number of player substitution oppotunity
+    M_pt_max = from.pt_max_; //!< max number of same player type at the same time
+
+    M_allow_mult_default_type = from.allow_mult_default_type_; //!< if true, the number of default type player is not restricted.
+
+    M_player_speed_max_delta_min = from.player_speed_max_delta_min_; //!< (obsolete) tradeoff parameter for player speed max
+    M_player_speed_max_delta_max = from.player_speed_max_delta_max_; //!< (obsolete) tradeoff parameter for player speed max
+    M_stamina_inc_max_delta_factor = from.stamina_inc_max_delta_factor_; //!< (obsolete) tradeoff parameter for
+
+    M_player_decay_delta_min = from.player_decay_delta_min_; //!< tradeoff parameter for player decay
+    M_player_decay_delta_max = from.player_decay_delta_max_; //!< tradeoff parameter for player decay
+    M_inertia_moment_delta_factor = from.inertia_moment_delta_factor_; //!< tradeoff parameter for inertia moment
+
+    M_dash_power_rate_delta_min = from.dash_power_rate_delta_min_; //!< (obsolete) tradeoff parameter for dash power rate
+    M_dash_power_rate_delta_min = from.dash_power_rate_delta_max_; //!< (obsolete) tradeoff parameter for dash power rate
+    M_player_size_delta_factor = from.player_size_delta_factor_; //!< (obsolete) tradeoff parameter for player size
+
+    M_kickable_margin_delta_min = from.kickable_margin_delta_min_; //!< tradeoff parameter for kickable margin
+    M_kickable_margin_delta_max = from.kickable_margin_delta_max_; //!< tradeoff parameter for kickable margin
+    M_kick_rand_delta_factor = from.kick_rand_delta_factor_; //!< tradeoff parameter for kick rand
+
+    M_extra_stamina_delta_min = from.extra_stamina_delta_min_; //!< tradeoff parameter for extra stamina
+    M_extra_stamina_delta_max = from.extra_stamina_delta_max_; //!< tradeoff parameter for extra stamina
+    M_effort_max_delta_factor = from.effort_max_delta_factor_; //!< tradeoff parameter for effort max
+    M_effort_min_delta_factor = from.effort_min_delta_factor_; //!< tradeoff parameter for effort min
+
+    M_random_seed = from.random_seed_; //!< seed value to generate hetero parameters
+
+    M_new_dash_power_rate_delta_min = from.new_dash_power_rate_delta_min_; //!< tradeoff parameter for dash power rate
+    M_new_dash_power_rate_delta_max = from.new_dash_power_rate_delta_max_; //!< tradeoff parameter for dash power rate
+    M_new_stamina_inc_max_delta_factor = from.new_stamina_inc_max_delta_factor_; //!< tradeoff parameter for stamina inc max
+
+    // v14
+    M_kick_power_rate_delta_min = from.kick_power_rate_delta_min_; //!< tradeoff parameter for kick power rate
+    M_kick_power_rate_delta_max = from.kick_power_rate_delta_max_; //!< tradeoff parameter for kick power rate
+    M_foul_detect_probability_delta_factor = from.foul_detect_probability_delta_factor_; //!< tradeoff parameter for foul detect probability
+
+    M_catchable_area_l_stretch_min = from.catchable_area_l_stretch_min_; //!< tradeoff parameter for catch area length & catch probability
+    M_catchable_area_l_stretch_max = from.catchable_area_l_stretch_max_; //!< tradeoff parameter for catch area length & catch probability
+}
+
+/*-------------------------------------------------------------------*/
 /*!
 
 */

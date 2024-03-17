@@ -738,7 +738,7 @@ ParserV4::parsePlayerType( const int n_line,
                            const std::string & line,
                            Handler & handler ) const
 {
-    if ( ! handler.handlePlayerType( line ) )
+    if ( ! handler.handlePlayerType( PlayerTypeT( line ) ) )
     {
         std::cerr << n_line << ": error: "
                   << "Illegal player_type line. \"" << line << "\"" << std::endl;;
@@ -756,7 +756,7 @@ ParserV4::parseServerParam( const int n_line,
                             const std::string & line,
                             Handler & handler ) const
 {
-    if ( ! handler.handleServerParam( line ) )
+    if ( ! handler.handleServerParam( ServerParamT( line ) ) )
     {
         std::cerr << n_line << ": error: "
                   << "Illegal server_param line. \"" << line << "\"" << std::endl;;
@@ -774,7 +774,7 @@ ParserV4::parsePlayerParam( const int n_line,
                             const std::string & line,
                             Handler & handler ) const
 {
-    if ( ! handler.handlePlayerParam( line ) )
+    if ( ! handler.handlePlayerParam( PlayerParamT( line ) ) )
     {
         std::cerr << n_line << ": error: "
                   << "Illegal player_param line. \"" << line << "\"" << std::endl;;

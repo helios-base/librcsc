@@ -229,6 +229,32 @@ public:
                               const DispInfoT & disp ) override;
 
     /*!
+      \brief write ServerParamT
+      \param os reference to the output stream
+      \param param data to be written
+      \return reference to the output stream
+     */
+    std::ostream & serialize( std::ostream & os,
+                              const ServerParamT & param ) override;
+
+    /*!
+      \brief write PlayerParamT
+      \param os reference to the output stream
+      \param param data to be written
+      \return reference to the output stream
+     */
+    std::ostream & serialize( std::ostream & os,
+                              const PlayerParamT & param ) override;
+    /*!
+      \brief write PlayerTypeT
+      \param os reference to the output stream
+      \param param data to be written
+      \return reference to the output stream
+     */
+    std::ostream & serialize( std::ostream & os,
+                              const PlayerTypeT & param ) override;
+
+    /*!
       \brief write team_graphic
       \param os output stream
       \param side team side

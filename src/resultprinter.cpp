@@ -350,12 +350,19 @@ ResultPrinter::handleMsg( const int,
 {
     if ( ! msg.compare( 0, 8, "(result " ) )
     {
+        char datetime[128];
+        if ( std::sscanf( msg.c_str(), "(result %s ", datetime ) != 1 )
+        {
+            std::cerr << "No datetime information." << std::endl;
+            return false;
+        }
+
         tm t;
-        if ( strptime( msg.c_str(), "(result %Y%m%d%H%M%S ", &t ) )
+        if ( strptime( datetime, "%Y%m%d%H%M%S", &t ) != nullptr )
         {
             M_game_date = std::mktime( &t );
         }
-        else if ( strptime( msg.c_str(), "(result %Y%m%d%H%M ", &t ) )
+        else if ( strptime( datetime, "%Y%m%d%H%M", &t ) != nullptr )
         {
             t.tm_sec = 0;
             M_game_date = std::mktime( &t );

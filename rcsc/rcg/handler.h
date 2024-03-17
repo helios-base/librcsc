@@ -171,21 +171,21 @@ public:
 
     /*!
       \brief handle player_type_t
-      \param type handled data
+      \param type binary data
       \return result status
     */
     bool handlePlayerType( const player_type_t & type );
 
     /*!
       \brief handle server_params_t
-      \param param handled data
+      \param param binary data
       \return result status
     */
     bool handleServerParam( const server_params_t & param );
 
     /*!
       \brief handle player_params_t
-      \param param handled data
+      \param param binary data
       \return result status
     */
     bool handlePlayerParam( const player_params_t & param );
@@ -257,27 +257,28 @@ public:
 
     /*!
       \brief handle server_param message
-      \param msg raw message string
+      \param param parameter holder
       \return result status
     */
     virtual
-    bool handleServerParam( const std::string & msg ) = 0;
+    bool handleServerParam( const ServerParamT & param ) = 0;
 
     /*!
       \brief handle player_param message
-      \param msg raw message string
+      \param param parameter holder
       \return result status
     */
     virtual
-    bool handlePlayerParam( const std::string & msg ) = 0;
+    bool handlePlayerParam( const PlayerParamT & param ) = 0;
 
     /*!
       \brief handle player_type message
-      \param msg raw message string
+      \param param parameter holder
       \return result status
     */
     virtual
-    bool handlePlayerType( const std::string & msg ) = 0;
+    bool handlePlayerType( const PlayerTypeT & param ) = 0;
+
 
     //
     //
@@ -295,15 +296,6 @@ public:
     //
     // for JSON
     //
-
-    virtual
-    bool handleServerParam( const ServerParamT & param ) = 0;
-
-    virtual
-    bool handlePlayerParam( const PlayerParamT & param ) = 0;
-
-    virtual
-    bool handlePlayerType( const PlayerTypeT & param ) = 0;
 
     /*!
       \brief handle team_graphic message

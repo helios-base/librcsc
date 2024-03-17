@@ -321,6 +321,31 @@ SerializerV1::serialize( std::ostream & os,
 }
 
 /*-------------------------------------------------------------------*/
+std::ostream &
+SerializerV1::serialize( std::ostream & os,
+                         const ServerParamT & )
+{
+
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+std::ostream &
+SerializerV1::serialize( std::ostream & os,
+                         const PlayerParamT & )
+{
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+std::ostream &
+SerializerV1::serialize( std::ostream & os,
+                         const PlayerTypeT & )
+{
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
 /*!
 
 */

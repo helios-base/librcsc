@@ -35,9 +35,19 @@
 
 #include "types.h"
 
+#include "util.h"
+
 #include <map>
 #include <iostream>
 #include <iomanip>
+#include <cstring>
+
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
 
 namespace rcsc {
 namespace rcg {
@@ -308,7 +318,7 @@ parse_server_message( const std::string & msg,
     char message_name[32];
     if ( std::sscanf( msg.c_str(), " ( %31s %n ", message_name, &n_read ) != 1 )
     {
-        std::cerr << "(parse_server_message) ERROR: failed to parse the message type [" << msg << "]" << std::endl;
+        std::cerr << __FILE__ << ": (parse_server_message) ERROR Failed to parse the message type [" << msg << "]" << std::endl;
         return false;
     }
 
@@ -319,7 +329,7 @@ parse_server_message( const std::string & msg,
         std::string::size_type end_pos = msg.find_first_of( ' ', pos );
         if ( end_pos == std::string::npos )
         {
-            std::cerr << "(parse_server_message) ERROR: Could not find the seprator space. at " << pos
+            std::cerr << __FILE__ << ": (parse_server_message) ERROR Could not find the seprator space. at " << pos
                       << " [" << msg << "]" << std::endl;
             return false;
         }
@@ -333,8 +343,7 @@ parse_server_message( const std::string & msg,
         end_pos = msg.find_first_of( ")\"", end_pos ); //"
         if ( end_pos == std::string::npos )
         {
-            std::cerr << "(parse_server_message) Could not find the parameter value for [" << name_str << ']'
-                      << std::endl;
+            std::cerr << __FILE__ << " (parse_server_message) ERROR Could not find the parameter value for [" << name_str << ']' << std::endl;
             return false;
         }
 
@@ -345,7 +354,7 @@ parse_server_message( const std::string & msg,
             end_pos = msg.find_first_of( '\"', end_pos + 1 ); //"
             if ( end_pos == std::string::npos )
             {
-                std::cerr << "(parse_server_message) Could not parse the quated value for [" << name_str << ']'
+                std::cerr << __FILE__ << " (parse_server_message) ERROR Could not parse the quated value for [" << name_str << ']'
                           << std::endl;
                 return false;
             }
@@ -434,6 +443,22 @@ print_server_message( std::ostream & os,
 /*-------------------------------------------------------------------*/
 
 /*-------------------------------------------------------------------*/
+TeamT::TeamT( const team_t & from )
+    : TeamT()
+{
+    char buf[18];
+    std::memset( buf, 0, 18 );
+    std::strncpy( buf, from.name, sizeof( buf ) - 1 );
+
+    name_ = buf;
+    score_ = ntohs( from.score );
+}
+
+/*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
+
+/*-------------------------------------------------------------------*/
 ServerParamT::ServerParamT()
     : goal_width_( 14.02 ),
       inertia_moment_( 5.0 ),
@@ -501,13 +526,13 @@ ServerParamT::ServerParamT()
       port_( 6000 ),
       coach_port_( 6001 ),
       online_coach_port_( 6002 ),
-      say_coach_count_max_( 128 ),
-      say_coach_msg_size_( 128 ),
+      coach_say_count_max_( 128 ),
+      coach_say_msg_size_( 128 ),
       simulator_step_( 100 ),
       send_step_( 150 ),
       recv_step_( 10 ),
       sense_body_step_( 100 ),
-      say_msg_size_( 10 ),
+      player_say_msg_size_( 10 ),
       clang_win_size_( 300 ),
       clang_define_win_( 1 ),
       clang_meta_win_( 1 ),
@@ -517,9 +542,9 @@ ServerParamT::ServerParamT()
       clang_rule_win_( 1 ),
       clang_mess_delay_( 50 ),
       clang_mess_per_cycle_( 1 ),
-      hear_max_( 1 ),
-      hear_inc_( 1 ),
-      hear_decay_( 1 ),
+      player_hear_max_( 1 ),
+      player_hear_inc_( 1 ),
+      player_hear_decay_( 1 ),
       catch_ban_cycle_( 5 ),
       coach_mode_( false ),
       coach_with_referee_mode_( false ),
@@ -527,7 +552,7 @@ ServerParamT::ServerParamT()
       online_coach_look_step_( 100 ),
       use_offside_( true ),
       offside_active_area_size_( 2.5 ),
-      kick_off_offside_( true ),
+      kickoff_offside_( true ),
       verbose_( false ),
       offside_kick_margin_( 9.15 ),
       slow_down_factor_( 1 ),
@@ -633,11 +658,11 @@ ServerParamT::ServerParamT()
       fixed_teamname_l_( "" ),
       fixed_teamname_r_( "" ),
       max_catch_angle_( 180.0 ),
-      min_catch_angle_( -180.0 ),
-      dist_noise_rate_( 0.0125 ),
-      focus_dist_noise_rate_( 0.0125 ),
-      land_dist_noise_rate_( 0.00125 ),
-      land_focus_dist_noise_rate_( 0.00125 )
+      min_catch_angle_( -180.0 )
+      // dist_noise_rate_( 0.0125 ),
+      // focus_dist_noise_rate_( 0.0125 ),
+      // land_dist_noise_rate_( 0.00125 ),
+      // land_focus_dist_noise_rate_( 0.00125 )
 {
     param_map_.insert( ParamMap::value_type( "goal_width", &goal_width_ ) );
     param_map_.insert( ParamMap::value_type( "inertia_moment", &inertia_moment_ ) );
@@ -713,14 +738,14 @@ ServerParamT::ServerParamT()
     param_map_.insert( ParamMap::value_type( "port", &port_ ) );
     param_map_.insert( ParamMap::value_type( "coach_port", &coach_port_ ) );
     param_map_.insert( ParamMap::value_type( "olcoach_port", &online_coach_port_ ) );
-    param_map_.insert( ParamMap::value_type( "say_coach_cnt_max", &say_coach_count_max_ ) );
-    param_map_.insert( ParamMap::value_type( "say_coach_msg_size", &say_coach_msg_size_ ) );
+    param_map_.insert( ParamMap::value_type( "say_coach_cnt_max", &coach_say_count_max_ ) );
+    param_map_.insert( ParamMap::value_type( "say_coach_msg_size", &coach_say_msg_size_ ) );
     param_map_.insert( ParamMap::value_type( "simulator_step", &simulator_step_ ) );
     param_map_.insert( ParamMap::value_type( "send_step", &send_step_ ) );
     param_map_.insert( ParamMap::value_type( "recv_step", &recv_step_ ) );
     param_map_.insert( ParamMap::value_type( "sense_body_step", &sense_body_step_ ) );
     //( "lcm_step", &lcm_step_ ) ); // not needed
-    param_map_.insert( ParamMap::value_type( "say_msg_size", &say_msg_size_ ) );
+    param_map_.insert( ParamMap::value_type( "say_msg_size", &player_say_msg_size_ ) );
     param_map_.insert( ParamMap::value_type( "clang_win_size", &clang_win_size_ ) );
     param_map_.insert( ParamMap::value_type( "clang_define_win", &clang_define_win_ ) );
     param_map_.insert( ParamMap::value_type( "clang_meta_win", &clang_meta_win_ ) );
@@ -730,9 +755,9 @@ ServerParamT::ServerParamT()
     param_map_.insert( ParamMap::value_type( "clang_rule_win", &clang_rule_win_ ) );
     param_map_.insert( ParamMap::value_type( "clang_mess_delay", &clang_mess_delay_ ) );
     param_map_.insert( ParamMap::value_type( "clang_mess_per_cycle", &clang_mess_per_cycle_ ) );
-    param_map_.insert( ParamMap::value_type( "hear_max", &hear_max_ ) );
-    param_map_.insert( ParamMap::value_type( "hear_inc", &hear_inc_ ) );
-    param_map_.insert( ParamMap::value_type( "hear_decay", &hear_decay_ ) );
+    param_map_.insert( ParamMap::value_type( "hear_max", &player_hear_max_ ) );
+    param_map_.insert( ParamMap::value_type( "hear_inc", &player_hear_inc_ ) );
+    param_map_.insert( ParamMap::value_type( "hear_decay", &player_hear_decay_ ) );
     param_map_.insert( ParamMap::value_type( "catch_ban_cycle", &catch_ban_cycle_ ) );
     param_map_.insert( ParamMap::value_type( "coach", &coach_mode_ ) );
     param_map_.insert( ParamMap::value_type( "coach_w_referee", &coach_with_referee_mode_ ) );
@@ -740,7 +765,7 @@ ServerParamT::ServerParamT()
     param_map_.insert( ParamMap::value_type( "send_vi_step", &online_coach_look_step_ ) );
     param_map_.insert( ParamMap::value_type( "use_offside", &use_offside_ ) );
     param_map_.insert( ParamMap::value_type( "offside_kick_margin", &offside_kick_margin_ ) );
-    param_map_.insert( ParamMap::value_type( "forbid_kick_off_offside", &kick_off_offside_ ) );
+    param_map_.insert( ParamMap::value_type( "forbid_kick_off_offside", &kickoff_offside_ ) );
     param_map_.insert( ParamMap::value_type( "verbose", &verbose_ ) );
     param_map_.insert( ParamMap::value_type( "offside_active_area_size", &offside_active_area_size_ ) );
     param_map_.insert( ParamMap::value_type( "slow_down_factor", &slow_down_factor_ ) );
@@ -856,10 +881,10 @@ ServerParamT::ServerParamT()
     param_map_.insert( ParamMap::value_type( "max_catch_angle", &max_catch_angle_ ) );
     param_map_.insert( ParamMap::value_type( "min_catch_angle", &min_catch_angle_ ) );
     // 19.0
-    param_map_.insert( ParamMap::value_type( "dist_noise_rate", &dist_noise_rate_ ) );
-    param_map_.insert( ParamMap::value_type( "focus_dist_noise_rate", &focus_dist_noise_rate_ ) );
-    param_map_.insert( ParamMap::value_type( "land_dist_noise_rate", &land_dist_noise_rate_ ) );
-    param_map_.insert( ParamMap::value_type( "land_focus_dist_noise_rate", &land_focus_dist_noise_rate_ ) );
+    // param_map_.insert( ParamMap::value_type( "dist_noise_rate", &dist_noise_rate_ ) );
+    // param_map_.insert( ParamMap::value_type( "focus_dist_noise_rate", &focus_dist_noise_rate_ ) );
+    // param_map_.insert( ParamMap::value_type( "land_dist_noise_rate", &land_dist_noise_rate_ ) );
+    // param_map_.insert( ParamMap::value_type( "land_focus_dist_noise_rate", &land_focus_dist_noise_rate_ ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -874,6 +899,197 @@ bool
 ServerParamT::fromServerString( const std::string & msg )
 {
     return parse_server_message( msg, param_map_ );
+}
+
+/*-------------------------------------------------------------------*/
+bool
+ServerParamT::fromStruct( const server_params_t & from )
+{
+    goal_width_ = nltohd( from.goal_width );
+    inertia_moment_ = nltohd( from.inertia_moment );
+
+    player_size_ = nltohd( from.player_size );
+    player_decay_ = nltohd( from.player_decay );
+    player_rand_ = nltohd( from.player_rand );
+    player_weight_ = nltohd( from.player_weight );
+    player_speed_max_ = nltohd( from.player_speed_max );
+    player_accel_max_ = nltohd( from.player_accel_max );
+
+    stamina_max_ = nltohd( from.stamina_max );
+    stamina_inc_max_ = nltohd( from.stamina_inc );
+
+    recover_init_ = nltohd( from.recover_init );
+    recover_dec_thr_ = nltohd( from.recover_dec_thr );
+    recover_min_ = nltohd( from.recover_min );
+    recover_dec_ = nltohd( from.recover_dec );
+
+    effort_init_ = nltohd( from.effort_init );
+    effort_dec_thr_ = nltohd( from.effort_dec_thr );
+    effort_min_ = nltohd( from.effort_min );
+    effort_dec_ = nltohd( from.effort_dec );
+    effort_inc_thr_ = nltohd( from.effort_inc_thr );
+    effort_inc_ = nltohd( from.effort_inc );
+
+    kick_rand_ = nltohd( from.kick_rand );
+    team_actuator_noise_ = nstohb( from.team_actuator_noise );
+    player_rand_factor_l_ = nltohd( from.player_rand_factor_l );
+    player_rand_factor_r_ = nltohd( from.player_rand_factor_r );
+    kick_rand_factor_l_ = nltohd( from.kick_rand_factor_l );
+    kick_rand_factor_r_ = nltohd( from.kick_rand_factor_r );
+
+    ball_size_ = nltohd( from.ball_size );
+    ball_decay_ = nltohd( from.ball_decay );
+    ball_rand_ = nltohd( from.ball_rand );
+    ball_weight_ = nltohd( from.ball_weight );
+    ball_speed_max_ = nltohd( from.ball_speed_max );
+    ball_accel_max_ = nltohd( from.ball_accel_max );
+
+    dash_power_rate_ = nltohd( from.dash_power_rate );
+    kick_power_rate_ = nltohd( from.kick_power_rate );
+    kickable_margin_ = nltohd( from.kickable_margin );
+    control_radius_ = nltohd( from.control_radius );
+    //control_radius_width_ = nltohd( from.control_radius_width );
+
+    max_power_ = nltohd( from.max_power );
+    min_power_ = nltohd( from.min_power );
+    max_moment_ = nltohd( from.max_moment );
+    min_moment_ = nltohd( from.min_moment );
+    max_neck_moment_ = nltohd( from.max_neck_moment );
+    min_neck_moment_ = nltohd( from.min_neck_moment );
+    max_neck_angle_ = nltohd( from.max_neck_angle );
+    min_neck_angle_ = nltohd( from.min_neck_angle );
+
+    visible_angle_ = nltohd( from.visible_angle );
+    visible_distance_ = nltohd( from.visible_distance );
+
+    wind_dir_ = nltohd( from.wind_dir );
+    wind_force_ = nltohd( from.wind_force );
+    wind_angle_ = nltohd( from.wind_ang );
+    wind_rand_ = nltohd( from.wind_rand );
+
+    //kickable_area_ = nltohd( from.kickable_area );
+
+    catchable_area_l_ = nltohd( from.catch_area_l );
+    catchable_area_w_ = nltohd( from.catch_area_w );
+    catch_probability_ = nltohd( from.catch_probability );
+    goalie_max_moves_ = nstohi( from.goalie_max_moves );
+
+    corner_kick_margin_ = nltohd( from.corner_kick_margin );
+    offside_active_area_size_ = nltohd( from.offside_active_area );
+
+    wind_none_ = nstohb( from.wind_none );
+    use_wind_random_ = nstohb( from.use_wind_random );
+
+    coach_say_count_max_ = nstohi( from.coach_say_count_max );
+    coach_say_msg_size_ = nstohi( from.coach_say_msg_size );
+
+    clang_win_size_ = nstohi( from.clang_win_size );
+    clang_define_win_ = nstohi( from.clang_define_win );
+    clang_meta_win_ = nstohi( from.clang_meta_win );
+    clang_advice_win_ = nstohi( from.clang_advice_win );
+    clang_info_win_ = nstohi( from.clang_info_win );
+    clang_mess_delay_ = nstohi( from.clang_mess_delay );
+    clang_mess_per_cycle_ = nstohi( from.clang_mess_per_cycle );
+
+    half_time_ = nstohi( from.half_time );
+    simulator_step_ = nstohi( from.simulator_step );
+    send_step_ = nstohi( from.send_step );
+    recv_step_ = nstohi( from.recv_step );
+    sense_body_step_ = nstohi( from.sense_body_step );
+    //lcm_step_ = nstohi( from.lcm_step )
+
+    player_say_msg_size_ = nstohi( from.player_say_msg_size );
+    player_hear_max_ = nstohi( from.player_hear_max );
+    player_hear_inc_ = nstohi( from.player_hear_inc );
+    player_hear_decay_ = nstohi( from.player_hear_decay );
+
+    catch_ban_cycle_ = nstohi( from.catch_ban_cycle );
+
+    slow_down_factor_ = nstohi( from.slow_down_factor );
+
+    use_offside_ = nstohb( from.use_offside);
+    kickoff_offside_ = nstohb( from.kickoff_offside );
+    offside_kick_margin_ = nltohd( from.offside_kick_margin );
+
+    audio_cut_dist_ = nltohd(from.audio_cut_dist );
+
+    dist_quantize_step_ = nltohd( from.dist_quantize_step );
+    landmark_dist_quantize_step_ = rcg::nltohd( from.landmark_dist_quantize_step );
+    //nltohd( from.dir_quantize_step )
+    //nltohd( from.dist_quantize_step_l )
+    //nltohd( from.dist_quantize_step_r )
+    //nltohd( from.landmark_dist_quantize_step_l )
+    //nltohd( from.landmark_dist_quantize_step_r )
+    //nltohd( from.dir_quantize_step_l )
+    //nltohd( from.dir_quantize_step_r )
+
+    coach_mode_ = nstohb( from.coach_mode );
+    coach_with_referee_mode_ = nstohb( from.coach_with_referee_mode );
+    use_old_coach_hear_ = nstohb( from.use_old_coach_hear );
+
+    online_coach_look_step_ = nstohi( from.online_coach_look_step );
+
+    slowness_on_top_for_left_team_ = nltohd( from.slowness_on_top_for_left_team );
+    slowness_on_top_for_right_team_ = nltohd( from.slowness_on_top_for_right_team );
+
+    keepaway_length_ = nltohd( from.ka_length );
+    keepaway_width_ = nltohd( from.ka_width );;
+
+    double tmp = 0.0;
+    // 11.0.0
+    tmp = nltohd( from.ball_stuck_area );
+    if ( std::fabs( tmp ) < 1000.0 )
+    {
+        ball_stuck_area_ = tmp;;
+    }
+
+    // 12.0.0
+    tmp = nltohd( from.max_tackle_power );
+    if ( 0.0 < tmp && std::fabs( tmp ) < 200.0 )
+    {
+        max_tackle_power_ = tmp;;
+    }
+
+    tmp = nltohd( from.max_back_tackle_power );
+    if ( 0.0 < tmp && std::fabs( tmp ) < 200.0 )
+    {
+        max_back_tackle_power_ = tmp;;
+    }
+
+    tmp = nltohd( from.tackle_dist );
+    if ( 0.0 <= tmp && std::fabs( tmp ) < 3.0 )
+    {
+        tackle_dist_ = tmp;;
+    }
+
+    tmp = nltohd( from.tackle_back_dist );
+    if ( 0.0 <= tmp && std::fabs( tmp ) < 1.0 )
+    {
+        tackle_back_dist_ = tmp;;
+    }
+
+    tmp = nltohd( from.tackle_width );
+    if ( 0.0 < tmp && std::fabs( tmp ) < 2.0 )
+    {
+        tackle_width_ = tmp;;
+    }
+
+    start_goal_l_ = nstohi( from.start_goal_l );
+    start_goal_r_ = nstohi( from.start_goal_r );
+
+    fullstate_l_ = nstohb( from.fullstate_l );
+    fullstate_r_ = nstohb( from.fullstate_r );
+
+    drop_ball_time_ = nstohi( from.drop_ball_time );
+
+    synch_mode_ = nstohb( from.synch_mode );
+    synch_offset_ = nstohi( from.synch_offset );
+    synch_micro_sleep_ = nstohi( from.synch_micro_sleep );
+
+    point_to_ban_ = nstohi( from.point_to_ban );
+    point_to_duration_ = nstohi( from.point_to_duration );
+
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
@@ -923,7 +1139,7 @@ ServerParamT::setString( const std::string & name,
 /*-------------------------------------------------------------------*/
 PlayerParamT::PlayerParamT()
     : player_types_( 18 ),
-      subs_max_( 3 ),
+      substitute_max_( 3 ),
       pt_max_( 1 ),
       allow_mult_default_type_( false ),
       player_speed_max_delta_min_( 0.0 ),
@@ -953,7 +1169,7 @@ PlayerParamT::PlayerParamT()
       catchable_area_l_stretch_max_( 0.0 )
 {
     param_map_.insert( ParamMap::value_type( "player_types", &player_types_ ) );
-    param_map_.insert( ParamMap::value_type( "subs_max", &subs_max_ ) );
+    param_map_.insert( ParamMap::value_type( "subs_max", &substitute_max_ ) );
     param_map_.insert( ParamMap::value_type( "pt_max", &pt_max_ ) );
     param_map_.insert( ParamMap::value_type( "allow_mult_default_type", &allow_mult_default_type_ ) );
     param_map_.insert( ParamMap::value_type( "player_speed_max_delta_min", &player_speed_max_delta_min_ ) );
@@ -996,6 +1212,53 @@ bool
 PlayerParamT::fromServerString( const std::string & msg )
 {
     return parse_server_message( msg, param_map_ );
+}
+
+/*-------------------------------------------------------------------*/
+bool
+PlayerParamT::fromStruct( const player_params_t & from )
+{
+    player_types_ = nstohi( from.player_types );
+    substitute_max_ = nstohi( from.substitute_max );
+    pt_max_ = nstohi( from.pt_max );
+
+    player_speed_max_delta_min_ = nltohd( from.player_speed_max_delta_min );
+    player_speed_max_delta_max_ = nltohd( from.player_speed_max_delta_max );
+    stamina_inc_max_delta_factor_ = nltohd( from.stamina_inc_max_delta_factor );
+
+    player_decay_delta_min_ = nltohd( from.player_decay_delta_min );
+    player_decay_delta_max_ = nltohd( from.player_decay_delta_max );
+    inertia_moment_delta_factor_ = nltohd( from.inertia_moment_delta_factor );
+
+    dash_power_rate_delta_min_ = nltohd( from.dash_power_rate_delta_min );
+    dash_power_rate_delta_max_ = nltohd( from.dash_power_rate_delta_max );
+    player_size_delta_factor_ = nltohd( from.player_size_delta_factor );
+
+    kickable_margin_delta_min_ = nltohd( from.kickable_margin_delta_min );
+    kickable_margin_delta_max_ = nltohd( from.kickable_margin_delta_max );
+    kick_rand_delta_factor_ = nltohd( from.kick_rand_delta_factor );
+
+    extra_stamina_delta_min_ = nltohd( from.extra_stamina_delta_min );
+    extra_stamina_delta_max_ = nltohd( from.extra_stamina_delta_max );
+    effort_max_delta_factor_ = nltohd( from.effort_max_delta_factor );
+    effort_min_delta_factor_ = nltohd( from.effort_min_delta_factor );
+
+    random_seed_ = static_cast< int >( static_cast< rcg::Int32 >( ntohl( from.random_seed ) ) );
+
+    new_dash_power_rate_delta_min_ = nltohd( from.new_dash_power_rate_delta_min );
+    new_dash_power_rate_delta_max_ = nltohd( from.new_dash_power_rate_delta_max );
+    new_stamina_inc_max_delta_factor_ = nltohd( from.new_stamina_inc_max_delta_factor );
+
+    allow_mult_default_type_ = nstohb( from.allow_mult_default_type );
+
+    kick_power_rate_delta_min_ = nltohd( from.kick_power_rate_delta_min );
+    kick_power_rate_delta_max_ = nltohd( from.kick_power_rate_delta_max );
+    foul_detect_probability_delta_factor_ = nltohd( from.foul_detect_probability_delta_factor );
+
+    catchable_area_l_stretch_min_ = nltohd( from.catchable_area_l_stretch_min );
+    catchable_area_l_stretch_max_ = nltohd( from.catchable_area_l_stretch_max );
+
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
@@ -1074,10 +1337,10 @@ PlayerTypeT::PlayerTypeT()
     param_map_.insert( ParamMap::value_type( "flag_chg_too_far_length", &flag_chg_too_far_length_ ) );
     param_map_.insert( ParamMap::value_type( "flag_max_observation_length", &flag_max_observation_length_ ) );
     // 19.0
-    param_map_.insert( ParamMap::value_type( "dist_noise_rate", &dist_noise_rate_ ) );
-    param_map_.insert( ParamMap::value_type( "focus_dist_noise_rate", &focus_dist_noise_rate_ ) );
-    param_map_.insert( ParamMap::value_type( "land_dist_noise_rate", &land_dist_noise_rate_ ) );
-    param_map_.insert( ParamMap::value_type( "land_focus_dist_noise_rate", &land_focus_dist_noise_rate_ ) );
+    // param_map_.insert( ParamMap::value_type( "dist_noise_rate", &dist_noise_rate_ ) );
+    // param_map_.insert( ParamMap::value_type( "focus_dist_noise_rate", &focus_dist_noise_rate_ ) );
+    // param_map_.insert( ParamMap::value_type( "land_dist_noise_rate", &land_dist_noise_rate_ ) );
+    // param_map_.insert( ParamMap::value_type( "land_focus_dist_noise_rate", &land_focus_dist_noise_rate_ ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -1117,10 +1380,10 @@ PlayerTypeT::toServerString( std::ostream & os ) const
     to_sexp( os, "flag_chg_too_far_length", quantize( flag_chg_too_far_length_, 0.000001 ) );
     to_sexp( os, "flag_max_observation_length", quantize( flag_max_observation_length_, 0.000001 ) );
     // 19.0
-    to_sexp( os, "dist_noise_rate", dist_noise_rate_ );
-    to_sexp( os, "focus_dist_noise_rate", dist_noise_rate_ );
-    to_sexp( os, "land_dist_noise_rate", dist_noise_rate_ );
-    to_sexp( os, "land_focus_dist_noise_rate", dist_noise_rate_ );
+    // to_sexp( os, "dist_noise_rate", dist_noise_rate_ );
+    // to_sexp( os, "focus_dist_noise_rate", dist_noise_rate_ );
+    // to_sexp( os, "land_dist_noise_rate", dist_noise_rate_ );
+    // to_sexp( os, "land_focus_dist_noise_rate", dist_noise_rate_ );
 
     os << ')';
 
@@ -1132,6 +1395,42 @@ bool
 PlayerTypeT::fromServerString( const std::string & msg )
 {
     return parse_server_message( msg, param_map_ );
+}
+
+/*-------------------------------------------------------------------*/
+bool
+PlayerTypeT::fromStruct( const player_type_t & from )
+{
+    id_ = nstohi( from.id );
+
+    player_speed_max_ = nltohd( from.player_speed_max );
+    stamina_inc_max_ = nltohd( from.stamina_inc_max );
+    player_decay_ = nltohd( from.player_decay );
+    inertia_moment_ = nltohd( from.inertia_moment );
+    dash_power_rate_ = nltohd( from.dash_power_rate );
+    player_size_ = nltohd( from.player_size );
+    kickable_margin_ = nltohd( from.kickable_margin );
+    kick_rand_ = nltohd( from.kick_rand );
+    extra_stamina_ = nltohd( from.extra_stamina );
+    effort_max_ = nltohd( from.effort_max );
+    effort_min_ = nltohd( from.effort_min );;
+
+    if ( from.kick_power_rate != 0 )
+    {
+        kick_power_rate_ = nltohd( from.kick_power_rate );;
+    }
+
+    if ( from.foul_detect_probability != 0 )
+    {
+        foul_detect_probability_ = nltohd( from.foul_detect_probability );;
+    }
+
+    if ( from.catchable_area_l_stretch != 0 )
+    {
+        catchable_area_l_stretch_ = nltohd( from.catchable_area_l_stretch );;
+    }
+
+    return true;
 }
 
 /*-------------------------------------------------------------------*/

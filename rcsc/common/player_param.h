@@ -40,6 +40,7 @@ namespace rcsc {
 
 namespace rcg {
 struct player_params_t;
+struct PlayerParamT;
 }
 class ParamMap;
 
@@ -196,6 +197,12 @@ public:
       \param from monitor protocol data structure
      */
     void convertFrom( const rcg::player_params_t & from );
+
+    /*!
+      \brief convert parameters from the type in the rcg parser library.
+      \param from data structure for the rcg parser
+     */
+    void convertFrom( const rcg::PlayerParamT & from );
 
     /*!
       \brief convert parameters to monitor protcol data

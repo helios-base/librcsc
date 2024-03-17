@@ -304,6 +304,30 @@ SerializerV2::serialize( std::ostream & os,
     return serialize( os, disp.show_ );
 }
 
+/*-------------------------------------------------------------------*/
+std::ostream &
+SerializerV2::serialize( std::ostream & os,
+                         const ServerParamT & )
+{
+
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+std::ostream &
+SerializerV2::serialize( std::ostream & os,
+                         const PlayerParamT & )
+{
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+std::ostream &
+SerializerV2::SerializerV2::serialize( std::ostream & os,
+                                       const PlayerTypeT & )
+{
+    return os;
+}
 
 /*-------------------------------------------------------------------*/
 /*!

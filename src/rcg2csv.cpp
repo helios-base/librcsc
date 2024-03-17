@@ -101,13 +101,11 @@ public:
     bool handleTeam( const int time,
                      const rcsc::rcg::TeamT & team_l,
                      const rcsc::rcg::TeamT & team_r ) override;
-    bool handleServerParam( const std::string & msg ) override;
-    bool handlePlayerParam( const std::string & msg ) override ;
-    bool handlePlayerType( const std::string & msg ) override;
 
     bool handleServerParam( const rcsc::rcg::ServerParamT & param ) override;
     bool handlePlayerParam( const rcsc::rcg::PlayerParamT & param ) override;
     bool handlePlayerType( const rcsc::rcg::PlayerTypeT & param ) override;
+
     bool handleTeamGraphic( const rcsc::SideID,
                             const int,
                             const int,
@@ -267,70 +265,26 @@ CSVPrinter::handleTeam( const int,
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-CSVPrinter::handleServerParam( const std::string & msg )
-{
-    if ( ! rcsc::ServerParam::instance().parse( msg.c_str(), 8 ) )
-    {
-        return false;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-CSVPrinter::handlePlayerParam( const std::string & msg )
-{
-    if ( ! rcsc::PlayerParam::instance().parse( msg.c_str(), 8 ) )
-    {
-        return false;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-CSVPrinter::handlePlayerType( const std::string & )
-{
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
 bool
 CSVPrinter::handleServerParam( const rcsc::rcg::ServerParamT & param )
 {
-    std::ostringstream os;
-    param.toServerString( os );
-    return handleServerParam( os.str() );
+    rcsc::ServerParam::instance().convertFrom( param );
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
 bool
 CSVPrinter::handlePlayerParam( const rcsc::rcg::PlayerParamT & param )
 {
-    std::ostringstream os;
-    param.toServerString( os );
-    return handlePlayerParam( os.str() );
+    rcsc::PlayerParam::instance().convertFrom( param );
+    return true;
 }
 
 /*-------------------------------------------------------------------*/
 bool
-CSVPrinter::handlePlayerType( const rcsc::rcg::PlayerTypeT & param )
+CSVPrinter::handlePlayerType( const rcsc::rcg::PlayerTypeT & )
 {
-    std::ostringstream os;
-    param.toServerString( os );
-    return handlePlayerType( os.str() );
+    return true;
 }
 
 /*-------------------------------------------------------------------*/

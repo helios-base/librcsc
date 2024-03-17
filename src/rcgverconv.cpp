@@ -76,9 +76,6 @@ public:
     bool handleTeam( const int time,
                      const rcsc::rcg::TeamT & team_l,
                      const rcsc::rcg::TeamT & team_r ) override;
-    bool handleServerParam( const std::string & msg ) override;
-    bool handlePlayerParam( const std::string & msg ) override;
-    bool handlePlayerType( const std::string & msg ) override;
 
     bool handleServerParam( const rcsc::rcg::ServerParamT & param ) override;
     bool handlePlayerParam( const rcsc::rcg::PlayerParamT & param ) override;
@@ -231,54 +228,6 @@ VersionConverter::handleTeam( const int,
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-VersionConverter::handleServerParam( const std::string & msg )
-{
-    if ( ! M_serializer )
-    {
-        return false;
-    }
-
-    M_serializer->serializeParam( M_os, msg );
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-VersionConverter::handlePlayerParam( const std::string & msg )
-{
-    if ( ! M_serializer )
-    {
-        return false;
-    }
-
-    M_serializer->serializeParam( M_os, msg );
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-VersionConverter::handlePlayerType( const std::string & msg )
-{
-    if ( ! M_serializer )
-    {
-        return false;
-    }
-
-    M_serializer->serializeParam( M_os, msg );
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
 bool
 VersionConverter::handleServerParam( const rcsc::rcg::ServerParamT & param )
 {
@@ -287,12 +236,11 @@ VersionConverter::handleServerParam( const rcsc::rcg::ServerParamT & param )
         return false;
     }
 
-    std::ostringstream ostr;
-    param.toServerString( ostr );
-    M_serializer->serializeParam( M_os, ostr.str() );
+    M_serializer->serialize( M_os, param );
     return true;
 }
 
+/*-------------------------------------------------------------------*/
 bool
 VersionConverter::handlePlayerParam( const rcsc::rcg::PlayerParamT & param )
 {
@@ -301,12 +249,11 @@ VersionConverter::handlePlayerParam( const rcsc::rcg::PlayerParamT & param )
         return false;
     }
 
-    std::ostringstream ostr;
-    param.toServerString( ostr );
-    M_serializer->serializeParam( M_os, ostr.str() );
+    M_serializer->serialize( M_os, param );
     return true;
 }
 
+/*-------------------------------------------------------------------*/
 bool
 VersionConverter::handlePlayerType( const rcsc::rcg::PlayerTypeT & param )
 {
@@ -315,9 +262,7 @@ VersionConverter::handlePlayerType( const rcsc::rcg::PlayerTypeT & param )
         return false;
     }
 
-    std::ostringstream ostr;
-    param.toServerString( ostr );
-    M_serializer->serializeParam( M_os, ostr.str() );
+    M_serializer->serialize( M_os, param );
     return true;
 }
 

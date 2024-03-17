@@ -21,15 +21,6 @@
 /*
 
 // first line
-(Init (goal_width 14.02) (player_size 0.299988)
-(ball_size 0.0849915) (kickable_margin 0.699997)
-(visible_distance 3) (kickable_area 1.08498)
-(catchable_area_l 2) (catchable_area_w 1)
-(half_time 3000) (ckick_margin 1)
-(offside_active_area_size 2.5)
-(offside_kick_margin 9.14999)
-(audio_cut_dist 50))
-
 (Info (state <time> <playmode> <score_l> <score_r>)
 (ball <x> <y> <vx> <vy>)
 (player {l|r} <unum>[ g]
@@ -104,7 +95,6 @@ private:
 
     std::ostream & M_os;
 
-    bool M_init_written;
     rcsc::PlayMode M_playmode;
     std::string M_left_team_name;
     std::string M_right_team_name;
@@ -134,17 +124,10 @@ public:
                      const rcsc::rcg::TeamT & team_l,
                      const rcsc::rcg::TeamT & team_r ) override;
 
-    bool handleServerParam( const std::string & msg ) override;
-    bool handlePlayerParam( const std::string & ) override
+    bool handleServerParam( const rcsc::rcg::ServerParamT & ) override
       {
           return true;
       }
-    bool handlePlayerType( const std::string & ) override
-      {
-          return true;
-      }
-
-    bool handleServerParam( const rcsc::rcg::ServerParamT & param ) override;
     bool handlePlayerParam( const rcsc::rcg::PlayerParamT & ) override
       {
           return true;
@@ -153,6 +136,7 @@ public:
       {
           return true;
       }
+
     bool handleTeamGraphic( const rcsc::SideID,
                             const int,
                             const int,
@@ -193,7 +177,6 @@ private:
  */
 TextPrinter::TextPrinter( std::ostream & os )
     : M_os( os ),
-      M_init_written( false ),
       M_playmode( rcsc::PM_Null ),
       M_left_team_name( "" ),
       M_right_team_name( "" ),
@@ -226,12 +209,6 @@ TextPrinter::handleEOF()
 bool
 TextPrinter::handleShow( const rcsc::rcg::ShowInfoT & show )
 {
-    if ( ! M_init_written )
-    {
-        M_init_written = true;
-        M_os << "(Init)" << "\n";
-    }
-
     M_os << "(Info ";
     printState( M_os, show.time_ );
 
@@ -315,33 +292,6 @@ TextPrinter::handleTeam( const int,
     M_right_score = team_r.score_;
 
     return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-TextPrinter::handleServerParam( const std::string & msg )
-{
-    std::string::size_type pos = msg.find_first_of( ' ' );
-    if ( pos != std::string::npos )
-    {
-        M_init_written = true;
-        M_os << "(Init"
-             << msg.substr( pos )
-             << '\n';
-    }
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-bool
-TextPrinter::handleServerParam( const rcsc::rcg::ServerParamT & param )
-{
-    std::ostringstream os;
-    param.toServerString( os );
-    return handleServerParam( os.str() );
 }
 
 /*-------------------------------------------------------------------*/

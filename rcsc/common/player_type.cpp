@@ -39,6 +39,7 @@
 #include "server_param.h"
 #include "stamina_model.h"
 
+#include <rcsc/rcg/types.h>
 #include <rcsc/rcg/util.h>
 
 #include <random>
@@ -169,6 +170,47 @@ PlayerType::PlayerType( const rcg::player_type_t & from )
     if ( from.kick_power_rate != 0 ) M_kick_power_rate = rcg::nltohd( from.kick_power_rate );
     if ( from.foul_detect_probability != 0 ) M_foul_detect_probability = rcg::nltohd( from.foul_detect_probability );
     if ( from.catchable_area_l_stretch != 0 ) M_catchable_area_l_stretch = rcg::nltohd( from.catchable_area_l_stretch );
+
+    initAdditionalParams();
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+PlayerType::PlayerType( const rcg::PlayerTypeT & from )
+    : M_id( Hetero_Unknown )
+{
+    setDefault();
+
+    M_id = from.id_;
+    M_player_speed_max = from.player_speed_max_;
+    M_stamina_inc_max = from.stamina_inc_max_;
+    M_player_decay = from.player_decay_;
+    M_inertia_moment = from.inertia_moment_;
+    M_dash_power_rate = from.dash_power_rate_;
+    M_player_size = from.player_size_;
+    M_kickable_margin = from.kickable_margin_;
+    M_kick_rand = from.kick_rand_;
+    M_extra_stamina = from.extra_stamina_;
+    M_effort_max = from.effort_max_;
+    M_effort_min = from.effort_min_;
+
+    M_kick_power_rate = from.kick_power_rate_;
+    M_foul_detect_probability = from.foul_detect_probability_;
+    M_catchable_area_l_stretch = from.catchable_area_l_stretch_;
+
+    M_unum_far_length = from.unum_far_length_;
+    M_unum_too_far_length = from.unum_too_far_length_;
+    M_team_far_length = from.team_far_length_;
+    M_team_too_far_length = from.team_too_far_length_;
+    M_player_max_observation_length = from.player_max_observation_length_;
+    M_ball_vel_far_length = from.ball_vel_far_length_;
+    M_ball_vel_too_far_length = from.ball_vel_too_far_length_;
+    M_ball_max_observation_length = from.ball_max_observation_length_;
+    M_flag_chg_far_length = from.flag_chg_far_length_;
+    M_flag_chg_too_far_length = from.flag_chg_too_far_length_;
+    M_flag_max_observation_length = from.flag_max_observation_length_;
 
     initAdditionalParams();
 }

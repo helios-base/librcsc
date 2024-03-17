@@ -225,11 +225,7 @@ bool
 Handler::handleTeamInfo( const team_t & team_left,
                          const team_t & team_right )
 {
-    TeamT l, r;
-    convert( team_left, l );
-    convert( team_right, r );
-
-    return handleTeam( M_read_time, l, r );
+    return handleTeam( M_read_time, TeamT( team_left ), TeamT( team_right ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -239,7 +235,7 @@ Handler::handleTeamInfo( const team_t & team_left,
 bool
 Handler::handlePlayerType( const player_type_t & type )
 {
-    return handlePlayerType( to_string( type ) );
+    return handlePlayerType( PlayerTypeT( type ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -249,7 +245,7 @@ Handler::handlePlayerType( const player_type_t & type )
 bool
 Handler::handleServerParam( const server_params_t & param )
 {
-    return handleServerParam( to_string( param ) );
+    return handleServerParam( ServerParamT( param ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -259,7 +255,7 @@ Handler::handleServerParam( const server_params_t & param )
 bool
 Handler::handlePlayerParam( const player_params_t & param )
 {
-    return handlePlayerParam( to_string( param ) );
+    return handlePlayerParam( PlayerParamT( param ) );
 }
 
 /*-------------------------------------------------------------------*/

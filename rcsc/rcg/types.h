@@ -1031,6 +1031,9 @@ struct TeamT {
           pen_miss_( 0 )
       { }
 
+    explicit
+    TeamT( const team_t & from );
+
     /*!
       \brief initialize all variables by specified values
       \param name team name
@@ -1210,13 +1213,13 @@ struct ServerParamT {
     int port_;
     int coach_port_;
     int online_coach_port_;
-    int say_coach_count_max_;
-    int say_coach_msg_size_;
+    int coach_say_count_max_;
+    int coach_say_msg_size_;
     int simulator_step_;
     int send_step_; // player's see message interval for (normal,high) mode
     int recv_step_;
     int sense_body_step_;
-    int say_msg_size_;
+    int player_say_msg_size_;
     int clang_win_size_;
     int clang_define_win_;
     int clang_meta_win_;
@@ -1226,9 +1229,9 @@ struct ServerParamT {
     int clang_rule_win_;
     int clang_mess_delay_;
     int clang_mess_per_cycle_;
-    int hear_max_;
-    int hear_inc_;
-    int hear_decay_;
+    int player_hear_max_;
+    int player_hear_inc_;
+    int player_hear_decay_;
     int catch_ban_cycle_;
     bool coach_mode_;
     bool coach_with_referee_mode_;
@@ -1236,7 +1239,7 @@ struct ServerParamT {
     int online_coach_look_step_; // send_vi_step: online coach's see_global interval
     bool use_offside_;
     double offside_active_area_size_;
-    bool kick_off_offside_; // forbid_kick_off_offside
+    bool kickoff_offside_; // forbid_kick_off_offside
     bool verbose_;
     double offside_kick_margin_;
     int slow_down_factor_;
@@ -1359,12 +1362,28 @@ struct ServerParamT {
 
     ServerParamT();
 
+    explicit
+    ServerParamT( const std::string & msg )
+        : ServerParamT()
+      {
+          fromServerString( msg );
+      }
+
+    explicit
+    ServerParamT( const server_params_t & param )
+        : ServerParamT()
+      {
+          fromStruct( param );
+      }
+
     /*!
       \brief print s-expression message
      */
     std::ostream & toServerString( std::ostream & os ) const;
 
     bool fromServerString( const std::string & msg );
+
+    bool fromStruct( const server_params_t & data );
 
     bool setValue( const std::string & name,
                    const std::string & value );
@@ -1378,8 +1397,10 @@ struct ServerParamT {
     bool setString( const std::string & name,
                     const std::string & value );
 private:
-    ParamMap param_map_;
+    ServerParamT( const ServerParamT & ) = delete;
+    const ServerParamT & operator=( const ServerParamT & ) = delete;
 
+    ParamMap param_map_;
 };
 
 
@@ -1389,7 +1410,7 @@ private:
  */
 struct PlayerParamT {
     int player_types_;
-    int subs_max_;
+    int substitute_max_;
     int pt_max_;
 
     bool allow_mult_default_type_;
@@ -1430,6 +1451,20 @@ struct PlayerParamT {
 
     PlayerParamT();
 
+    explicit
+    PlayerParamT( const std::string & msg )
+        : PlayerParamT()
+      {
+          fromServerString( msg );
+      }
+
+    explicit
+    PlayerParamT( const player_params_t & data )
+        : PlayerParamT()
+      {
+          fromStruct( data );
+      }
+
     /*!
       \brief print s-expression message
      */
@@ -1440,6 +1475,8 @@ struct PlayerParamT {
      */
     bool fromServerString( const std::string & msg );
 
+    bool fromStruct( const player_params_t & data );
+
     bool setInt( const std::string & name,
                  const int value );
     bool setDouble( const std::string & name,
@@ -1447,6 +1484,8 @@ struct PlayerParamT {
     bool setBool( const std::string & name,
                   const bool value );
 private:
+    PlayerParamT( const PlayerParamT & ) = delete;
+    const PlayerParamT& operator=( const PlayerParamT & ) = delete;
 
     ParamMap param_map_;
 };
@@ -1488,12 +1527,24 @@ struct PlayerTypeT {
     double flag_max_observation_length_;
 
     // v19
-    double dist_noise_rate_;
-    double focus_dist_noise_rate_;
-    double land_dist_noise_rate_;
-    double land_focus_dist_noise_rate_;
+    // double dist_noise_rate_;
+    // double focus_dist_noise_rate_;
+    // double land_dist_noise_rate_;
+    // double land_focus_dist_noise_rate_;
 
     PlayerTypeT();
+
+    PlayerTypeT( const std::string & msg )
+        : PlayerTypeT()
+      {
+          fromServerString( msg );
+      }
+
+    PlayerTypeT( const player_type_t & data )
+        : PlayerTypeT()
+      {
+          fromStruct( data );
+      }
 
     /*!
       \brief print s-expression message
@@ -1501,6 +1552,8 @@ struct PlayerTypeT {
     std::ostream & toServerString( std::ostream & os ) const;
 
     bool fromServerString( const std::string & msg );
+
+    bool fromStruct( const player_type_t & data );
 
     bool setValue( const std::string & name,
                    const std::string & value );
@@ -1510,6 +1563,9 @@ struct PlayerTypeT {
                     const double value );
 
 private:
+    PlayerTypeT( const PlayerTypeT & ) = delete;
+    const PlayerTypeT & operator=( const PlayerTypeT & ) = delete;
+
     ParamMap param_map_;
 
 };
