@@ -37,7 +37,6 @@
 
 #include "handler.h"
 #include "types.h"
-#include "xpm_tile.h"
 
 #include "nlohmann/json.hpp"
 
@@ -270,27 +269,30 @@ public:
     void handlePlayerParam( const PlayerParamT & param )
       {
           //M_handler.handlePlayerParam( param );
-          param.toServerString( std::cout );
-          std::cout << std::endl;
+          // param.toServerString( std::cout );
+          // std::cout << std::endl;
       }
 
     void handlePlayerType( const PlayerTypeT & param )
       {
           //M_handler.handlePlayerType( param );
-          param.toServerString( std::cout );
-          std::cout << std::endl;
+          // param.toServerString( std::cout );
+          // std::cout << std::endl;
       }
 
     void handleTeamGraphic( const SideID side,
                             const int x,
                             const int y,
-                            const std::shared_ptr< XpmTile > tile )
+                            const std::vector< std::string > & xpm_data )
       {
-          //M_handler.handleTeamGraphic();
-          std::cout << "team_graphic " << side_char( side )
-                    << " (" << x << ',' << y << ") ["
-                    << tile->header() << "]" << std::endl;
-
+          //M_handler.handleTeamGraphic( side, x, y, xpm_data );
+          // std::cout << "team_graphic " << side_char( side )
+          //           << " (" << x << ',' << y << ") ";
+          // for ( const std::string & s : xpm_data )
+          // {
+          //     std::cout << ' ' << '"' << s << '"';
+          // }
+          // std::cout << std::endl;
       }
 
 };
@@ -689,7 +691,7 @@ private:
     SideID M_side;
     int M_x;
     int M_y;
-    XpmTile::Ptr M_xpm_tile;
+    std::vector< std::string > M_xpm_data;
 public:
 
     StateTeamGraphic( Context & context )
@@ -698,8 +700,7 @@ public:
           M_in_array( false ),
           M_side( NEUTRAL ),
           M_x( -1 ),
-          M_y( -1 ),
-          M_xpm_tile( new XpmTile() )
+          M_y( -1 )
       { }
 
     bool onStartObject( const size_t ) override
@@ -717,7 +718,7 @@ public:
 
           if ( M_depth == 0 )
           {
-              M_context.handleTeamGraphic( M_side, M_x, M_y, M_xpm_tile );
+              M_context.handleTeamGraphic( M_side, M_x, M_y, M_xpm_data );
               M_context.clearState();
           }
 
@@ -791,7 +792,8 @@ public:
                   return false;
               }
 
-              return M_xpm_tile->addData( val.c_str() );
+              M_xpm_data.push_back( val );
+              return true;
           }
 
           if ( M_key == "side" )
