@@ -78,18 +78,6 @@ SerializerV1::serialize( std::ostream & os,
 
 */
 std::ostream &
-SerializerV1::serializeParam( std::ostream & os,
-                              const std::string & )
-{
-    // nothing to do
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
-std::ostream &
 SerializerV1::serialize( std::ostream & os,
                          const player_params_t & )
 {

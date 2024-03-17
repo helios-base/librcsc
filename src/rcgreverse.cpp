@@ -30,27 +30,24 @@ public:
     explicit
     Reverser( std::ostream & os );
 
-    bool handleLogVersion( const int ver );
+    bool handleLogVersion( const int ver ) override;
 
-    bool handleEOF();
+    bool handleEOF() override;
 
-    bool handleShow( const rcsc::rcg::ShowInfoT & show );
+    bool handleShow( const rcsc::rcg::ShowInfoT & show ) override;
     bool handleMsg( const int time,
                     const int board,
-                    const std::string & msg );
+                    const std::string & msg ) override;
     bool handleDraw( const int ,
-                     const rcsc::rcg::drawinfo_t & )
+                     const rcsc::rcg::drawinfo_t & ) override
       {
           return true;
       }
     bool handlePlayMode( const int time,
-                         const rcsc::PlayMode pm );
+                         const rcsc::PlayMode pm ) override;
     bool handleTeam( const int time,
                      const rcsc::rcg::TeamT & team_l,
-                     const rcsc::rcg::TeamT & team_r );
-    bool handleServerParam( const std::string & msg );
-    bool handlePlayerParam( const std::string & msg );
-    bool handlePlayerType( const std::string & msg );
+                     const rcsc::rcg::TeamT & team_r ) override;
 
     bool handleServerParam( const rcsc::rcg::ServerParamT & param ) override;
     bool handlePlayerParam( const rcsc::rcg::PlayerParamT & param ) override;
@@ -191,54 +188,6 @@ Reverser::handleTeam( const int,
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
-*/
-bool
-Reverser::handleServerParam( const std::string & msg )
-{
-    if ( ! M_serializer )
-    {
-        return false;
-    }
-
-    M_serializer->serializeParam( M_os, msg );
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
-bool
-Reverser::handlePlayerParam( const std::string & msg )
-{
-    if ( ! M_serializer )
-    {
-        return false;
-    }
-
-    M_serializer->serializeParam( M_os, msg );
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
-bool
-Reverser::handlePlayerType( const std::string & msg )
-{
-    if ( ! M_serializer )
-    {
-        return false;
-    }
-
-    M_serializer->serializeParam( M_os, msg );
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
 bool
 Reverser::handleServerParam( const rcsc::rcg::ServerParamT & param )
 {
@@ -247,9 +196,7 @@ Reverser::handleServerParam( const rcsc::rcg::ServerParamT & param )
         return false;
     }
 
-    std::ostringstream ostr;
-    param.toServerString( ostr );
-    M_serializer->serializeParam( M_os, ostr.str() );
+    M_serializer->serialize( M_os, param );
     return true;
 }
 
@@ -262,9 +209,7 @@ Reverser::handlePlayerParam( const rcsc::rcg::PlayerParamT & param )
         return false;
     }
 
-    std::ostringstream ostr;
-    param.toServerString( ostr );
-    M_serializer->serializeParam( M_os, ostr.str() );
+    M_serializer->serialize( M_os, param );
     return true;
 }
 
@@ -277,9 +222,7 @@ Reverser::handlePlayerType( const rcsc::rcg::PlayerTypeT & param )
         return false;
     }
 
-    std::ostringstream ostr;
-    param.toServerString( ostr );
-    M_serializer->serializeParam( M_os, ostr.str() );
+    M_serializer->serialize( M_os, param );
     return true;
 }
 

@@ -64,16 +64,6 @@ public:
     std::ostream & serializeHeader( std::ostream & os ) override;
 
     /*!
-      \brief write parameter message
-      \param os reference to the output stream
-      \param msg server parameter message
-      \return reference to the output stream
-    */
-    virtual
-    std::ostream & serializeParam( std::ostream & os,
-                                   const std::string & msg ) override;
-
-    /*!
       \brief write server param
       \param os reference to the output stream
       \param param network byte order data
@@ -271,45 +261,6 @@ public:
       {
           return serializeAsMsg( os, side, x, y, xpm );
       }
-
-private:
-
-    /*!
-      \brief analyze parameter message and store all elements
-      \param msg source message
-      \param param_map map variable to store all elements
-      \return parsing result
-     */
-    bool parseParam( const std::string & msg,
-                     std::map< std::string, std::string > & param_map );
-
-    /*!
-      \brief convert server message to parameters
-      \param from source message
-      \param to destination variable
-      \return parsing result
-     */
-    bool parseParam( const std::string & from,
-                     server_params_t & to );
-
-    /*!
-      \brief convert server message to parameters
-      \param from source message
-      \param to destination variable
-      \return parsing result
-     */
-    bool parseParam( const std::string & from,
-                     player_params_t & to );
-
-    /*!
-      \brief convert server message to parameters
-      \param from source message
-      \param to destination variable
-      \return parsing result
-     */
-    bool parseParam( const std::string & from,
-                     player_type_t & to );
-
 };
 
 } // end of namespace rcg

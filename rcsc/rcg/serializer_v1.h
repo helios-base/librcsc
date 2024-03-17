@@ -64,16 +64,6 @@ public:
     std::ostream & serializeHeader( std::ostream & os ) override;
 
     /*!
-      \brief write parameter message
-      \param os reference to the output stream
-      \param msg server parameter message
-      \return reference to the output stream
-    */
-    virtual
-    std::ostream & serializeParam( std::ostream & os,
-                                   const std::string & msg ) override;
-
-    /*!
       \brief write server param
       \param os reference to the output stream
       \param param network byte order data

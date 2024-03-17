@@ -76,17 +76,6 @@ SerializerV4::serializeHeader( std::ostream & os )
 
  */
 std::ostream &
-SerializerV4::serializeParam( std::ostream & os,
-                              const std::string & msg )
-{
-    return os << msg << '\n';
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
 SerializerV4::serialize( std::ostream & os,
                          const server_params_t & param )
 {

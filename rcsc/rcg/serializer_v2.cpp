@@ -65,18 +65,6 @@ SerializerV2::serializeHeader( std::ostream & os )
 
 */
 std::ostream &
-SerializerV2::serializeParam( std::ostream & os,
-                              const std::string & )
-{
-    // nothing to do
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
-std::ostream &
 SerializerV2::serialize( std::ostream & os,
                          const server_params_t & )
 {
