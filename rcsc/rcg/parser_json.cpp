@@ -50,7 +50,7 @@ namespace rcsc {
 namespace rcg {
 
 class Context;
-using ParamValue = std::variant< int, double, bool, std::string >;
+//using ParamValue = std::variant< int, double, bool, std::string >;
 
 
 //
@@ -136,7 +136,7 @@ public:
           if ( it != M_state_map.end() )
           {
               M_state = it->second();
-              std::cerr << "(key) new state " << it->first << std::endl;
+              // std::cerr << "(key) new state " << it->first << std::endl;
           }
 
           return true;
@@ -295,6 +295,14 @@ public:
           // std::cout << std::endl;
       }
 
+    void handlePlaymode( const int time,
+                         const int stime,
+                         const std::string & playmode )
+      {
+          // M_handler.handlePlayMode( time, playmode );
+          std::cout << '[' << time << ',' << stime << ']'
+                    << " playmode " << playmode << std::endl;
+      }
 };
 
 
@@ -813,6 +821,107 @@ public:
 //
 //
 
+class PlaymodeState
+    : public State {
+private:
+    std::string M_key;
+    int M_depth;
+
+    int M_time;
+    int M_stime;
+    std::string M_playmode;
+public:
+    PlaymodeState( Context & context )
+        : State( context ),
+          M_depth( 0 ),
+          M_time( 0 ),
+          M_stime( 0 )
+      { }
+
+    bool onStartObject( const size_t ) override
+      {
+          ++M_depth;
+          return true;
+      }
+
+    bool onEndObject() override
+      {
+          if ( M_depth > 0 )
+          {
+              --M_depth;
+          }
+
+          if ( M_depth == 0 )
+          {
+              M_context.handlePlaymode( M_time, M_stime, M_playmode );
+              M_context.clearState();
+          }
+
+          return true;
+      }
+
+    bool onKey( const std::string & val ) override
+      {
+          if ( M_depth != 1 )
+          {
+              std::cerr << "(PlaymodeState::onKey) ERROR depth " << M_depth
+                        << " val=" << val << std::endl;
+              return false;
+          }
+
+          M_key = val;
+          return true;
+      }
+
+    bool onInteger( const int val ) override
+      {
+          if ( M_key.empty() )
+          {
+              std::cerr << "(PlaymodeState::onInteger) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          if ( M_key == "time" )
+          {
+              M_time = val;
+              M_key.clear();
+              return true;
+          }
+
+          if ( M_key == "stime" )
+          {
+              M_stime = val;
+              M_key.clear();
+              return true;
+          }
+
+          M_key.clear();
+          return false;
+      }
+
+    bool onUnsigned( const unsigned int val ) override
+      {
+          return onInteger( static_cast< int >( val ) );
+      }
+
+    bool onString( const std::string & val ) override
+      {
+          if ( M_key.empty() )
+          {
+              std::cerr << "(PlaymodeState::onString) ERROR no name. val=" << val << std::endl;
+              return false;
+          }
+
+          M_playmode = val;
+          M_key.clear();
+          return true;
+      }
+};
+
+//
+//
+//
+
 /*-------------------------------------------------------------------*/
 Context::Context( Handler & handler )
     : M_handler( handler ),
@@ -824,6 +933,7 @@ Context::Context( Handler & handler )
     M_state_map["player_param"] = [this]() { return State::Ptr( new StatePlayerParam( *this ) ); };
     M_state_map["player_type"] = [this]() { return State::Ptr( new StatePlayerType( *this ) ); };
     M_state_map["team_graphic"] = [this]() { return State::Ptr( new StateTeamGraphic( *this ) ); };
+    M_state_map["playmode"] = [this]() { return State::Ptr( new PlaymodeState( *this ) ); };
 }
 
 /*-------------------------------------------------------------------*/
