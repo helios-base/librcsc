@@ -313,16 +313,16 @@ public:
 /*!
 
 */
-class StateVersion
+class VersionState
     : public State {
 public:
-    StateVersion( Context & context )
+    VersionState( Context & context )
         : State( context )
       { }
 
     bool onString( const std::string & val ) override
       {
-          std::cerr << "(StateVersion::onString) " << val << std::endl;
+          std::cerr << "(VersionState::onString) " << val << std::endl;
           return true;
       }
 
@@ -341,16 +341,16 @@ public:
 /*!
 
 */
-class StateTimeStamp
+class TimeStampState
     : public State {
 public:
-    StateTimeStamp( Context & context )
+    TimeStampState( Context & context )
         : State( context )
       { }
 
     bool onString( const std::string & val ) override
       {
-          std::cerr << "(StateVersion::onString) " << val << std::endl;
+          std::cerr << "(VersionState::onString) " << val << std::endl;
           return true;
       }
 
@@ -367,7 +367,7 @@ public:
 //
 //
 
-class StateServerParam
+class ServerParamState
     : public State {
 private:
     int M_depth;
@@ -377,7 +377,7 @@ private:
 
 public:
 
-    StateServerParam( Context & context )
+    ServerParamState( Context & context )
         : State( context ),
           M_depth( 0 )
       { }
@@ -408,7 +408,7 @@ public:
       {
           if ( M_depth != 1 )
           {
-              std::cerr << "(StateServerParam::onKey) ERROR depth " << M_depth
+              std::cerr << "(ServerParamState::onKey) ERROR depth " << M_depth
                         << " val=" << val << std::endl;
               return false;
           }
@@ -420,7 +420,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(StateServerParam::onBoolean) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(ServerParamState::onBoolean) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -433,7 +433,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(StateServerParam::onInteger) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(ServerParamState::onInteger) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -446,7 +446,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(StateServerParam::onUnsingned) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(ServerParamState::onUnsingned) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -459,7 +459,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(StateServerParam::onFloat) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(ServerParamState::onFloat) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -472,7 +472,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(StateServerParam::onString) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(ServerParamState::onString) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -487,7 +487,7 @@ public:
 //
 //
 
-class StatePlayerParam
+class PlayerParamState
     : public State {
 private:
     int M_depth;
@@ -497,7 +497,7 @@ private:
 
 public:
 
-    StatePlayerParam( Context & context )
+    PlayerParamState( Context & context )
         : State( context ),
           M_depth( 0 )
       { }
@@ -528,12 +528,12 @@ public:
       {
           if ( M_depth != 1 )
           {
-              std::cerr << "(StatePlayerParam::onKey) ERROR depth " << M_depth
+              std::cerr << "(PlayerParamState::onKey) ERROR depth " << M_depth
                         << " val=" << val << std::endl;
               return false;
           }
           M_param_name = val;
-          //std::cerr << "(StateServerParam::onKey) " << val << std::endl;
+          //std::cerr << "(ServerParamState::onKey) " << val << std::endl;
           return true;
       }
 
@@ -541,7 +541,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(StatePlayerParam::onBoolean) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlayerParamState::onBoolean) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -554,7 +554,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(StatePlayerParam::onInteger) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlayerParamState::onInteger) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -567,7 +567,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(StatePlayerParam::onUnsingned) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlayerParamState::onUnsingned) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -580,7 +580,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(StatePlayerParam::onFloat) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlayerParamState::onFloat) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -594,7 +594,7 @@ public:
 //
 //
 
-class StatePlayerType
+class PlayerTypeState
     : public State {
 private:
     int M_depth;
@@ -603,7 +603,7 @@ private:
     PlayerTypeT M_param;
 public:
 
-    StatePlayerType( Context & context )
+    PlayerTypeState( Context & context )
         : State( context ),
           M_depth( 0 )
       { }
@@ -634,7 +634,7 @@ public:
       {
           if ( M_depth != 1 )
           {
-              std::cerr << "(StatePlayerType::onKey) ERROR depth " << M_depth
+              std::cerr << "(PlayerTypeState::onKey) ERROR depth " << M_depth
                         << " val=" << val << std::endl;
               return false;
           }
@@ -647,7 +647,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(StatePlayerType::onInteger) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlayerTypeState::onInteger) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -660,7 +660,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(StatePlayerType::onUnsingned) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlayerTypeState::onUnsingned) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -673,7 +673,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(StatePlayerType::onFloat) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlayerTypeState::onFloat) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -688,7 +688,7 @@ public:
 //
 //
 
-class StateTeamGraphic
+class TeamGraphicState
     : public State {
 private:
     std::string M_key;
@@ -702,7 +702,7 @@ private:
     std::vector< std::string > M_xpm_data;
 public:
 
-    StateTeamGraphic( Context & context )
+    TeamGraphicState( Context & context )
         : State( context ),
           M_depth( 0 ),
           M_in_array( false ),
@@ -741,7 +741,7 @@ public:
               return true;
           }
 
-          std::cerr << "(StateTeamGraphic::onStartArray) ERROR unknown key=" << M_key << std::endl;
+          std::cerr << "(TeamGraphicState::onStartArray) ERROR unknown key=" << M_key << std::endl;
           return false;
       }
 
@@ -756,7 +756,7 @@ public:
       {
           if ( M_depth != 1 )
           {
-              std::cerr << "(StateTeamGraphic::onKey) ERROR depth " << M_depth
+              std::cerr << "(TeamGraphicState::onKey) ERROR depth " << M_depth
                         << " val=" << val << std::endl;
               return false;
           }
@@ -781,7 +781,7 @@ public:
               return true;
           }
 
-          std::cerr << "(StateTeamGraphic::onInteger) ERROR. unknown key=" << M_key << std::endl;
+          std::cerr << "(TeamGraphicState::onInteger) ERROR. unknown key=" << M_key << std::endl;
           return false;
       }
 
@@ -796,7 +796,7 @@ public:
           {
               if ( ! M_in_array )
               {
-                  std::cerr << "(StateServerParam::onString) ERROR. illegal xpm state. " << val << std::endl;
+                  std::cerr << "(ServerParamState::onString) ERROR. illegal xpm state. " << val << std::endl;
                   return false;
               }
 
@@ -811,7 +811,7 @@ public:
               return true;
           }
 
-          std::cerr << "(StateServerParam::onString) ERROR. unknown key " << M_key << std::endl;
+          std::cerr << "(ServerParamState::onString) ERROR. unknown key " << M_key << std::endl;
           return false;
       }
 
@@ -927,12 +927,12 @@ Context::Context( Handler & handler )
     : M_handler( handler ),
       M_depth( 0 )
 {
-    M_state_map["version"] = [this]() { return State::Ptr( new StateVersion( *this ) ); };
-    M_state_map["timestamp"] = [this]() { return State::Ptr( new StateTimeStamp( *this ) ); };
-    M_state_map["server_param"] = [this]() { return State::Ptr( new StateServerParam( *this ) ); };
-    M_state_map["player_param"] = [this]() { return State::Ptr( new StatePlayerParam( *this ) ); };
-    M_state_map["player_type"] = [this]() { return State::Ptr( new StatePlayerType( *this ) ); };
-    M_state_map["team_graphic"] = [this]() { return State::Ptr( new StateTeamGraphic( *this ) ); };
+    M_state_map["version"] = [this]() { return State::Ptr( new VersionState( *this ) ); };
+    M_state_map["timestamp"] = [this]() { return State::Ptr( new TimeStampState( *this ) ); };
+    M_state_map["server_param"] = [this]() { return State::Ptr( new ServerParamState( *this ) ); };
+    M_state_map["player_param"] = [this]() { return State::Ptr( new PlayerParamState( *this ) ); };
+    M_state_map["player_type"] = [this]() { return State::Ptr( new PlayerTypeState( *this ) ); };
+    M_state_map["team_graphic"] = [this]() { return State::Ptr( new TeamGraphicState( *this ) ); };
     M_state_map["playmode"] = [this]() { return State::Ptr( new PlaymodeState( *this ) ); };
 }
 
