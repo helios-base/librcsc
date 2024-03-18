@@ -61,24 +61,24 @@ class Context;
 /*!
   \brief abstract state class for handling RCG data types.
 */
-class State {
+class Builder {
 public:
-    using Ptr = std::shared_ptr< State >;
+    using Ptr = std::shared_ptr< Builder >;
 
 private:
-    State() = delete;
-    State( const State & ) = delete;
-    const State & operator=( const State & ) = delete;
+    Builder() = delete;
+    Builder( const Builder & ) = delete;
+    const Builder & operator=( const Builder & ) = delete;
 protected:
     Context & M_context;
 
-    State( Context & context )
+    Builder( Context & context )
         : M_context( context )
       { }
 
 public:
     virtual
-    ~State() = default;
+    ~Builder() = default;
 
     virtual bool onKey( const std::string & ) { return false; }
     virtual bool onNull() { return false; }
@@ -97,6 +97,21 @@ public:
 //
 //
 
+// class CompositeBuilder
+//     : public Builder {
+// private:
+//     std::shared_ptr< Builder > M_child;
+// public:
+//     CompositeBuilder( Context & context )
+//         : Builder( context )
+//       { }
+
+// };
+
+//
+//
+//
+
 /*!
 
 */
@@ -106,12 +121,12 @@ private:
 
     Handler & M_handler;
 
-    std::shared_ptr< State > M_state;
+    std::shared_ptr< Builder > M_builder;
     int M_depth;
 
-    using StateCreator = std::function< std::shared_ptr< State >() >;
-    //! key, state map
-    std::unordered_map< std::string, StateCreator > M_state_map;
+    using BuilderCreator = std::function< std::shared_ptr< Builder >() >;
+    //! key, creator
+    std::unordered_map< std::string, BuilderCreator > M_builder_map;
 
     Context() = delete;
     Context( const Context & ) = delete;
@@ -121,23 +136,23 @@ public:
     explicit
     Context( Handler & handler );
 
-    void clearState()
+    void clearBuilder()
       {
-          M_state.reset();
+          M_builder.reset();
       }
 
     bool key( string_t & val ) override
       {
-          if ( M_state )
+          if ( M_builder )
           {
-              return M_state->onKey( val );
+              return M_builder->onKey( val );
           }
 
-          std::unordered_map< std::string, StateCreator >::iterator it = M_state_map.find( val );
-          if ( it != M_state_map.end() )
+          std::unordered_map< std::string, BuilderCreator >::iterator it = M_builder_map.find( val );
+          if ( it != M_builder_map.end() )
           {
-              M_state = it->second();
-              // std::cerr << "(key) new state " << it->first << std::endl;
+              M_builder = it->second();
+              // std::cerr << "(key) new builder " << it->first << std::endl;
           }
 
           return true;
@@ -145,36 +160,36 @@ public:
 
     bool null() override
       {
-          if ( M_state )
+          if ( M_builder )
           {
-              return M_state->onNull();
+              return M_builder->onNull();
           }
           return true;
       }
 
     bool boolean( bool val ) override
       {
-          if ( M_state )
+          if ( M_builder )
           {
-              return M_state->onBoolean( val );
+              return M_builder->onBoolean( val );
           }
           return true;
       }
 
     bool number_integer( number_integer_t val ) override
       {
-          if ( M_state )
+          if ( M_builder )
           {
-              return M_state->onInteger( val );
+              return M_builder->onInteger( val );
           }
           return true;
       }
 
     bool number_unsigned( number_unsigned_t val ) override
       {
-          if ( M_state )
+          if ( M_builder )
           {
-              return M_state->onUnsigned( val );
+              return M_builder->onUnsigned( val );
           }
           return true;
       }
@@ -182,9 +197,9 @@ public:
     bool number_float( number_float_t val,
                        const string_t & /*s*/ ) override
       {
-          if ( M_state )
+          if ( M_builder )
           {
-              return M_state->onFloat( val );
+              return M_builder->onFloat( val );
           }
 
           return true;
@@ -192,27 +207,27 @@ public:
 
     bool string( string_t & val ) override
       {
-          if ( M_state )
+          if ( M_builder )
           {
-              return M_state->onString( val );
+              return M_builder->onString( val );
           }
           return true;
       }
 
     bool start_object( std::size_t elements ) override
       {
-          if ( M_state )
+          if ( M_builder )
           {
-              return M_state->onStartObject( elements );
+              return M_builder->onStartObject( elements );
           }
           return true;
       }
 
     bool end_object() override
       {
-          if ( M_state )
+          if ( M_builder )
           {
-              if ( ! M_state->onEndObject() )
+              if ( ! M_builder->onEndObject() )
               {
                   return false;
               }
@@ -223,18 +238,18 @@ public:
 
     bool start_array( std::size_t elements ) override
       {
-          if ( M_state )
+          if ( M_builder )
           {
-              return M_state->onStartArray( elements );
+              return M_builder->onStartArray( elements );
           }
           return true;
       }
 
     bool end_array() override
       {
-          if ( M_state )
+          if ( M_builder )
           {
-              return M_state->onEndArray();
+              return M_builder->onEndArray();
           }
           return true;
       }
@@ -326,22 +341,22 @@ public:
 /*!
 
 */
-class VersionState
-    : public State {
+class VersionBuilder
+    : public Builder {
 public:
-    VersionState( Context & context )
-        : State( context )
+    VersionBuilder( Context & context )
+        : Builder( context )
       { }
 
     bool onString( const std::string & val ) override
       {
-          std::cerr << "(VersionState::onString) " << val << std::endl;
+          std::cerr << "(VersionBuilder::onString) " << val << std::endl;
           return true;
       }
 
     bool onEndObject() override
       {
-          M_context.clearState();
+          M_context.clearBuilder();
           return true;
       }
 
@@ -354,22 +369,22 @@ public:
 /*!
 
 */
-class TimeStampState
-    : public State {
+class TimeStampBuilder
+    : public Builder {
 public:
-    TimeStampState( Context & context )
-        : State( context )
+    TimeStampBuilder( Context & context )
+        : Builder( context )
       { }
 
     bool onString( const std::string & val ) override
       {
-          std::cerr << "(VersionState::onString) " << val << std::endl;
+          std::cerr << "(VersionBuilder::onString) " << val << std::endl;
           return true;
       }
 
     bool onEndObject() override
       {
-          M_context.clearState();
+          M_context.clearBuilder();
           return true;
       }
 
@@ -380,8 +395,8 @@ public:
 //
 //
 
-class ServerParamState
-    : public State {
+class ServerParamBuilder
+    : public Builder {
 private:
     int M_depth;
     std::string M_param_name;
@@ -390,8 +405,8 @@ private:
 
 public:
 
-    ServerParamState( Context & context )
-        : State( context ),
+    ServerParamBuilder( Context & context )
+        : Builder( context ),
           M_depth( 0 )
       { }
 
@@ -411,7 +426,7 @@ public:
           if ( M_depth == 0 )
           {
               M_context.handleServerParam( M_param );
-              M_context.clearState();
+              M_context.clearBuilder();
           }
 
           return true;
@@ -421,7 +436,7 @@ public:
       {
           if ( M_depth != 1 )
           {
-              std::cerr << "(ServerParamState::onKey) ERROR depth " << M_depth
+              std::cerr << "(ServerParamBuilder::onKey) ERROR depth " << M_depth
                         << " val=" << val << std::endl;
               return false;
           }
@@ -433,7 +448,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(ServerParamState::onBoolean) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(ServerParamBuilder::onBoolean) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -446,7 +461,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(ServerParamState::onInteger) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(ServerParamBuilder::onInteger) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -459,7 +474,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(ServerParamState::onUnsingned) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(ServerParamBuilder::onUnsingned) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -472,7 +487,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(ServerParamState::onFloat) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(ServerParamBuilder::onFloat) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -485,7 +500,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(ServerParamState::onString) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(ServerParamBuilder::onString) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -500,8 +515,8 @@ public:
 //
 //
 
-class PlayerParamState
-    : public State {
+class PlayerParamBuilder
+    : public Builder {
 private:
     int M_depth;
     std::string M_param_name;
@@ -510,8 +525,8 @@ private:
 
 public:
 
-    PlayerParamState( Context & context )
-        : State( context ),
+    PlayerParamBuilder( Context & context )
+        : Builder( context ),
           M_depth( 0 )
       { }
 
@@ -531,7 +546,7 @@ public:
           if ( M_depth == 0 )
           {
               M_context.handlePlayerParam( M_param );
-              M_context.clearState();
+              M_context.clearBuilder();
           }
 
           return true;
@@ -541,12 +556,12 @@ public:
       {
           if ( M_depth != 1 )
           {
-              std::cerr << "(PlayerParamState::onKey) ERROR depth " << M_depth
+              std::cerr << "(PlayerParamBuilder::onKey) ERROR depth " << M_depth
                         << " val=" << val << std::endl;
               return false;
           }
           M_param_name = val;
-          //std::cerr << "(ServerParamState::onKey) " << val << std::endl;
+          //std::cerr << "(ServerParamBuilder::onKey) " << val << std::endl;
           return true;
       }
 
@@ -554,7 +569,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(PlayerParamState::onBoolean) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlayerParamBuilder::onBoolean) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -567,7 +582,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(PlayerParamState::onInteger) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlayerParamBuilder::onInteger) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -580,7 +595,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(PlayerParamState::onUnsingned) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlayerParamBuilder::onUnsingned) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -593,7 +608,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(PlayerParamState::onFloat) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlayerParamBuilder::onFloat) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -607,8 +622,8 @@ public:
 //
 //
 
-class PlayerTypeState
-    : public State {
+class PlayerTypeBuilder
+    : public Builder {
 private:
     int M_depth;
     std::string M_param_name;
@@ -616,8 +631,8 @@ private:
     PlayerTypeT M_param;
 public:
 
-    PlayerTypeState( Context & context )
-        : State( context ),
+    PlayerTypeBuilder( Context & context )
+        : Builder( context ),
           M_depth( 0 )
       { }
 
@@ -637,7 +652,7 @@ public:
           if ( M_depth == 0 )
           {
               M_context.handlePlayerType( M_param );
-              M_context.clearState();
+              M_context.clearBuilder();
           }
 
           return true;
@@ -647,7 +662,7 @@ public:
       {
           if ( M_depth != 1 )
           {
-              std::cerr << "(PlayerTypeState::onKey) ERROR depth " << M_depth
+              std::cerr << "(PlayerTypeBuilder::onKey) ERROR depth " << M_depth
                         << " val=" << val << std::endl;
               return false;
           }
@@ -660,7 +675,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(PlayerTypeState::onInteger) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlayerTypeBuilder::onInteger) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -673,7 +688,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(PlayerTypeState::onUnsingned) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlayerTypeBuilder::onUnsingned) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -686,7 +701,7 @@ public:
       {
           if ( M_param_name.empty() )
           {
-              std::cerr << "(PlayerTypeState::onFloat) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlayerTypeBuilder::onFloat) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -701,8 +716,8 @@ public:
 //
 //
 
-class TeamGraphicState
-    : public State {
+class TeamGraphicBuilder
+    : public Builder {
 private:
     std::string M_key;
     int M_depth;
@@ -715,8 +730,8 @@ private:
     std::vector< std::string > M_xpm_data;
 public:
 
-    TeamGraphicState( Context & context )
-        : State( context ),
+    TeamGraphicBuilder( Context & context )
+        : Builder( context ),
           M_depth( 0 ),
           M_in_array( false ),
           M_side( NEUTRAL ),
@@ -740,7 +755,7 @@ public:
           if ( M_depth == 0 )
           {
               M_context.handleTeamGraphic( M_side, M_x, M_y, M_xpm_data );
-              M_context.clearState();
+              M_context.clearBuilder();
           }
 
           return true;
@@ -754,7 +769,7 @@ public:
               return true;
           }
 
-          std::cerr << "(TeamGraphicState::onStartArray) ERROR unknown key=" << M_key << std::endl;
+          std::cerr << "(TeamGraphicBuilder::onStartArray) ERROR unknown key=" << M_key << std::endl;
           return false;
       }
 
@@ -769,7 +784,7 @@ public:
       {
           if ( M_depth != 1 )
           {
-              std::cerr << "(TeamGraphicState::onKey) ERROR depth " << M_depth
+              std::cerr << "(TeamGraphicBuilder::onKey) ERROR depth " << M_depth
                         << " val=" << val << std::endl;
               return false;
           }
@@ -794,7 +809,7 @@ public:
               return true;
           }
 
-          std::cerr << "(TeamGraphicState::onInteger) ERROR. unknown key=" << M_key << std::endl;
+          std::cerr << "(TeamGraphicBuilder::onInteger) ERROR. unknown key=" << M_key << std::endl;
           return false;
       }
 
@@ -809,7 +824,7 @@ public:
           {
               if ( ! M_in_array )
               {
-                  std::cerr << "(ServerParamState::onString) ERROR. illegal xpm state. " << val << std::endl;
+                  std::cerr << "(ServerParamBuilder::onString) ERROR. illegal xpm builder. " << val << std::endl;
                   return false;
               }
 
@@ -824,7 +839,7 @@ public:
               return true;
           }
 
-          std::cerr << "(ServerParamState::onString) ERROR. unknown key " << M_key << std::endl;
+          std::cerr << "(ServerParamBuilder::onString) ERROR. unknown key " << M_key << std::endl;
           return false;
       }
 
@@ -834,8 +849,8 @@ public:
 //
 //
 
-class PlaymodeState
-    : public State {
+class PlaymodeBuilder
+    : public Builder {
 private:
     std::string M_key;
     int M_depth;
@@ -844,8 +859,8 @@ private:
     int M_stime;
     std::string M_playmode;
 public:
-    PlaymodeState( Context & context )
-        : State( context ),
+    PlaymodeBuilder( Context & context )
+        : Builder( context ),
           M_depth( 0 ),
           M_time( 0 ),
           M_stime( 0 )
@@ -867,7 +882,7 @@ public:
           if ( M_depth == 0 )
           {
               M_context.handlePlaymode( M_time, M_stime, M_playmode );
-              M_context.clearState();
+              M_context.clearBuilder();
           }
 
           return true;
@@ -877,7 +892,7 @@ public:
       {
           if ( M_depth != 1 )
           {
-              std::cerr << "(PlaymodeState::onKey) ERROR depth " << M_depth
+              std::cerr << "(PlaymodeBuilder::onKey) ERROR depth " << M_depth
                         << " val=" << val << std::endl;
               return false;
           }
@@ -890,7 +905,7 @@ public:
       {
           if ( M_key.empty() )
           {
-              std::cerr << "(PlaymodeState::onInteger) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlaymodeBuilder::onInteger) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -921,7 +936,7 @@ public:
       {
           if ( M_key.empty() )
           {
-              std::cerr << "(PlaymodeState::onString) ERROR no name. val=" << val << std::endl;
+              std::cerr << "(PlaymodeBuilder::onString) ERROR no name. val=" << val << std::endl;
               return false;
           }
 
@@ -936,8 +951,8 @@ public:
 //
 //
 
-class TeamState
-    : public State {
+class TeamBuilder
+    : public Builder {
 private:
     std::stack< std::string > M_key_stack;
     int M_depth;
@@ -949,8 +964,8 @@ private:
     TeamT M_left_team;
     TeamT M_right_team;
 public:
-    TeamState( Context & context )
-        : State( context ),
+    TeamBuilder( Context & context )
+        : Builder( context ),
           M_depth( 0 ),
           M_current_team( nullptr ),
           M_time( 0 ),
@@ -961,7 +976,7 @@ public:
       {
           if ( M_depth < 1 || 2 < M_depth )
           {
-              std::cerr << "(TeamState::onKey) ERROR depth " << M_depth << " val=" << val << std::endl;
+              std::cerr << "(TeamBuilder::onKey) ERROR depth " << M_depth << " val=" << val << std::endl;
               return false;
           }
 
@@ -982,7 +997,7 @@ public:
       {
           if ( M_key_stack.empty() )
           {
-              std::cerr << "(TeamState::onNull) ERROR no key " << std::endl;
+              std::cerr << "(TeamBuilder::onNull) ERROR no key " << std::endl;
               return false;
           }
 
@@ -990,7 +1005,7 @@ public:
           {
               if ( ! M_current_team )
               {
-                  std::cerr << "(TeamState::onString) ERROR no team " << std::endl;
+                  std::cerr << "(TeamBuilder::onString) ERROR no team " << std::endl;
                   M_key_stack.pop();
                   return false;
               }
@@ -999,7 +1014,7 @@ public:
           }
           else
           {
-              std::cerr << "(TeamState::onString) WARNING unsupported key = " << M_key_stack.top() << std::endl;
+              std::cerr << "(TeamBuilder::onString) WARNING unsupported key = " << M_key_stack.top() << std::endl;
           }
 
           M_key_stack.pop();
@@ -1010,7 +1025,7 @@ public:
       {
           if ( M_key_stack.empty() )
           {
-              std::cerr << "(TeamState::onInteger) ERROR no key " << std::endl;
+              std::cerr << "(TeamBuilder::onInteger) ERROR no key " << std::endl;
               return false;
           }
 
@@ -1033,7 +1048,7 @@ public:
           {
               if ( ! M_current_team )
               {
-                  std::cerr << "(TeamState::onInteger) ERROR no team " << std::endl;
+                  std::cerr << "(TeamBuilder::onInteger) ERROR no team " << std::endl;
                   M_key_stack.pop();
                   return false;
               }
@@ -1047,7 +1062,7 @@ public:
           {
               if ( ! M_current_team )
               {
-                  std::cerr << "(TeamState::onInteger) ERROR no team " << std::endl;
+                  std::cerr << "(TeamBuilder::onInteger) ERROR no team " << std::endl;
                   M_key_stack.pop();
                   return false;
               }
@@ -1061,7 +1076,7 @@ public:
           {
               if ( ! M_current_team )
               {
-                  std::cerr << "(TeamState::onInteger) ERROR no team " << std::endl;
+                  std::cerr << "(TeamBuilder::onInteger) ERROR no team " << std::endl;
                   M_key_stack.pop();
                   return false;
               }
@@ -1071,7 +1086,7 @@ public:
               return true;
           }
 
-          std::cerr << "(TeamState::onInteger) WARNING unsupported key = " << M_key_stack.top()
+          std::cerr << "(TeamBuilder::onInteger) WARNING unsupported key = " << M_key_stack.top()
                     << " val=" << val << std::endl;
           M_key_stack.pop();
           return true;
@@ -1086,7 +1101,7 @@ public:
       {
           if ( M_key_stack.empty() )
           {
-              std::cerr << "(TeamState::onString) ERROR no key " << std::endl;
+              std::cerr << "(TeamBuilder::onString) ERROR no key " << std::endl;
               return false;
           }
 
@@ -1094,7 +1109,7 @@ public:
           {
               if ( ! M_current_team )
               {
-                  std::cerr << "(TeamState::onString) ERROR no team " << std::endl;
+                  std::cerr << "(TeamBuilder::onString) ERROR no team " << std::endl;
                   M_key_stack.pop();
                   return false;
               }
@@ -1104,7 +1119,7 @@ public:
               return true;
           }
 
-          std::cerr << "(TeamState::onString) WARNING unsupported key = " << M_key_stack.top()
+          std::cerr << "(TeamBuilder::onString) WARNING unsupported key = " << M_key_stack.top()
                     << " val = " << val << std::endl;
           M_key_stack.pop();
           return true;
@@ -1117,7 +1132,7 @@ public:
           {
               if ( M_depth != 1 )
               {
-                  std::cerr << "(TeamState::onStartObject) ERROR unexpected object."  << std::endl;
+                  std::cerr << "(TeamBuilder::onStartObject) ERROR unexpected object."  << std::endl;
                   return false;
               }
               return true;
@@ -1133,7 +1148,7 @@ public:
               return true;
           }
 
-          std::cerr << "(TeamState::onStartObject) ERROR unsupported object. key=" << M_key_stack.top() << std::endl;
+          std::cerr << "(TeamBuilder::onStartObject) ERROR unsupported object. key=" << M_key_stack.top() << std::endl;
           return true;
       }
 
@@ -1143,7 +1158,7 @@ public:
           if ( M_key_stack.empty() )
           {
               M_context.handleTeam( M_time, M_stime, M_left_team, M_right_team );
-              M_context.clearState();
+              M_context.clearBuilder();
               return true;
           }
 
@@ -1168,14 +1183,14 @@ Context::Context( Handler & handler )
     : M_handler( handler ),
       M_depth( 0 )
 {
-    M_state_map["version"] = [this]() { return State::Ptr( new VersionState( *this ) ); };
-    M_state_map["timestamp"] = [this]() { return State::Ptr( new TimeStampState( *this ) ); };
-    M_state_map["server_param"] = [this]() { return State::Ptr( new ServerParamState( *this ) ); };
-    M_state_map["player_param"] = [this]() { return State::Ptr( new PlayerParamState( *this ) ); };
-    M_state_map["player_type"] = [this]() { return State::Ptr( new PlayerTypeState( *this ) ); };
-    M_state_map["team_graphic"] = [this]() { return State::Ptr( new TeamGraphicState( *this ) ); };
-    M_state_map["playmode"] = [this]() { return State::Ptr( new PlaymodeState( *this ) ); };
-    M_state_map["team"] = [this]() { return State::Ptr( new TeamState( *this ) ); };
+    M_builder_map["version"] = [this]() { return Builder::Ptr( new VersionBuilder( *this ) ); };
+    M_builder_map["timestamp"] = [this]() { return Builder::Ptr( new TimeStampBuilder( *this ) ); };
+    M_builder_map["server_param"] = [this]() { return Builder::Ptr( new ServerParamBuilder( *this ) ); };
+    M_builder_map["player_param"] = [this]() { return Builder::Ptr( new PlayerParamBuilder( *this ) ); };
+    M_builder_map["player_type"] = [this]() { return Builder::Ptr( new PlayerTypeBuilder( *this ) ); };
+    M_builder_map["team_graphic"] = [this]() { return Builder::Ptr( new TeamGraphicBuilder( *this ) ); };
+    M_builder_map["playmode"] = [this]() { return Builder::Ptr( new PlaymodeBuilder( *this ) ); };
+    M_builder_map["team"] = [this]() { return Builder::Ptr( new TeamBuilder( *this ) ); };
 }
 
 /*-------------------------------------------------------------------*/
