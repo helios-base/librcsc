@@ -41,6 +41,7 @@
 #include "nlohmann/json.hpp"
 
 #include <iostream>
+#include <stack>
 #include <unordered_map>
 #include <variant>
 #include <memory>
@@ -296,13 +297,25 @@ public:
       }
 
     void handlePlaymode( const int time,
-                         const int stime,
+                         const int /*stime*/,
                          const std::string & playmode )
       {
-          // M_handler.handlePlayMode( time, playmode );
-          std::cout << '[' << time << ',' << stime << ']'
-                    << " playmode " << playmode << std::endl;
+          M_handler.handlePlayMode( time, playmode );
+          // std::cout << '[' << time << ',' << stime << ']'
+          //           << " playmode " << playmode << std::endl;
       }
+
+    void handleTeam( const int time,
+                     const int /*stime*/,
+                     const TeamT & team_l,
+                     const TeamT & team_r )
+      {
+          M_handler.handleTeam( time, team_l, team_r );
+          // std::cout << "handleTeam " << time
+          //           << " " << team_l.name_ << " " << team_l.score_
+          //           << " " << team_r.name_ << " " << team_r.score_ << std::endl;
+      }
+
 };
 
 
@@ -918,6 +931,234 @@ public:
       }
 };
 
+
+//
+//
+//
+
+class TeamState
+    : public State {
+private:
+    std::stack< std::string > M_key_stack;
+    int M_depth;
+
+    TeamT * M_current_team;
+
+    int M_time;
+    int M_stime;
+    TeamT M_left_team;
+    TeamT M_right_team;
+public:
+    TeamState( Context & context )
+        : State( context ),
+          M_depth( 0 ),
+          M_current_team( nullptr ),
+          M_time( 0 ),
+          M_stime( 0 )
+      { }
+
+    bool onKey( const std::string & val ) override
+      {
+          if ( M_depth < 1 || 2 < M_depth )
+          {
+              std::cerr << "(TeamState::onKey) ERROR depth " << M_depth << " val=" << val << std::endl;
+              return false;
+          }
+
+          if ( val == "l" )
+          {
+              M_current_team = &M_left_team;
+          }
+          else if ( val == "r" )
+          {
+              M_current_team = &M_right_team;
+          }
+
+          M_key_stack.push( val );
+          return true;
+      }
+
+    bool onNull() override
+      {
+          if ( M_key_stack.empty() )
+          {
+              std::cerr << "(TeamState::onNull) ERROR no key " << std::endl;
+              return false;
+          }
+
+          if ( M_key_stack.top() == "name" )
+          {
+              if ( ! M_current_team )
+              {
+                  std::cerr << "(TeamState::onString) ERROR no team " << std::endl;
+                  M_key_stack.pop();
+                  return false;
+              }
+
+              M_current_team->name_.clear();
+          }
+          else
+          {
+              std::cerr << "(TeamState::onString) WARNING unsupported key = " << M_key_stack.top() << std::endl;
+          }
+
+          M_key_stack.pop();
+          return true;
+      }
+
+    bool onInteger( const int val ) override
+      {
+          if ( M_key_stack.empty() )
+          {
+              std::cerr << "(TeamState::onInteger) ERROR no key " << std::endl;
+              return false;
+          }
+
+          if ( M_key_stack.top() == "time" )
+          {
+              M_time = val;
+              M_key_stack.pop();
+              return true;
+          }
+
+          if  ( M_key_stack.top() == "stime" )
+          {
+              M_stime = val;
+              M_key_stack.pop();
+              return true;
+          }
+
+
+          if ( M_key_stack.top() == "score" )
+          {
+              if ( ! M_current_team )
+              {
+                  std::cerr << "(TeamState::onInteger) ERROR no team " << std::endl;
+                  M_key_stack.pop();
+                  return false;
+              }
+
+              M_current_team->score_ = val;
+              M_key_stack.pop();
+              return true;
+          }
+
+          if ( M_key_stack.top() == "pen_score" )
+          {
+              if ( ! M_current_team )
+              {
+                  std::cerr << "(TeamState::onInteger) ERROR no team " << std::endl;
+                  M_key_stack.pop();
+                  return false;
+              }
+
+              M_current_team->pen_score_ = val;
+              M_key_stack.pop();
+              return true;
+          }
+
+          if ( M_key_stack.top() == "pen_miss" )
+          {
+              if ( ! M_current_team )
+              {
+                  std::cerr << "(TeamState::onInteger) ERROR no team " << std::endl;
+                  M_key_stack.pop();
+                  return false;
+              }
+
+              M_current_team->pen_miss_ = val;
+              M_key_stack.pop();
+              return true;
+          }
+
+          std::cerr << "(TeamState::onInteger) WARNING unsupported key = " << M_key_stack.top()
+                    << " val=" << val << std::endl;
+          M_key_stack.pop();
+          return true;
+      }
+
+    bool onUnsigned( const unsigned int val ) override
+      {
+          return onInteger( static_cast< int >( val ) );
+      }
+
+    bool onString( const std::string &  val ) override
+      {
+          if ( M_key_stack.empty() )
+          {
+              std::cerr << "(TeamState::onString) ERROR no key " << std::endl;
+              return false;
+          }
+
+          if ( M_key_stack.top() == "name" )
+          {
+              if ( ! M_current_team )
+              {
+                  std::cerr << "(TeamState::onString) ERROR no team " << std::endl;
+                  M_key_stack.pop();
+                  return false;
+              }
+
+              M_current_team->name_ = val;
+              M_key_stack.pop();
+              return true;
+          }
+
+          std::cerr << "(TeamState::onString) WARNING unsupported key = " << M_key_stack.top()
+                    << " val = " << val << std::endl;
+          M_key_stack.pop();
+          return true;
+      }
+
+    bool onStartObject( const size_t ) override
+      {
+          ++M_depth;
+          if ( M_key_stack.empty() )
+          {
+              if ( M_depth != 1 )
+              {
+                  std::cerr << "(TeamState::onStartObject) ERROR unexpected object."  << std::endl;
+                  return false;
+              }
+              return true;
+          }
+
+          if ( M_key_stack.top() == "l" )
+          {
+              return true;
+          }
+
+          if ( M_key_stack.top() == "r" )
+          {
+              return true;
+          }
+
+          std::cerr << "(TeamState::onStartObject) ERROR unsupported object. key=" << M_key_stack.top() << std::endl;
+          return true;
+      }
+
+    bool onEndObject() override
+      {
+          --M_depth;
+          if ( M_key_stack.empty() )
+          {
+              M_context.handleTeam( M_time, M_stime, M_left_team, M_right_team );
+              M_context.clearState();
+              return true;
+          }
+
+          if ( M_key_stack.top() == "l"
+               || M_key_stack.top() == "r" )
+          {
+              M_current_team = nullptr;
+          }
+
+          M_key_stack.pop();
+          return true;
+      }
+
+};
+
 //
 //
 //
@@ -934,6 +1175,7 @@ Context::Context( Handler & handler )
     M_state_map["player_type"] = [this]() { return State::Ptr( new PlayerTypeState( *this ) ); };
     M_state_map["team_graphic"] = [this]() { return State::Ptr( new TeamGraphicState( *this ) ); };
     M_state_map["playmode"] = [this]() { return State::Ptr( new PlaymodeState( *this ) ); };
+    M_state_map["team"] = [this]() { return State::Ptr( new TeamState( *this ) ); };
 }
 
 /*-------------------------------------------------------------------*/
