@@ -37,6 +37,7 @@
 
 #include "handler.h"
 #include "types.h"
+#include "util.h"
 
 #include "nlohmann/json.hpp"
 
@@ -153,9 +154,11 @@ public:
           {
               M_builder = it->second();
               // std::cerr << "(key) new builder " << it->first << std::endl;
+              return true;
           }
 
-          return true;
+          std::cerr << "Unsupported key " << val << std::endl;
+          return false;
       }
 
     bool null() override
@@ -1177,6 +1180,374 @@ public:
 //
 //
 //
+class BallBuilder;
+
+class ShowBuilder
+    : public Builder {
+private:
+    std::string M_key;
+    std::shared_ptr< Builder > M_child;
+
+    DispInfoT M_disp;
+public:
+    ShowBuilder( Context & context )
+        : Builder( context )
+      { }
+
+    bool onKey( const std::string & val ) override;
+
+    bool onNull() override
+      {
+          if ( M_child )
+          {
+              return M_child->onNull();
+          }
+          return true;
+      }
+
+    bool onBoolean( const bool ) override
+      {
+          return false;
+      }
+
+    bool onInteger( const int val ) override
+      {
+          if ( M_child )
+          {
+              return M_child->onInteger( val );
+          }
+
+          if ( M_key == "time" )
+          {
+              std::cerr << "(ShowBuilder) time = " << val << std::endl;
+              M_disp.show_.time_ = val;
+              M_key.clear();
+              return true;
+          }
+
+          if ( M_key == "stime" )
+          {
+              M_disp.show_.stime_ = val;
+              M_key.clear();
+              return true;
+          }
+
+          return false;
+      }
+
+    bool onUnsigned( const unsigned int val )
+      {
+          return onInteger( val );
+      }
+
+    bool onFloat( const double val ) override
+      {
+          if ( M_child )
+          {
+              return M_child->onFloat( val );
+          }
+          return false;
+      }
+    bool onString( const std::string & val ) override
+      {
+          if ( M_child )
+          {
+              return M_child->onString( val );
+          }
+
+          if ( M_key == "mode" )
+          {
+              M_disp.pmode_ = to_enum( val );
+              M_key.clear();
+              return true;
+          }
+
+          return true;
+      }
+    bool onStartObject( const size_t val ) override
+      {
+          if ( M_child )
+          {
+              return M_child->onStartObject( val );
+          }
+          return true;
+      }
+    bool onEndObject() override
+      {
+          if ( M_child )
+          {
+              return M_child->onEndObject();
+          }
+
+          M_context.clearBuilder();
+          return true;
+      }
+    bool onStartArray( const size_t val ) override
+      {
+          if ( M_child )
+          {
+              return M_child->onStartArray( val );
+          }
+          return true;
+      }
+    bool onEndArray() override
+      {
+          if ( M_child )
+          {
+              return M_child->onEndArray();
+          }
+          return true;
+      }
+
+
+    void clearChild()
+      {
+          std::cerr << "(ShowBuilder::clearChild)" << std::endl;
+          M_child.reset();
+      }
+};
+
+class BallBuilder
+    : public Builder {
+private:
+    DispInfoT & M_disp;
+    ShowBuilder & M_parent;
+
+    std::string M_key;
+public:
+    BallBuilder( Context & context,
+                 DispInfoT & disp,
+                 ShowBuilder & parent )
+        : Builder( context ),
+          M_disp( disp ),
+          M_parent( parent )
+      { }
+
+    bool onKey( const std::string & val ) override
+      {
+          //std::cerr << "(BallBuilder::onKey) " << val << std::endl;
+          M_key = val;
+          return true;
+      }
+
+    bool onInteger( const int val )
+      {
+          //std::cerr << "(BallBuilder::onInteger) " << val << std::endl;
+          if ( M_key == "x" ) M_disp.show_.ball_.x_ = static_cast< double >( val );
+          else if ( M_key == "y" ) M_disp.show_.ball_.y_ = static_cast< double >( val );
+          else if ( M_key == "vx" ) M_disp.show_.ball_.vx_ = static_cast< double >( val );
+          else if ( M_key == "vy" ) M_disp.show_.ball_.vy_ = static_cast< double >( val );
+          M_key.clear();
+          return true;
+      }
+    bool onUnsigned( const unsigned int val )
+      {
+          return onInteger( val );
+      }
+
+    bool onFloat( const double val ) override
+      {
+          //std::cerr << "(BallBuilder::onFloat) " << val << std::endl;
+          if ( M_key == "x" ) M_disp.show_.ball_.x_ = static_cast< float >( val );
+          else if ( M_key == "y" ) M_disp.show_.ball_.y_ = static_cast< float >( val );
+          else if ( M_key == "vx" ) M_disp.show_.ball_.vx_ = static_cast< float >( val );
+          else if ( M_key == "vy" ) M_disp.show_.ball_.vy_ = static_cast< float >( val );
+          M_key.clear();
+          return true;
+      }
+    bool onStartObject( const size_t ) override
+      {
+          //std::cerr << "(BallBuilder::onStartObject)" << std::endl;
+          return true;
+      }
+    bool onEndObject()
+      {
+          //std::cerr << "(BallBuilder::onEndObject)" << std::endl;
+          M_parent.clearChild();
+          return true;
+      }
+};
+
+//
+//
+//
+
+class PlayerArrayBuilder
+    : public Builder {
+private:
+    DispInfoT & M_disp;
+    ShowBuilder & M_parent;
+
+    std::string M_key;
+    size_t M_index;
+public:
+    PlayerArrayBuilder( Context & context,
+                        DispInfoT & disp,
+                        ShowBuilder & parent )
+        : Builder( context ),
+          M_disp( disp ),
+          M_parent( parent ),
+          M_index( 0 )
+      { }
+
+    bool onKey( const std::string & val ) override
+      {
+          //std::cerr << "(PlayerBuilder::onKey) " << val << std::endl;
+          M_key = val;
+          return true;
+      }
+
+    bool onInteger( const int val ) override
+      {
+          if ( M_index < 1 || MAX_PLAYER*2 < M_index )
+          {
+              M_key.clear();
+              return false;
+          }
+
+          if ( M_key == "unum" ) M_disp.show_.player_[M_index-1].unum_ = static_cast< Int16 >( val );
+          else if ( M_key == "type" ) M_disp.show_.player_[M_index-1].type_ = static_cast< Int16 >( val );
+          else if ( M_key == "state" ) M_disp.show_.player_[M_index-1].state_ = static_cast< Int32 >( val );
+          else if ( M_key == "x" ) M_disp.show_.player_[M_index-1].x_ = static_cast< float >( val );
+          else if ( M_key == "y" ) M_disp.show_.player_[M_index-1].y_ = static_cast< float >( val );
+          else if ( M_key == "vx" ) M_disp.show_.player_[M_index-1].vx_ = static_cast< float >( val );
+          else if ( M_key == "vy" ) M_disp.show_.player_[M_index-1].vy_ = static_cast< float >( val );
+          else if ( M_key == "body" ) M_disp.show_.player_[M_index-1].body_ = static_cast< float >( val );
+          else if ( M_key == "neck" ) M_disp.show_.player_[M_index-1].body_ = static_cast< float >( val );
+          else if ( M_key == "px" ) M_disp.show_.player_[M_index-1].point_x_ = static_cast< float >( val );
+          else if ( M_key == "py" ) M_disp.show_.player_[M_index-1].point_y_ = static_cast< float >( val );
+          else if ( M_key == "vw" ) M_disp.show_.player_[M_index-1].view_width_ = static_cast< float >( val );
+          else if ( M_key == "fdist" ) M_disp.show_.player_[M_index-1].focus_dist_ = static_cast< float >( val );
+          else if ( M_key == "fdir" ) M_disp.show_.player_[M_index-1].focus_dir_ = static_cast< float >( val );
+          else if ( M_key == "stamina" ) M_disp.show_.player_[M_index-1].stamina_ = static_cast< float >( val );
+          else if ( M_key == "effort" ) M_disp.show_.player_[M_index-1].effort_ = static_cast< float >( val );
+          else if ( M_key == "recovery" ) M_disp.show_.player_[M_index-1].recovery_ = static_cast< float >( val );
+          else if ( M_key == "capacity" ) M_disp.show_.player_[M_index-1].stamina_capacity_ = static_cast< float >( val );
+          else if ( M_key == "kick" ) M_disp.show_.player_[M_index-1].kick_count_ = static_cast< UInt16 >( val );
+          else if ( M_key == "dash" ) M_disp.show_.player_[M_index-1].dash_count_ = static_cast< UInt16 >( val );
+          else if ( M_key == "turn" ) M_disp.show_.player_[M_index-1].turn_count_ = static_cast< UInt16 >( val );
+          else if ( M_key == "catch" ) M_disp.show_.player_[M_index-1].catch_count_ = static_cast< UInt16 >( val );
+          else if ( M_key == "turn_neck" ) M_disp.show_.player_[M_index-1].turn_neck_count_ = static_cast< UInt16 >( val );
+          else if ( M_key == "change_view" ) M_disp.show_.player_[M_index-1].change_view_count_ = static_cast< UInt16 >( val );
+          else if ( M_key == "say" ) M_disp.show_.player_[M_index-1].say_count_ = static_cast< UInt16 >( val );
+          else if ( M_key == "tackle" ) M_disp.show_.player_[M_index-1].tackle_count_ = static_cast< UInt16 >( val );
+          else if ( M_key == "pointto" ) M_disp.show_.player_[M_index-1].pointto_count_ = static_cast< UInt16 >( val );
+          else if ( M_key == "attentionto" ) M_disp.show_.player_[M_index-1].attentionto_count_ = static_cast< UInt16 >( val );
+          else if ( M_key == "change_focus" ) M_disp.show_.player_[M_index-1].change_focus_count_ = static_cast< UInt16 >( val );
+          M_key.clear();
+          return true;
+      }
+    bool onUnsigned( const unsigned int val ) override
+      {
+          return onInteger( val );
+      }
+    bool onFloat( const double val ) override
+      {
+          if ( M_index < 1 || MAX_PLAYER*2 < M_index )
+          {
+              M_key.clear();
+              return false;
+          }
+
+          if ( M_key == "x" ) M_disp.show_.player_[M_index-1].x_ = static_cast< float >( val );
+          else if ( M_key == "y" ) M_disp.show_.player_[M_index-1].y_ = static_cast< float >( val );
+          else if ( M_key == "vx" ) M_disp.show_.player_[M_index-1].vx_ = static_cast< float >( val );
+          else if ( M_key == "vy" ) M_disp.show_.player_[M_index-1].vy_ = static_cast< float >( val );
+          else if ( M_key == "body" ) M_disp.show_.player_[M_index-1].body_ = static_cast< float >( val );
+          else if ( M_key == "neck" ) M_disp.show_.player_[M_index-1].body_ = static_cast< float >( val );
+          else if ( M_key == "px" ) M_disp.show_.player_[M_index-1].point_x_ = static_cast< float >( val );
+          else if ( M_key == "py" ) M_disp.show_.player_[M_index-1].point_y_ = static_cast< float >( val );
+          else if ( M_key == "vw" ) M_disp.show_.player_[M_index-1].view_width_ = static_cast< float >( val );
+          else if ( M_key == "fdist" ) M_disp.show_.player_[M_index-1].focus_dist_ = static_cast< float >( val );
+          else if ( M_key == "fdir" ) M_disp.show_.player_[M_index-1].focus_dir_ = static_cast< float >( val );
+          else if ( M_key == "stamina" ) M_disp.show_.player_[M_index-1].stamina_ = static_cast< float >( val );
+          else if ( M_key == "effort" ) M_disp.show_.player_[M_index-1].effort_ = static_cast< float >( val );
+          else if ( M_key == "recovery" ) M_disp.show_.player_[M_index-1].recovery_ = static_cast< float >( val );
+          else if ( M_key == "capacity" ) M_disp.show_.player_[M_index-1].stamina_capacity_ = static_cast< float >( val );
+          M_key.clear();
+          return true;
+      }
+
+    bool onString( const std::string & val ) override
+      {
+          if ( M_index < 1 || MAX_PLAYER*2 < M_index )
+          {
+              M_key.clear();
+              return false;
+          }
+
+          if ( M_key == "side" )
+          {
+              M_disp.show_.player_[M_index-1].side_ = val[0];
+              return true;
+          }
+          else if ( M_key == "vq" )
+          {
+              M_disp.show_.player_[M_index-1].view_quality_ = val[0];
+          }
+          M_key.clear();
+          return true;
+      }
+
+    bool onStartObject( const size_t ) override
+      {
+          if ( M_key.empty() )
+          {
+              ++M_index;
+              //std::cerr << "(PlayerArrayBuilder::onStartObject) index=" << M_index << std::endl;
+              if ( M_index > MAX_PLAYER*2 )
+              {
+                  return false;
+              }
+          }
+          return true;
+      }
+    bool onEndObject() override
+      {
+          //std::cerr << "(PlayerArrayBuilder::onEndObject)" << std::endl;
+          M_key.clear();
+          return true;
+      }
+
+    bool onStartArray( const size_t ) override
+      {
+          return true;
+      }
+    bool onEndArray() override
+      {
+          //std::cerr << "(PlayerArrayBuilder::onEndArray)" << std::endl;
+          M_parent.clearChild();
+          return true;
+      }
+
+};
+
+/*-------------------------------------------------------------------*/
+bool
+ShowBuilder::onKey( const std::string & val )
+{
+    //std::cerr << "(ShowBuilder::onKey) " << val << std::endl;
+    if ( M_child )
+    {
+        return M_child->onKey( val );
+    }
+
+    if ( val == "ball" )
+    {
+        M_child = Ptr( new BallBuilder( M_context, M_disp, *this ) );
+    }
+    else if ( val == "players" )
+    {
+        M_child = Ptr( new PlayerArrayBuilder( M_context, M_disp, *this ) );
+    }
+
+    M_key = val;
+    return true;
+}
+
+//
+//
+//
 
 /*-------------------------------------------------------------------*/
 Context::Context( Handler & handler )
@@ -1191,6 +1562,7 @@ Context::Context( Handler & handler )
     M_builder_map["team_graphic"] = [this]() { return Builder::Ptr( new TeamGraphicBuilder( *this ) ); };
     M_builder_map["playmode"] = [this]() { return Builder::Ptr( new PlaymodeBuilder( *this ) ); };
     M_builder_map["team"] = [this]() { return Builder::Ptr( new TeamBuilder( *this ) ); };
+    M_builder_map["show"] = [this]() { return Builder::Ptr( new ShowBuilder( *this ) ); };
 }
 
 /*-------------------------------------------------------------------*/

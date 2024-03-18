@@ -1125,6 +1125,7 @@ struct TeamT {
  */
 struct ShowInfoT {
     UInt32 time_; //!< game time
+    UInt32 stime_; //!< game time (stopped)
     BallT ball_; //!< ball data
     PlayerT player_[MAX_PLAYER * 2]; //!< player data
 };
