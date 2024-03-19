@@ -47,9 +47,66 @@
 #include <variant>
 #include <memory>
 #include <string>
+#include <functional>
 
 namespace rcsc {
 namespace rcg {
+
+// using PlayerValue = std::variant< int, double, std::string >;
+// using PlayerSetter = std::function< void( PlayerT &, const PlayerValue & ) >;
+
+static const std::unordered_map< std::string, std::function< void( PlayerT &, const int ) > > int_setters = {
+    { "unum", []( PlayerT & p, const int val ) { p.unum_ = val; } },
+    { "type", []( PlayerT & p, const int val ) { p.type_ = val; } },
+    { "state", []( PlayerT & p, const int val ) { p.state_ = val; } },
+    { "x", []( PlayerT & p, const int val ) { p.x_ = static_cast< float >( val ); } },
+    { "y", []( PlayerT & p, const int val ) { p.y_ = static_cast< float >( val ); } },
+    { "vx", []( PlayerT & p, const int val ) { p.vx_ = static_cast< float >( val ); } },
+    { "vy", []( PlayerT & p, const int val ) { p.vy_ = static_cast< float >( val ); } },
+    { "body", []( PlayerT & p, const int val ) { p.body_ = static_cast< float >( val ); } },
+    { "neck", []( PlayerT & p, const int val ) { p.neck_ = static_cast< float >( val ); } },
+    { "px", []( PlayerT & p, const int val ) { p.point_x_ = static_cast< float >( val ); } },
+    { "py", []( PlayerT & p, const int val ) { p.point_y_ = static_cast< float >( val ); } },
+    { "vw", []( PlayerT & p, const int val ) { p.view_width_ = static_cast< float >( val ); } },
+    { "fdist", []( PlayerT & p, const int val ) { p.focus_dist_ = static_cast< float >( val ); } },
+    { "fdir", []( PlayerT & p, const int val ) { p.focus_dir_ = static_cast< float >( val ); } },
+    { "stamina", []( PlayerT & p, const int val ) { p.stamina_ = static_cast< float >( val ); } },
+    { "effort", []( PlayerT & p, const int val ) { p.effort_ = static_cast< float >( val ); } },
+    { "recovery", []( PlayerT & p, const int val ) { p.recovery_ = static_cast< float >( val ); } },
+    { "capacity", []( PlayerT & p, const int val ) { p.stamina_capacity_ = static_cast< float >( val ); } },
+    { "kick", []( PlayerT & p, const int val ) { p.kick_count_ = static_cast< float >( val ); } },
+    { "dash", []( PlayerT & p, const int val ) { p.dash_count_ = static_cast< float >( val ); } },
+    { "turn", []( PlayerT & p, const int val ) { p.turn_count_ = static_cast< float >( val ); } },
+    { "catch", []( PlayerT & p, const int val ) { p.catch_count_ = static_cast< float >( val ); } },
+    { "turn_neck", []( PlayerT & p, const int val ) { p.turn_neck_count_ = static_cast< float >( val ); } },
+    { "change_view", []( PlayerT & p, const int val ) { p.change_view_count_ = static_cast< float >( val ); } },
+    { "say", []( PlayerT & p, const int val ) { p.say_count_ = static_cast< float >( val ); } },
+    { "tackle", []( PlayerT & p, const int val ) { p.tackle_count_ = static_cast< float >( val ); } },
+    { "pointto", []( PlayerT & p, const int val ) { p.pointto_count_ = static_cast< float >( val ); } },
+    { "attentionto", []( PlayerT & p, const int val ) { p.attentionto_count_ = static_cast< float >( val ); } },
+    { "change_focus", []( PlayerT & p, const int val ) { p.change_focus_count_ = static_cast< float >( val ); } },
+};
+
+static const std::unordered_map< std::string, std::function< void( PlayerT &, const double ) > > float_setters = {
+    { "x", []( PlayerT & p, const double val ) { p.x_ = static_cast< float >( val ); } },
+    { "y", []( PlayerT & p, const double val ) { p.y_ = static_cast< float >( val ); } },
+    { "vx", []( PlayerT & p, const double val ) { p.vx_ = static_cast< float >( val ); } },
+    { "vy", []( PlayerT & p, const double val ) { p.vy_ = static_cast< float >( val ); } },
+    { "body", []( PlayerT & p, const double val ) { p.body_ = static_cast< float >( val ); } },
+    { "neck", []( PlayerT & p, const double val ) { p.neck_ = static_cast< float >( val ); } },
+    { "px", []( PlayerT & p, const double val ) { p.point_x_ = static_cast< float >( val ); } },
+    { "py", []( PlayerT & p, const double val ) { p.point_y_ = static_cast< float >( val ); } },
+    { "vw", []( PlayerT & p, const double val ) { p.view_width_ = static_cast< float >( val ); } },
+    { "fdist", []( PlayerT & p, const double val ) { p.focus_dist_ = static_cast< float >( val ); } },
+    { "fdir", []( PlayerT & p, const double val ) { p.focus_dir_ = static_cast< float >( val ); } },
+    { "stamina", []( PlayerT & p, const double val ) { p.stamina_ = static_cast< float >( val ); } },
+    { "effort", []( PlayerT & p, const double val ) { p.effort_ = static_cast< float >( val ); } },
+    { "recovery", []( PlayerT & p, const double val ) { p.recovery_ = static_cast< float >( val ); } },
+    { "capacity", []( PlayerT & p, const double val ) { p.stamina_capacity_ = static_cast< float >( val ); } },
+};
+
+
+
 
 class Context;
 //using ParamValue = std::variant< int, double, bool, std::string >;
@@ -848,6 +905,7 @@ public:
 
 };
 
+
 //
 //
 //
@@ -948,7 +1006,6 @@ public:
           return true;
       }
 };
-
 
 //
 //
@@ -1180,7 +1237,6 @@ public:
 //
 //
 //
-class BallBuilder;
 
 class ShowBuilder
     : public Builder {
@@ -1219,7 +1275,7 @@ public:
 
           if ( M_key == "time" )
           {
-              std::cerr << "(ShowBuilder) time = " << val << std::endl;
+              //std::cerr << "(ShowBuilder) time = " << val << std::endl;
               M_disp.show_.time_ = val;
               M_key.clear();
               return true;
@@ -1302,22 +1358,24 @@ public:
 
     void clearChild()
       {
-          std::cerr << "(ShowBuilder::clearChild)" << std::endl;
+          //std::cerr << "(ShowBuilder::clearChild)" << std::endl;
           M_child.reset();
       }
 };
 
+
+
 class BallBuilder
     : public Builder {
 private:
-    DispInfoT & M_disp;
-    ShowBuilder & M_parent;
+    DispInfoT * M_disp;
+    ShowBuilder * M_parent;
 
     std::string M_key;
 public:
     BallBuilder( Context & context,
-                 DispInfoT & disp,
-                 ShowBuilder & parent )
+                 DispInfoT * disp,
+                 ShowBuilder * parent )
         : Builder( context ),
           M_disp( disp ),
           M_parent( parent )
@@ -1333,10 +1391,10 @@ public:
     bool onInteger( const int val )
       {
           //std::cerr << "(BallBuilder::onInteger) " << val << std::endl;
-          if ( M_key == "x" ) M_disp.show_.ball_.x_ = static_cast< double >( val );
-          else if ( M_key == "y" ) M_disp.show_.ball_.y_ = static_cast< double >( val );
-          else if ( M_key == "vx" ) M_disp.show_.ball_.vx_ = static_cast< double >( val );
-          else if ( M_key == "vy" ) M_disp.show_.ball_.vy_ = static_cast< double >( val );
+          if ( M_key == "x" ) M_disp->show_.ball_.x_ = static_cast< double >( val );
+          else if ( M_key == "y" ) M_disp->show_.ball_.y_ = static_cast< double >( val );
+          else if ( M_key == "vx" ) M_disp->show_.ball_.vx_ = static_cast< double >( val );
+          else if ( M_key == "vy" ) M_disp->show_.ball_.vy_ = static_cast< double >( val );
           M_key.clear();
           return true;
       }
@@ -1348,10 +1406,10 @@ public:
     bool onFloat( const double val ) override
       {
           //std::cerr << "(BallBuilder::onFloat) " << val << std::endl;
-          if ( M_key == "x" ) M_disp.show_.ball_.x_ = static_cast< float >( val );
-          else if ( M_key == "y" ) M_disp.show_.ball_.y_ = static_cast< float >( val );
-          else if ( M_key == "vx" ) M_disp.show_.ball_.vx_ = static_cast< float >( val );
-          else if ( M_key == "vy" ) M_disp.show_.ball_.vy_ = static_cast< float >( val );
+          if ( M_key == "x" ) M_disp->show_.ball_.x_ = static_cast< float >( val );
+          else if ( M_key == "y" ) M_disp->show_.ball_.y_ = static_cast< float >( val );
+          else if ( M_key == "vx" ) M_disp->show_.ball_.vx_ = static_cast< float >( val );
+          else if ( M_key == "vy" ) M_disp->show_.ball_.vy_ = static_cast< float >( val );
           M_key.clear();
           return true;
       }
@@ -1363,7 +1421,10 @@ public:
     bool onEndObject()
       {
           //std::cerr << "(BallBuilder::onEndObject)" << std::endl;
-          M_parent.clearChild();
+          if ( M_parent )
+          {
+              M_parent->clearChild();
+          }
           return true;
       }
 };
@@ -1375,15 +1436,15 @@ public:
 class PlayerArrayBuilder
     : public Builder {
 private:
-    DispInfoT & M_disp;
-    ShowBuilder & M_parent;
+    DispInfoT * M_disp;
+    ShowBuilder * M_parent;
 
     std::string M_key;
     size_t M_index;
 public:
     PlayerArrayBuilder( Context & context,
-                        DispInfoT & disp,
-                        ShowBuilder & parent )
+                        DispInfoT * disp,
+                        ShowBuilder * parent )
         : Builder( context ),
           M_disp( disp ),
           M_parent( parent ),
@@ -1405,35 +1466,25 @@ public:
               return false;
           }
 
-          if ( M_key == "unum" ) M_disp.show_.player_[M_index-1].unum_ = static_cast< Int16 >( val );
-          else if ( M_key == "type" ) M_disp.show_.player_[M_index-1].type_ = static_cast< Int16 >( val );
-          else if ( M_key == "state" ) M_disp.show_.player_[M_index-1].state_ = static_cast< Int32 >( val );
-          else if ( M_key == "x" ) M_disp.show_.player_[M_index-1].x_ = static_cast< float >( val );
-          else if ( M_key == "y" ) M_disp.show_.player_[M_index-1].y_ = static_cast< float >( val );
-          else if ( M_key == "vx" ) M_disp.show_.player_[M_index-1].vx_ = static_cast< float >( val );
-          else if ( M_key == "vy" ) M_disp.show_.player_[M_index-1].vy_ = static_cast< float >( val );
-          else if ( M_key == "body" ) M_disp.show_.player_[M_index-1].body_ = static_cast< float >( val );
-          else if ( M_key == "neck" ) M_disp.show_.player_[M_index-1].body_ = static_cast< float >( val );
-          else if ( M_key == "px" ) M_disp.show_.player_[M_index-1].point_x_ = static_cast< float >( val );
-          else if ( M_key == "py" ) M_disp.show_.player_[M_index-1].point_y_ = static_cast< float >( val );
-          else if ( M_key == "vw" ) M_disp.show_.player_[M_index-1].view_width_ = static_cast< float >( val );
-          else if ( M_key == "fdist" ) M_disp.show_.player_[M_index-1].focus_dist_ = static_cast< float >( val );
-          else if ( M_key == "fdir" ) M_disp.show_.player_[M_index-1].focus_dir_ = static_cast< float >( val );
-          else if ( M_key == "stamina" ) M_disp.show_.player_[M_index-1].stamina_ = static_cast< float >( val );
-          else if ( M_key == "effort" ) M_disp.show_.player_[M_index-1].effort_ = static_cast< float >( val );
-          else if ( M_key == "recovery" ) M_disp.show_.player_[M_index-1].recovery_ = static_cast< float >( val );
-          else if ( M_key == "capacity" ) M_disp.show_.player_[M_index-1].stamina_capacity_ = static_cast< float >( val );
-          else if ( M_key == "kick" ) M_disp.show_.player_[M_index-1].kick_count_ = static_cast< UInt16 >( val );
-          else if ( M_key == "dash" ) M_disp.show_.player_[M_index-1].dash_count_ = static_cast< UInt16 >( val );
-          else if ( M_key == "turn" ) M_disp.show_.player_[M_index-1].turn_count_ = static_cast< UInt16 >( val );
-          else if ( M_key == "catch" ) M_disp.show_.player_[M_index-1].catch_count_ = static_cast< UInt16 >( val );
-          else if ( M_key == "turn_neck" ) M_disp.show_.player_[M_index-1].turn_neck_count_ = static_cast< UInt16 >( val );
-          else if ( M_key == "change_view" ) M_disp.show_.player_[M_index-1].change_view_count_ = static_cast< UInt16 >( val );
-          else if ( M_key == "say" ) M_disp.show_.player_[M_index-1].say_count_ = static_cast< UInt16 >( val );
-          else if ( M_key == "tackle" ) M_disp.show_.player_[M_index-1].tackle_count_ = static_cast< UInt16 >( val );
-          else if ( M_key == "pointto" ) M_disp.show_.player_[M_index-1].pointto_count_ = static_cast< UInt16 >( val );
-          else if ( M_key == "attentionto" ) M_disp.show_.player_[M_index-1].attentionto_count_ = static_cast< UInt16 >( val );
-          else if ( M_key == "change_focus" ) M_disp.show_.player_[M_index-1].change_focus_count_ = static_cast< UInt16 >( val );
+          {
+              decltype( int_setters )::const_iterator it = int_setters.find( M_key );
+              if ( it != int_setters.end() )
+              {
+                  it->second( M_disp->show_.player_[M_index-1], val );
+                  M_key.clear();
+                  return true;
+              }
+          }
+          {
+              decltype( float_setters )::const_iterator it = float_setters.find( M_key );
+              if ( it != float_setters.end() )
+              {
+                  it->second( M_disp->show_.player_[M_index-1], val );
+                  M_key.clear();
+                  return true;
+              }
+          }
+
           M_key.clear();
           return true;
       }
@@ -1449,21 +1500,16 @@ public:
               return false;
           }
 
-          if ( M_key == "x" ) M_disp.show_.player_[M_index-1].x_ = static_cast< float >( val );
-          else if ( M_key == "y" ) M_disp.show_.player_[M_index-1].y_ = static_cast< float >( val );
-          else if ( M_key == "vx" ) M_disp.show_.player_[M_index-1].vx_ = static_cast< float >( val );
-          else if ( M_key == "vy" ) M_disp.show_.player_[M_index-1].vy_ = static_cast< float >( val );
-          else if ( M_key == "body" ) M_disp.show_.player_[M_index-1].body_ = static_cast< float >( val );
-          else if ( M_key == "neck" ) M_disp.show_.player_[M_index-1].body_ = static_cast< float >( val );
-          else if ( M_key == "px" ) M_disp.show_.player_[M_index-1].point_x_ = static_cast< float >( val );
-          else if ( M_key == "py" ) M_disp.show_.player_[M_index-1].point_y_ = static_cast< float >( val );
-          else if ( M_key == "vw" ) M_disp.show_.player_[M_index-1].view_width_ = static_cast< float >( val );
-          else if ( M_key == "fdist" ) M_disp.show_.player_[M_index-1].focus_dist_ = static_cast< float >( val );
-          else if ( M_key == "fdir" ) M_disp.show_.player_[M_index-1].focus_dir_ = static_cast< float >( val );
-          else if ( M_key == "stamina" ) M_disp.show_.player_[M_index-1].stamina_ = static_cast< float >( val );
-          else if ( M_key == "effort" ) M_disp.show_.player_[M_index-1].effort_ = static_cast< float >( val );
-          else if ( M_key == "recovery" ) M_disp.show_.player_[M_index-1].recovery_ = static_cast< float >( val );
-          else if ( M_key == "capacity" ) M_disp.show_.player_[M_index-1].stamina_capacity_ = static_cast< float >( val );
+          {
+              decltype( float_setters )::const_iterator it = float_setters.find( M_key );
+              if ( it != float_setters.end() )
+              {
+                  it->second( M_disp->show_.player_[M_index-1], val );
+                  M_key.clear();
+                  return true;
+              }
+          }
+
           M_key.clear();
           return true;
       }
@@ -1478,13 +1524,13 @@ public:
 
           if ( M_key == "side" )
           {
-              M_disp.show_.player_[M_index-1].side_ = val[0];
-              return true;
+              M_disp->show_.player_[M_index-1].side_ = val[0];
           }
           else if ( M_key == "vq" )
           {
-              M_disp.show_.player_[M_index-1].view_quality_ = val[0];
+              M_disp->show_.player_[M_index-1].view_quality_ = val[0];
           }
+
           M_key.clear();
           return true;
       }
@@ -1516,7 +1562,10 @@ public:
     bool onEndArray() override
       {
           //std::cerr << "(PlayerArrayBuilder::onEndArray)" << std::endl;
-          M_parent.clearChild();
+          if ( M_parent )
+          {
+              M_parent->clearChild();
+          }
           return true;
       }
 
@@ -1534,11 +1583,15 @@ ShowBuilder::onKey( const std::string & val )
 
     if ( val == "ball" )
     {
-        M_child = Ptr( new BallBuilder( M_context, M_disp, *this ) );
+        M_child = Ptr( new BallBuilder( M_context, &M_disp, this ) );
     }
     else if ( val == "players" )
     {
-        M_child = Ptr( new PlayerArrayBuilder( M_context, M_disp, *this ) );
+        M_child = Ptr( new PlayerArrayBuilder( M_context, &M_disp, this ) );
+    }
+    else if ( val == "team" )
+    {
+        //M_child = Ptr( new TeamBuilder( M_context, &M_disp, this ) );
     }
 
     M_key = val;
