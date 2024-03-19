@@ -134,9 +134,19 @@ private:
     const Builder & operator=( const Builder & ) = delete;
 protected:
     Context & M_context;
+    Builder * M_parent;
+    Ptr M_child;
 
     Builder( Context & context )
-        : M_context( context )
+        : M_context( context ),
+          M_parent( nullptr )
+      { }
+
+
+    Builder( Context & context,
+             Builder * parent )
+        : M_context( context ),
+          M_parent( parent )
       { }
 
 public:
@@ -154,20 +164,22 @@ public:
     virtual bool onEndObject() { return false; }
     virtual bool onStartArray( const size_t ) { return false; }
     virtual bool onEndArray() { return false; }
+
+    void clearChild()
+      {
+          M_child.reset();
+      }
 };
 
 //
 //
 //
 
-// class CompositeBuilder
+// class RCGBuilder
 //     : public Builder {
-// private:
-//     std::shared_ptr< Builder > M_child;
-// public:
-//     CompositeBuilder( Context & context )
-//         : Builder( context )
-//       { }
+
+
+// };
 
 // };
 
@@ -215,7 +227,6 @@ public:
           if ( it != M_builder_map.end() )
           {
               M_builder = it->second();
-              // std::cerr << "(key) new builder " << it->first << std::endl;
               return true;
           }
 
@@ -1033,7 +1044,6 @@ class ShowBuilder
     : public Builder {
 private:
     std::string M_key;
-    std::shared_ptr< Builder > M_child;
 
     DispInfoT M_disp;
 public:
@@ -1180,7 +1190,6 @@ public:
 class TeamBuilder
     : public Builder {
 private:
-    ShowBuilder * M_parent;
 
     int M_time;
     int M_stime;
@@ -1191,10 +1200,16 @@ private:
 
     std::string M_key;
 public:
-    TeamBuilder( Context & context,
-                 ShowBuilder * parent = nullptr )
+    TeamBuilder( Context & context )
         : Builder( context ),
-          M_parent( parent ),
+          M_time( -1 ),
+          M_stime( -1 ),
+          M_current_team( nullptr )
+      { }
+
+    TeamBuilder( Context & context,
+                 Builder * parent )
+        : Builder( context, parent ),
           M_time( -1 ),
           M_stime( -1 ),
           M_current_team( nullptr )
@@ -1322,16 +1337,14 @@ class BallBuilder
     : public Builder {
 private:
     DispInfoT * M_disp;
-    ShowBuilder * M_parent;
 
     std::string M_key;
 public:
     BallBuilder( Context & context,
-                 DispInfoT * disp,
-                 ShowBuilder * parent )
-        : Builder( context ),
-          M_disp( disp ),
-          M_parent( parent )
+                 Builder * parent,
+                 DispInfoT * disp )
+        : Builder( context, parent ),
+          M_disp( disp )
       { }
 
     bool onKey( const std::string & val ) override
@@ -1375,7 +1388,6 @@ public:
 
     bool onEndObject()
       {
-          //std::cerr << "(BallBuilder::onEndObject)" << std::endl;
           if ( M_parent )
           {
               M_parent->clearChild();
@@ -1392,17 +1404,15 @@ class PlayerArrayBuilder
     : public Builder {
 private:
     DispInfoT * M_disp;
-    ShowBuilder * M_parent;
 
     std::string M_key;
     size_t M_index;
 public:
     PlayerArrayBuilder( Context & context,
-                        DispInfoT * disp,
-                        ShowBuilder * parent )
-        : Builder( context ),
+                        Builder * parent,
+                        DispInfoT * disp )
+        : Builder( context, parent ),
           M_disp( disp ),
-          M_parent( parent ),
           M_index( 0 )
       { }
 
@@ -1519,7 +1529,7 @@ public:
 
     bool onEndArray() override
       {
-          //std::cerr << "(PlayerArrayBuilder::onEndArray)" << std::endl;
+          std::cerr << "(PlayerArrayBuilder::onEndArray)" << std::endl;
           if ( M_parent )
           {
               M_parent->clearChild();
@@ -1545,16 +1555,17 @@ ShowBuilder::onKey( const std::string & val )
 {
     if ( M_child )
     {
+        std::cerr << "ShowBuilder child on key" << std::endl;
         return M_child->onKey( val );
     }
 
     if ( val == "ball" )
     {
-        M_child = Ptr( new BallBuilder( M_context, &M_disp, this ) );
+        M_child = Ptr( new BallBuilder( M_context, this, &M_disp ) );
     }
     else if ( val == "players" )
     {
-        M_child = Ptr( new PlayerArrayBuilder( M_context, &M_disp, this ) );
+        M_child = Ptr( new PlayerArrayBuilder( M_context, this, &M_disp ) );
     }
     // else if ( val == "mode" )
     // {
