@@ -55,7 +55,7 @@ namespace rcg {
 // using PlayerValue = std::variant< int, double, std::string >;
 // using PlayerSetter = std::function< void( PlayerT &, const PlayerValue & ) >;
 
-static const std::unordered_map< std::string, std::function< void( PlayerT &, const int ) > > int_setters = {
+static const std::unordered_map< std::string, std::function< void( PlayerT &, const int ) > > player_setters_int = {
     { "unum", []( PlayerT & p, const int val ) { p.unum_ = val; } },
     { "type", []( PlayerT & p, const int val ) { p.type_ = val; } },
     { "state", []( PlayerT & p, const int val ) { p.state_ = val; } },
@@ -87,7 +87,7 @@ static const std::unordered_map< std::string, std::function< void( PlayerT &, co
     { "change_focus", []( PlayerT & p, const int val ) { p.change_focus_count_ = static_cast< float >( val ); } },
 };
 
-static const std::unordered_map< std::string, std::function< void( PlayerT &, const double ) > > float_setters = {
+static const std::unordered_map< std::string, std::function< void( PlayerT &, const double ) > > player_setters_float = {
     { "x", []( PlayerT & p, const double val ) { p.x_ = static_cast< float >( val ); } },
     { "y", []( PlayerT & p, const double val ) { p.y_ = static_cast< float >( val ); } },
     { "vx", []( PlayerT & p, const double val ) { p.vx_ = static_cast< float >( val ); } },
@@ -105,6 +105,10 @@ static const std::unordered_map< std::string, std::function< void( PlayerT &, co
     { "capacity", []( PlayerT & p, const double val ) { p.stamina_capacity_ = static_cast< float >( val ); } },
 };
 
+static const std::unordered_map< std::string, std::function< void( PlayerT &, const std::string & ) > > player_setters_string = {
+    { "side", []( PlayerT & p, const std::string & val ) { p.side_ = val[0]; } },
+    { "vq", []( PlayerT & p, const std::string & val ) { p.view_quality_ = val[0]; } },
+};
 
 
 
@@ -1384,8 +1388,8 @@ public:
           }
 
           {
-              decltype( int_setters )::const_iterator it = int_setters.find( M_key );
-              if ( it != int_setters.end() )
+              decltype( player_setters_int )::const_iterator it = player_setters_int.find( M_key );
+              if ( it != player_setters_int.end() )
               {
                   it->second( M_disp->show_.player_[M_index-1], val );
                   M_key.clear();
@@ -1393,8 +1397,8 @@ public:
               }
           }
           {
-              decltype( float_setters )::const_iterator it = float_setters.find( M_key );
-              if ( it != float_setters.end() )
+              decltype( player_setters_float )::const_iterator it = player_setters_float.find( M_key );
+              if ( it != player_setters_float.end() )
               {
                   it->second( M_disp->show_.player_[M_index-1], val );
                   M_key.clear();
@@ -1418,8 +1422,8 @@ public:
           }
 
           {
-              decltype( float_setters )::const_iterator it = float_setters.find( M_key );
-              if ( it != float_setters.end() )
+              decltype( player_setters_float )::const_iterator it = player_setters_float.find( M_key );
+              if ( it != player_setters_float.end() )
               {
                   it->second( M_disp->show_.player_[M_index-1], val );
                   M_key.clear();
@@ -1439,13 +1443,14 @@ public:
               return false;
           }
 
-          if ( M_key == "side" )
           {
-              M_disp->show_.player_[M_index-1].side_ = val[0];
-          }
-          else if ( M_key == "vq" )
-          {
-              M_disp->show_.player_[M_index-1].view_quality_ = val[0];
+              decltype( player_setters_string )::const_iterator it = player_setters_string.find( M_key );
+              if ( it != player_setters_string.end() )
+              {
+                  it->second( M_disp->show_.player_[M_index-1], val );
+                  M_key.clear();
+                  return true;
+              }
           }
 
           M_key.clear();
