@@ -405,7 +405,7 @@ public:
                     const std::string & message )
       {
           M_handler.handleMsg( time, board, message );
-          std::cerr << "handleMsg [" << message << "]" << std::endl;
+          //std::cerr << "handleMsg [" << message << "]" << std::endl;
       }
 
 
@@ -1675,7 +1675,7 @@ Context::Context( Handler & handler )
 /*-------------------------------------------------------------------*/
 ParserJSON::ParserJSON()
 {
-    std::cerr << "(ParserJSON) create" << std::endl;
+    // std::cerr << "(ParserJSON) create" << std::endl;
 }
 
 /*-------------------------------------------------------------------*/
@@ -1691,7 +1691,6 @@ ParserJSON::parse( std::istream & is,
         return false;
     }
 
-    std::cerr << "(ParserJSON::parse)" << std::endl;
     Context context( handler );
     bool result = nlohmann::json::sax_parse( is, &context );
 
@@ -1703,6 +1702,7 @@ bool
 ParserJSON::parseData( const std::string & input,
                        Handler & handler ) const
 {
+    //std::cerr << "(ParserJSON::parseData) " << input << std::endl;
     Context context( handler );
     bool result = nlohmann::json::sax_parse( input, &context );
 
