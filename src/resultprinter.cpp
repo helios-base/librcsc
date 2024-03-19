@@ -366,8 +366,8 @@ ResultPrinter::handleMsg( const int,
         {
             t.tm_sec = 0;
             M_game_date = std::mktime( &t );
-            //std::cerr << "date=" << std::asctime( &t ) << std::endl;;
-            //std::cerr << "date=" << std::ctime( &M_game_date ) << std::endl;;
+            // std::cerr << "date=" << std::asctime( &t ) << std::endl;;
+            // std::cerr << "date=" << std::ctime( &M_game_date ) << std::endl;;
         }
     }
 

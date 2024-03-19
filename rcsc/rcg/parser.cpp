@@ -78,7 +78,6 @@ Parser::create( std::istream & is )
 
     if ( header[0] == '[' )
     {
-        std::cerr << "(rcsc::rcg::Parser::create) JSON rcg." << std::endl;
         version = REC_VERSION_JSON;
     }
     else if ( header[0] == 'U'
@@ -88,12 +87,19 @@ Parser::create( std::istream & is )
         version = static_cast< int >( header[3] );
     }
 
-    std::cerr << "(rcsc::rcg::Parser::create) rcg version = "
-              << ( version == static_cast< int >( '0' ) + REC_VERSION_6 ? REC_VERSION_6
-                   : version == static_cast< int >( '0' ) + REC_VERSION_5 ? REC_VERSION_5
-                   : version == static_cast< int >( '0' ) + REC_VERSION_4 ? REC_VERSION_4
-                   : version )
-              << std::endl;
+    std::cerr << "(rcsc::rcg::Parser::create) rcg version = ";
+    if ( version == -1 )
+    {
+        std::cerr << "json";
+    }
+    else
+    {
+        std::cerr << ( version == static_cast< int >( '0' ) + REC_VERSION_6 ? REC_VERSION_6
+                       : version == static_cast< int >( '0' ) + REC_VERSION_5 ? REC_VERSION_5
+                       : version == static_cast< int >( '0' ) + REC_VERSION_4 ? REC_VERSION_4
+                       : version );
+    }
+    std::cerr << std::endl;
 
     Parser::Ptr ptr;
     Parser::Creator creator;
