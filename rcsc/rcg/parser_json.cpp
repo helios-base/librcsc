@@ -74,17 +74,18 @@ static const std::unordered_map< std::string, std::function< void( PlayerT &, co
     { "effort", []( PlayerT & p, const int val ) { p.effort_ = static_cast< float >( val ); } },
     { "recovery", []( PlayerT & p, const int val ) { p.recovery_ = static_cast< float >( val ); } },
     { "capacity", []( PlayerT & p, const int val ) { p.stamina_capacity_ = static_cast< float >( val ); } },
-    { "kick", []( PlayerT & p, const int val ) { p.kick_count_ = static_cast< float >( val ); } },
-    { "dash", []( PlayerT & p, const int val ) { p.dash_count_ = static_cast< float >( val ); } },
-    { "turn", []( PlayerT & p, const int val ) { p.turn_count_ = static_cast< float >( val ); } },
-    { "catch", []( PlayerT & p, const int val ) { p.catch_count_ = static_cast< float >( val ); } },
-    { "turn_neck", []( PlayerT & p, const int val ) { p.turn_neck_count_ = static_cast< float >( val ); } },
-    { "change_view", []( PlayerT & p, const int val ) { p.change_view_count_ = static_cast< float >( val ); } },
-    { "say", []( PlayerT & p, const int val ) { p.say_count_ = static_cast< float >( val ); } },
-    { "tackle", []( PlayerT & p, const int val ) { p.tackle_count_ = static_cast< float >( val ); } },
-    { "pointto", []( PlayerT & p, const int val ) { p.pointto_count_ = static_cast< float >( val ); } },
-    { "attentionto", []( PlayerT & p, const int val ) { p.attentionto_count_ = static_cast< float >( val ); } },
-    { "change_focus", []( PlayerT & p, const int val ) { p.change_focus_count_ = static_cast< float >( val ); } },
+    { "kick", []( PlayerT & p, const int val ) { p.kick_count_ = val; } },
+    { "dash", []( PlayerT & p, const int val ) { p.dash_count_ = val; } },
+    { "turn", []( PlayerT & p, const int val ) { p.turn_count_ = val; } },
+    { "catch", []( PlayerT & p, const int val ) { p.catch_count_ = val; } },
+    { "move", []( PlayerT & p, const int val ) { p.move_count_ = val; } },
+    { "turn_neck", []( PlayerT & p, const int val ) { p.turn_neck_count_ = val; } },
+    { "change_view", []( PlayerT & p, const int val ) { p.change_view_count_ = val; } },
+    { "say", []( PlayerT & p, const int val ) { p.say_count_ = val; } },
+    { "tackle", []( PlayerT & p, const int val ) { p.tackle_count_ = val; } },
+    { "pointto", []( PlayerT & p, const int val ) { p.pointto_count_ = val; } },
+    { "attentionto", []( PlayerT & p, const int val ) { p.attentionto_count_ = val; } },
+    { "change_focus", []( PlayerT & p, const int val ) { p.change_focus_count_ = val; } },
 };
 
 static const std::unordered_map< std::string, std::function< void( PlayerT &, const double ) > > player_setters_float = {
@@ -296,7 +297,6 @@ public:
                   return false;
               }
           }
-
           return true;
       }
 
@@ -394,6 +394,20 @@ public:
           //           << " " << team_l.name_ << " " << team_l.score_
           //           << " " << team_r.name_ << " " << team_r.score_ << std::endl;
       }
+
+    void handleShow( const ShowInfoT & show )
+      {
+          M_handler.handleShow( show );
+      }
+
+    void handleMsg( const int time,
+                    const int board,
+                    const std::string & message )
+      {
+          M_handler.handleMsg( time, board, message );
+          std::cerr << "handleMsg [" << message << "]" << std::endl;
+      }
+
 
 };
 
@@ -1033,13 +1047,22 @@ public:
       {
           if ( M_child )
           {
-              return M_child->onNull();
+              bool result = M_child->onNull();
+              M_key.clear();
+              return result;
           }
           return true;
       }
 
-    bool onBoolean( const bool ) override
+    bool onBoolean( const bool val ) override
       {
+          if ( M_child )
+          {
+              bool result = M_child->onBoolean( val );
+              M_key.clear();
+              return result;
+          }
+          M_key.clear();
           return false;
       }
 
@@ -1065,6 +1088,7 @@ public:
               return true;
           }
 
+          M_key.clear();
           return false;
       }
 
@@ -1079,8 +1103,11 @@ public:
           {
               return M_child->onFloat( val );
           }
+
+          M_key.clear();
           return false;
       }
+
     bool onString( const std::string & val ) override
       {
           if ( M_child )
@@ -1097,6 +1124,7 @@ public:
 
           return true;
       }
+
     bool onStartObject( const size_t val ) override
       {
           if ( M_child )
@@ -1112,9 +1140,12 @@ public:
               return M_child->onEndObject();
           }
 
+          M_context.handleShow( M_disp.show_ );
           M_context.clearBuilder();
+          //M_key.clear();
           return true;
       }
+
     bool onStartArray( const size_t val ) override
       {
           if ( M_child )
@@ -1137,6 +1168,7 @@ public:
       {
           //std::cerr << "(ShowBuilder::clearChild)" << std::endl;
           M_child.reset();
+          M_key.clear();
       }
 };
 
@@ -1334,11 +1366,13 @@ public:
           M_key.clear();
           return true;
       }
+
     bool onStartObject( const size_t ) override
       {
           //std::cerr << "(BallBuilder::onStartObject)" << std::endl;
           return true;
       }
+
     bool onEndObject()
       {
           //std::cerr << "(BallBuilder::onEndObject)" << std::endl;
@@ -1413,6 +1447,7 @@ public:
       {
           return onInteger( val );
       }
+
     bool onFloat( const double val ) override
       {
           if ( M_index < 1 || MAX_PLAYER*2 < M_index )
@@ -1472,7 +1507,7 @@ public:
       }
     bool onEndObject() override
       {
-          //std::cerr << "(PlayerArrayBuilder::onEndObject)" << std::endl;
+          //std::cerr << "(PlayerArrayBuilder::onEndObject) index=" << M_index << std::endl;
           M_key.clear();
           return true;
       }
@@ -1481,6 +1516,7 @@ public:
       {
           return true;
       }
+
     bool onEndArray() override
       {
           //std::cerr << "(PlayerArrayBuilder::onEndArray)" << std::endl;
@@ -1507,7 +1543,6 @@ public:
 bool
 ShowBuilder::onKey( const std::string & val )
 {
-    //std::cerr << "(ShowBuilder::onKey) " << val << std::endl;
     if ( M_child )
     {
         return M_child->onKey( val );
@@ -1538,6 +1573,81 @@ ShowBuilder::onKey( const std::string & val )
 //
 //
 
+class MsgBuilder
+    : public Builder {
+private:
+
+    std::string M_key;
+    int M_time;
+    int M_stime;
+    int M_board;
+    std::string M_message;
+public:
+    MsgBuilder( Context & context )
+        : Builder( context ),
+          M_time( 0 ),
+          M_stime( 0 ),
+          M_board( 0 )
+      { }
+
+    bool onKey( const std::string & val ) override
+      {
+          M_key = val;
+          return true;
+      }
+
+    bool onInteger( const int val ) override
+      {
+          if ( M_key == "time" )
+          {
+              M_time = val;
+          }
+          else if ( M_key == "stime" )
+          {
+              M_stime = val;
+          }
+          else if ( M_key == "board" )
+          {
+              M_board = val;
+          }
+
+          M_key.clear();
+          return true;
+      }
+
+    bool onUnsigned( const unsigned int val ) override
+      {
+          return onInteger( val );
+      }
+
+    bool onString( const std::string & val ) override
+      {
+          if ( M_key == "message" )
+          {
+              M_message = val;
+          }
+
+          M_key.clear();
+          return true;
+      }
+
+    bool onStartObject( const size_t ) override
+      {
+          return true;
+      }
+
+    bool onEndObject() override
+      {
+          M_context.handleMsg( M_time, M_board, M_message );
+          M_context.clearBuilder();
+          return true;
+      }
+};
+
+//
+//
+//
+
 /*-------------------------------------------------------------------*/
 Context::Context( Handler & handler )
     : M_handler( handler ),
@@ -1552,6 +1662,7 @@ Context::Context( Handler & handler )
     M_builder_map["playmode"] = [this]() { return Builder::Ptr( new PlaymodeBuilder( *this ) ); };
     M_builder_map["team"] = [this]() { return Builder::Ptr( new TeamBuilder( *this ) ); };
     M_builder_map["show"] = [this]() { return Builder::Ptr( new ShowBuilder( *this ) ); };
+    M_builder_map["msg"] = [this]() { return Builder::Ptr( new MsgBuilder( *this ) ); };
 }
 
 /*-------------------------------------------------------------------*/
