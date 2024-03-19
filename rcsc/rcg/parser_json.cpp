@@ -1011,233 +1011,6 @@ public:
 //
 //
 
-class TeamBuilder
-    : public Builder {
-private:
-    std::stack< std::string > M_key_stack;
-    int M_depth;
-
-    TeamT * M_current_team;
-
-    int M_time;
-    int M_stime;
-    TeamT M_left_team;
-    TeamT M_right_team;
-public:
-    TeamBuilder( Context & context )
-        : Builder( context ),
-          M_depth( 0 ),
-          M_current_team( nullptr ),
-          M_time( 0 ),
-          M_stime( 0 )
-      { }
-
-    bool onKey( const std::string & val ) override
-      {
-          if ( M_depth < 1 || 2 < M_depth )
-          {
-              std::cerr << "(TeamBuilder::onKey) ERROR depth " << M_depth << " val=" << val << std::endl;
-              return false;
-          }
-
-          if ( val == "l" )
-          {
-              M_current_team = &M_left_team;
-          }
-          else if ( val == "r" )
-          {
-              M_current_team = &M_right_team;
-          }
-
-          M_key_stack.push( val );
-          return true;
-      }
-
-    bool onNull() override
-      {
-          if ( M_key_stack.empty() )
-          {
-              std::cerr << "(TeamBuilder::onNull) ERROR no key " << std::endl;
-              return false;
-          }
-
-          if ( M_key_stack.top() == "name" )
-          {
-              if ( ! M_current_team )
-              {
-                  std::cerr << "(TeamBuilder::onString) ERROR no team " << std::endl;
-                  M_key_stack.pop();
-                  return false;
-              }
-
-              M_current_team->name_.clear();
-          }
-          else
-          {
-              std::cerr << "(TeamBuilder::onString) WARNING unsupported key = " << M_key_stack.top() << std::endl;
-          }
-
-          M_key_stack.pop();
-          return true;
-      }
-
-    bool onInteger( const int val ) override
-      {
-          if ( M_key_stack.empty() )
-          {
-              std::cerr << "(TeamBuilder::onInteger) ERROR no key " << std::endl;
-              return false;
-          }
-
-          if ( M_key_stack.top() == "time" )
-          {
-              M_time = val;
-              M_key_stack.pop();
-              return true;
-          }
-
-          if  ( M_key_stack.top() == "stime" )
-          {
-              M_stime = val;
-              M_key_stack.pop();
-              return true;
-          }
-
-
-          if ( M_key_stack.top() == "score" )
-          {
-              if ( ! M_current_team )
-              {
-                  std::cerr << "(TeamBuilder::onInteger) ERROR no team " << std::endl;
-                  M_key_stack.pop();
-                  return false;
-              }
-
-              M_current_team->score_ = val;
-              M_key_stack.pop();
-              return true;
-          }
-
-          if ( M_key_stack.top() == "pen_score" )
-          {
-              if ( ! M_current_team )
-              {
-                  std::cerr << "(TeamBuilder::onInteger) ERROR no team " << std::endl;
-                  M_key_stack.pop();
-                  return false;
-              }
-
-              M_current_team->pen_score_ = val;
-              M_key_stack.pop();
-              return true;
-          }
-
-          if ( M_key_stack.top() == "pen_miss" )
-          {
-              if ( ! M_current_team )
-              {
-                  std::cerr << "(TeamBuilder::onInteger) ERROR no team " << std::endl;
-                  M_key_stack.pop();
-                  return false;
-              }
-
-              M_current_team->pen_miss_ = val;
-              M_key_stack.pop();
-              return true;
-          }
-
-          std::cerr << "(TeamBuilder::onInteger) WARNING unsupported key = " << M_key_stack.top()
-                    << " val=" << val << std::endl;
-          M_key_stack.pop();
-          return true;
-      }
-
-    bool onUnsigned( const unsigned int val ) override
-      {
-          return onInteger( static_cast< int >( val ) );
-      }
-
-    bool onString( const std::string &  val ) override
-      {
-          if ( M_key_stack.empty() )
-          {
-              std::cerr << "(TeamBuilder::onString) ERROR no key " << std::endl;
-              return false;
-          }
-
-          if ( M_key_stack.top() == "name" )
-          {
-              if ( ! M_current_team )
-              {
-                  std::cerr << "(TeamBuilder::onString) ERROR no team " << std::endl;
-                  M_key_stack.pop();
-                  return false;
-              }
-
-              M_current_team->name_ = val;
-              M_key_stack.pop();
-              return true;
-          }
-
-          std::cerr << "(TeamBuilder::onString) WARNING unsupported key = " << M_key_stack.top()
-                    << " val = " << val << std::endl;
-          M_key_stack.pop();
-          return true;
-      }
-
-    bool onStartObject( const size_t ) override
-      {
-          ++M_depth;
-          if ( M_key_stack.empty() )
-          {
-              if ( M_depth != 1 )
-              {
-                  std::cerr << "(TeamBuilder::onStartObject) ERROR unexpected object."  << std::endl;
-                  return false;
-              }
-              return true;
-          }
-
-          if ( M_key_stack.top() == "l" )
-          {
-              return true;
-          }
-
-          if ( M_key_stack.top() == "r" )
-          {
-              return true;
-          }
-
-          std::cerr << "(TeamBuilder::onStartObject) ERROR unsupported object. key=" << M_key_stack.top() << std::endl;
-          return true;
-      }
-
-    bool onEndObject() override
-      {
-          --M_depth;
-          if ( M_key_stack.empty() )
-          {
-              M_context.handleTeam( M_time, M_stime, M_left_team, M_right_team );
-              M_context.clearBuilder();
-              return true;
-          }
-
-          if ( M_key_stack.top() == "l"
-               || M_key_stack.top() == "r" )
-          {
-              M_current_team = nullptr;
-          }
-
-          M_key_stack.pop();
-          return true;
-      }
-
-};
-
-//
-//
-//
-
 class ShowBuilder
     : public Builder {
 private:
@@ -1364,6 +1137,150 @@ public:
 };
 
 
+//
+//
+//
+
+class TeamBuilder
+    : public Builder {
+private:
+    ShowBuilder * M_parent;
+
+    int M_time;
+    int M_stime;
+    TeamT M_left_team;
+    TeamT M_right_team;
+
+    TeamT * M_current_team;
+
+    std::string M_key;
+public:
+    TeamBuilder( Context & context,
+                 ShowBuilder * parent = nullptr )
+        : Builder( context ),
+          M_parent( parent ),
+          M_time( -1 ),
+          M_stime( -1 ),
+          M_current_team( nullptr )
+      { }
+
+    bool onKey( const std::string & val ) override
+      {
+          if ( val == "l" )
+          {
+              M_current_team = &M_left_team;
+          }
+          else if ( val == "r" )
+          {
+              M_current_team = &M_right_team;
+          }
+
+          M_key = val;
+          return true;
+      }
+
+     bool onNull() override
+      {
+          if ( M_key == "name" )
+          {
+              if ( M_current_team )
+              {
+                  M_current_team->name_.clear();
+              }
+          }
+
+          M_key.clear();
+          return true;
+      }
+
+    bool onInteger( const int val ) override
+      {
+          if ( M_key == "time" )
+          {
+              M_time = val;
+          }
+          else if ( M_key == "stime" )
+          {
+              M_stime = val;
+          }
+          else if ( M_key == "score" )
+          {
+              if ( M_current_team )
+              {
+                  M_current_team->score_ = val;
+              }
+          }
+          else if ( M_key == "pen_score" )
+          {
+              if ( M_current_team )
+              {
+                  M_current_team->pen_score_ = val;
+              }
+          }
+          else if ( M_key == "pen_miss" )
+          {
+              if ( M_current_team )
+              {
+                  M_current_team->pen_miss_ = val;
+              }
+          }
+
+          M_key.clear();
+          return true;
+      }
+
+    bool onUnsigned( const unsigned int val ) override
+      {
+          return onInteger( static_cast< int >( val ) );
+      }
+
+    bool onString( const std::string &  val ) override
+      {
+          if ( M_key == "name" )
+          {
+              if ( M_current_team )
+              {
+                  M_current_team->name_ = val;
+              }
+          }
+
+          M_key.clear();
+          return true;
+      }
+
+    bool onStartObject( const size_t ) override
+      {
+          return true;
+      }
+
+    bool onEndObject() override
+      {
+          if ( ! M_current_team )
+          {
+              M_context.handleTeam( M_time, M_stime, M_left_team, M_right_team );
+              if ( M_parent )
+              {
+                  M_parent->clearChild();
+              }
+              else
+              {
+                  M_context.clearBuilder();
+              }
+          }
+
+          if ( M_current_team )
+          {
+              M_current_team = nullptr;
+          }
+
+          M_key.clear();
+          return true;
+      }
+};
+
+//
+//
+//
 
 class BallBuilder
     : public Builder {
@@ -1571,6 +1488,16 @@ public:
 
 };
 
+
+//
+//
+//
+
+
+//
+//
+//
+
 /*-------------------------------------------------------------------*/
 bool
 ShowBuilder::onKey( const std::string & val )
@@ -1589,9 +1516,13 @@ ShowBuilder::onKey( const std::string & val )
     {
         M_child = Ptr( new PlayerArrayBuilder( M_context, &M_disp, this ) );
     }
+    // else if ( val == "mode" )
+    // {
+    //     M_key = val;
+    // }
     else if ( val == "team" )
     {
-        //M_child = Ptr( new TeamBuilder( M_context, &M_disp, this ) );
+        M_child = Ptr( new TeamBuilder( M_context, this ) );
     }
 
     M_key = val;
