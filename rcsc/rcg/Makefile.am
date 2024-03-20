@@ -12,6 +12,7 @@ librcsc_rcg_la_SOURCES = \
 	parser_v3.cpp \
 	parser_v4.cpp \
 	parser_json.cpp \
+	parser_simdjson.cpp \
 	serializer.cpp \
 	serializer_v1.cpp \
 	serializer_v2.cpp \
@@ -34,6 +35,7 @@ librcsc_rcginclude_HEADERS = \
 	parser_v3.h \
 	parser_v4.h \
 	parser_json.h \
+	parser_simjson.h \
 	serializer.h \
 	serializer_v1.h \
 	serializer_v2.h \
