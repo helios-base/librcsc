@@ -165,19 +165,19 @@ ParserSimdJSON::Impl::parseData( simdjson::ondemand::field & field,
 
 /*-------------------------------------------------------------------*/
 bool
-ParserSimdJSON::Impl::parseVersion( simdjson::ondemand::value & val,
+ParserSimdJSON::Impl::parseVersion( simdjson::ondemand::value & /*val*/,
                                     Handler & /*handler*/ )
 {
-    std::cerr << "version " << val << std::endl;
+    //std::cerr << "version " << val << std::endl;
     return true;
 }
 
 /*-------------------------------------------------------------------*/
 bool
-ParserSimdJSON::Impl::parseTimestamp( simdjson::ondemand::value & val,
+ParserSimdJSON::Impl::parseTimestamp( simdjson::ondemand::value & /*val*/,
                                     Handler & /*handler*/ )
 {
-    std::cerr << "timestamp " << val << std::endl;
+    //std::cerr << "timestamp " << val << std::endl;
     return true;
 }
 
@@ -574,6 +574,7 @@ ParserSimdJSON::parse( std::istream & is,
         }
     }
 
+    handler.handleEOF();
     return true;
 }
 
@@ -599,6 +600,7 @@ ParserSimdJSON::parse( const std::string & filepath,
         }
     }
 
+    handler.handleEOF();
     return true;
 }
 
