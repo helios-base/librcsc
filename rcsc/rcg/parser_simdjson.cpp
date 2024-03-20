@@ -336,7 +336,7 @@ ParserSimdJSON::Impl::parseTeam( simdjson::ondemand::value & val,
 
         uint64_t i = 0;
 
-        team_l.name_ = val["l"]["name"].get_string().value();
+        if ( val["l"]["name"].is_string() ) team_l.name_ = val["l"]["name"].get_string().value();
         team_l.score_ = val["l"]["score"].get_uint64();
 
         err = val["l"]["pen_score"].get_uint64().get( i );
@@ -345,7 +345,7 @@ ParserSimdJSON::Impl::parseTeam( simdjson::ondemand::value & val,
         err = val["l"]["pen_miss"].get_uint64().get( i );
         if ( err == simdjson::SUCCESS ) team_l.pen_miss_ = i;
 
-        team_r.name_ = val["r"]["name"].get_string().value();
+        if ( val["r"]["name"].is_string() ) team_r.name_ = val["r"]["name"].get_string().value();
         team_r.score_ = val["r"]["score"].get_uint64();
 
         err = val["r"]["pen_score"].get_uint64().get( i );
@@ -522,6 +522,7 @@ ParserSimdJSON::Impl::parseShow( simdjson::ondemand::value & val,
             if ( err == simdjson::SUCCESS ) show.player_[i].attentionto_count_ = itmp;
             err = p["change_focus"].get_int64().get( itmp );
             if ( err == simdjson::SUCCESS ) show.player_[i].change_focus_count_ = itmp;
+
             ++i;
         }
     }
@@ -541,7 +542,7 @@ ParserSimdJSON::Impl::parseShow( simdjson::ondemand::value & val,
 ParserSimdJSON::ParserSimdJSON()
     : M_impl( new Impl() )
 {
-
+    // std::cerr << "(ParserSimdJSON) create" << std::endl;
 }
 
 /*-------------------------------------------------------------------*/
