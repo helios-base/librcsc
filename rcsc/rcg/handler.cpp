@@ -262,7 +262,7 @@ bool
 Handler::handlePlayMode( const int time,
                          const std::string & playmode )
 {
-    return handlePlayMode( time, to_enum( playmode ) );
+    return handlePlayMode( time, to_playmode_enum( playmode ) );
 }
 
 } // end namespace

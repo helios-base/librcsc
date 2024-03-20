@@ -432,7 +432,7 @@ void convert( const std::string & from,
   \return playmode id
 */
 PlayMode
-to_enum( const std::string & playmode );
+to_playmode_enum( const std::string & playmode );
 
 /*-------------------------------------------------------------------*/
 /*!

@@ -823,7 +823,7 @@ convert( const std::string & from,
 
 /*-------------------------------------------------------------------*/
 PlayMode
-to_enum( const std::string & playmode )
+to_playmode_enum( const std::string & playmode )
 {
     static const std::unordered_map< std::string, PlayMode > s_map = {
         { "before_kick_off", PM_BeforeKickOff },

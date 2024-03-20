@@ -972,7 +972,7 @@ public:
 
           if ( M_key == "mode" )
           {
-              M_disp.pmode_ = to_enum( val );
+              M_disp.pmode_ = to_playmode_enum( val );
               M_key.clear();
               return true;
           }
