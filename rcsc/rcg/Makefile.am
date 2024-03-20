@@ -4,6 +4,7 @@ noinst_LTLIBRARIES = librcsc_rcg.la
 #lib_LTLIBRARIES = librcsc_rcg.la
 
 librcsc_rcg_la_SOURCES = \
+	simdjson/simdjson.cpp \
 	handler.cpp \
 	parser.cpp \
 	parser_v1.cpp \
@@ -44,6 +45,10 @@ librcsc_rcginclude_HEADERS = \
 	util.h \
 	xpm_tile.h
 
+noinst_HEADERS = \
+	nlohmann/json.hpp \
+	simdjson/simdjson.h
+
 librcsc_rcg_la_LDFLAGS = -version-info 6:0:0
 #libXXXX_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 #		 1. Start with version information of `0:0:0' for each libtool library.
@@ -69,6 +74,9 @@ AM_CPPFLAGS = -I$(top_srcdir)
 AM_CFLAGS = -Wall -W
 AM_CXXFLAGS = -Wall -W
 AM_LDFLAGS =
+
+EXTRA_DIST = \
+	simdjson/LICENSE
 
 CLEANFILES = *~
 
