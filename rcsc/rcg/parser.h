@@ -105,6 +105,10 @@ public:
     virtual
     bool parse( std::istream & is,
                 Handler & handler ) const = 0;
+
+    virtual
+    bool parse( const std::string & filepath,
+                Handler & handler ) const;
 };
 
 } // end of namespace

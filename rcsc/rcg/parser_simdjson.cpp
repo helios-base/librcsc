@@ -579,6 +579,31 @@ ParserSimdJSON::parse( std::istream & is,
 
 /*-------------------------------------------------------------------*/
 bool
+ParserSimdJSON::parse( const std::string & filepath,
+                       Handler & handler ) const
+{
+
+    simdjson::ondemand::parser parser;
+    simdjson::padded_string json = simdjson::padded_string::load( filepath );
+    simdjson::ondemand::document rcg = parser.iterate( json );
+    simdjson::ondemand::array root_array = rcg.get_array();
+
+    for ( simdjson::ondemand::object data : root_array )
+    {
+        for ( simdjson::ondemand::field field : data )
+        {
+            if ( ! M_impl->parseData( field, handler ) )
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
 ParserSimdJSON::parseData( const std::string & input,
                            Handler & handler ) const
 {

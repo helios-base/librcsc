@@ -44,6 +44,8 @@
 #include "parser_json.h"
 #include "parser_simdjson.h"
 
+#include <fstream>
+
 namespace rcsc {
 namespace rcg {
 
@@ -119,6 +121,21 @@ Parser::create( std::istream & is )
 
     return ptr;
 }
+
+
+bool
+Parser::parse( const std::string & filepath,
+               Handler & handler ) const
+{
+    std::ifstream fin( filepath );
+    if ( ! fin )
+    {
+        return false;
+    }
+
+    return parse( fin, handler );
+}
+
 
 }
 }

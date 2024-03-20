@@ -76,9 +76,12 @@ public:
       \retval true, if successfuly parsed.
       \retval false, if incorrect format is detected.
     */
-    virtual
     bool parse( std::istream & is,
                 Handler & handler ) const override;
+
+    bool parse( const std::string & filepath,
+                Handler & handler ) const override;
+
 
     /*!
       \brief assume to parse one monitor packet.
