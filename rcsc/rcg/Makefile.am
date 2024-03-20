@@ -11,7 +11,6 @@ librcsc_rcg_la_SOURCES = \
 	parser_v2.cpp \
 	parser_v3.cpp \
 	parser_v4.cpp \
-	parser_json.cpp \
 	parser_simdjson.cpp \
 	serializer.cpp \
 	serializer_v1.cpp \
@@ -34,7 +33,6 @@ librcsc_rcginclude_HEADERS = \
 	parser_v2.h \
 	parser_v3.h \
 	parser_v4.h \
-	parser_json.h \
 	parser_simdjson.h \
 	serializer.h \
 	serializer_v1.h \
@@ -48,7 +46,6 @@ librcsc_rcginclude_HEADERS = \
 	xpm_tile.h
 
 noinst_HEADERS = \
-	nlohmann/json.hpp \
 	simdjson/simdjson.h
 
 librcsc_rcg_la_LDFLAGS = -version-info 6:0:0
