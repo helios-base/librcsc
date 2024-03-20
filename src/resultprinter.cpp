@@ -35,13 +35,18 @@
 
 #include <rcsc/gz/gzfstream.h>
 #include <rcsc/rcg.h>
+#include <rcsc/timer.h>
 
+#include <algorithm>
+#include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <cmath>
 #include <cstring>
 #include <ctime>
+#include <cstdlib>
+#include <cstdio>
 
 struct Point {
     double x;
@@ -590,16 +595,46 @@ main( int argc, char** argv )
             continue;
         }
 
+        std::filesystem::path filepath = file;
+        std::filesystem::path tmp_filepath;
+        if ( filepath.extension() == ".gz" )
+        {
+            char filename[] = "rcg-XXXXXX";
+            if ( mkstemp( filename ) == -1 )
+            {
+                std::cerr << "Could not create a temporary file." << std::endl;
+                return 1;
+            }
+
+            filepath = std::filesystem::temp_directory_path() / filename;
+            tmp_filepath = filepath;
+            //std::cerr << "tmpfile = " << filepath << std::endl;
+            {
+                fin.seekg( 0 );
+                std::ofstream fout( filepath );
+                std::copy( std::istreambuf_iterator< char >( fin ),
+                           std::istreambuf_iterator< char >(),
+                           std::ostreambuf_iterator< char >( fout ) );
+            }
+        }
+        fin.close();
+
+        // rcsc::Timer timer;
+
         // create rcg handler instance
         ResultPrinter printer( file );
 
-        if ( ! parser->parse( fin, printer ) )
+        if ( ! parser->parse( filepath, printer ) )
         {
             std::cerr << "Failed to parse [" << argv[i] << "]"
                       << std::endl;
         }
 
-        fin.close();
+        if ( ! tmp_filepath.empty() )
+        {
+            std::filesystem::remove( filepath );
+        }
+        // std::cerr << "elapsed " << timer.elapsedReal( rcsc::Timer::Sec ) << " s." << std::endl;
     }
 
     return 0;
