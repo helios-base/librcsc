@@ -37,6 +37,7 @@
 #include <variant>
 #include <unordered_map>
 #include <string>
+#include <string_view>
 #include <cmath>
 #include <cstdint>
 
@@ -1042,6 +1043,24 @@ struct TeamT {
       \param pen_miss count of penalty miss
      */
     TeamT( const char * name,
+           const UInt16 score,
+           const UInt16 pen_score,
+           const UInt16 pen_miss )
+        : name_( name ),
+          score_( score ),
+          pen_score_( pen_score ),
+          pen_miss_( pen_miss )
+      { }
+
+
+    /*!
+      \brief initialize all variables by specified values
+      \param name team name
+      \param score total score
+      \param pen_score count of penalty score
+      \param pen_miss count of penalty miss
+     */
+    TeamT( const std::string_view name,
            const UInt16 score,
            const UInt16 pen_score,
            const UInt16 pen_miss )
