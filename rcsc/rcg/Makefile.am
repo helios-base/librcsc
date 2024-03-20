@@ -35,7 +35,7 @@ librcsc_rcginclude_HEADERS = \
 	parser_v3.h \
 	parser_v4.h \
 	parser_json.h \
-	parser_simjson.h \
+	parser_simdjson.h \
 	serializer.h \
 	serializer_v1.h \
 	serializer_v2.h \

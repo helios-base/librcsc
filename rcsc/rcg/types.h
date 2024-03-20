@@ -1478,6 +1478,9 @@ struct PlayerParamT {
 
     bool fromStruct( const player_params_t & data );
 
+    bool setValue( const std::string & name,
+                   const std::string & value );
+
     bool setInt( const std::string & name,
                  const int value );
     bool setDouble( const std::string & name,

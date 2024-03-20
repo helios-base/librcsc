@@ -1649,16 +1649,16 @@ ParserJSON::parseData( const std::string & input,
 }
 
 
-namespace {
-Parser::Ptr
-create_json()
-{
-    Parser::Ptr ptr( new ParserJSON() );
-    return ptr;
-}
+// namespace {
+// Parser::Ptr
+// create_json()
+// {
+//     Parser::Ptr ptr( new ParserJSON() );
+//     return ptr;
+// }
 
-rcss::RegHolder vjson = Parser::creators().autoReg( &create_json, REC_VERSION_JSON );
-}
+// rcss::RegHolder vjson = Parser::creators().autoReg( &create_json, REC_VERSION_JSON );
+// }
 
 } // end of namespace
 } // end of namespace

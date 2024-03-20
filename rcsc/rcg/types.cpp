@@ -1263,6 +1263,14 @@ PlayerParamT::fromStruct( const player_params_t & from )
 
 /*-------------------------------------------------------------------*/
 bool
+PlayerParamT::setValue( const std::string & name,
+                        const std::string & value )
+{
+    return set_value( name, value, param_map_ );
+}
+
+/*-------------------------------------------------------------------*/
+bool
 PlayerParamT::setInt( const std::string & name,
                       const int value )
 {

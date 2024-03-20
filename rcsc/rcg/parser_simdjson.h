@@ -36,6 +36,7 @@
 #include <rcsc/rcg/types.h>
 
 #include <string>
+#include <memory>
 
 namespace rcsc {
 namespace rcg {
@@ -47,6 +48,10 @@ namespace rcg {
  */
 class ParserSimdJSON
     : public Parser {
+private:
+    struct Impl;
+    std::shared_ptr< Impl > M_impl;
+
 public:
 
     /*!
