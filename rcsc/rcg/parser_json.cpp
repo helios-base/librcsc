@@ -1631,9 +1631,12 @@ ParserJSON::parse( std::istream & is,
         return false;
     }
 
+    handler.handleLogVersion( REC_VERSION_JSON );
+
     Context context( handler );
     bool result = nlohmann::json::sax_parse( is, &context );
 
+    handler.handleEOF();
     return result;
 }
 

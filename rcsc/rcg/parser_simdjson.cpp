@@ -583,6 +583,7 @@ bool
 ParserSimdJSON::parse( const std::string & filepath,
                        Handler & handler ) const
 {
+    handler.handleLogVersion( REC_VERSION_JSON );
 
     simdjson::ondemand::parser parser;
     simdjson::padded_string json = simdjson::padded_string::load( filepath );
