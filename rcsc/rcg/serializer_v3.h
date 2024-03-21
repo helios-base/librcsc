@@ -254,7 +254,7 @@ public:
       \param xpm xpm tile
      */
     std::ostream & serialize( std::ostream & os,
-                              const rcsc::SideID side,
+                              const SideID side,
                               const int x,
                               const int y,
                               const std::vector< std::string > & xpm ) override

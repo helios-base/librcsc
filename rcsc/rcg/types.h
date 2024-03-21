@@ -46,13 +46,13 @@ namespace rcg {
 
 
 //! type of the 16bits integer value
-typedef std::int16_t Int16;
+using Int16 = std::int16_t;
 //! type of the unsigned 16bits integer value
-typedef std::uint16_t UInt16;
+using UInt16 = std::uint16_t;
 //! type of the 32bits integer value
-typedef std::int32_t Int32;
+using Int32 = std::int32_t;
 //! type of the unsigned 32bits integer value
-typedef std::int32_t UInt32;
+using UInt32 = std::int32_t;
 
 /*!
   \brief max length of color name string.

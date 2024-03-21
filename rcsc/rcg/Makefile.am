@@ -20,8 +20,7 @@ librcsc_rcg_la_SOURCES = \
 	serializer_v5.cpp \
 	serializer_v6.cpp \
 	util.cpp \
-	types.cpp \
-	xpm_tile.cpp
+	types.cpp
 
 librcsc_rcgincludedir = $(includedir)/rcsc/rcg
 
@@ -42,8 +41,7 @@ librcsc_rcginclude_HEADERS = \
 	serializer_v5.h \
 	serializer_v6.h \
 	types.h \
-	util.h \
-	xpm_tile.h
+	util.h
 
 noinst_HEADERS = \
 	simdjson/simdjson.h
