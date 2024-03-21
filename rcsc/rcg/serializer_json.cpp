@@ -42,6 +42,7 @@
 
 #include "serializer_json.h"
 
+#include "types.h"
 #include "util.h"
 
 #include <iomanip>
@@ -49,6 +50,9 @@
 #include <cmath>
 
 namespace {
+
+constexpr double POS_PREC = 0.0001;
+constexpr double DIR_PREC = 0.001;
 
 inline
 double
@@ -87,8 +91,8 @@ SerializerJSON::serialize( std::ostream & os,
 {
     double tmp = 0.0;
 
-    os << ",\n{";
-    os << std::quoted( "server_param" ) << ':'
+    os << ",\n";
+    os << '{' << std::quoted( "server_param" ) << ':'
        << '{';
     os << std::quoted( "goal_width" ) << ':' << quantize( nltohd( param.goal_width ) ) << ','
        << std::quoted( "inertia_moment" ) << ':' << quantize( nltohd( param.inertia_moment ) ) << ','
@@ -227,8 +231,8 @@ std::ostream &
 SerializerJSON::serialize( std::ostream & os,
                            const player_params_t & pparam )
 {
-    os << ",\n{";
-    os << std::quoted( "player_param" ) << ':'
+    os << ",\n";
+    os << '{' << std::quoted( "player_param" ) << ':'
        << '{';
 
     os << std::quoted( "player_types" ) << ':' << nstohi( pparam.player_types ) << ','
@@ -266,8 +270,8 @@ std::ostream &
 SerializerJSON::serialize( std::ostream & os,
                            const player_type_t & type )
 {
-    os << ",\n{";
-    os << std::quoted( "player_type" ) << ':'
+    os << ",\n";
+    os << '{' << std::quoted( "player_type" ) << ':'
        << '{';
 
     os << std::quoted( "id" ) << ':' << nstohi( type.id ) << ','
@@ -397,8 +401,8 @@ std::ostream &
 SerializerJSON::serialize( std::ostream & os,
                            const msginfo_t & msg )
 {
-    os << ",\n{";
-    os << std::quoted( "msg" ) << ':'
+    os << ",\n";
+    os << '{' << std::quoted( "msg" ) << ':'
        << '{';
 
     os << std::quoted( "time" ) << ':' << M_time << ',';
@@ -420,8 +424,8 @@ SerializerJSON::serialize( std::ostream & os,
                            const Int16 board,
                            const std::string & msg )
 {
-    os << ",\n{";
-    os << std::quoted( "msg" ) << ':'
+    os << ",\n";
+    os << '{' << std::quoted( "msg" ) << ':'
        << '{';
 
     os << std::quoted( "time" ) << ':' << M_time << ',';
@@ -461,8 +465,8 @@ SerializerJSON::serialize( std::ostream & os,
         return os;
     }
 
-    os << ",\n{";
-    os << std::quoted( "playmode" ) << ':'
+    os << ",\n";
+    os << '{' << std::quoted( "playmode" ) << ':'
        << '{';
 
     os << std::quoted( "time" ) << ':' << M_time << ',';
@@ -499,8 +503,8 @@ SerializerJSON::serialize( std::ostream & os,
     M_teams[1] = team_r;
 
 
-    os << ",\n{";
-    os << std::quoted( "team" ) << ':'
+    os << ",\n";
+    os << '{' << std::quoted( "team" ) << ':'
        << '{';
 
     os << std::quoted( "time" ) << ':' << M_time << ',';
@@ -557,6 +561,92 @@ std::ostream &
 SerializerJSON::serialize( std::ostream & os,
                            const ShowInfoT & show )
 {
+
+    os << ",\n";
+    os << '{' << std::quoted( "show" ) << ':'
+       << '{';
+
+    os << std::quoted( "time" ) << ':' << show.time_;
+    if ( show.stime_ > 0 )
+    {
+        os << ',' << std::quoted( "stime" ) << ':' << show.stime_;
+    }
+
+    // ball
+    os << ',';
+    os << std::quoted( "ball" ) << ':' << '{';
+    os << std::quoted( "x" ) << ':' << show.ball_.x_;
+    os << std::quoted( "y" ) << ':' << show.ball_.y_;
+    if ( show.ball_.hasVelocity() )
+    {
+        os << std::quoted( "vx" ) << ':' << show.ball_.vx_;
+        os << std::quoted( "vy" ) << ':' << show.ball_.vy_;
+    }
+    os << '}';
+
+    // players
+    os << ',';
+    os << std::quoted( "players" ) << ':' << '[';
+    for ( int i = 0; i < MAX_PLAYER*2; ++i )
+    {
+        const PlayerT & p = show.player_[i];
+
+        if ( i > 0 ) os << ',';
+        // begin
+        os << '{' << std::quoted( "side" ) << ':' << '"' << p.side_ << '"'
+           << ',' << std::quoted( "unum" ) << ':' << p.unum_
+           << ',' << std::quoted( "type" ) << ':' << p.type_
+           << ',' << std::quoted( "state" ) << ':' << p.state_;
+        // pos
+        os << ',' << std::quoted( "x" ) << ':' << quantize( p.x_, POS_PREC )
+           << ',' << std::quoted( "y" ) << ':' << quantize( p.y_, POS_PREC )
+           << ',' << std::quoted( "vx" ) << ':' << quantize( p.vx_, POS_PREC )
+           << ',' << std::quoted( "vy" ) << ':' << quantize( p.vy_, POS_PREC )
+           << ',' << std::quoted( "body" ) << ':' << quantize( p.body_, DIR_PREC )
+           << ',' << std::quoted( "neck" ) << ':' << quantize( p.neck_, DIR_PREC );
+        // arm
+        if ( p.hasArm() )
+        {
+            os << ',' << std::quoted( "px" ) << ':' << quantize( p.point_x_, POS_PREC )
+               << ',' << std::quoted( "py" ) << ':' << quantize( p.point_y_, POS_PREC );
+        }
+        // view mode
+        os << ',' << std::quoted( "vq" ) << ':' << std::quoted( p.highQuality() ? "h" : "l" )
+           << ',' << std::quoted( "vw" ) << ':' << quantize( p.view_width_, DIR_PREC );
+        // focus point
+        os << ',' << std::quoted( "fdist" ) << ':' << quantize( p.focus_dist_, POS_PREC )
+           << ',' << std::quoted( "fdir" ) << ':' << quantize( p.focus_dir_, DIR_PREC );
+        // stamina
+        os << ',' << std::quoted( "stamina" ) << ':' << p.stamina_
+           << ',' << std::quoted( "effort" ) << ':' << p.effort_
+           << ',' << std::quoted( "recovery" ) << ':' << p.recovery_
+           << ',' << std::quoted( "capacity" ) << ':' << p.stamina_capacity_;
+        // focus
+        if ( p.isFocusing() )
+        {
+            os << ',' << std::quoted( "fside" ) << ':' << '"' << p.focus_side_ << '"'
+               << ',' << std::quoted( "fnum" ) << ':' << p.focus_unum_;
+        }
+        // count
+        os << ',' << std::quoted( "kick" ) << ':' << p.kick_count_
+           << ',' << std::quoted( "dash" ) << ':' << p.dash_count_
+           << ',' << std::quoted( "turn" ) << ':' << p.turn_count_
+           << ',' << std::quoted( "catch" ) << ':' << p.catch_count_
+           << ',' << std::quoted( "move" ) << ':' << p.move_count_
+           << ',' << std::quoted( "turn_neck" ) << ':' << p.turn_neck_count_
+           << ',' << std::quoted( "change_view" ) << ':' << p.change_view_count_
+           << ',' << std::quoted( "say" ) << ':' << p.say_count_
+           << ',' << std::quoted( "tackle" ) << ':' << p.tackle_count_
+           << ',' << std::quoted( "pointto" ) << ':' << p.pointto_count_
+           << ',' << std::quoted( "attentionto" ) << ':' << p.attentionto_count_
+           << ',' << std::quoted( "change_focus" ) << ':' << p.change_focus_count_;
+        // end
+        os << '}';
+    }
+
+    //
+    os << '}';
+    os << '}';
     return os;
 }
 
