@@ -708,7 +708,26 @@ SerializerJSON::serialize( std::ostream & os,
                            const int y,
                            const std::vector< std::string > & xpm )
 {
-    os << ",\n";
+    os << '{' << std::quoted( "team_graphic" ) << ':';
+
+    os << '{'; // begin body
+
+    os << std::quoted( "side" ) << ':' << '"' << ( side == LEFT ? 'l' : side == RIGHT ? 'r' : 'n' ) << '"';
+
+    os << ',' << std::quoted( "x" ) << ':' << x
+       << ',' << std::quoted( "y" ) << ':' << y;
+
+    os << ','; os << std::quoted( "xpm" ) << ':' << '['; // begin xpm array
+    bool first = true;
+    for ( const std::string & str : xpm )
+    {
+        if ( first ) first = false; else os << ',';
+        os << std::quoted( str );
+    }
+    os << ']'; // end xpm array
+
+    os << '}'; // end body
+    os << '}'; // end team_graphic
     return os;
 }
 
