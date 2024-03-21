@@ -254,6 +254,17 @@ public:
     std::ostream & serializeHeader( std::ostream & os ) = 0;
 
     /*!
+      \brief write the end of file
+      \param os reference to the output stream
+      \return reference to the output stream
+     */
+    virtual
+    std::ostream & serializeEnd( std::ostream & os )
+      {
+          return os;
+      }
+
+    /*!
       \brief write header
       \param os reference to the output stream
       \param param server_params_t variable by network byte order

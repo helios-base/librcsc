@@ -100,6 +100,11 @@ Reverser::handleLogVersion( const int ver )
 bool
 Reverser::handleEOF()
 {
+    if ( M_serializer )
+    {
+        M_serializer->serializeEnd( M_os );
+    }
+
     return true;
 }
 

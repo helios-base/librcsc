@@ -19,6 +19,7 @@ librcsc_rcg_la_SOURCES = \
 	serializer_v4.cpp \
 	serializer_v5.cpp \
 	serializer_v6.cpp \
+	serializer_json.cpp \
 	util.cpp \
 	types.cpp
 
@@ -40,6 +41,7 @@ librcsc_rcginclude_HEADERS = \
 	serializer_v4.h \
 	serializer_v5.h \
 	serializer_v6.h \
+	serializer_json.h \
 	types.h \
 	util.h
 

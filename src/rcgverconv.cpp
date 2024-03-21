@@ -137,6 +137,11 @@ VersionConverter::handleLogVersion( const int ver )
 bool
 VersionConverter::handleEOF()
 {
+    if ( M_serializer )
+    {
+        M_serializer->serializeEnd( M_os );
+    }
+
     M_os.flush();
     return true;
 }

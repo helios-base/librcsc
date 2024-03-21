@@ -49,6 +49,8 @@
 #include "serializer_v3.h"
 #include "serializer_v4.h"
 #include "serializer_v5.h"
+#include "serializer_v6.h"
+#include "serializer_json.h"
 
 
 #include <algorithm>
@@ -87,7 +89,11 @@ Serializer::create( const int version )
     if ( Serializer::creators().getCreator( creator, version ) )
     {
         ptr = creator();
+        return ptr;
     }
+
+    if ( version == REC_VERSION_JSON ) ptr = Serializer::Ptr( new SerializerJSON() );
+    else if ( version == REC_VERSION_6 ) ptr = Serializer::Ptr( new SerializerV6() );
     else if ( version == REC_VERSION_5 ) ptr = Serializer::Ptr( new SerializerV5() );
     else if ( version == REC_VERSION_4 ) ptr = Serializer::Ptr( new SerializerV4() );
     else if ( version == REC_VERSION_3 ) ptr = Serializer::Ptr( new SerializerV3() );
@@ -120,7 +126,13 @@ Serializer::serializeImpl( std::ostream & os,
 {
     if ( version == REC_OLD_VERSION )
     {
-        // v1 protocl does not have header.
+        // v1 protocl does not have a header information.
+        return os;
+    }
+
+    if ( version == REC_VERSION_JSON )
+    {
+        // json protocl does not have a header information.
         return os;
     }
 
