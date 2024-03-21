@@ -436,6 +436,33 @@ print_server_message( std::ostream & os,
     return os;
 }
 
+/*-------------------------------------------------------------------*/
+std::ostream &
+print_json( std::ostream & os,
+            const std::string & message_name,
+            const ParamMap & param_map )
+{
+    std::map< ParamMap::key_type, ParamMap::mapped_type > sorted_map;
+    for ( const ParamMap::value_type & v : param_map )
+    {
+        sorted_map.insert( v );
+    }
+
+    os << '{' << std::quoted( message_name ) << ':' << '{';
+
+    ValuePrinter printer( os );
+    bool first = true;
+    for ( const decltype( sorted_map )::value_type & v : sorted_map )
+    {
+        if ( first ) first = false; else os << ',';
+        os << std::quoted( v.first ) << ':';
+        std::visit( printer, v.second );
+    }
+
+    os << '}' << '}';
+    return os;
+}
+
 }
 
 /*-------------------------------------------------------------------*/
@@ -895,6 +922,13 @@ ServerParamT::toServerString( std::ostream & os ) const
 }
 
 /*-------------------------------------------------------------------*/
+std::ostream &
+ServerParamT::toJSON( std::ostream & os ) const
+{
+    return print_json( os, "server_param", param_map_ );
+}
+
+/*-------------------------------------------------------------------*/
 bool
 ServerParamT::fromServerString( const std::string & msg )
 {
@@ -1208,6 +1242,13 @@ PlayerParamT::toServerString( std::ostream & os ) const
 }
 
 /*-------------------------------------------------------------------*/
+std::ostream &
+PlayerParamT::toJSON( std::ostream & os ) const
+{
+    return print_json( os, "palyer_param", param_map_ );
+}
+
+/*-------------------------------------------------------------------*/
 bool
 PlayerParamT::fromServerString( const std::string & msg )
 {
@@ -1395,6 +1436,52 @@ PlayerTypeT::toServerString( std::ostream & os ) const
 
     os << ')';
 
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+std::ostream &
+PlayerTypeT::toJSON( std::ostream & os ) const
+{
+    os << '{' << std::quoted( "player_type" ) << ':' << '{';
+
+    os << std::quoted( "id" ) << ':' << id_;
+
+    os << ',' << std::quoted( "player_speed_max" ) << ':' << quantize( player_speed_max_, 0.00001 );
+
+    os << ',' << std::quoted( "stamina_inc_max" ) << ':' << quantize( stamina_inc_max_, 0.00001 );
+    os << ',' << std::quoted( "player_decay" ) << ':' << quantize(player_decay_, 0.000001 );
+    os << ',' << std::quoted( "inertia_moment" ) << ':' << quantize( inertia_moment_, 0.00001 );
+    os << ',' << std::quoted( "dash_power_rate" ) << ':' << quantize( dash_power_rate_, 0.00000001 );
+    os << ',' << std::quoted( "player_size" ) << ':' << quantize( player_size_, 0.00001 );
+    os << ',' << std::quoted( "kickable_margin" ) << ':' << quantize( kickable_margin_, 0.000001 );
+    os << ',' << std::quoted( "kick_rand" ) << ':' << quantize( kick_rand_, 0.000001 );
+    os << ',' << std::quoted( "extra_stamina" ) << ':' << quantize( extra_stamina_, 0.00001 );
+    os << ',' << std::quoted( "effort_max" ) << ':' << quantize( effort_max_, 0.000001 );
+    os << ',' << std::quoted( "effort_min" ) << ':' << quantize( effort_min_, 0.000001 );
+    // 14.0
+    os << ',' << std::quoted( "kick_power_rate" ) << ':' << quantize( kick_power_rate_, 0.000001 );
+    os << ',' << std::quoted( "foul_detect_probability" ) << ':' << quantize( foul_detect_probability_, 0.000001 );
+    os << ',' << std::quoted( "catchable_area_l_stretch" ) << ':' << quantize( catchable_area_l_stretch_, 0.000001 );
+    // 18.0
+    os << ',' << std::quoted( "unum_far_length" ) << ':' << quantize( unum_far_length_, 0.000001 );
+    os << ',' << std::quoted( "unum_too_far_length" ) << ':' << quantize( unum_too_far_length_, 0.000001 );
+    os << ',' << std::quoted( "team_far_length" ) << ':' << quantize( team_far_length_, 0.000001 );
+    os << ',' << std::quoted( "team_too_far_length" ) << ':' << quantize( team_too_far_length_, 0.000001 );
+    os << ',' << std::quoted( "player_max_observation_length" ) << ':' << quantize( player_max_observation_length_, 0.000001 );
+    os << ',' << std::quoted( "ball_vel_far_length" ) << ':' << quantize( ball_vel_far_length_, 0.000001 );
+    os << ',' << std::quoted( "ball_vel_too_far_length" ) << ':' << quantize( ball_vel_too_far_length_, 0.000001 );
+    os << ',' << std::quoted( "ball_max_observation_length" ) << ':' << quantize( ball_max_observation_length_, 0.000001 );
+    os << ',' << std::quoted( "flag_chg_far_length" ) << ':' << quantize( flag_chg_far_length_, 0.000001 );
+    os << ',' << std::quoted( "flag_chg_too_far_length" ) << ':' << quantize( flag_chg_too_far_length_, 0.000001 );
+    os << ',' << std::quoted( "flag_max_observation_length" ) << ':' << quantize( flag_max_observation_length_, 0.000001 );
+    // 19.0
+    // os << ',' << std::quoted( "dist_noise_rate" ) << ':' << quantize( dist_noise_rate_, 0.000001 );
+    // os << ',' << std::quoted( "focus_dist_noise_rate" ) << ':' << quantize( dist_noise_rate_, 0.000001 );
+    // os << ',' << std::quoted( "land_dist_noise_rate" ) << ':' << quantize( dist_noise_rate_, 0.000001 );
+    // os << ',' << std::quoted( "land_focus_dist_noise_rate" ) << ':' << quantize( dist_noise_rate_, 0.000001 );
+
+    os << '}' << '}';
     return os;
 }
 

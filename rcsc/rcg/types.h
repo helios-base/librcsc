@@ -1401,6 +1401,11 @@ struct ServerParamT {
      */
     std::ostream & toServerString( std::ostream & os ) const;
 
+    /*!
+      \brief print as json format
+     */
+    std::ostream & toJSON( std::ostream & os ) const;
+
     bool fromServerString( const std::string & msg );
 
     bool fromStruct( const server_params_t & data );
@@ -1491,6 +1496,11 @@ struct PlayerParamT {
     std::ostream & toServerString( std::ostream & os ) const;
 
     /*!
+      \brief print as json format
+     */
+    std::ostream & toJSON( std::ostream & os ) const;
+
+    /*!
       \brief read parameters from the s-expression style message
      */
     bool fromServerString( const std::string & msg );
@@ -1573,6 +1583,11 @@ struct PlayerTypeT {
       \brief print s-expression message
      */
     std::ostream & toServerString( std::ostream & os ) const;
+
+    /*!
+      \brief print as json format
+     */
+    std::ostream & toJSON( std::ostream & os ) const;
 
     bool fromServerString( const std::string & msg );
 

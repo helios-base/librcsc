@@ -49,6 +49,7 @@
 #include <cmath>
 
 namespace {
+
 inline
 double
 quantize( const double & val,
@@ -66,7 +67,10 @@ namespace rcg {
 std::ostream &
 SerializerJSON::serializeHeader( std::ostream & os )
 {
-    return os << "[\n";
+    os << "[";
+
+    os << "\n{\"version\":0}";
+    return os;
 }
 
 /*-------------------------------------------------------------------*/
@@ -83,7 +87,7 @@ SerializerJSON::serialize( std::ostream & os,
 {
     double tmp = 0.0;
 
-    os << "\n{";
+    os << ",\n{";
     os << std::quoted( "server_param" ) << ':'
        << '{';
     os << std::quoted( "goal_width" ) << ':' << quantize( nltohd( param.goal_width ) ) << ','
@@ -223,7 +227,7 @@ std::ostream &
 SerializerJSON::serialize( std::ostream & os,
                            const player_params_t & pparam )
 {
-    os << "\n{";
+    os << ",\n{";
     os << std::quoted( "player_param" ) << ':'
        << '{';
 
@@ -262,7 +266,7 @@ std::ostream &
 SerializerJSON::serialize( std::ostream & os,
                            const player_type_t & type )
 {
-    os << "\n{";
+    os << ",\n{";
     os << std::quoted( "player_type" ) << ':'
        << '{';
 
@@ -393,7 +397,7 @@ std::ostream &
 SerializerJSON::serialize( std::ostream & os,
                            const msginfo_t & msg )
 {
-    os << "\n{";
+    os << ",\n{";
     os << std::quoted( "msg" ) << ':'
        << '{';
 
@@ -416,7 +420,7 @@ SerializerJSON::serialize( std::ostream & os,
                            const Int16 board,
                            const std::string & msg )
 {
-    os << "\n{";
+    os << ",\n{";
     os << std::quoted( "msg" ) << ':'
        << '{';
 
@@ -457,7 +461,7 @@ SerializerJSON::serialize( std::ostream & os,
         return os;
     }
 
-    os << "\n{";
+    os << ",\n{";
     os << std::quoted( "playmode" ) << ':'
        << '{';
 
@@ -495,7 +499,7 @@ SerializerJSON::serialize( std::ostream & os,
     M_teams[1] = team_r;
 
 
-    os << "\n{";
+    os << ",\n{";
     os << std::quoted( "team" ) << ':'
        << '{';
 
@@ -561,6 +565,8 @@ std::ostream &
 SerializerJSON::serialize( std::ostream & os,
                            const DispInfoT & disp )
 {
+    os << ",\n";
+
     char pm = static_cast< char >( disp.pmode_ );
     if ( pm != M_playmode )
     {
@@ -582,7 +588,8 @@ std::ostream &
 SerializerJSON::serialize( std::ostream & os,
                            const ServerParamT & param )
 {
-    return os;
+    os << ",\n";
+    return param.toJSON( os );
 }
 
 /*-------------------------------------------------------------------*/
@@ -590,7 +597,8 @@ std::ostream &
 SerializerJSON::serialize( std::ostream & os,
                            const PlayerParamT & param )
 {
-    return os;
+    os << ",\n";
+    return param.toJSON( os );
 }
 
 /*-------------------------------------------------------------------*/
@@ -598,7 +606,8 @@ std::ostream &
 SerializerJSON::serialize( std::ostream & os,
                            const PlayerTypeT & param )
 {
-    return os;
+    os << ",\n";
+    return param.toJSON( os );
 }
 
 /*-------------------------------------------------------------------*/
@@ -609,16 +618,13 @@ SerializerJSON::serialize( std::ostream & os,
                            const int y,
                            const std::vector< std::string > & xpm )
 {
-
+    os << ",\n";
     return os;
 }
 
-
-
 /*-------------------------------------------------------------------*/
-/*!
-
- */
+/*-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
 namespace {
 
 Serializer::Ptr
