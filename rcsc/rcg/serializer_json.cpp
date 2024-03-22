@@ -452,7 +452,7 @@ SerializerJSON::serialize( std::ostream & os,
     {
         os << std::quoted( "stime" ) << ':' << M_stime << ',';
     }
-    os << std::quoted( "board" ) << ':' << ntohs( board ) << ',';
+    os << std::quoted( "board" ) << ':' << board << ',';
     os << std::quoted( "message") << ':' << std::quoted( msg );
 
     os << '}';

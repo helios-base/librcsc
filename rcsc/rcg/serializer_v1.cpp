@@ -204,7 +204,7 @@ SerializerV1::serialize( std::ostream & os,
 
     disp1.mode = htons( MSG_MODE );
 
-    disp1.body.msg.board = board;
+    disp1.body.msg.board = htons( board );
     std::memset( disp1.body.msg.message, 0,
                  sizeof( disp1.body.msg.message ) );
     std::strncpy( disp1.body.msg.message,

@@ -180,7 +180,7 @@ SerializerV3::serialize( std::ostream & os,
 {
     msginfo_t info;
 
-    info.board = board;
+    info.board = htons( board );
     std::memset( info.message, 0, sizeof( info.message ) );
     std::strncpy( info.message, msg.c_str(),
                   std::min( sizeof( info.message ) - 1, msg.length() ) );

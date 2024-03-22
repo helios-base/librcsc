@@ -84,7 +84,7 @@ Handler::handleDispInfo( const dispinfo_t & dinfo )
         break;
     case MSG_MODE:
         return handleMsg( M_read_time,
-                          dinfo.body.msg.board,
+                          ntohs( dinfo.body.msg.board ),
                           std::string( dinfo.body.msg.message ) );
         break;
     case DRAW_MODE:
@@ -115,7 +115,7 @@ Handler::handleDispInfo2( const dispinfo_t2 & dinfo2 )
         break;
     case MSG_MODE:
         return handleMsg( M_read_time,
-                          dinfo2.body.msg.board,
+                          ntohs( dinfo2.body.msg.board ),
                           std::string( dinfo2.body.msg.message ) );
         break;
     case PT_MODE:

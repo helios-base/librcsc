@@ -165,6 +165,7 @@ ParserV2::parseMsgInfo( std::istream & is,
     {
         return false;
     }
+    board = ntohs( board );
 
     Int16 len;
     is.read( reinterpret_cast< char* >( &len ), sizeof( Int16 ) );

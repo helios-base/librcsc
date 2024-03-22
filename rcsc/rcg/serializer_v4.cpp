@@ -413,7 +413,7 @@ SerializerV4::serialize( std::ostream & os,
                          const Int16 board,
                          const std::string & msg )
 {
-    os << "(msg " << M_time << ' ' << ntohs( board )
+    os << "(msg " << M_time << ' ' << board
        << " \"" << msg << "\")\n";
 
     return os;
