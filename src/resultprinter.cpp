@@ -499,15 +499,7 @@ main( int argc, char** argv )
         std::filesystem::path tmp_filepath;
         if ( filepath.extension() == ".gz" )
         {
-            char filename[] = "rcg-XXXXXX";
-            if ( mkstemp( filename ) == -1 )
-            {
-                std::cerr << "Could not create a temporary file." << std::endl;
-                return 1;
-            }
-
-            //filepath = std::filesystem::temp_directory_path() / filename;
-            filepath = filename;
+            filepath = std::filesystem::temp_directory_path() / "temp.rcg";
             tmp_filepath = filepath;
             //std::cerr << "tmpfile = " << filepath << std::endl;
             {
