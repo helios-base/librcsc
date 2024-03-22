@@ -583,11 +583,6 @@ SerializerJSON::serialize( std::ostream & os,
     M_time = show.time_;
     M_stime = show.stime_;
 
-    if ( M_time > 2 )
-    {
-        return os;
-    }
-
     os << ",\n";
     os << '{' << std::quoted( "show" ) << ':'
        << '{';
