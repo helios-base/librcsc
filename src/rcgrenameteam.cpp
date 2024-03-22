@@ -53,6 +53,9 @@ private:
 
     rcsc::rcg::Serializer::Ptr M_serializer;
 
+    std::string M_server_version;
+    std::string M_timestamp;
+
     std::string M_left_team_name;
     std::string M_right_team_name;
 
@@ -121,7 +124,7 @@ TeamNameRenamer::handleLogVersion( const int ver )
         return false;
     }
 
-    M_serializer->serializeHeader( M_os );
+    M_serializer->serializeBegin( M_os, M_server_version, M_timestamp );
     return true;
 }
 

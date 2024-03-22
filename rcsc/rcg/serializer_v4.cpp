@@ -66,7 +66,9 @@ namespace rcg {
 
  */
 std::ostream &
-SerializerV4::serializeHeader( std::ostream & os )
+SerializerV4::serializeBegin( std::ostream & os,
+                              const std::string &,
+                              const std::string & )
 {
     return os << "ULG4\n";
 }

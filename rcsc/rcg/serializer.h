@@ -248,10 +248,14 @@ public:
     /*!
       \brief write header
       \param os reference to the output stream
+      \aram server_version server version string
+      \aram timestamp time stamp string
       \return reference to the output stream
     */
     virtual
-    std::ostream & serializeHeader( std::ostream & os ) = 0;
+    std::ostream & serializeBegin( std::ostream & os,
+                                   const std::string & server_version,
+                                   const std::string & timestamp ) = 0;
 
     /*!
       \brief write the end of file

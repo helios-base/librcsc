@@ -69,11 +69,30 @@ namespace rcg {
 
 /*-------------------------------------------------------------------*/
 std::ostream &
-SerializerJSON::serializeHeader( std::ostream & os )
+SerializerJSON::serializeBegin( std::ostream & os,
+                                const std::string & server_version,
+                                const std::string & timestamp )
 {
-    os << "[";
+    os << "[\n";
 
-    os << "\n{\"version\":0}";
+    // server version
+    os << '{' << std::quoted( "version" ) << ':';
+    if ( server_version.empty() )
+    {
+        os << std::quoted( "unknown" );
+    }
+    else
+    {
+        os << std::quoted( server_version ) << '}';
+    }
+
+    // time stamp
+    if ( ! timestamp.empty() )
+    {
+        os << ",\n";
+        os << '{' << std::quoted( "timestamp" ) << ':' << std::quoted( timestamp ) << '}';
+    }
+
     return os;
 }
 
@@ -561,7 +580,6 @@ std::ostream &
 SerializerJSON::serialize( std::ostream & os,
                            const ShowInfoT & show )
 {
-
     os << ",\n";
     os << '{' << std::quoted( "show" ) << ':'
        << '{';
@@ -708,6 +726,7 @@ SerializerJSON::serialize( std::ostream & os,
                            const int y,
                            const std::vector< std::string > & xpm )
 {
+    os << ",\n";
     os << '{' << std::quoted( "team_graphic" ) << ':';
 
     os << '{'; // begin body

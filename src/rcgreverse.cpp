@@ -23,6 +23,9 @@ private:
 
     rcsc::rcg::Serializer::Ptr M_serializer;
 
+    std::string M_server_version;
+    std::string M_timestamp;
+
     // not used
     Reverser() = delete;
 public:
@@ -89,7 +92,7 @@ Reverser::handleLogVersion( const int ver )
         return false;
     }
 
-    M_serializer->serializeHeader( M_os );
+    M_serializer->serializeBegin( M_os, M_server_version, M_timestamp );
     return true;
 }
 

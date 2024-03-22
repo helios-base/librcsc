@@ -50,9 +50,12 @@ class VersionConverter
 private:
 
     std::ostream & M_os;
-    int M_version;
+    int M_target_rcg_version;
 
     rcsc::rcg::Serializer::Ptr M_serializer;
+
+    std::string M_server_version;
+    std::string M_timestamp;
 
     // not used
     VersionConverter() = delete;
@@ -94,7 +97,7 @@ public:
 VersionConverter::VersionConverter( std::ostream & os,
                                     const int version )
     : M_os( os ),
-      M_version( version )
+      M_target_rcg_version( version )
 {
     M_serializer = rcsc::rcg::Serializer::create( version );
 }
@@ -108,11 +111,11 @@ VersionConverter::handleLogVersion( const int ver )
 {
     rcsc::rcg::Handler::handleLogVersion( ver );
 
-    if ( ver == M_version )
+    if ( ver == M_target_rcg_version )
     {
         std::cerr << "The version of input file (" << ver
                   << ") is same as the output version ("
-                  << M_version << ")"
+                  << M_target_rcg_version << ")"
                   << std::endl;
         M_serializer.reset();
         return false;
@@ -126,7 +129,7 @@ VersionConverter::handleLogVersion( const int ver )
         return false;
     }
 
-    M_serializer->serializeHeader( M_os );
+    M_serializer->serializeBegin( M_os, M_server_version, M_timestamp );
     return true;
 }
 

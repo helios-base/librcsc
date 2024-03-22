@@ -59,7 +59,9 @@ public:
       \param os reference to the output stream
       \return reference to the output stream
     */
-    std::ostream & serializeHeader( std::ostream & os ) override;
+    std::ostream & serializeBegin( std::ostream & os,
+                                   const std::string & server_version = "",
+                                   const std::string & timestamp = "" ) override;
 
     /*!
       \brief write the end of file

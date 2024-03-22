@@ -55,7 +55,9 @@ namespace rcg {
 
 */
 std::ostream &
-SerializerV2::serializeHeader( std::ostream & os )
+SerializerV2::serializeBegin( std::ostream & os,
+                              const std::string &,
+                              const std::string & )
 {
     return serializeImpl( os, REC_VERSION_2 );
 }
