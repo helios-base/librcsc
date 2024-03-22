@@ -300,7 +300,7 @@ usage( const char * prog )
               << "Available options:\n"
               << "    --help [ -h ]\n"
               << "        print this message.\n"
-              << "    --version [ -v ] <Value> : (DefaultValue=4)\n"
+              << "    --version [ -v ] <Value> : (DefaultValue=json)\n"
               << "        specify the new rcg version.\n"
               << "    --output [ -o ] <Value>\n"
               << "        specify the output file name.\n"
@@ -315,7 +315,7 @@ main( int argc, char** argv )
 {
     std::string input_file;
     std::string output_file;
-    int version = 4;
+    int version = -1;
 
     for ( int i = 1; i < argc; ++i )
     {
@@ -334,7 +334,15 @@ main( int argc, char** argv )
                 usage( argv[0] );
                 return 1;
             }
-            version = std::atoi( argv[i] );
+
+            if ( std::strncmp( argv[i], "json", 4 ) == 0 )
+            {
+                version = -1;
+            }
+            else
+            {
+                version = std::atoi( argv[i] );
+            }
         }
         else if ( ! std::strcmp( argv[i], "--output" )
                   || ! std::strcmp( argv[i], "-o" ) )
@@ -371,6 +379,12 @@ main( int argc, char** argv )
     if ( input_file == output_file )
     {
         std::cerr << "The output file is same as the input file." << std::endl;
+        return 1;
+    }
+
+    if ( version == 0 )
+    {
+        std::cerr << "Unsupported game log version = " << version << std::endl;
         return 1;
     }
 
