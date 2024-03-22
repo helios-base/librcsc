@@ -368,7 +368,7 @@ parse_server_message( const std::string & msg,
         // pos indicates the first position of the value string
         // end_pos indicates the position of the end of paren
 
-        std::string value_str( msg, pos, end_pos - pos );
+        const std::string value_str( msg, pos, end_pos - pos );
         pos = end_pos;
 
         // pos indicates the position of the end of paren

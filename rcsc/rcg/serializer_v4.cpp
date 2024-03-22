@@ -634,7 +634,7 @@ std::ostream &
 SerializerV4::serialize( std::ostream & os,
                          const ServerParamT & param )
 {
-    return param.toServerString( os );
+    return param.toServerString( os ) << '\n';
 }
 
 /*-------------------------------------------------------------------*/
@@ -642,7 +642,7 @@ std::ostream &
 SerializerV4::serialize( std::ostream & os,
                          const PlayerParamT & param )
 {
-    return param.toServerString( os );
+    return param.toServerString( os ) << '\n';
 }
 
 /*-------------------------------------------------------------------*/
@@ -650,7 +650,7 @@ std::ostream &
 SerializerV4::serialize( std::ostream & os,
                          const PlayerTypeT & param )
 {
-    return param.toServerString( os );
+    return param.toServerString( os ) << '\n';
 }
 
 /*-------------------------------------------------------------------*/

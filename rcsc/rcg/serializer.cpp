@@ -479,7 +479,7 @@ Serializer::serializeAsMsg( std::ostream & os,
 
     std::ostringstream ostr;
     ostr << "(team_graphic_" << side_char( side )
-         << '(' << x << ' ' << y;
+         << ' ' << '(' << x << ' ' << y;
 
     for ( const std::string & s : xpm )
     {
