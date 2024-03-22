@@ -558,20 +558,30 @@ ParserSimdJSON::parse( std::istream & is,
         return false;
     }
 
-    simdjson::ondemand::parser parser;
-    simdjson::padded_string json( std::string( std::istreambuf_iterator< char >( is ), {} ) );
-    simdjson::ondemand::document rcg = parser.iterate( json );
-    simdjson::ondemand::array root_array = rcg.get_array();
+    handler.handleLogVersion( REC_VERSION_JSON );
 
-    for ( simdjson::ondemand::object data : root_array )
+    try
     {
-        for ( simdjson::ondemand::field field : data )
+        simdjson::ondemand::parser parser;
+        simdjson::padded_string json( std::string( std::istreambuf_iterator< char >( is ), {} ) );
+        simdjson::ondemand::document rcg = parser.iterate( json );
+        simdjson::ondemand::array root_array = rcg.get_array();
+
+        for ( simdjson::ondemand::object data : root_array )
         {
-            if ( ! M_impl->parseData( field, handler ) )
+            for ( simdjson::ondemand::field field : data )
             {
-                return false;
+                if ( ! M_impl->parseData( field, handler ) )
+                {
+                    return false;
+                }
             }
         }
+    }
+    catch ( std::exception & e )
+    {
+        std::cerr << "(ParserSimdJSON::parse) ERROR\n\t" << e.what() << std::endl;
+        return false;
     }
 
     handler.handleEOF();
@@ -585,20 +595,28 @@ ParserSimdJSON::parse( const std::string & filepath,
 {
     handler.handleLogVersion( REC_VERSION_JSON );
 
-    simdjson::ondemand::parser parser;
-    simdjson::padded_string json = simdjson::padded_string::load( filepath );
-    simdjson::ondemand::document rcg = parser.iterate( json );
-    simdjson::ondemand::array root_array = rcg.get_array();
-
-    for ( simdjson::ondemand::object data : root_array )
+    try
     {
-        for ( simdjson::ondemand::field field : data )
+        simdjson::ondemand::parser parser;
+        simdjson::padded_string json = simdjson::padded_string::load( filepath );
+        simdjson::ondemand::document rcg = parser.iterate( json );
+        simdjson::ondemand::array root_array = rcg.get_array();
+
+        for ( simdjson::ondemand::object data : root_array )
         {
-            if ( ! M_impl->parseData( field, handler ) )
+            for ( simdjson::ondemand::field field : data )
             {
-                return false;
+                if ( ! M_impl->parseData( field, handler ) )
+                {
+                    return false;
+                }
             }
         }
+    }
+    catch ( std::exception & e )
+    {
+        std::cerr << "(ParserSimdJSON::parse) ERROR\n\t" << e.what() << std::endl;
+        return false;
     }
 
     handler.handleEOF();
