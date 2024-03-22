@@ -1245,7 +1245,7 @@ PlayerParamT::toServerString( std::ostream & os ) const
 std::ostream &
 PlayerParamT::toJSON( std::ostream & os ) const
 {
-    return print_json( os, "palyer_param", param_map_ );
+    return print_json( os, "player_param", param_map_ );
 }
 
 /*-------------------------------------------------------------------*/
