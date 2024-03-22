@@ -284,6 +284,11 @@ Reverser::reverse( const rcsc::rcg::PlayerT & player )
         new_player.vy_ = - player.vy_;
         new_player.body_ += 180.0;
         if ( new_player.body_ > 180.0 ) new_player.body_ -= 360.0;
+        if ( player.hasArm() )
+        {
+            new_player.point_x_ = - player.point_x_;
+            new_player.point_y_ = - player.point_y_;
+        }
     }
     else
     {
