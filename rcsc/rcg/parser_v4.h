@@ -112,6 +112,16 @@ protected:
                    Handler & handler ) const;
 
     /*!
+      \brief parse team_graphic information in msg
+      \param msg message body in msg information
+      \param handler handler object
+      \return result status
+     */
+    bool parseTeamGraphic( const int n_line,
+                           const std::string & msg,
+                           Handler & handler ) const;
+
+    /*!
       \brief parse PM_MODE info(playmode)
       \param n_line the number of total read line
       \param line the data string

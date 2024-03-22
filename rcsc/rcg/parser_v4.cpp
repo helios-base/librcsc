@@ -649,19 +649,65 @@ ParserV4::parseMsg( const int n_line,
         return false;
     }
 
+    // find the last [")]
     std::string::size_type pos = msg.rfind( "\")" );
     if ( pos == std::string::npos )
     {
-        std::cerr << n_line << ": error: "
-                  << "Illegal msg [" << line << "]" << std::endl;;
+        std::cerr << n_line << ": ERROR Illegal msg [" << line << "]" << std::endl;;
         return false;
     }
 
-    msg.erase( pos );
+    msg.erase( pos ); // remove the last 2 characters
 
-    handler.handleMsg( time, board, msg );
+    // team graphic
+    if ( ! msg.compare( 0, std::strlen( "(team_graphic_" ), "(team_graphic_" ) )
+    {
+        return parseTeamGraphic( n_line, msg, handler );
+    }
 
-    return true;
+    // other message
+    return handler.handleMsg( time, board, msg );
+}
+
+/*-------------------------------------------------------------------*/
+bool
+ParserV4::parseTeamGraphic( const int n_line,
+                            const std::string & msg,
+                            Handler & handler ) const
+{
+    char s = 'n';
+    int x, y;
+    int n_read = 0;
+    if ( std::sscanf( msg.c_str(), "(team_graphic_%c ( %d %d %n",
+                      &s, &x, &y, &n_read ) != 3
+         || ( s != 'l' && s != 'r' )
+         || x < 0
+         || y < 0 )
+    {
+        std::cerr << n_line << ": ERROR Illegal team_graphic [" << msg << "]" << std::endl;;
+        return false;
+    }
+
+    std::vector< std::string > xpm_data;
+
+    const char * ptr = msg.c_str() + n_read;
+    while ( *ptr != '\0' )
+    {
+        char buf[16];
+        if ( std::sscanf( ptr, " \"%15[^\"]\" %n ", buf, &n_read ) != 1 )
+        {
+            std::cerr << n_line << ": ERROR Illegal team_graphic [" << ptr << "]" << std::endl;;
+            return false;
+        }
+        ptr += n_read;
+
+        xpm_data.push_back( buf );
+        while ( *ptr != '\0' && *ptr != '"' ) ++ptr;
+    }
+
+    const SideID side = ( s == 'l' ? LEFT : s == 'r' ? RIGHT : NEUTRAL );
+
+    return handler.handleTeamGraphic( side, x, y, xpm_data );
 }
 
 /*-------------------------------------------------------------------*/
