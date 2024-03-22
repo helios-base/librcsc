@@ -1147,6 +1147,11 @@ struct ShowInfoT {
     UInt32 stime_; //!< game time (stopped)
     BallT ball_; //!< ball data
     PlayerT player_[MAX_PLAYER * 2]; //!< player data
+
+    ShowInfoT()
+        : time_( 0 ),
+          stime_( 0 )
+      { }
 };
 
 /*!
@@ -1157,6 +1162,10 @@ struct DispInfoT {
     PlayMode pmode_; //!< playmode id
     TeamT team_[2]; //!< team data
     ShowInfoT show_; //!< positional data
+
+    DispInfoT()
+        : pmode_( PM_Null )
+      { }
 };
 
 //using ParamPtr = std::variant< int*, double*, bool*, std::string* >;
