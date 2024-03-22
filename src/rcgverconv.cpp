@@ -54,9 +54,6 @@ private:
 
     rcsc::rcg::Serializer::Ptr M_serializer;
 
-    std::string M_server_version;
-    std::string M_timestamp;
-
     // not used
     VersionConverter() = delete;
 public:
@@ -129,7 +126,7 @@ VersionConverter::handleLogVersion( const int ver )
         return false;
     }
 
-    M_serializer->serializeBegin( M_os, M_server_version, M_timestamp );
+    M_serializer->serializeBegin( M_os, serverVersion(), timestamp() );
     return true;
 }
 

@@ -49,8 +49,13 @@ namespace rcg {
 class Handler {
 private:
 
-    //! RCG version number(1-3, default:0)
+    //! RCG version number
     int M_log_version;
+
+    //! server version (available only in json)
+    std::string M_server_version;
+    //! timestamp (available only in json)
+    std::string M_timestamp;
 
     //! last handled game time
     int M_read_time;
@@ -95,6 +100,47 @@ public:
     int logVersion() const
       {
           return M_log_version;
+      }
+
+    /*!
+      \brief update the server version information
+      \param version string
+      \return result status
+     */
+    virtual
+    bool handleServerVersion( const std::string & version )
+      {
+          M_server_version = version;
+          return true;
+      }
+
+    /*!
+      \brief get the server version string
+      \return server version string
+     */
+    const std::string & serverVersion() const
+      {
+          return M_server_version;
+      }
+
+    /*!
+      \brief update the time stamp information
+      \param timestamp string
+      \return result status
+     */
+    bool handleTimestamp( const std::string & timestamp )
+      {
+          M_timestamp = timestamp;
+          return true;
+      }
+
+    /*!
+      \brief get the time stamp string
+      \return time stamp  string
+     */
+    const std::string & timestamp() const
+      {
+          return M_timestamp;
       }
 
     //
