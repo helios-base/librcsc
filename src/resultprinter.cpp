@@ -103,29 +103,20 @@ public:
 
     bool handleEOF();
 
-    bool handleShow( const rcsc::rcg::ShowInfoT & show );
+    bool handleShow( const rcsc::rcg::ShowInfoT & show ) override;
     bool handleMsg( const int time,
                     const int board,
-                    const std::string & msg );
+                    const std::string & msg ) override;
     bool handleDraw( const int ,
-                     const rcsc::rcg::drawinfo_t & )
+                     const rcsc::rcg::drawinfo_t & ) override
       {
           return true;
       }
     bool handlePlayMode( const int time,
-                         const rcsc::PlayMode pm );
+                         const rcsc::PlayMode pm ) override;
     bool handleTeam( const int time,
                      const rcsc::rcg::TeamT & team_l,
-                     const rcsc::rcg::TeamT & team_r );
-    bool handleServerParam( const std::string & msg );
-    bool handlePlayerParam( const std::string & )
-      {
-          return true;
-      }
-    bool handlePlayerType( const std::string & )
-      {
-          return true;
-      }
+                     const rcsc::rcg::TeamT & team_r ) override;
 
     bool handleServerParam( const rcsc::rcg::ServerParamT & param ) override;
     bool handlePlayerParam( const rcsc::rcg::PlayerParamT & ) override
@@ -440,97 +431,6 @@ ResultPrinter::handleTeam( const int,
     M_right_score = team_r.score_;
     M_right_penalty_taken = team_r.pen_score_ + team_r.pen_miss_;
     M_right_penalty_score = team_r.pen_score_;
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
-bool
-ResultPrinter::handleServerParam( const std::string & line )
-{
-    int n_read = 0;
-
-    char message_name[32];
-    if ( std::sscanf( line.c_str(), " ( %31s %n ", message_name, &n_read ) != 1 )
-    {
-        std::cerr << __FILE__ << ' ' << __LINE__
-                  << ":error: failed to the parse message id." << std::endl;
-        return false;
-    }
-
-    for ( std::string::size_type pos = line.find_first_of( '(', n_read );
-          pos != std::string::npos;
-          pos = line.find_first_of( '(', pos ) )
-    {
-        std::string::size_type end_pos = line.find_first_of( ' ', pos );
-        if ( end_pos == std::string::npos )
-        {
-            std::cerr << __FILE__ << ' ' << __LINE__
-                      << ":error: failed to find parameter name." << std::endl;
-            return false;
-        }
-        pos += 1;
-
-        const std::string name_str( line, pos, end_pos - pos );
-        pos = end_pos;
-
-        // search end paren or double quatation
-        end_pos = line.find_first_of( ")\"", end_pos ); //"
-        if ( end_pos == std::string::npos )
-        {
-            std::cerr << __FILE__ << ' ' << __LINE__
-                      << ":error: failed to parse parameter value for ["
-                      << name_str << "] " << std::endl;
-            return false;
-        }
-
-        // found quated value
-        if ( line[end_pos] == '\"' )
-        {
-            pos = end_pos;
-            end_pos = line.find_first_of( '\"', end_pos + 1 ); //"
-            if ( end_pos == std::string::npos )
-            {
-                std::cerr << __FILE__ << ' ' << __LINE__
-                          << ":error: ailed to parse the quated value for ["
-                          << name_str << "] " << std::endl;
-                return false;
-            }
-            end_pos += 1; // skip double quatation
-        }
-        else
-        {
-            pos += 1; // skip white space
-        }
-
-        const std::string value_str( line, pos, end_pos - pos );
-        pos = end_pos;
-
-        try
-        {
-            if ( name_str == "goal_width" )
-            {
-                M_goal_width = std::stod( value_str );
-            }
-            else if ( name_str == "ball_size" )
-            {
-                M_ball_size = std::stod( value_str );
-            }
-            else if ( name_str == "half_time" )
-            {
-                M_half_time = std::stoi( value_str );
-            }
-        }
-        catch ( std::exception & e )
-        {
-            std::cerr << __FILE__ << ' ' << __LINE__
-                      << ": Exeption caught! " << e.what() << std::endl;
-            return false;
-        }
-    }
 
     return true;
 }
