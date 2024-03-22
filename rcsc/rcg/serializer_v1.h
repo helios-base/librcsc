@@ -248,20 +248,17 @@ public:
                               const PlayerTypeT & param ) override;
 
     /*!
-      \brief write team_graphic
+      \brief no output in v1 format.
       \param os output stream
-      \param side team side
-      \param x index of the xpm_tile
-      \param y index of the xpm_tile
-      \param xpm xpm tile
+      \return output stream
      */
     std::ostream & serialize( std::ostream & os,
-                              const SideID side,
-                              const int x,
-                              const int y,
-                              const std::vector< std::string > & xpm ) override
+                              const SideID,
+                              const int,
+                              const int,
+                              const std::vector< std::string > & ) override
       {
-          return serializeAsMsg( os, side, x, y, xpm );
+          return os;
       }
 };
 
