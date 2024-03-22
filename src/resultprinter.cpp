@@ -506,7 +506,8 @@ main( int argc, char** argv )
                 return 1;
             }
 
-            filepath = std::filesystem::temp_directory_path() / filename;
+            //filepath = std::filesystem::temp_directory_path() / filename;
+            filepath = filename;
             tmp_filepath = filepath;
             //std::cerr << "tmpfile = " << filepath << std::endl;
             {
