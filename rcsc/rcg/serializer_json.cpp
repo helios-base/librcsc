@@ -79,7 +79,7 @@ SerializerJSON::serializeBegin( std::ostream & os,
     os << '{' << std::quoted( "version" ) << ':';
     if ( server_version.empty() )
     {
-        os << std::quoted( "unknown" );
+        os << std::quoted( "unknown" ) << '}';
     }
     else
     {
@@ -521,7 +521,6 @@ SerializerJSON::serialize( std::ostream & os,
     M_teams[0] = team_l;
     M_teams[1] = team_r;
 
-
     os << ",\n";
     os << '{' << std::quoted( "team" ) << ':'
        << '{';
@@ -552,6 +551,7 @@ SerializerJSON::serialize( std::ostream & os,
     os << '}';
 
     // right
+    os << ',';
     os << std::quoted( "r" ) << ':' << '{';
     os << std::quoted( "name" ) << ':';
     if ( team_r.name_.empty() )
@@ -580,6 +580,14 @@ std::ostream &
 SerializerJSON::serialize( std::ostream & os,
                            const ShowInfoT & show )
 {
+    M_time = show.time_;
+    M_stime = show.stime_;
+
+    if ( M_time > 2 )
+    {
+        return os;
+    }
+
     os << ",\n";
     os << '{' << std::quoted( "show" ) << ':'
        << '{';
@@ -592,13 +600,13 @@ SerializerJSON::serialize( std::ostream & os,
 
     // ball
     os << ',';
-    os << std::quoted( "ball" ) << ':' << '{';
-    os << std::quoted( "x" ) << ':' << show.ball_.x_;
-    os << std::quoted( "y" ) << ':' << show.ball_.y_;
+    os << std::quoted( "ball" ) << ':';
+    os << '{' << std::quoted( "x" ) << ':' << show.ball_.x_;
+    os << ',' << std::quoted( "y" ) << ':' << show.ball_.y_;
     if ( show.ball_.hasVelocity() )
     {
-        os << std::quoted( "vx" ) << ':' << show.ball_.vx_;
-        os << std::quoted( "vy" ) << ':' << show.ball_.vy_;
+        os << ',' << std::quoted( "vx" ) << ':' << show.ball_.vx_;
+        os << ',' << std::quoted( "vy" ) << ':' << show.ball_.vy_;
     }
     os << '}';
 
@@ -661,6 +669,7 @@ SerializerJSON::serialize( std::ostream & os,
         // end
         os << '}';
     }
+    os << ']';
 
     //
     os << '}';
