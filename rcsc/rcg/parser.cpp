@@ -41,7 +41,6 @@
 #include "parser_v2.h"
 #include "parser_v3.h"
 #include "parser_v4.h"
-#include "parser_json.h"
 #include "parser_simdjson.h"
 
 #include <fstream>
