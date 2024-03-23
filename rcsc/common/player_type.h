@@ -33,7 +33,6 @@
 #define RCSC_PARAM_PLAYER_TYPE_H
 
 #include <rcsc/geom/vector_2d.h>
-#include <rcsc/rcg/types.h>
 #include <rcsc/soccer_math.h>
 #include <rcsc/types.h>
 
@@ -42,6 +41,11 @@
 #include <iostream>
 
 namespace rcsc {
+
+namespace rcg {
+struct player_type_t;
+struct PlayerTypeT;
+}
 
 /*!
   \class PlayerType
@@ -125,11 +129,19 @@ public:
                 const double & version );
 
     /*!
-      \brief construct with monitor protocol
+      \brief construct by monitor data
       \param from monitor protocol data
      */
     explicit
     PlayerType( const rcg::player_type_t & from );
+
+    /*!
+      \brief construct by monitor data
+      \param from monitor protocol data
+     */
+    explicit
+    PlayerType( const rcg::PlayerTypeT & from );
+
 
     /*!
       \brief create new player type with randomly generated parameters, same as server's algorithm
@@ -144,6 +156,12 @@ public:
       \param to reference to the data variable.
      */
     void convertTo( rcg::player_type_t & to ) const;
+
+    /*!
+      \brief conver to the data format in the rcg library
+      \param to reference to the data variable.
+     */
+    void convertTo( rcg::PlayerTypeT & to ) const;
 
     /*!
       \brief convert to the rcss parameter message

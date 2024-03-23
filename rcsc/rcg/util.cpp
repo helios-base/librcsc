@@ -33,18 +33,20 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
+#include <rcsc/rcg/types.h>
+
+#include <unordered_map>
+#include <string>
+#include <sstream>
+#include <cstring>
+#include <cmath>
+
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
 #endif
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
 #endif
-
-#include <rcsc/rcg/types.h>
-
-#include <sstream>
-#include <cstring>
-#include <cmath>
 
 #ifndef M_PI
 //! pi value
@@ -817,6 +819,73 @@ convert( const std::string & from,
     std::strncpy( to.message,
                   from.c_str(),
                   std::min( sizeof( to.message ) - 1, from.length() ) );
+}
+
+/*-------------------------------------------------------------------*/
+PlayMode
+to_playmode_enum( const std::string & playmode )
+{
+    static const std::unordered_map< std::string, PlayMode > s_map = {
+        { "before_kick_off", PM_BeforeKickOff },
+        { "time_over", PM_TimeOver },
+        { "play_on", PM_PlayOn },
+        { "kick_off_l", PM_KickOff_Left },
+        { "kick_off_r", PM_KickOff_Right },
+        { "kick_in_l", PM_KickIn_Left },
+        { "kick_in_r", PM_KickIn_Right },
+        { "free_kick_l", PM_FreeKick_Left },
+        { "free_kick_r", PM_FreeKick_Right },
+        { "corner_kick_l", PM_CornerKick_Left },
+        { "corner_kick_r", PM_CornerKick_Right },
+        { "goal_kick_l", PM_GoalKick_Left },
+        { "goal_kick_r", PM_GoalKick_Right },
+        { "goal_l", PM_AfterGoal_Left },
+        { "goal_r", PM_AfterGoal_Right },
+        { "drop_ball", PM_Drop_Ball },
+        { "offside_l", PM_OffSide_Left },
+        { "offside_r", PM_OffSide_Right },
+        { "penalty_kick_l", PM_PK_Left },
+        { "penalty_kick_r", PM_PK_Right },
+        { "first_half_over", PM_FirstHalfOver },
+        { "pause", PM_Pause },
+        { "human_judge", PM_Human },
+        { "foul_charge_l", PM_Foul_Charge_Left },
+        { "foul_charge_r", PM_Foul_Charge_Right },
+        { "foul_push_l", PM_Foul_Push_Left },
+        { "foul_push_l", PM_Foul_Push_Right },
+        { "foul_multiple_attack_l", PM_Foul_MultipleAttacker_Left },
+        { "foul_multiple_attack_r", PM_Foul_MultipleAttacker_Right },
+        { "foul_ballout_l", PM_Foul_BallOut_Left },
+        { "foul_ballout_r", PM_Foul_BallOut_Right },
+        { "back_pass_l", PM_Back_Pass_Left },
+        { "back_pass_r", PM_Back_Pass_Right },
+        { "free_kick_fault_l", PM_Free_Kick_Fault_Left },
+        { "free_kick_fault_r", PM_Free_Kick_Fault_Right },
+        { "catch_fault_l", PM_CatchFault_Left },
+        { "catch_fault_r", PM_CatchFault_Right },
+        { "indirect_free_kick_l", PM_IndFreeKick_Left },
+        { "indirect_free_kick_r", PM_IndFreeKick_Right },
+        { "penalty_setup_l", PM_PenaltySetup_Left },
+        { "penalty_setup_r", PM_PenaltySetup_Right },
+        { "penalty_ready_l", PM_PenaltyReady_Left },
+        { "penalty_ready_r", PM_PenaltyReady_Right },
+        { "penalty_taken_l", PM_PenaltyTaken_Left },
+        { "penalty_taken_r", PM_PenaltyTaken_Right },
+        { "penalty_miss_l", PM_PenaltyMiss_Left },
+        { "penalty_miss_r", PM_PenaltyMiss_Right },
+        { "penalty_score_l", PM_PenaltyScore_Left },
+        { "penalty_score_r", PM_PenaltyScore_Right },
+        { "illegal_defense_l", PM_Illegal_Defense_Left },
+        { "illegal_defense_r", PM_Illegal_Defense_Right },
+    };
+
+    std::unordered_map< std::string, PlayMode >::const_iterator it = s_map.find( playmode );
+    if ( it == s_map.end() )
+    {
+        return PM_Null;
+    }
+
+    return it->second;
 }
 
 /*-------------------------------------------------------------------*/

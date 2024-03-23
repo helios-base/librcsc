@@ -33,19 +33,19 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef HAVE_WINDOWS_H
-#include <windows.h>
-#endif
-
 #include "serializer_v1.h"
 
 #include "util.h"
 
 #include <cstring>
 #include <cmath>
+
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
 
 namespace rcsc {
 namespace rcg {
@@ -55,7 +55,9 @@ namespace rcg {
 
 */
 std::ostream &
-SerializerV1::serializeHeader( std::ostream & os )
+SerializerV1::serializeBegin( std::ostream & os,
+                              const std::string & ,
+                              const std::string &  )
 {
     // nothing to do
     return os;
@@ -68,18 +70,6 @@ SerializerV1::serializeHeader( std::ostream & os )
 std::ostream &
 SerializerV1::serialize( std::ostream & os,
                          const server_params_t & )
-{
-    // nothing to do
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
-std::ostream &
-SerializerV1::serializeParam( std::ostream & os,
-                              const std::string & )
 {
     // nothing to do
     return os;
@@ -214,7 +204,7 @@ SerializerV1::serialize( std::ostream & os,
 
     disp1.mode = htons( MSG_MODE );
 
-    disp1.body.msg.board = board;
+    disp1.body.msg.board = htons( board );
     std::memset( disp1.body.msg.message, 0,
                  sizeof( disp1.body.msg.message ) );
     std::strncpy( disp1.body.msg.message,
@@ -320,6 +310,30 @@ SerializerV1::serialize( std::ostream & os,
     return serialize( os, disp.show_ );
 }
 
+/*-------------------------------------------------------------------*/
+std::ostream &
+SerializerV1::serialize( std::ostream & os,
+                         const ServerParamT & )
+{
+
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+std::ostream &
+SerializerV1::serialize( std::ostream & os,
+                         const PlayerParamT & )
+{
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+std::ostream &
+SerializerV1::serialize( std::ostream & os,
+                         const PlayerTypeT & )
+{
+    return os;
+}
 
 /*-------------------------------------------------------------------*/
 /*!
