@@ -79,6 +79,17 @@ enum DispInfoMode {
 };
 
 /*!
+  \enum DrawMode
+  \brief draw data types
+ */
+enum DrawMode {
+    DrawClear = 0,
+    DrawPoint = 1,
+    DrawCircle = 2,
+    DrawLine = 3,
+};
+
+/*!
   \enum MsgInfoMode
   \brief message data type id enumeration.
  */
