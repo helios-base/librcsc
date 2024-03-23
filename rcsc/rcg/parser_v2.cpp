@@ -33,13 +33,6 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef HAVE_WINDOWS_H
-#include <windows.h>
-#endif
-
 #include "parser_v2.h"
 
 #include "handler.h"
@@ -47,6 +40,13 @@
 
 #include <iostream>
 #include <cstring>
+
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
 
 namespace rcsc {
 namespace rcg {

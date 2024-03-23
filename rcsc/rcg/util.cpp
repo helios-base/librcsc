@@ -33,13 +33,6 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef HAVE_WINDOWS_H
-#include <windows.h>
-#endif
-
 #include <rcsc/rcg/types.h>
 
 #include <unordered_map>
@@ -47,6 +40,13 @@
 #include <sstream>
 #include <cstring>
 #include <cmath>
+
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
 
 #ifndef M_PI
 //! pi value

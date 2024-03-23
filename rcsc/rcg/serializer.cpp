@@ -33,13 +33,6 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef HAVE_WINDOWS_H
-#include <windows.h>
-#endif
-
 #include "serializer.h"
 
 #include "util.h"
@@ -52,13 +45,19 @@
 #include "serializer_v6.h"
 #include "serializer_json.h"
 
-
 #include <algorithm>
 #include <cstring>
 #include <cmath>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
 
 namespace rcsc {
 namespace rcg {

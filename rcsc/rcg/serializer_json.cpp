@@ -33,13 +33,6 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef HAVE_WINDOWS_H
-#include <windows.h>
-#endif
-
 #include "serializer_json.h"
 
 #include "types.h"
@@ -48,6 +41,13 @@
 #include <iomanip>
 #include <cstring>
 #include <cmath>
+
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
 
 namespace {
 
