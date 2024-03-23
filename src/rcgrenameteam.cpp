@@ -84,7 +84,7 @@ public:
     bool handlePlayerParam( const rcsc::rcg::PlayerParamT & param ) override;
     bool handlePlayerType( const rcsc::rcg::PlayerTypeT & param ) override;
 
-    bool handleTeamGraphic( const rcsc::SideID side,
+    bool handleTeamGraphic( const char,
                             const int x,
                             const int y,
                             const std::vector< std::string > & xpm ) override;
@@ -285,7 +285,7 @@ TeamNameRenamer::handlePlayerType( const rcsc::rcg::PlayerTypeT & param )
 
 /*-------------------------------------------------------------------*/
 bool
-TeamNameRenamer::handleTeamGraphic( const rcsc::SideID side,
+TeamNameRenamer::handleTeamGraphic( const char side,
                                     const int x,
                                     const int y,
                                     const std::vector< std::string > & xpm )

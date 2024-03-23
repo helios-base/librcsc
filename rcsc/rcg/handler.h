@@ -349,7 +349,7 @@ public:
       \return result status
     */
     virtual
-    bool handleTeamGraphic( const SideID side,
+    bool handleTeamGraphic( const char side,
                             const int x,
                             const int y,
                             const std::vector< std::string > & xpm_data ) = 0;

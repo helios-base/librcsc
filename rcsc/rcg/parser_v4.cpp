@@ -675,12 +675,12 @@ ParserV4::parseTeamGraphic( const int n_line,
                             const std::string & msg,
                             Handler & handler ) const
 {
-    char s = 'n';
+    char side = 'n';
     int x, y;
     int n_read = 0;
     if ( std::sscanf( msg.c_str(), "(team_graphic_%c ( %d %d %n",
-                      &s, &x, &y, &n_read ) != 3
-         || ( s != 'l' && s != 'r' )
+                      &side, &x, &y, &n_read ) != 3
+         || ( side != 'l' && side != 'r' )
          || x < 0
          || y < 0 )
     {
@@ -704,8 +704,6 @@ ParserV4::parseTeamGraphic( const int n_line,
         xpm_data.push_back( buf );
         while ( *ptr != '\0' && *ptr != '"' ) ++ptr;
     }
-
-    const SideID side = ( s == 'l' ? LEFT : s == 'r' ? RIGHT : NEUTRAL );
 
     return handler.handleTeamGraphic( side, x, y, xpm_data );
 }

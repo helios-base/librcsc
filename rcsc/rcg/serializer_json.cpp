@@ -725,7 +725,7 @@ SerializerJSON::serialize( std::ostream & os,
 /*-------------------------------------------------------------------*/
 std::ostream &
 SerializerJSON::serialize( std::ostream & os,
-                           const SideID side,
+                           const char side,
                            const int x,
                            const int y,
                            const std::vector< std::string > & xpm )

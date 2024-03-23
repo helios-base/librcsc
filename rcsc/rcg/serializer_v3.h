@@ -254,7 +254,7 @@ public:
       \return output stream
      */
     std::ostream & serialize( std::ostream & os,
-                              const SideID ,
+                              const char,
                               const int,
                               const int,
                               const std::vector< std::string > & ) override

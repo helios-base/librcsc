@@ -80,7 +80,7 @@ public:
     bool handleServerParam( const rcsc::rcg::ServerParamT & param ) override;
     bool handlePlayerParam( const rcsc::rcg::PlayerParamT & param ) override;
     bool handlePlayerType( const rcsc::rcg::PlayerTypeT & param ) override;
-    bool handleTeamGraphic( const rcsc::SideID side,
+    bool handleTeamGraphic( const char side,
                             const int x,
                             const int y,
                             const std::vector< std::string > & xpm ) override;
@@ -272,7 +272,7 @@ VersionConverter::handlePlayerType( const rcsc::rcg::PlayerTypeT & param )
 }
 
 bool
-VersionConverter::handleTeamGraphic( const rcsc::SideID side,
+VersionConverter::handleTeamGraphic( const char side,
                                      const int x,
                                      const int y,
                                      const std::vector< std::string > & xpm )

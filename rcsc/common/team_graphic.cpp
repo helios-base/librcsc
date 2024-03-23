@@ -121,7 +121,7 @@ read_xpm_header( std::istream & is,
          || *height % rcsc::TeamGraphic::TILE_SIZE != 0
          || *height > rcsc::TeamGraphic::MAX_HEIGHT
          || *n_color < 1
-         || *cpp != 1 )
+         || *cpp != rcsc::TeamGraphic::CPP )
     {
         std::cerr << __FILE__ << ' ' << __LINE__
                   << ": (read_xpm_header) Unsupported xpm data. [" << buf << "]\n"
@@ -238,11 +238,6 @@ read_xpm( std::istream & is,
 
 namespace rcsc {
 
-const int TeamGraphic::MAX_WIDTH = 256;
-const int TeamGraphic::MAX_HEIGHT = 64;
-const int TeamGraphic::TILE_SIZE = 8;
-const int TeamGraphic::MAX_COLOR = 256;
-
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -293,7 +288,7 @@ TeamGraphic::XpmTile::print( std::ostream & os ) const
 TeamGraphic::TeamGraphic()
     : M_width( 0 ),
       M_height( 0 ),
-      M_cpp( 1 )
+      M_cpp( CPP )
 {
 
 }
@@ -307,7 +302,7 @@ TeamGraphic::clear()
 {
     M_width = 0;
     M_height = 0;
-    M_cpp = 1;
+    M_cpp = CPP;
 
     M_colors.clear();
     M_tiles.clear();
@@ -315,7 +310,7 @@ TeamGraphic::clear()
 
 /*-------------------------------------------------------------------*/
 bool
-TeamGraphic::createXpmTiles( const char * const * xpm_data )
+TeamGraphic::fromRawXpm( const char * const * xpm_data )
 {
     if ( ! xpm_data ) return false;
 
@@ -338,7 +333,7 @@ TeamGraphic::createXpmTiles( const char * const * xpm_data )
          || xpm_height % TILE_SIZE != 0
          || xpm_height > MAX_HEIGHT
          || xpm_n_color > MAX_COLOR
-         || xpm_cpp != 1 )
+         || xpm_cpp != CPP )
     {
         std::cerr << "Unsupported xpm data. \n"
                   << "  width=" << xpm_width
@@ -417,9 +412,9 @@ TeamGraphic::createXpmTiles( const char * const * xpm_data )
 
             Index index( index_x, index_y );
 
-            Ptr tile( new XpmTile( ( max_x - start_x ) / xpm_cpp, // width
-                                   max_y - start_y, // height
-                                   xpm_cpp ) );
+            XpmTile::Ptr tile( new XpmTile( ( max_x - start_x ) / xpm_cpp, // width
+                                            max_y - start_y, // height
+                                            xpm_cpp ) );
 
             for ( int y = start_y; y < max_y; ++y )
             {
@@ -482,124 +477,6 @@ TeamGraphic::createXpmTiles( const char * const * xpm_data )
 
 /*-------------------------------------------------------------------*/
 bool
-TeamGraphic::parse( const char * server_msg )
-{
-    int n_read = 0;
-    char side = '?';
-    int x = -1, y = -1;
-
-    if ( std::sscanf( server_msg, "(team_graphic_%c ( %d %d %n ",
-                      &side, &x, &y,
-                      &n_read ) != 3
-         || ( side != 'l' && side != 'r' )
-         || x < 0
-         || y < 0
-         || n_read == 0 )
-    {
-        return false;
-    }
-    server_msg += n_read;
-
-    if ( ( x + 1 ) * TILE_SIZE > MAX_WIDTH
-         || ( y + 1 ) * TILE_SIZE > MAX_HEIGHT )
-    {
-        std::cerr << "Unsupported xpm tile index ["
-                  << x << ',' << y << "]"
-                  << std::endl;
-        return false;
-    }
-
-    //
-    // header
-    //
-    n_read = 0;
-    int xpm_width = 0, xpm_height = 0, xpm_n_color = 0, xpm_cpp = 0;
-    if ( std::sscanf( server_msg,
-                      " \" %d %d %d %d \" %n ",
-                      &xpm_width, &xpm_height, &xpm_n_color, &xpm_cpp,
-                      &n_read ) != 4
-         || xpm_width != TILE_SIZE
-         || xpm_height != TILE_SIZE
-         || xpm_n_color < 1
-         || xpm_cpp != 1
-         || n_read == 0 )
-    {
-        std::cerr << "Illegal xpm header [" << server_msg << "]"
-                  << std::endl;
-        return false;
-    }
-    server_msg += n_read;
-
-    Index index( x, y );
-
-    Ptr tile( new XpmTile( xpm_width, xpm_height, xpm_cpp ) );
-
-
-    char line_buf[8192];
-
-    //
-    // colors
-    //
-    for ( int i = 0; i < xpm_n_color; ++i )
-    {
-        if ( std::sscanf( server_msg, " \"%8191[^\"]\" %n ",
-                          line_buf, &n_read ) != 1 )
-        {
-            return false;
-        }
-        server_msg += n_read;
-
-        std::shared_ptr< std::string > new_col( new std::string( line_buf ) );
-        std::shared_ptr< std::string > col = findColor( *new_col );
-        if ( col )
-        {
-            tile->addColor( col );
-        }
-        else
-        {
-            M_colors.push_back( new_col );
-            tile->addColor( new_col );
-        }
-    }
-
-    //
-    // pixels
-    //
-    for ( int i = 0; i < xpm_height; ++i )
-    {
-        if ( std::sscanf( server_msg, " \"%8191[^\"]\" %n ",
-                          line_buf, &n_read ) != 1 )
-        {
-            return false;
-        }
-        server_msg += n_read;
-
-        if ( static_cast< int >( std::strlen( line_buf ) ) != xpm_width * xpm_cpp )
-        {
-            return false;
-        }
-
-        tile->addPixelLine( line_buf );
-    }
-
-    // insert new tile
-    M_tiles.insert( std::pair< Index, Ptr >( index, tile ) );
-
-    if ( M_width < ( x + 1 ) * TILE_SIZE )
-    {
-        M_width = ( x + 1 ) * TILE_SIZE;
-    }
-
-    if ( M_height < ( y + 1 ) * TILE_SIZE )
-    {
-        M_height = ( y + 1 ) * TILE_SIZE;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-bool
 TeamGraphic::addXpmTile( const int x,
                          const int y,
                          const std::vector< std::string > & xpm_tile )
@@ -645,7 +522,7 @@ TeamGraphic::addXpmTile( const int x,
     }
 
     const Index index( x, y );
-    Ptr tile( new XpmTile( xpm_width, xpm_height, xpm_cpp ) );
+    XpmTile::Ptr tile( new XpmTile( xpm_width, xpm_height, xpm_cpp ) );
 
     //
     // colors
@@ -683,7 +560,7 @@ TeamGraphic::addXpmTile( const int x,
     }
 
     // insert new tile
-    M_tiles.insert( std::pair< Index, Ptr >( index, tile ) );
+    M_tiles.insert( std::pair< Index, XpmTile::Ptr >( index, tile ) );
 
     if ( M_width < ( x + 1 ) * TILE_SIZE )
     {
@@ -737,7 +614,7 @@ TeamGraphic::readXpmFile( const char * file_path )
     // create xpm tiles
     //
     bool result = true;
-    if ( ! createXpmTiles( xpm ) )
+    if ( ! fromRawXpm( xpm ) )
     {
         result = false;
     }

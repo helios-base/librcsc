@@ -52,7 +52,7 @@ public:
     bool handleServerParam( const rcsc::rcg::ServerParamT & param ) override;
     bool handlePlayerParam( const rcsc::rcg::PlayerParamT & param ) override;
     bool handlePlayerType( const rcsc::rcg::PlayerTypeT & param ) override;
-    bool handleTeamGraphic( const rcsc::SideID side,
+    bool handleTeamGraphic( const char side,
                             const int x,
                             const int y,
                             const std::vector< std::string > & xpm ) override;
@@ -233,7 +233,7 @@ Reverser::handlePlayerType( const rcsc::rcg::PlayerTypeT & param )
 
 /*-------------------------------------------------------------------*/
 bool
-Reverser::handleTeamGraphic( const rcsc::SideID side,
+Reverser::handleTeamGraphic( const char side,
                              const int x,
                              const int y,
                              const std::vector< std::string > & xpm )

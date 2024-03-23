@@ -127,7 +127,7 @@ public:
       {
           return true;
       }
-    bool handleTeamGraphic( const rcsc::SideID,
+    bool handleTeamGraphic( const char,
                             const int,
                             const int,
                             const std::vector< std::string > & ) override

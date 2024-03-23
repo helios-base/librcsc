@@ -234,7 +234,7 @@ protected:
       \param xpm xpm tile
      */
     std::ostream & serializeAsMsg( std::ostream & os,
-                                   const SideID side,
+                                   const char side,
                                    const int x,
                                    const int y,
                                    const std::vector< std::string > & xpm );
@@ -463,7 +463,7 @@ public:
      */
     virtual
     std::ostream & serialize( std::ostream & os,
-                              const SideID side,
+                              const char side,
                               const int x,
                               const int y,
                               const std::vector< std::string > & xpm ) = 0;

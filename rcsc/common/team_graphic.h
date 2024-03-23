@@ -47,13 +47,15 @@ class TeamGraphic {
 public:
 
     //! max pixel width of the team graphic
-    static const int MAX_WIDTH;
+    static constexpr int MAX_WIDTH = 256;
     //! max pixel height of the team graphic
-    static const int MAX_HEIGHT;
+    static constexpr int MAX_HEIGHT = 64;
     //! tile size unit
-    static const int TILE_SIZE;
+    static constexpr int TILE_SIZE = 8;
     //! max colors
-    static const int MAX_COLOR;
+    static constexpr int MAX_COLOR = 256;
+    //! characters per pixel
+    static constexpr int CPP = 1;
 
 
     /*!
@@ -61,6 +63,9 @@ public:
       \brief 8x8 pixels xpm data contained by the TeamGraphic
     */
     class XpmTile {
+    public:
+        using Ptr = std::shared_ptr< XpmTile >; //!< XpmTile pointer
+
     private:
         const int M_width; //!< width of this tile
         const int M_height; //!< height of this tile
@@ -156,11 +161,8 @@ public:
         std::ostream & print( std::ostream & os ) const;
     };
 
-
-    typedef std::shared_ptr< XpmTile > Ptr; //!< XpmTile pointer
-    typedef std::shared_ptr< const XpmTile > ConstPtr; //!< XpmTile pointer
-    typedef std::pair< int, int > Index; //!<  xpm tile index
-    typedef std::map< Index, const Ptr > Map; //!< xpm tile map
+    using Index = std::pair< int, int >; //!<  xpm tile index
+    using Map = std::map< Index, const XpmTile::Ptr >; //!< xpm tile map
 
 private:
     int M_width; //!< total pixmap width
@@ -170,7 +172,7 @@ private:
     //! color data strings
     std::vector< std::shared_ptr< std::string > > M_colors;
 
-    //! 8x8 xpm tiles
+    //! xpm tiles with index
     Map M_tiles;
 
 public:
@@ -226,14 +228,7 @@ public:
       \param xpm_data raw xpm string array
       \return true if successfully parsed
     */
-    bool createXpmTiles( const char * const * xpm_data );
-
-    /*!
-      \brief analyze team_graphic_? message from rcssserver & add new xpm tile
-      \param server_msg raw server message
-      \return true if successfully analyzed
-    */
-    bool parse( const char * server_msg );
+    bool fromRawXpm( const char * const * xpm_data );
 
     /*!
       \brief create tiled xpm from the raw xpm data

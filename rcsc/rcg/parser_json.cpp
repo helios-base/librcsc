@@ -303,7 +303,7 @@ public:
           // std::cout << std::endl;
       }
 
-    void handleTeamGraphic( const SideID side,
+    void handleTeamGraphic( const char side,
                             const int x,
                             const int y,
                             const std::vector< std::string > & xpm_data )
@@ -655,7 +655,7 @@ private:
     bool M_in_array;
 
     // xpm tile information
-    SideID M_side;
+    char M_side;
     int M_x;
     int M_y;
     std::vector< std::string > M_xpm_data;
@@ -666,7 +666,7 @@ public:
         : Builder( context, parent ),
           M_depth( 0 ),
           M_in_array( false ),
-          M_side( NEUTRAL ),
+          M_side( 'n' ),
           M_x( -1 ),
           M_y( -1 )
       { }
@@ -766,7 +766,7 @@ public:
 
           if ( M_key == "side" )
           {
-              M_side = ( val == "l" ? LEFT : val == "r" ? RIGHT : NEUTRAL );
+              M_side = val[0]; // ( val == "l" ? LEFT : val == "r" ? RIGHT : NEUTRAL );
               M_key.clear();
               return true;
           }

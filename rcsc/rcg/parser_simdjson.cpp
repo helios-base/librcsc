@@ -282,8 +282,7 @@ ParserSimdJSON::Impl::parseTeamGraphic( simdjson::ondemand::value & val,
             xpm_data.push_back( str );
         }
 
-        SideID side_id = ( side[0] == 'l' ? LEFT : side[0] == 'r' ? RIGHT : NEUTRAL );
-        result = handler.handleTeamGraphic( side_id, x, y, xpm_data );
+        result = handler.handleTeamGraphic( side[0], x, y, xpm_data );
     }
     catch ( std::exception & e )
     {

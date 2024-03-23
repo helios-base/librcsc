@@ -471,14 +471,14 @@ Serializer::serializeImpl( std::ostream & os,
 /*-------------------------------------------------------------------*/
 std::ostream &
 Serializer::serializeAsMsg( std::ostream & os,
-                            const SideID side,
+                            const char side,
                             const int x,
                             const int y,
                             const std::vector< std::string > & xpm )
 {
 
     std::ostringstream ostr;
-    ostr << "(team_graphic_" << side_char( side )
+    ostr << "(team_graphic_" << side
          << ' ' << '(' << x << ' ' << y;
 
     for ( const std::string & s : xpm )
