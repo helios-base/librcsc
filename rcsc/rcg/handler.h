@@ -325,6 +325,16 @@ public:
     virtual
     bool handlePlayerType( const PlayerTypeT & param ) = 0;
 
+    /*!
+      \brief handle team_graphic message
+      \param msg raw message string
+      \return result status
+    */
+    virtual
+    bool handleTeamGraphic( const char side,
+                            const int x,
+                            const int y,
+                            const std::vector< std::string > & xpm_data ) = 0;
 
     //
     //
@@ -337,22 +347,6 @@ public:
     */
     bool handlePlayMode( const int time,
                          const std::string & playmode );
-
-
-    //
-    // for JSON
-    //
-
-    /*!
-      \brief handle team_graphic message
-      \param msg raw message string
-      \return result status
-    */
-    virtual
-    bool handleTeamGraphic( const char side,
-                            const int x,
-                            const int y,
-                            const std::vector< std::string > & xpm_data ) = 0;
 
 };
 
