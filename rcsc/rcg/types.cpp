@@ -467,6 +467,50 @@ print_json( std::ostream & os,
     return os;
 }
 
+/*-------------------------------------------------------------------*/
+struct ValueSetter {
+
+    ValueSetter()
+      { }
+
+    void operator()( const int * s,
+                     int * t )
+      {
+          *t = *s;
+      }
+    void operator()( const int *, double * ) { }
+    void operator()( const int *, bool * ) { }
+    void operator()( const int *, std::string * ) { }
+
+    void operator()( const double * s,
+                     double * t )
+      {
+          *t = *s;
+      }
+    void operator()( const double *, int * ) {}
+    void operator()( const double *, bool * ) {}
+    void operator()( const double *, std::string * ) {}
+
+    void operator()( const bool * s,
+                     bool * t )
+      {
+          *t = *s;
+      }
+    void operator()( const bool *, int * ) {}
+    void operator()( const bool *, double * ) {}
+    void operator()( const bool *, std::string * ) {}
+
+    void operator()( const std::string * s,
+                     std::string * t )
+      {
+          *t = *s;
+      }
+    void operator()( const std::string *, int * ) {}
+    void operator()( const std::string *, double * ) {}
+    void operator()( const std::string *, bool * ) {}
+
+};
+
 }
 
 /*-------------------------------------------------------------------*/
@@ -933,6 +977,23 @@ ServerParamT::Impl::Impl( ServerParamT * p )
 }
 
 /*-------------------------------------------------------------------*/
+void
+ServerParamT::copyFrom( const ServerParamT & other )
+{
+    for ( const ParamMap::value_type & v : other.impl_->param_map_ )
+    {
+        try
+        {
+            std::visit( ValueSetter(), v.second, impl_->param_map_.at( v.first ) );
+        }
+        catch ( std::exception & e )
+        {
+            std::cerr << "(ServerParamT::copyFrom) " << e.what() << std::endl;
+        }
+    }
+}
+
+/*-------------------------------------------------------------------*/
 std::ostream &
 ServerParamT::toServerString( std::ostream & os ) const
 {
@@ -1266,6 +1327,23 @@ PlayerParamT::Impl::Impl( PlayerParamT * p )
 }
 
 /*-------------------------------------------------------------------*/
+void
+PlayerParamT::copyFrom( const PlayerParamT & other )
+{
+    for ( const ParamMap::value_type & v : other.impl_->param_map_ )
+    {
+        try
+        {
+            std::visit( ValueSetter(), v.second, impl_->param_map_.at( v.first ) );
+        }
+        catch ( std::exception & e )
+        {
+            std::cerr << "(PlayerParamT::copyFrom) " << e.what() << std::endl;
+        }
+    }
+}
+
+/*-------------------------------------------------------------------*/
 std::ostream &
 PlayerParamT::toServerString( std::ostream & os ) const
 {
@@ -1434,6 +1512,23 @@ PlayerTypeT::Impl::Impl( PlayerTypeT * p )
     // param_map_.insert( ParamMap::value_type( "focus_dist_noise_rate", &(p->focus_dist_noise_rate_ ) ) );
     // param_map_.insert( ParamMap::value_type( "land_dist_noise_rate", &(p->land_dist_noise_rate_ ) ) );
     // param_map_.insert( ParamMap::value_type( "land_focus_dist_noise_rate", &(p->land_focus_dist_noise_rate_ ) ) );
+}
+
+/*-------------------------------------------------------------------*/
+void
+PlayerTypeT::copyFrom( const PlayerTypeT & other )
+{
+    for ( const ParamMap::value_type & v : other.impl_->param_map_ )
+    {
+        try
+        {
+            std::visit( ValueSetter(), v.second, impl_->param_map_.at( v.first ) );
+        }
+        catch ( std::exception & e )
+        {
+            std::cerr << "(PlayerTypeT::copyFrom) " << e.what() << std::endl;
+        }
+    }
 }
 
 /*-------------------------------------------------------------------*/

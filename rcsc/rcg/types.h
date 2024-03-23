@@ -1473,6 +1473,8 @@ struct ServerParamT {
           fromStruct( param );
       }
 
+    void copyFrom( const ServerParamT & other );
+
     /*!
       \brief print s-expression message
      */
@@ -1568,6 +1570,8 @@ struct PlayerParamT {
           fromStruct( data );
       }
 
+    void copyFrom( const PlayerParamT & other );
+
     /*!
       \brief print s-expression message
      */
@@ -1646,6 +1650,10 @@ struct PlayerTypeT {
 
     PlayerTypeT();
 
+    PlayerTypeT( const PlayerTypeT & other );
+
+    const PlayerTypeT & operator=( const PlayerTypeT & other );
+
     PlayerTypeT( const std::string & msg )
         : PlayerTypeT()
       {
@@ -1657,6 +1665,8 @@ struct PlayerTypeT {
       {
           fromStruct( data );
       }
+
+    void copyFrom( const PlayerTypeT & other );
 
     /*!
       \brief print s-expression message
@@ -1680,9 +1690,6 @@ struct PlayerTypeT {
                     const double value );
 
 private:
-    PlayerTypeT( const PlayerTypeT & ) = delete;
-    const PlayerTypeT & operator=( const PlayerTypeT & ) = delete;
-
     struct Impl;
     std::shared_ptr< Impl > impl_;
 };
