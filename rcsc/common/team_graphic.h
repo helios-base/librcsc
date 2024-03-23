@@ -156,9 +156,11 @@ public:
         /*!
           \brief output xpm lines
           \param os refrence to the output stream
+          \param separator separator character
           \return refrence to the output stream
         */
-        std::ostream & print( std::ostream & os ) const;
+        std::ostream & print( std::ostream & os,
+                              const char separator ) const;
     };
 
     using Index = std::pair< int, int >; //!<  xpm tile index
@@ -186,6 +188,12 @@ public:
       \brief erase all data
     */
     void clear();
+
+    /*!
+      \brief check if all xpm tiles have been completed or not
+      \return checked result
+    */
+    bool isValid() const;
 
     /*!
       \brief geth the total width of this team graphic
@@ -224,6 +232,13 @@ public:
       }
 
     /*!
+      \brief read xpm data from the input file
+      \param file_path input file path
+      \return parsing result
+    */
+    bool readXpmFile( const std::string & file_path );
+
+    /*!
       \brief create tiled xpm from the raw xpm data
       \param xpm_data raw xpm string array
       \return true if successfully parsed
@@ -241,19 +256,6 @@ public:
                      const int y,
                      const std::vector< std::string > & xpm_tile );
 
-    /*!
-      \brief read xpm data from the input file
-      \param file_path input file path
-      \return parsing result
-    */
-    bool readXpmFile( const char * file_path );
-
-    /*!
-      \brief check if all xpm tiles have been completed or not
-      \return checked result
-    */
-    bool isValid() const;
-
 private:
 
     /*!
@@ -263,14 +265,6 @@ private:
     */
     std::shared_ptr< std::string > findColor( const std::string & str );
 
-public:
-
-    /*!
-      \brief output all tiled xpm data
-      \param os reference to the output stream
-      \return reference to the output stream
-    */
-    std::ostream & print( std::ostream & os ) const;
 };
 
 }
