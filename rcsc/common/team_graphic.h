@@ -47,13 +47,15 @@ class TeamGraphic {
 public:
 
     //! max pixel width of the team graphic
-    static const int MAX_WIDTH;
+    static constexpr int MAX_WIDTH = 256;
     //! max pixel height of the team graphic
-    static const int MAX_HEIGHT;
+    static constexpr int MAX_HEIGHT = 64;
     //! tile size unit
-    static const int TILE_SIZE;
+    static constexpr int TILE_SIZE = 8;
     //! max colors
-    static const int MAX_COLOR;
+    static constexpr int MAX_COLOR = 256;
+    //! characters per pixel
+    static constexpr int CPP = 1;
 
 
     /*!
@@ -61,6 +63,9 @@ public:
       \brief 8x8 pixels xpm data contained by the TeamGraphic
     */
     class XpmTile {
+    public:
+        using Ptr = std::shared_ptr< XpmTile >; //!< XpmTile pointer
+
     private:
         const int M_width; //!< width of this tile
         const int M_height; //!< height of this tile
@@ -151,16 +156,15 @@ public:
         /*!
           \brief output xpm lines
           \param os refrence to the output stream
+          \param separator separator character
           \return refrence to the output stream
         */
-        std::ostream & print( std::ostream & os ) const;
+        std::ostream & print( std::ostream & os,
+                              const char separator ) const;
     };
 
-
-    typedef std::shared_ptr< XpmTile > Ptr; //!< XpmTile pointer
-    typedef std::shared_ptr< const XpmTile > ConstPtr; //!< XpmTile pointer
-    typedef std::pair< int, int > Index; //!<  xpm tile index
-    typedef std::map< Index, const Ptr > Map; //!< xpm tile map
+    using Index = std::pair< int, int >; //!<  xpm tile index
+    using Map = std::map< Index, const XpmTile::Ptr >; //!< xpm tile map
 
 private:
     int M_width; //!< total pixmap width
@@ -170,7 +174,7 @@ private:
     //! color data strings
     std::vector< std::shared_ptr< std::string > > M_colors;
 
-    //! 8x8 xpm tiles
+    //! xpm tiles with index
     Map M_tiles;
 
 public:
@@ -184,6 +188,12 @@ public:
       \brief erase all data
     */
     void clear();
+
+    /*!
+      \brief check if all xpm tiles have been completed or not
+      \return checked result
+    */
+    bool isValid() const;
 
     /*!
       \brief geth the total width of this team graphic
@@ -222,31 +232,29 @@ public:
       }
 
     /*!
-      \brief create tiled xpm from the raw xpm data
-      \param xpm_data raw xpm string array
-      \return true if successfully parsed
-    */
-    bool createXpmTiles( const char * const * xpm_data );
-
-    /*!
-      \brief analyze team_graphic_? message from rcssserver & add new xpm tile
-      \param server_msg raw server message
-      \return true if successfully analyzed
-    */
-    bool parse( const char * server_msg );
-
-    /*!
       \brief read xpm data from the input file
       \param file_path input file path
       \return parsing result
     */
-    bool readXpmFile( const char * file_path );
+    bool readXpmFile( const std::string & file_path );
 
     /*!
-      \brief check if all xpm tiles have been completed or not
-      \return checked result
+      \brief create tiled xpm from the raw xpm data
+      \param xpm_data raw xpm string array
+      \return true if successfully parsed
     */
-    bool isValid() const;
+    bool fromRawXpm( const char * const * xpm_data );
+
+    /*!
+      \brief create tiled xpm from the raw xpm data
+      \param x xpm tile index
+      \param y xpm tile index
+      \param xpm_tile raw xpm string array
+      \return true if successfully parsed
+    */
+    bool addXpmTile( const int x,
+                     const int y,
+                     const std::vector< std::string > & xpm_tile );
 
 private:
 
@@ -257,14 +265,6 @@ private:
     */
     std::shared_ptr< std::string > findColor( const std::string & str );
 
-public:
-
-    /*!
-      \brief output all tiled xpm data
-      \param os reference to the output stream
-      \return reference to the output stream
-    */
-    std::ostream & print( std::ostream & os ) const;
 };
 
 }

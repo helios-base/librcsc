@@ -60,7 +60,9 @@ AC_CHECK_LIB([z], [deflate],
 # Checks for header files.
 ##################################################
 
-AC_CHECK_HEADERS([arpa/inet.h])
+AC_CHECK_HEADERS([arpa/inet.h],
+                 break,
+                 [AC_MSG_ERROR([*** arpa/inet.h not found ***])])
 AC_CHECK_HEADERS([fcntl.h],
                  break,
                  [AC_MSG_ERROR([*** fcntl.h not found ***])])
@@ -103,12 +105,12 @@ AC_C_INLINE
 #AC_TYPE_INT64_T
 #AC_TYPE_UINT32_T
 AC_TYPE_SIZE_T
-AC_HEADER_TIME
+#AC_HEADER_TIME
 
 ##################################################
 # Checks for library functions.
 ##################################################
-AC_HEADER_STDC
+#AC_HEADER_STDC
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES

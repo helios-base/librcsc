@@ -2130,7 +2130,7 @@ CoachAgent::doTeamGraphic( const int x,
     std::ostringstream ostr;
 
     ostr << "(team_graphic (" << x << ' ' << y << ' ';
-    tile->second->print( ostr );
+    tile->second->print( ostr, ' ' );
     ostr << "))";
 
     return ( M_client->sendMessage( ostr.str().c_str() ) > 0 );

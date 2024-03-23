@@ -12,6 +12,7 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 
 #include <rcsc/gz.h>
@@ -20,15 +21,6 @@
 /*
 
 // first line
-(Init (goal_width 14.02) (player_size 0.299988)
-(ball_size 0.0849915) (kickable_margin 0.699997)
-(visible_distance 3) (kickable_area 1.08498)
-(catchable_area_l 2) (catchable_area_w 1)
-(half_time 3000) (ckick_margin 1)
-(offside_active_area_size 2.5)
-(offside_kick_margin 9.14999)
-(audio_cut_dist 50))
-
 (Info (state <time> <playmode> <score_l> <score_r>)
 (ball <x> <y> <vx> <vy>)
 (player {l|r} <unum>[ g]
@@ -103,7 +95,6 @@ private:
 
     std::ostream & M_os;
 
-    bool M_init_written;
     rcsc::PlayMode M_playmode;
     std::string M_left_team_name;
     std::string M_right_team_name;
@@ -119,32 +110,40 @@ public:
     explicit
     TextPrinter( std::ostream & os );
 
-    virtual
-    bool handleEOF();
+    bool handleEOF() override;
 
-    virtual
-    bool handleShow( const rcsc::rcg::ShowInfoT & show );
-    virtual
+    bool handleShow( const rcsc::rcg::ShowInfoT & show ) override;
     bool handleMsg( const int time,
                     const int board,
-                    const std::string & msg );
-    virtual
+                    const std::string & msg ) override;
     bool handleDraw( const int time,
-                     const rcsc::rcg::drawinfo_t & draw );
-    virtual
+                     const rcsc::rcg::drawinfo_t & draw ) override;
     bool handlePlayMode( const int time,
-                         const rcsc::PlayMode pm );
-    virtual
+                         const rcsc::PlayMode pm ) override;
     bool handleTeam( const int time,
                      const rcsc::rcg::TeamT & team_l,
-                     const rcsc::rcg::TeamT & team_r );
-    virtual
-    bool handleServerParam( const std::string & msg );
-    virtual
-    bool handlePlayerParam( const std::string & msg );
-    virtual
-    bool handlePlayerType( const std::string & msg );
+                     const rcsc::rcg::TeamT & team_r ) override;
 
+    bool handleServerParam( const rcsc::rcg::ServerParamT & ) override
+      {
+          return true;
+      }
+    bool handlePlayerParam( const rcsc::rcg::PlayerParamT & ) override
+      {
+          return true;
+      }
+    bool handlePlayerType( const rcsc::rcg::PlayerTypeT & ) override
+      {
+          return true;
+      }
+
+    bool handleTeamGraphic( const char,
+                            const int,
+                            const int,
+                            const std::vector< std::string > & ) override
+      {
+          return true;
+      }
 private:
     const
     std::string & getPlayModeString( const rcsc::PlayMode playmode ) const;
@@ -178,7 +177,6 @@ private:
  */
 TextPrinter::TextPrinter( std::ostream & os )
     : M_os( os ),
-      M_init_written( false ),
       M_playmode( rcsc::PM_Null ),
       M_left_team_name( "" ),
       M_right_team_name( "" ),
@@ -211,12 +209,6 @@ TextPrinter::handleEOF()
 bool
 TextPrinter::handleShow( const rcsc::rcg::ShowInfoT & show )
 {
-    if ( ! M_init_written )
-    {
-        M_init_written = true;
-        M_os << "(Init)" << "\n";
-    }
-
     M_os << "(Info ";
     printState( M_os, show.time_ );
 
@@ -299,44 +291,6 @@ TextPrinter::handleTeam( const int,
     M_left_score = team_l.score_;
     M_right_score = team_r.score_;
 
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-TextPrinter::handleServerParam( const std::string & msg )
-{
-    std::string::size_type pos = msg.find_first_of( ' ' );
-    if ( pos != std::string::npos )
-    {
-        M_init_written = true;
-        M_os << "(Init"
-             << msg.substr( pos )
-             << '\n';
-    }
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-TextPrinter::handlePlayerParam( const std::string & )
-{
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-TextPrinter::handlePlayerType( const std::string & )
-{
     return true;
 }
 

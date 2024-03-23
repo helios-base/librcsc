@@ -35,6 +35,7 @@
 #include <rcsc/rcg/types.h>
 
 #include <string>
+#include <vector>
 
 namespace rcsc {
 namespace rcg {
@@ -48,8 +49,13 @@ namespace rcg {
 class Handler {
 private:
 
-    //! RCG version number(1-3, default:0)
+    //! RCG version number
     int M_log_version;
+
+    //! server version (available only in json)
+    std::string M_server_version;
+    //! timestamp (available only in json)
+    std::string M_timestamp;
 
     //! last handled game time
     int M_read_time;
@@ -94,6 +100,47 @@ public:
     int logVersion() const
       {
           return M_log_version;
+      }
+
+    /*!
+      \brief update the server version information
+      \param version string
+      \return result status
+     */
+    virtual
+    bool handleServerVersion( const std::string & version )
+      {
+          M_server_version = version;
+          return true;
+      }
+
+    /*!
+      \brief get the server version string
+      \return server version string
+     */
+    const std::string & serverVersion() const
+      {
+          return M_server_version;
+      }
+
+    /*!
+      \brief update the time stamp information
+      \param timestamp string
+      \return result status
+     */
+    bool handleTimestamp( const std::string & timestamp )
+      {
+          M_timestamp = timestamp;
+          return true;
+      }
+
+    /*!
+      \brief get the time stamp string
+      \return time stamp  string
+     */
+    const std::string & timestamp() const
+      {
+          return M_timestamp;
       }
 
     //
@@ -170,21 +217,21 @@ public:
 
     /*!
       \brief handle player_type_t
-      \param type handled data
+      \param type binary data
       \return result status
     */
     bool handlePlayerType( const player_type_t & type );
 
     /*!
       \brief handle server_params_t
-      \param param handled data
+      \param param binary data
       \return result status
     */
     bool handleServerParam( const server_params_t & param );
 
     /*!
       \brief handle player_params_t
-      \param param handled data
+      \param param binary data
       \return result status
     */
     bool handlePlayerParam( const player_params_t & param );
@@ -256,27 +303,50 @@ public:
 
     /*!
       \brief handle server_param message
-      \param msg raw message string
+      \param param parameter holder
       \return result status
     */
     virtual
-    bool handleServerParam( const std::string & msg ) = 0;
+    bool handleServerParam( const ServerParamT & param ) = 0;
 
     /*!
       \brief handle player_param message
-      \param msg raw message string
+      \param param parameter holder
       \return result status
     */
     virtual
-    bool handlePlayerParam( const std::string & msg ) = 0;
+    bool handlePlayerParam( const PlayerParamT & param ) = 0;
 
     /*!
       \brief handle player_type message
+      \param param parameter holder
+      \return result status
+    */
+    virtual
+    bool handlePlayerType( const PlayerTypeT & param ) = 0;
+
+    /*!
+      \brief handle team_graphic message
       \param msg raw message string
       \return result status
     */
     virtual
-    bool handlePlayerType( const std::string & msg ) = 0;
+    bool handleTeamGraphic( const char side,
+                            const int x,
+                            const int y,
+                            const std::vector< std::string > & xpm_data ) = 0;
+
+    //
+    //
+    //
+
+    /*!
+      \brief wrapper of handlePlayMode(int,PlayMode)
+      \param playmode playmode name
+      \return result status
+    */
+    bool handlePlayMode( const int time,
+                         const std::string & playmode );
 
 };
 

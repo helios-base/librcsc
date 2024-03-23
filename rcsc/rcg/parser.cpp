@@ -41,7 +41,9 @@
 #include "parser_v2.h"
 #include "parser_v3.h"
 #include "parser_v4.h"
-//#include "parser_v5.h"
+#include "parser_simdjson.h"
+
+#include <fstream>
 
 namespace rcsc {
 namespace rcg {
@@ -76,28 +78,30 @@ Parser::create( std::istream & is )
         return Parser::Ptr();
     }
 
-    if ( header[0] == 'J'
-         && header[1] == 'S'
-         && header[2] == 'O'
-         && header[3] == 'N' )
+    if ( header[0] == '[' )
     {
-        std::cerr << "(rcsc::rcg::Parser::create) JSON not supported." << std::endl;
-        return Parser::Ptr();
+        version = REC_VERSION_JSON;
     }
-
-    if ( header[0] == 'U'
-         && header[1] == 'L'
-         && header[2] == 'G' )
+    else if ( header[0] == 'U'
+              && header[1] == 'L'
+              && header[2] == 'G' )
     {
         version = static_cast< int >( header[3] );
     }
 
-    std::cerr << "(rcsc::rcg::Parser::create) rcg version = "
-              << ( version == static_cast< int >( '0' ) + REC_VERSION_6 ? REC_VERSION_6
-                   : version == static_cast< int >( '0' ) + REC_VERSION_5 ? REC_VERSION_5
-                   : version == static_cast< int >( '0' ) + REC_VERSION_4 ? REC_VERSION_4
-                   : version )
-              << std::endl;
+    std::cerr << "(rcsc::rcg::Parser::create) rcg version = ";
+    if ( version == -1 )
+    {
+        std::cerr << "json";
+    }
+    else
+    {
+        std::cerr << ( version == static_cast< int >( '0' ) + REC_VERSION_6 ? REC_VERSION_6
+                       : version == static_cast< int >( '0' ) + REC_VERSION_5 ? REC_VERSION_5
+                       : version == static_cast< int >( '0' ) + REC_VERSION_4 ? REC_VERSION_4
+                       : version );
+    }
+    std::cerr << std::endl;
 
     Parser::Ptr ptr;
     Parser::Creator creator;
@@ -111,9 +115,26 @@ Parser::create( std::istream & is )
     else if ( version == REC_VERSION_3 ) ptr = Parser::Ptr( new ParserV3() );
     else if ( version == REC_VERSION_2 ) ptr = Parser::Ptr( new ParserV2() );
     else if ( version == REC_OLD_VERSION ) ptr = Parser::Ptr( new ParserV1() );
+    //else if ( version == REC_VERSION_JSON ) ptr = Parser::Ptr( new ParserJSON() );
+    else if ( version == REC_VERSION_JSON ) ptr = Parser::Ptr( new ParserSimdJSON() );
 
     return ptr;
 }
+
+
+bool
+Parser::parse( const std::string & filepath,
+               Handler & handler ) const
+{
+    std::ifstream fin( filepath );
+    if ( ! fin )
+    {
+        return false;
+    }
+
+    return parse( fin, handler );
+}
+
 
 }
 }

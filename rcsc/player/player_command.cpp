@@ -134,13 +134,37 @@ PlayerMoveCommand::toCommandString( std::ostream & to ) const
 std::ostream &
 PlayerDashCommand::toCommandString( std::ostream & to ) const
 {
-    to << "(dash " << M_power;
-    if ( M_dir != 0.0 )
+    if ( ! M_two_legs )
     {
-        to << ' ' << M_dir;
+        to << "(dash " << M_power;
+        if ( M_dir != 0.0 )
+        {
+            to << ' ' << M_dir;
+        }
+        to << ')';
     }
-    return to << ')';
+    else
+    {
+        to << "(dash"
+           << " (l " << M_left_power << ' ' << M_left_dir << ')'
+           << " (r " << M_right_power << ' ' << M_right_dir << ')'
+           << ')';
+    }
+
+    return to;
 }
+
+
+/*-------------------------------------------------------------------*/
+// std::ostream &
+// PlayerLegDashCommand::toCommandString( std::ostream & to ) const
+// {
+//     to << "(dash ("
+//        << ( side() == LEFT ? 'l' : side() == RIGHT ? 'r' : '?' )
+//        << ' ' << M_power << ' ' << M_dir << "))";
+
+//     return to;
+// }
 
 /*-------------------------------------------------------------------*/
 /*!

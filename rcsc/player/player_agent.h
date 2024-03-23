@@ -222,6 +222,19 @@ public:
                  const AngleDeg & rel_dir = 0.0 );
 
     /*!
+      \brief register dash command for each leg
+      \param left_power command argument: dash power
+      \param left_dir command argument: dash direction relative to body (or reverse body) angle
+      \param right_power command argument: dash power
+      \param right_dir command argument: dash direction relative to body (or reverse body) angle
+      \return true if successfully registered.
+    */
+    bool doDash( const double left_power,
+                 const AngleDeg & left_dir,
+                 const double right_power,
+                 const AngleDeg & right_dir );
+
+    /*!
       \brief register turn command
       \param moment command argument: turn moment
       \return true if successfully registered.

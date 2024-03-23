@@ -8,6 +8,7 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 
 #include <rcsc/common/server_param.h>
@@ -85,34 +86,33 @@ public:
     explicit
     CSVPrinter( std::ostream & os );
 
-    virtual
-    bool handleLogVersion( const int ver );
+    bool handleLogVersion( const int ver ) override;
 
-    virtual
-    bool handleEOF();
+    bool handleEOF() override;
 
-    virtual
-    bool handleShow( const rcsc::rcg::ShowInfoT & show );
-    virtual
+    bool handleShow( const rcsc::rcg::ShowInfoT & show ) override;
     bool handleMsg( const int time,
                     const int board,
-                    const std::string & msg );
-    virtual
+                    const std::string & msg ) override;
     bool handleDraw( const int time,
-                     const rcsc::rcg::drawinfo_t & draw );
-    virtual
+                     const rcsc::rcg::drawinfo_t & draw ) override;
     bool handlePlayMode( const int time,
-                         const rcsc::PlayMode pm );
-    virtual
+                         const rcsc::PlayMode pm ) override;
     bool handleTeam( const int time,
                      const rcsc::rcg::TeamT & team_l,
-                     const rcsc::rcg::TeamT & team_r );
-    virtual
-    bool handleServerParam( const std::string & msg );
-    virtual
-    bool handlePlayerParam( const std::string & msg );
-    virtual
-    bool handlePlayerType( const std::string & msg );
+                     const rcsc::rcg::TeamT & team_r ) override;
+
+    bool handleServerParam( const rcsc::rcg::ServerParamT & param ) override;
+    bool handlePlayerParam( const rcsc::rcg::PlayerParamT & param ) override;
+    bool handlePlayerType( const rcsc::rcg::PlayerTypeT & param ) override;
+
+    bool handleTeamGraphic( const char,
+                            const int,
+                            const int,
+                            const std::vector< std::string > & ) override
+      {
+          return true;
+      }
 
 private:
     const std::string & getPlayModeString( const rcsc::PlayMode playmode ) const;
@@ -265,41 +265,24 @@ CSVPrinter::handleTeam( const int,
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 bool
-CSVPrinter::handleServerParam( const std::string & msg )
+CSVPrinter::handleServerParam( const rcsc::rcg::ServerParamT & param )
 {
-    if ( ! rcsc::ServerParam::instance().parse( msg.c_str(), 8 ) )
-    {
-        return false;
-    }
-
+    rcsc::ServerParam::instance().convertFrom( param );
     return true;
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 bool
-CSVPrinter::handlePlayerParam( const std::string & msg )
+CSVPrinter::handlePlayerParam( const rcsc::rcg::PlayerParamT & param )
 {
-    if ( ! rcsc::PlayerParam::instance().parse( msg.c_str(), 8 ) )
-    {
-        return false;
-    }
-
+    rcsc::PlayerParam::instance().convertFrom( param );
     return true;
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 bool
-CSVPrinter::handlePlayerType( const std::string & )
+CSVPrinter::handlePlayerType( const rcsc::rcg::PlayerTypeT & )
 {
     return true;
 }

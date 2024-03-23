@@ -44,6 +44,7 @@ namespace rcsc {
 
 namespace rcg {
 struct server_params_t;
+struct ServerParamT;
 }
 class ParamMap;
 
@@ -231,7 +232,7 @@ public:
 
     static const bool   DEFAULT_VERBOSE_MODE;
 
-    static const int    DEFAULT_COACH_SEND_VI_STEP; // defined as SEND_VISUALINFO_INTERVAL_MSEC in rcssserver/param.h
+    static const int    DEFAULT_ONLINE_COACH_LOOK_STEP; // defined as SEND_VISUALINFO_INTERVAL_MSEC in rcssserver/param.h
 
     static const std::string DEFAULT_REPLAY_FILE; // unused after rcsserver-9+
     static const std::string DEFAULT_LANDMARK_FILE;
@@ -503,7 +504,7 @@ private:
 
     bool M_verbose_mode;
 
-    int M_coach_send_vi_step; // coach's visual info step
+    int M_online_coach_look_step; // coach's visual info step
 
     std::string M_replay_file; // unused after rcsserver-9+
     std::string M_landmark_file;
@@ -738,10 +739,22 @@ public:
     void convertFrom( const rcg::server_params_t & from );
 
     /*!
+      \brief convert from the data type in the rcg parser library.
+      \param from monitor protocol data structure
+     */
+    void convertFrom( const rcg::ServerParamT & from );
+
+    /*!
       \brief convert to the monitor protocol format
       \param to monitor protocol data structure
      */
     void convertTo( rcg::server_params_t & to ) const;
+
+    /*!
+      \brief convert from the data type in the rcg parser library.
+      \param from monitor protocol data structure
+     */
+    void convertTo( rcg::ServerParamT & to ) const;
 
     /*!
       \brief convert to the rcss parameter message
@@ -987,7 +1000,7 @@ public:
 
     bool verboseMode() const { return M_verbose_mode; }
 
-    int coachSendVIStep() const { return M_coach_send_vi_step; }
+    int onlineCoachLookStep() const { return M_online_coach_look_step; }
 
     const std::string & replayFile() const { return M_replay_file; }
     const std::string & landmarkFile() const { return M_landmark_file; }

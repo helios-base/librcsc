@@ -1,8 +1,8 @@
 // -*-c++-*-
 
 /*!
-  \file serializer_v3.h
-  \brief v3 format rcg serializer class Header File.
+  \file serializer_json.h
+  \brief json format rcg serializer class Header File.
 */
 
 /*
@@ -29,70 +29,71 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_RCG_SERIALIZER_V3_H
-#define RCSC_RCG_SERIALIZER_V3_H
+#ifndef RCSC_RCG_SERIALIZER_JSON_H
+#define RCSC_RCG_SERIALIZER_JSON_H
 
 #include <rcsc/rcg/serializer.h>
-
-#include <map>
 
 namespace rcsc {
 namespace rcg {
 
-/*!
-  \class SerializerV3
-  \brief rcg data serializer interface class
-*/
-class SerializerV3
+class SerializerJSON
     : public Serializer {
 private:
+
+    Int32 M_time; //!< temporal time holder
+    Int32 M_stime; //!< temporal time holder
 
 public:
 
     /*!
-      \brief destruct all
-    */
-    ~SerializerV3()
+      \brief constructor.
+     */
+    SerializerJSON()
+        : M_time( 0 ),
+          M_stime( 0 )
       { }
 
     /*!
       \brief write header
       \param os reference to the output stream
-      \aram server_version server version string
-      \aram timestamp time stamp string
       \return reference to the output stream
     */
     std::ostream & serializeBegin( std::ostream & os,
-                                   const std::string & server_version,
-                                   const std::string & timestamp ) override;
+                                   const std::string & server_version = "",
+                                   const std::string & timestamp = "" ) override;
 
     /*!
-      \brief write server param
+      \brief write the end of file
       \param os reference to the output stream
-      \param param network byte order data
-      \return serialization result
+      \return reference to the output stream
+     */
+    std::ostream & serializeEnd( std::ostream & os ) override;
+
+    /*!
+      \brief write header
+      \param os reference to the output stream
+      \param param server_params_t variable by network byte order
+      \return reference to the output stream
     */
-    virtual
     std::ostream & serialize( std::ostream & os,
                               const server_params_t & param ) override;
 
     /*!
-      \brief write player param
+      \brief write header
       \param os reference to the output stream
-      \param pparam network byte order data
-      \return serialization result
+      \param pparam player_params_t variable by network byte order
+      \return reference to the output stream
     */
-    virtual
     std::ostream & serialize( std::ostream & os,
                               const player_params_t & pparam ) override;
 
     /*!
-      \brief write player type param
+      \brief write header
       \param os reference to the output stream
-      \param type network byte order data
-      \return serialization result
+      \param type player_type_t variable by network byte order
+      \return reference to the output stream
     */
-    virtual
     std::ostream & serialize( std::ostream & os,
                               const player_type_t & type ) override;
 
@@ -102,7 +103,6 @@ public:
       \param disp network byte order data
       \return reference to the output stream
      */
-    virtual
     std::ostream & serialize( std::ostream & os,
                               const dispinfo_t & disp ) override;
 
@@ -112,17 +112,15 @@ public:
       \param show network byte order data
       \return reference to the output stream
      */
-    virtual
     std::ostream & serialize( std::ostream & os,
                               const showinfo_t & show ) override;
 
     /*!
-      \brief write showinfo_t2
+      \brief write showinfo_t2.
       \param os reference to the output stream
-      \param show2 data to be output
+      \param show2 network byte order data
       \return reference to the output stream
      */
-    virtual
     std::ostream & serialize( std::ostream & os,
                               const showinfo_t2 & show2 ) override;
 
@@ -132,17 +130,15 @@ public:
       \param show2 network byte order data
       \return reference to the output stream
      */
-    virtual
     std::ostream & serialize( std::ostream & os,
                               const short_showinfo_t2 & show2 ) override;
 
     /*!
       \brief write message info
       \param os reference to the output stream
-      \param msg network byte order data
-      \return serialization result
+      \param msg msginfo_t variable by network byte order
+      \return reference to the output stream
     */
-    virtual
     std::ostream & serialize( std::ostream & os,
                               const msginfo_t & msg ) override;
 
@@ -153,18 +149,16 @@ public:
       \param msg message string
       \return reference to the output stream
     */
-    virtual
     std::ostream & serialize( std::ostream & os,
                               const Int16 board,
                               const std::string & msg ) override;
 
-   /*!
+    /*!
       \brief write drawinfo_t
       \param os reference to the output stream
       \param draw drawinfo_t variable
       \return reference to the output stream
     */
-    virtual
     std::ostream & serialize( std::ostream & os,
                               const drawinfo_t & draw ) override;
 
@@ -174,7 +168,6 @@ public:
       \param playmode play mode variable
       \return reference to the output stream
     */
-    virtual
     std::ostream & serialize( std::ostream & os,
                               const char playmode ) override;
 
@@ -185,7 +178,6 @@ public:
       \param team_r right team variable
       \return reference to the output stream
     */
-    virtual
     std::ostream & serialize( std::ostream & os,
                               const team_t & team_l,
                               const team_t & team_r ) override;
@@ -197,7 +189,6 @@ public:
       \param team_r right team variable
       \return reference to the output stream
     */
-    virtual
     std::ostream & serialize( std::ostream & os,
                               const TeamT & team_l,
                               const TeamT & team_r ) override;
@@ -205,10 +196,9 @@ public:
     /*!
       \brief write ShowInfoT
       \param os reference to the output stream
-      \param show network byte order data
+      \param show data to be written
       \return reference to the output stream
      */
-    virtual
     std::ostream & serialize( std::ostream & os,
                               const ShowInfoT & show ) override;
 
@@ -218,7 +208,6 @@ public:
       \param disp data to be written
       \return reference to the output stream
      */
-    virtual
     std::ostream & serialize( std::ostream & os,
                               const DispInfoT & disp ) override;
 
@@ -249,21 +238,21 @@ public:
                               const PlayerTypeT & param ) override;
 
     /*!
-      \brief no output in v3 format.
+      \brief write team_graphic
       \param os output stream
-      \return output stream
+      \param side team side
+      \param x index of the xpm_tile
+      \param y index of the xpm_tile
+      \param xpm xpm tile
      */
     std::ostream & serialize( std::ostream & os,
-                              const char,
-                              const int,
-                              const int,
-                              const std::vector< std::string > & ) override
-      {
-          return os;
-      }
+                              const char side,
+                              const int x,
+                              const int y,
+                              const std::vector< std::string > & xpm ) override;
 };
 
-} // end of namespace rcg
-} // end of namespace rcsc
+}
+}
 
 #endif

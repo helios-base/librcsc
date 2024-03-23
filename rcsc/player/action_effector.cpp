@@ -55,6 +55,8 @@ namespace rcsc {
 ActionEffector::ActionEffector( const PlayerAgent & agent )
     : M_agent( agent ),
       M_command_body( nullptr ),
+      // M_command_left_leg( nullptr ),
+      // M_command_right_leg( nullptr ),
       M_command_turn_neck( nullptr ),
       M_command_change_view( nullptr ),
       M_command_change_focus( nullptr ),
@@ -67,9 +69,11 @@ ActionEffector::ActionEffector( const PlayerAgent & agent )
       M_kick_accel_error( 0.0, 0.0 ),
       M_turn_actual( 0.0 ),
       M_turn_error( 0.0 ),
-      M_dash_accel( 0.0, 0.0 ),
-      // M_dash_accel_error(0.0, 0.0),
       M_dash_power( 0.0 ),
+      M_left_dash_power( 0.0 ),
+      M_right_dash_power( 0.0 ),
+      M_dash_accel( 0.0, 0.0 ),
+      M_dash_rotation( 0.0 ),
       M_move_pos( 0.0, 0.0 ),
       M_catch_time( 0, 0 ),
       M_tackle_power( 0.0 ),
@@ -161,21 +165,22 @@ ActionEffector::reset()
     M_done_turn_neck = false;
     M_say_message.erase();
 
-    // it is not necesarry to reset these value,
-    // because value is selected by last command type specifier in updator function.
-
-    //M_kick_accel.assign(0.0, 0.0);
-    //M_kick_accel_error.assign(0.0, 0.0);
-    //M_turn_actual =  M_turn_error = 0.0;
-    //M_dash_accel.assign(0.0, 0.0);
-    //M_dash_accel_error.assign(0.0, 0.0);
-    //M_dash_power = 0.0;
-    //M_move_pos.assign(0.0, 0.0);
-    //M_catch_time
-    //M_tackle_power = 0.0;
-    //M_tackle_dir = 0.0;
-    //M_turnneck_moment = 0.0;
-    //M_pointto_pos.assign(0.0, 0.0);
+    M_kick_accel.assign( 0.0, 0.0 );
+    M_kick_accel_error.assign( 0.0, 0.0 );
+    M_turn_actual = M_turn_error = 0.0;
+    M_dash_accel.assign( 0.0, 0.0 );
+    M_dash_rotation = 0.0;
+    M_dash_power = 0.0;
+    M_left_dash_power = 0.0;
+    M_right_dash_power = 0.0;
+    M_left_dash_power = 0.0;
+    M_right_dash_power = 0.0;
+    M_move_pos.assign( 0.0, 0.0 );
+    M_catch_time.assign( 0, 0 );
+    M_tackle_power = 0.0;
+    M_tackle_dir = 0.0;
+    M_turn_neck_moment = 0.0;
+    M_pointto_pos.assign( 0.0, 0.0 );
 }
 
 /*-------------------------------------------------------------------*/
@@ -287,8 +292,10 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
         }
         M_last_body_command_type[0] = PlayerCommand::ILLEGAL;
         M_dash_accel.assign( 0.0, 0.0 );
-        //M_dash_accel_error.assign( 0.0, 0.0 );
+        M_dash_rotation = 0.0;
         M_dash_power = 0.0;
+        M_left_dash_power = 0.0;
+        M_right_dash_power = 0.0;
         M_command_counter[PlayerCommand::DASH] = sense.dashCount();
     }
 
@@ -689,7 +696,6 @@ ActionEffector::setKick( const double & power,
                   M_kick_accel_error.x, M_kick_accel_error.y );
 }
 
-
 namespace {
 /*-------------------------------------------------------------------*/
 /*!
@@ -876,7 +882,10 @@ ActionEffector::setDash( const double & power,
      */
 
     M_dash_power = command_power;
-    M_dash_dir = command_dir;
+    M_left_dash_power = command_power;
+    M_right_dash_power = command_power;
+
+    M_dash_rotation = 0.0;
     M_dash_accel.setPolar( accel_mag, accel_angle );
 
 #if 0
@@ -909,6 +918,158 @@ ActionEffector::setDash( const double & power,
                   command_power, command_dir,
                   M_dash_accel.x, M_dash_accel.y,
                   accel_mag, accel_angle.degree() );
+}
+
+/*-------------------------------------------------------------------*/
+namespace {
+
+/*-------------------------------------------------------------------*/
+double
+check_and_normalize_dash_power( const WorldModel & wm,
+                                double power )
+
+{
+    const ServerParam & param = ServerParam::i();
+
+    if ( power < param.minDashPower() - 0.001
+         || param.maxDashPower() + 0.001 < power )
+    {
+        dlog.addText( Logger::ACTION,
+                      __FILE__" (setDash) exceeding the dash power range %.1f", power );
+        std::cerr << wm.teamName() << ' ' << wm.self().unum() << ": " << wm.time()
+                  << " exceeding the dash power range [left]: " << power
+                  << std::endl;
+        power = param.normalizeDashPower( power );
+    }
+
+    return power;
+}
+
+/*-------------------------------------------------------------------*/
+double
+check_and_normalize_dash_dir( const WorldModel & wm,
+                              double dir )
+
+{
+    const ServerParam & param = ServerParam::i();
+
+    if ( dir < param.minDashAngle() - 0.001
+         || param.maxDashAngle() + 0.001 < dir )
+    {
+        dlog.addText( Logger::ACTION,
+                      __FILE__" (setDash) exceeding the dash angle range %.1f", dir );
+        std::cerr << wm.teamName() << ' ' << wm.self().unum() << ": " << wm.time()
+                  << " exceeding the dash angle range: " << dir
+                  << std::endl;
+        dir = param.normalizeDashAngle( dir );
+    }
+
+    return param.discretizeDashAngle( dir );
+}
+
+/*-------------------------------------------------------------------*/
+void
+check_stamina_for_two_legs_dash( const WorldModel & wm,
+                                 double * left_power,
+                                 double * right_power )
+{
+    // required stamina
+    double left_stamina = ( *left_power < 0.0 ? *left_power * -1.0 : *left_power * 0.5 );
+    double right_stamina = ( *right_power < 0.0 ? *right_power * -1.0 : *right_power * 0.5 );
+
+    double consumed_stamina = std::min( left_stamina + right_stamina,
+                                        wm.self().stamina() + wm.self().playerType().extraStamina() );
+
+    if ( consumed_stamina < 1.0e-5 )
+    {
+        *left_power = 0.0;
+        *right_power = 0.0;
+        return;
+    }
+
+    left_stamina = consumed_stamina * left_stamina / ( left_stamina + right_stamina );
+    right_stamina = consumed_stamina * right_stamina / ( left_stamina + right_stamina );
+
+    *left_power = ( *left_power < 0.0 ? left_stamina * -1.0 : left_stamina * 2.0 );
+    *right_power = ( *right_power < 0.0 ? right_stamina * -1.0 : right_stamina * 2.0 );
+}
+
+}
+
+/*-------------------------------------------------------------------*/
+void
+ActionEffector::setDash( const double left_power,
+                         const AngleDeg left_dir,
+                         const double right_power,
+                         const AngleDeg right_dir )
+{
+    const WorldModel & wm = M_agent.world();
+
+    dlog.addText( Logger::ACTION,
+                   __FILE__" (setDash) register dash for 2 legs. left=(%.1f %.1f) right=(%.1f %.1f)",
+                  left_power, left_dir.degree(), right_power, right_dir.degree() );
+
+    // normalize command argument : power
+    double left_command_power = check_and_normalize_dash_power( wm, left_power );
+    double right_command_power = check_and_normalize_dash_power( wm, right_power );
+
+    check_stamina_for_two_legs_dash( wm, &left_command_power, &right_command_power );
+
+    left_command_power = std::round( left_command_power * 1000.0 ) * 0.001;
+    right_command_power = std::round( right_command_power * 1000.0 ) * 0.001;
+
+    // normalize command argument: direction
+    double left_command_dir = check_and_normalize_dash_dir( wm, left_dir.degree() );
+    double right_command_dir = check_and_normalize_dash_dir( wm, right_dir.degree() );
+
+    // create command object
+    if ( M_command_body )
+    {
+        delete M_command_body;
+        M_command_body = nullptr;
+    }
+    M_command_body = new PlayerDashCommand( left_command_power, left_command_dir,
+                                            right_command_power, right_command_dir );
+
+    // estimate command effect
+    double left_dir_rate = ServerParam::i().dashDirRate( left_command_dir );
+    double right_dir_rate = ServerParam::i().dashDirRate( left_command_dir );
+
+    double left_accel_mag = std::fabs( left_command_power * left_dir_rate * wm.self().dashRate() );
+    double right_accel_mag = std::fabs( right_command_power * right_dir_rate * wm.self().dashRate() );
+
+    AngleDeg left_accel_angle = wm.self().body() + left_command_dir;
+    AngleDeg right_accel_angle = wm.self().body() + right_command_dir;
+
+    if ( left_power < 0.0 ) left_accel_angle += 180.0;
+    if ( right_power < 0.0 ) right_accel_angle += 180.0;
+
+    const Vector2D left_accel = Vector2D::from_polar( left_accel_mag, left_accel_angle );
+    const Vector2D right_accel = Vector2D::from_polar( right_accel_mag, right_accel_angle );
+
+    const Vector2D body_unit = Vector2D::from_polar( 1.0, wm.self().body() );
+    const Vector2D vel_l = wm.self().vel() + left_accel;
+    const Vector2D vel_r = wm.self().vel() + right_accel;
+
+    const double vel_l_body = body_unit.x * vel_l.x + body_unit.y * vel_l.y;
+    const double vel_r_body = body_unit.x * vel_r.x + body_unit.y * vel_r.y;
+
+    const double omega = ( vel_l_body - vel_r_body ) / ( wm.self().playerType().playerSize() * 2.0 );
+    const Vector2D new_vel = ( vel_r + vel_l ) * 0.5;
+
+    M_dash_power = ( left_command_power < 0.0 ? -left_command_power : left_command_power*0.5
+                     + right_command_power < 0.0 ? -right_command_power : left_command_power*0.5 );
+    M_left_dash_power = left_command_power;
+    M_right_dash_power = right_command_power;
+
+    M_dash_rotation = AngleDeg::rad2deg( omega );
+    M_dash_accel = new_vel - wm.self().vel();
+
+    const double actual_accel_mag = M_dash_accel.r();
+    if ( actual_accel_mag > ServerParam::i().playerAccelMax() )
+    {
+        M_dash_accel *= ServerParam::i().playerAccelMax() / actual_accel_mag;
+    }
 }
 
 /*-------------------------------------------------------------------*/
@@ -1609,12 +1770,21 @@ AngleDeg
 ActionEffector::queuedNextSelfBody() const
 {
     AngleDeg next_angle = M_agent.world().self().body();
+
     if ( M_command_body
          && M_command_body->type() == PlayerCommand::TURN )
     {
         double moment = 0.0;
         getTurnInfo( &moment, NULL );
         next_angle += moment;
+    }
+
+    if ( M_command_body
+         && M_command_body->type() == PlayerCommand::TURN )
+    {
+        double dash_rotation = 0.0;
+        getDashInfo( nullptr, &dash_rotation, nullptr, nullptr );
+        next_angle += dash_rotation;
     }
 
     return next_angle;
@@ -1632,7 +1802,7 @@ ActionEffector::queuedNextSelfPos() const
          && M_command_body->type() == PlayerCommand::DASH )
     {
         Vector2D accel( 0.0, 0.0 );
-        getDashInfo( &accel, NULL );
+        getDashInfo( &accel, nullptr, nullptr, nullptr );
         vel += accel;
 
         double tmp = vel.r();

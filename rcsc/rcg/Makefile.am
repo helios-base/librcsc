@@ -1,15 +1,19 @@
 ## Process this file with automake to produce Makefile.in
 
+AUTOMAKE_OPTIONS = subdir-objects
+
 noinst_LTLIBRARIES = librcsc_rcg.la
 #lib_LTLIBRARIES = librcsc_rcg.la
 
 librcsc_rcg_la_SOURCES = \
+	simdjson/simdjson.cpp \
 	handler.cpp \
 	parser.cpp \
 	parser_v1.cpp \
 	parser_v2.cpp \
 	parser_v3.cpp \
 	parser_v4.cpp \
+	parser_simdjson.cpp \
 	serializer.cpp \
 	serializer_v1.cpp \
 	serializer_v2.cpp \
@@ -17,7 +21,9 @@ librcsc_rcg_la_SOURCES = \
 	serializer_v4.cpp \
 	serializer_v5.cpp \
 	serializer_v6.cpp \
-	util.cpp
+	serializer_json.cpp \
+	util.cpp \
+	types.cpp
 
 librcsc_rcgincludedir = $(includedir)/rcsc/rcg
 
@@ -29,6 +35,7 @@ librcsc_rcginclude_HEADERS = \
 	parser_v2.h \
 	parser_v3.h \
 	parser_v4.h \
+	parser_simdjson.h \
 	serializer.h \
 	serializer_v1.h \
 	serializer_v2.h \
@@ -36,8 +43,12 @@ librcsc_rcginclude_HEADERS = \
 	serializer_v4.h \
 	serializer_v5.h \
 	serializer_v6.h \
+	serializer_json.h \
 	types.h \
 	util.h
+
+noinst_HEADERS = \
+	simdjson/simdjson.h
 
 librcsc_rcg_la_LDFLAGS = -version-info 6:0:0
 #libXXXX_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
@@ -64,6 +75,9 @@ AM_CPPFLAGS = -I$(top_srcdir)
 AM_CFLAGS = -Wall -W
 AM_CXXFLAGS = -Wall -W
 AM_LDFLAGS =
+
+EXTRA_DIST = \
+	simdjson/LICENSE
 
 CLEANFILES = *~
 

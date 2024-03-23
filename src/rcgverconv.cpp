@@ -39,6 +39,7 @@
 #include <memory>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <cmath>
 #include <cstring>
@@ -49,7 +50,7 @@ class VersionConverter
 private:
 
     std::ostream & M_os;
-    int M_version;
+    int M_target_rcg_version;
 
     rcsc::rcg::Serializer::Ptr M_serializer;
 
@@ -60,24 +61,29 @@ public:
     VersionConverter( std::ostream & os,
                       const int version );
 
-    bool handleLogVersion( const int ver );
+    bool handleLogVersion( const int ver ) override;
 
-    bool handleEOF();
+    bool handleEOF() override;
 
     bool handleShow( const rcsc::rcg::ShowInfoT & show );
     bool handleMsg( const int time,
                     const int board,
-                    const std::string & msg );
+                    const std::string & msg ) override;
     bool handleDraw( const int time,
-                     const rcsc::rcg::drawinfo_t & draw );
+                     const rcsc::rcg::drawinfo_t & draw ) override;
     bool handlePlayMode( const int time,
-                         const rcsc::PlayMode pm );
+                         const rcsc::PlayMode pm ) override;
     bool handleTeam( const int time,
                      const rcsc::rcg::TeamT & team_l,
-                     const rcsc::rcg::TeamT & team_r );
-    bool handleServerParam( const std::string & msg );
-    bool handlePlayerParam( const std::string & msg );
-    bool handlePlayerType( const std::string & msg );
+                     const rcsc::rcg::TeamT & team_r ) override;
+
+    bool handleServerParam( const rcsc::rcg::ServerParamT & param ) override;
+    bool handlePlayerParam( const rcsc::rcg::PlayerParamT & param ) override;
+    bool handlePlayerType( const rcsc::rcg::PlayerTypeT & param ) override;
+    bool handleTeamGraphic( const char side,
+                            const int x,
+                            const int y,
+                            const std::vector< std::string > & xpm ) override;
 };
 
 
@@ -88,7 +94,7 @@ public:
 VersionConverter::VersionConverter( std::ostream & os,
                                     const int version )
     : M_os( os ),
-      M_version( version )
+      M_target_rcg_version( version )
 {
     M_serializer = rcsc::rcg::Serializer::create( version );
 }
@@ -102,11 +108,11 @@ VersionConverter::handleLogVersion( const int ver )
 {
     rcsc::rcg::Handler::handleLogVersion( ver );
 
-    if ( ver == M_version )
+    if ( ver == M_target_rcg_version )
     {
         std::cerr << "The version of input file (" << ver
                   << ") is same as the output version ("
-                  << M_version << ")"
+                  << M_target_rcg_version << ")"
                   << std::endl;
         M_serializer.reset();
         return false;
@@ -120,7 +126,7 @@ VersionConverter::handleLogVersion( const int ver )
         return false;
     }
 
-    M_serializer->serializeHeader( M_os );
+    M_serializer->serializeBegin( M_os, serverVersion(), timestamp() );
     return true;
 }
 
@@ -131,6 +137,11 @@ VersionConverter::handleLogVersion( const int ver )
 bool
 VersionConverter::handleEOF()
 {
+    if ( M_serializer )
+    {
+        M_serializer->serializeEnd( M_os );
+    }
+
     M_os.flush();
     return true;
 }
@@ -222,53 +233,58 @@ VersionConverter::handleTeam( const int,
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 bool
-VersionConverter::handleServerParam( const std::string & msg )
+VersionConverter::handleServerParam( const rcsc::rcg::ServerParamT & param )
 {
     if ( ! M_serializer )
     {
         return false;
     }
 
-    M_serializer->serializeParam( M_os, msg );
+    M_serializer->serialize( M_os, param );
     return true;
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 bool
-VersionConverter::handlePlayerParam( const std::string & msg )
+VersionConverter::handlePlayerParam( const rcsc::rcg::PlayerParamT & param )
 {
     if ( ! M_serializer )
     {
         return false;
     }
 
-    M_serializer->serializeParam( M_os, msg );
+    M_serializer->serialize( M_os, param );
     return true;
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 bool
-VersionConverter::handlePlayerType( const std::string & msg )
+VersionConverter::handlePlayerType( const rcsc::rcg::PlayerTypeT & param )
 {
     if ( ! M_serializer )
     {
         return false;
     }
 
-    M_serializer->serializeParam( M_os, msg );
+    M_serializer->serialize( M_os, param );
     return true;
 }
 
+bool
+VersionConverter::handleTeamGraphic( const char side,
+                                     const int x,
+                                     const int y,
+                                     const std::vector< std::string > & xpm )
+{
+    if ( ! M_serializer )
+    {
+        return false;
+    }
+
+    M_serializer->serialize( M_os, side, x, y, xpm );
+    return true;
+}
 
 ///////////////////////////////////////////////////////////
 
@@ -284,7 +300,7 @@ usage( const char * prog )
               << "Available options:\n"
               << "    --help [ -h ]\n"
               << "        print this message.\n"
-              << "    --version [ -v ] <Value> : (DefaultValue=4)\n"
+              << "    --version [ -v ] <Value> : (DefaultValue=json)\n"
               << "        specify the new rcg version.\n"
               << "    --output [ -o ] <Value>\n"
               << "        specify the output file name.\n"
@@ -299,7 +315,7 @@ main( int argc, char** argv )
 {
     std::string input_file;
     std::string output_file;
-    int version = 4;
+    int version = -1;
 
     for ( int i = 1; i < argc; ++i )
     {
@@ -318,7 +334,15 @@ main( int argc, char** argv )
                 usage( argv[0] );
                 return 1;
             }
-            version = std::atoi( argv[i] );
+
+            if ( std::strncmp( argv[i], "json", 4 ) == 0 )
+            {
+                version = -1;
+            }
+            else
+            {
+                version = std::atoi( argv[i] );
+            }
         }
         else if ( ! std::strcmp( argv[i], "--output" )
                   || ! std::strcmp( argv[i], "-o" ) )
@@ -355,6 +379,12 @@ main( int argc, char** argv )
     if ( input_file == output_file )
     {
         std::cerr << "The output file is same as the input file." << std::endl;
+        return 1;
+    }
+
+    if ( version == 0 )
+    {
+        std::cerr << "Unsupported game log version = " << version << std::endl;
         return 1;
     }
 

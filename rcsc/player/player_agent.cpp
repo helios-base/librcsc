@@ -2838,6 +2838,34 @@ PlayerAgent::doDash( const double & power,
     return true;
 }
 
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+PlayerAgent::doDash( const double left_power,
+                     const AngleDeg & left_dir,
+                     const double right_power,
+                     const AngleDeg & right_dir )
+{
+    if ( world().self().isFrozen() )
+    {
+        dlog.addText( Logger::ACTION,
+                      __FILE__": (PlayerAgent::doDash) [false ]tackle expire period  %d",
+                      world().self().tackleExpires() );
+        std::cerr << world().teamName() << ' '
+                  << world().self().unum() << ": "
+                  << world().time()
+                  << " (PlayerAgent::doDash) [false] Tackle expire period" << std::endl;
+        return false;
+    }
+
+    M_effector.setDash( left_power, left_dir, right_power, right_dir );
+    return true;
+}
+
+
 /*-------------------------------------------------------------------*/
 /*!
 
