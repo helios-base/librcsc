@@ -1167,6 +1167,69 @@ struct DispInfoT {
 };
 
 /*!
+  \struct PointT
+  \brief point data for drawing
+*/
+struct PointT {
+    float x_;
+    float y_;
+    std::string color_;
+
+    PointT( const float x,
+            const float y,
+            const char * color )
+        : x_( x ),
+          y_( y ),
+          color_( color )
+      { }
+};
+
+/*!
+  \struct CircleT
+  \brief circle data for drawing
+*/
+struct CircleT {
+    float x_;
+    float y_;
+    float r_;
+    std::string color_;
+
+    CircleT( const float x,
+             const float y,
+             const float r,
+             const char * color )
+        : x_( x ),
+          y_( y ),
+          r_( r ),
+          color_( color )
+      { }
+};
+
+/*!
+  \struct LineT
+  \brief line data for drawing
+*/
+struct LineT {
+    float x1_;
+    float y1_;
+    float x2_;
+    float y2_;
+    std::string color_;
+
+    LineT( const float x1,
+           const float y1,
+           const float x2,
+           const float y2,
+           const char * color )
+        : x1_( x1 ),
+          y1_( y1 ),
+          x2_( x2 ),
+          y2_( y2 ),
+          color_( color )
+      { }
+};
+
+/*!
   \struct ServerParamT
   \brief server parameters
  */
