@@ -344,9 +344,19 @@ const int ServerParam::ILLEGAL_DEFENSE_NUMBER = 0;
 const double ServerParam::ILLEGAL_DEFENSE_DIST_X = 16.5;
 const double ServerParam::ILLEGAL_DEFENSE_WIDTH = 40.32;
 
+namespace {
+
 // 17.0
-const double ServerParam::MAX_CATCH_ANGLE = +90.0;
-const double ServerParam::MIN_CATCH_ANGLE = -90.0;
+constexpr double MAX_CATCH_ANGLE = +90.0;
+constexpr double MIN_CATCH_ANGLE = -90.0;
+
+// 19.0
+constexpr double DIST_NOISE_RATE = 0.0125;
+constexpr double FOCUS_DIST_NOISE_RATE = 0.0125;
+constexpr double LAND_DIST_NOISE_RATE = 0.00125;
+constexpr double LAND_FOCUS_DIST_NOISE_RATE = 0.00125;
+
+}
 
 /*
   It is necessary to check out whether server is NEW_QSTEP mode
@@ -667,6 +677,12 @@ ServerParam::setDefaultParam()
     M_max_catch_angle = MAX_CATCH_ANGLE;
     M_min_catch_angle = MIN_CATCH_ANGLE;
 
+    // 19.0
+    M_dist_noise_rate = DIST_NOISE_RATE;
+    M_focus_dist_noise_rate = FOCUS_DIST_NOISE_RATE;
+    M_land_dist_noise_rate = LAND_DIST_NOISE_RATE;
+    M_land_focus_dist_noise_rate = LAND_FOCUS_DIST_NOISE_RATE;
+
     // XXX
     M_random_seed = -1;
     M_long_kick_power_factor = 2.0;
@@ -977,6 +993,11 @@ ServerParam::createMap()
         // 17.0
         ( "max_catch_angle", "", &M_max_catch_angle )
         ( "min_catch_angle", "", &M_min_catch_angle )
+        // 19.0
+        ( "dist_noise_rate", "", &M_dist_noise_rate )
+        ( "focus_dist_noise_rate", "", &M_focus_dist_noise_rate )
+        ( "land_dist_noise_rate", "", &M_land_dist_noise_rate )
+        ( "land_focus_dist_noise_rate", "", &M_land_focus_dist_noise_rate )
         //( "random_seed", "", &M_random_seed )
         ;
 }

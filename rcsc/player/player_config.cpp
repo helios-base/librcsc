@@ -102,6 +102,7 @@ PlayerConfig::setDefaultParam()
     M_debug_fullstate = false;
 
     M_synch_see = false;
+    M_gaussian_see = false;
 
     // accuracy threshold
     M_self_pos_count_thr = 20;
@@ -215,6 +216,7 @@ PlayerConfig::createParamMap()
         ( "use_fullstate", "", &M_use_fullstate )
         ( "debug_fullstate", "", &M_debug_fullstate )
         ( "synch_see", "", &M_synch_see )
+        ( "gaussian_see", "", &M_gaussian_see )
 
         ( "self_pos_count_thr", "", &M_self_pos_count_thr )
         ( "self_vel_count_thr", "", &M_self_vel_count_thr )
