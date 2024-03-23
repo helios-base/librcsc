@@ -34,10 +34,8 @@
 
 #include <rcsc/types.h>
 
-#include <variant>
-#include <unordered_map>
+#include <memory>
 #include <string>
-#include <string_view>
 #include <cmath>
 #include <cstdint>
 
@@ -1060,7 +1058,7 @@ struct TeamT {
       \param pen_score count of penalty score
       \param pen_miss count of penalty miss
      */
-    TeamT( const std::string_view name,
+    TeamT( const std::string & name,
            const UInt16 score,
            const UInt16 pen_score,
            const UInt16 pen_miss )
@@ -1167,10 +1165,6 @@ struct DispInfoT {
         : pmode_( PM_Null )
       { }
 };
-
-//using ParamPtr = std::variant< int*, double*, bool*, std::string* >;
-//using ParamMap = std::unordered_map< std::string, ParamPtr >;
-using ParamMap = std::unordered_map< std::string, std::variant< int*, double*, bool*, std::string* > >;
 
 /*!
   \struct ServerParamT
@@ -1434,7 +1428,8 @@ private:
     ServerParamT( const ServerParamT & ) = delete;
     const ServerParamT & operator=( const ServerParamT & ) = delete;
 
-    ParamMap param_map_;
+    struct Impl;
+    std::shared_ptr< Impl > impl_;
 };
 
 
@@ -1529,7 +1524,8 @@ private:
     PlayerParamT( const PlayerParamT & ) = delete;
     const PlayerParamT& operator=( const PlayerParamT & ) = delete;
 
-    ParamMap param_map_;
+    struct Impl;
+    std::shared_ptr< Impl > impl_;
 };
 
 
@@ -1613,8 +1609,8 @@ private:
     PlayerTypeT( const PlayerTypeT & ) = delete;
     const PlayerTypeT & operator=( const PlayerTypeT & ) = delete;
 
-    ParamMap param_map_;
-
+    struct Impl;
+    std::shared_ptr< Impl > impl_;
 };
 
 //! recorded value of rcg v4
