@@ -735,7 +735,7 @@ SerializerJSON::serialize( std::ostream & os,
 
     os << '{'; // begin body
 
-    os << std::quoted( "side" ) << ':' << '"' << ( side == LEFT ? 'l' : side == RIGHT ? 'r' : 'n' ) << '"';
+    os << std::quoted( "side" ) << ':' << '"' << side << '"';
 
     os << ',' << std::quoted( "x" ) << ':' << x
        << ',' << std::quoted( "y" ) << ':' << y;
