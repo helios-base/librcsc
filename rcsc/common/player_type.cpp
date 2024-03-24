@@ -212,6 +212,11 @@ PlayerType::PlayerType( const rcg::PlayerTypeT & from )
     M_flag_chg_too_far_length = from.flag_chg_too_far_length_;
     M_flag_max_observation_length = from.flag_max_observation_length_;
 
+    M_dist_noise_rate = from.dist_noise_rate_;
+    M_focus_dist_noise_rate = from.focus_dist_noise_rate_;
+    M_land_dist_noise_rate = from.land_dist_noise_rate_;
+    M_land_focus_dist_noise_rate = from.land_focus_dist_noise_rate_;
+
     initAdditionalParams();
 }
 
@@ -371,6 +376,11 @@ PlayerType::convertTo( rcg::PlayerTypeT & to ) const
     to.flag_chg_far_length_ = M_flag_chg_far_length;
     to.flag_chg_too_far_length_ = M_flag_chg_too_far_length;
     to.flag_max_observation_length_ = M_flag_max_observation_length;
+    // v19
+    to.dist_noise_rate_ = M_dist_noise_rate;
+    to.focus_dist_noise_rate_ = M_focus_dist_noise_rate;
+    to.land_dist_noise_rate_ = M_land_dist_noise_rate;
+    to.land_focus_dist_noise_rate_= M_land_focus_dist_noise_rate;
 }
 
 /*-------------------------------------------------------------------*/
