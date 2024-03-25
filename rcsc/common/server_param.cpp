@@ -2007,7 +2007,7 @@ ServerParam::toServerString() const
 
     os << "(server_param ";
 
-    for ( const std::map< std::string, ParamEntity::Ptr >::value_type & v : M_param_map->longNameMap() )
+    for ( const ParamMap::Map::value_type & v : M_param_map->longNameMap() )
     {
         os << '(' << v.second->longName() << ' ';
         v.second->printValue( os );

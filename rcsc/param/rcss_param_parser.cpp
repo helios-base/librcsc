@@ -45,7 +45,7 @@ namespace rcsc {
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 RCSSParamParser::RCSSParamParser( const char * msg )
 {
     if ( ! init( msg ) )
@@ -57,7 +57,7 @@ RCSSParamParser::RCSSParamParser( const char * msg )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 bool
 RCSSParamParser::parse( ParamMap & param_map )
 {
@@ -106,22 +106,22 @@ RCSSParamParser::parse( ParamMap & param_map )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 std::string
 RCSSParamParser::cleanString( std::string str )
 {
     if( str.empty() )
     {
-				return str;
+        return str;
     }
 
     if ( *str.begin() == '\'' )
     {
-				if( *str.rbegin() == '\''  )
+        if( *str.rbegin() == '\''  )
         {
             str = str.substr( 1, str.length() - 2 );
         }
-				else
+        else
         {
             return str;
         }
@@ -130,18 +130,18 @@ RCSSParamParser::cleanString( std::string str )
         for ( std::string::size_type escape_pos = str.find( "\\'" );
               escape_pos != std::string::npos;
               escape_pos = str.find( "\\'" ) )
-				{
+        {
             // replace "\'" with "'"
             str.replace( escape_pos, 2, "'" );
-				}
+        }
     }
     else if ( *str.begin() == '"' )
     {
-				if ( *str.rbegin() == '"'  )
+        if ( *str.rbegin() == '"'  )
         {
             str = str.substr( 1, str.length() - 2 );
         }
-				else
+        else
         {
             return str;
         }
@@ -150,10 +150,10 @@ RCSSParamParser::cleanString( std::string str )
         for ( std::string::size_type escape_pos = str.find( "\\\"" );
               escape_pos != std::string::npos;
               escape_pos = str.find( "\\\"" ) )
-				{
+        {
             // replace "\"" with """
             str.replace( escape_pos, 2, "\"" );
-				}
+        }
     }
 
     return str;
@@ -163,7 +163,7 @@ RCSSParamParser::cleanString( std::string str )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 bool
 RCSSParamParser::init( const char * msg )
 {
