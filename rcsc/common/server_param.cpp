@@ -998,6 +998,7 @@ ServerParam::createMap()
         ( "focus_dist_noise_rate", "", &M_focus_dist_noise_rate )
         ( "land_dist_noise_rate", "", &M_land_dist_noise_rate )
         ( "land_focus_dist_noise_rate", "", &M_land_focus_dist_noise_rate )
+        // XXX
         //( "random_seed", "", &M_random_seed )
         ;
 }
@@ -1611,10 +1612,10 @@ ServerParam::convertFrom( const rcg::ServerParamT & from )
     M_max_catch_angle = from.max_catch_angle_;
     M_min_catch_angle = from.min_catch_angle_;
     // v19
-    // M_dist_noise_rate = from.dist_noise_rate_;
-    // M_focus_dist_noise_rate = from.focus_dist_noise_rate_;
-    // M_land_dist_noise_rate = from.land_dist_noise_rate_;
-    // M_land_focus_dist_noise_rate = from.land_focus_dist_noise_rate_;
+    M_dist_noise_rate = from.dist_noise_rate_;
+    M_focus_dist_noise_rate = from.focus_dist_noise_rate_;
+    M_land_dist_noise_rate = from.land_dist_noise_rate_;
+    M_land_focus_dist_noise_rate = from.land_focus_dist_noise_rate_;
 
     //
     setAdditionalParam();
@@ -1992,11 +1993,10 @@ ServerParam::convertTo( rcg::ServerParamT & to ) const
     to.max_catch_angle_ = M_max_catch_angle;
     to.min_catch_angle_ = M_min_catch_angle;
     // v19
-    // to.dist_noise_rate_;
-    // to.focus_dist_noise_rate_;
-    // to.land_dist_noise_rate_;
-    // to.land_focus_dist_noise_rate_;
-
+    to.dist_noise_rate_ = M_dist_noise_rate;
+    to.focus_dist_noise_rate_ = M_focus_dist_noise_rate;
+    to.land_dist_noise_rate_ = M_land_dist_noise_rate;
+    to.land_focus_dist_noise_rate_ = M_land_focus_dist_noise_rate;
 }
 
 /*-------------------------------------------------------------------*/
@@ -2007,12 +2007,10 @@ ServerParam::toServerString() const
 
     os << "(server_param ";
 
-    for ( std::map< std::string, ParamEntity::Ptr >::const_iterator it = M_param_map->longNameMap().begin(), end = M_param_map->longNameMap().end();
-          it != end;
-          ++it )
+    for ( const std::map< std::string, ParamEntity::Ptr >::value_type & v : M_param_map->longNameMap() )
     {
-        os << '(' << it->second->longName() << ' ';
-        it->second->printValue( os );
+        os << '(' << v.second->longName() << ' ';
+        v.second->printValue( os );
         os << ')';
     }
 

@@ -35,7 +35,7 @@
 namespace rcsc {
 
 //! supported client protocol version
-constexpr double MAX_PROTOCOL_VERSION = 18.0;
+constexpr double MAX_PROTOCOL_VERSION = 19.0;
 
 /*-------------------------------------------------------------------*/
 /*!
