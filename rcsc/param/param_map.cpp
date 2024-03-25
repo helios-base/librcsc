@@ -35,16 +35,14 @@
 
 #include "param_map.h"
 
-#include <functional>
+#include <sstream>
+#include <algorithm>
 
 namespace rcsc {
 
 namespace {
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 inline
 bool
 is_true( const std::string & value_str )
@@ -56,9 +54,6 @@ is_true( const std::string & value_str )
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 inline
 bool
 is_false( const std::string & value_str )
@@ -69,12 +64,251 @@ is_false( const std::string & value_str )
              || value_str == "no" );
 }
 
+/*-------------------------------------------------------------------*/
+struct IsSwitch {
+
+    bool operator()( int * )
+      {
+          return false;
+      }
+
+    bool operator()( size_t * )
+      {
+          return false;
+      }
+
+    bool operator()( double * )
+      {
+          return false;
+      }
+
+    bool operator()( bool * )
+      {
+          return false;
+      }
+
+    bool operator()( NegateBool )
+      {
+          return false;
+      }
+
+    bool operator()( BoolSwitch )
+      {
+          return true;
+      }
+
+    bool operator()( NegateSwitch )
+      {
+          return true;
+      }
+
+    bool operator()( std::string * )
+      {
+          return false;
+      }
+
+};
+
+/*-------------------------------------------------------------------*/
+struct ValueParser {
+    const std::string & value_str;
+
+    ValueParser( const std::string & str )
+        : value_str( str )
+      { }
+
+    void operator()( int * ptr )
+      {
+          *ptr = std::stoi( value_str );
+      }
+
+    void operator()( size_t * ptr )
+      {
+          *ptr = std::stoul( value_str );
+      }
+
+    void operator()( double * ptr )
+      {
+          *ptr = std::stod( value_str );
+      }
+
+    void operator()( bool * ptr )
+      {
+          if ( is_true( value_str ) )
+          {
+              *ptr = true;
+          }
+          else if ( is_false( value_str ) )
+          {
+              *ptr = false;
+          }
+          else
+          {
+              throw( std::invalid_argument( "Unknown bool string." ) );
+          }
+      }
+
+    void operator()( NegateBool ptr )
+      {
+          if ( is_true( value_str ) )
+          {
+              *(ptr.ptr_) = false;
+          }
+          else if ( is_false( value_str ) )
+          {
+              *(ptr.ptr_) = true;
+          }
+          else
+          {
+              throw( std::invalid_argument( "Unknown bool string." ) );
+          }
+      }
+
+    void operator()( BoolSwitch ptr )
+      {
+          *(ptr.ptr_) = true;
+      }
+
+    void operator()( NegateSwitch ptr )
+      {
+          *(ptr.ptr_) = false;
+      }
+
+    void operator()( std::string * ptr )
+      {
+          *ptr = value_str;
+      }
+
+};
+
+/*-------------------------------------------------------------------*/
+struct PointerCheck {
+
+    bool operator()( int * ptr )
+      {
+          return ptr;
+      }
+
+    bool operator()( size_t * ptr )
+      {
+          return ptr;
+      }
+
+    bool operator()( double * ptr )
+      {
+          return ptr;
+      }
+
+    bool operator()( bool * ptr )
+      {
+          return ptr;
+      }
+
+    bool operator()( NegateBool ptr )
+      {
+          return ptr.ptr_;
+      }
+
+    bool operator()( BoolSwitch ptr )
+      {
+          return ptr.ptr_;
+      }
+
+    bool operator()( NegateSwitch ptr )
+      {
+          return ptr.ptr_;
+      }
+
+    bool operator()( std::string * ptr )
+      {
+          return ptr;
+      }
+
+};
+
+/*-------------------------------------------------------------------*/
+struct ValuePrinter {
+    std::ostream & os_;
+
+    ValuePrinter( std::ostream & os )
+        : os_( os )
+      { }
+
+    void operator()( int * ptr )
+      {
+          os_ << *ptr;
+      }
+
+    void operator()( size_t * ptr )
+      {
+          os_ << *ptr;
+      }
+
+    void operator()( double * ptr )
+      {
+          os_ << *ptr;
+      }
+
+    void operator()( bool * ptr )
+      {
+          os_ << std::boolalpha << *ptr;
+      }
+
+    void operator()( NegateBool ptr )
+      {
+          os_ << std::boolalpha << !*(ptr.ptr_);
+      }
+
+    void operator()( BoolSwitch ptr )
+      {
+          os_ << std::boolalpha << *(ptr.ptr_);
+      }
+
+    void operator()( NegateSwitch ptr )
+      {
+          os_ << std::boolalpha << !*(ptr.ptr_);
+      }
+
+    void operator()( std::string * ptr )
+      {
+          os_ << *ptr;
+      }
+};
+
 }
 
 /*-------------------------------------------------------------------*/
-/*!
+bool
+ParamEntity::isSwitch() const
+{
+    try
+    {
+        return std::visit( IsSwitch(), M_value_ptr );
+    }
+    catch ( std::exception & e )
+    {
+        std::cerr << "(ParamEntity::isSwitch) " << e.what() << std::endl;
+    }
+    return false;
+}
 
- */
+/*-------------------------------------------------------------------*/
+bool
+ParamEntity::analyze( const std::string & value_str )
+{
+    try
+    {
+        std::visit( ValueParser( value_str ), M_value_ptr );
+    }
+    catch ( std::exception & e )
+    {
+        std::cerr << "(ParamEntity::analyze) parse error. " << e.what() << std::endl;
+        return false;
+    }
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
 std::ostream &
 ParamEntity::printFormat( std::ostream & os ) const
 {
@@ -89,135 +323,25 @@ ParamEntity::printFormat( std::ostream & os ) const
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-ParamGeneric< bool >::analyze( const std::string & value_str )
-{
-    if ( value_str.empty() )
-    {
-        return false;
-    }
-
-    if ( is_true( value_str ) )
-    {
-        *M_value_ptr = true;
-    }
-    else if ( is_false( value_str ) )
-    {
-        *M_value_ptr = false;
-    }
-    else
-    {
-        std::cerr << __FILE__ << ':' << __LINE__
-                  << " ***ERROR*** Unexpected value string: type bool. ["
-                  << value_str << "]"
-                  << std::endl;
-        return false;
-    }
-
-    if ( M_negate )
-    {
-        *M_value_ptr = ! *M_value_ptr;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
 std::ostream &
-ParamGeneric< bool >::printValue( std::ostream & os ) const
+ParamEntity::printValue( std::ostream & os ) const
 {
-    if ( M_negate )
+    try
     {
-        os << std::boolalpha << ! *M_value_ptr;
+        std::visit( ValuePrinter( os ), M_value_ptr );
     }
-    else
+    catch ( std::exception & e )
     {
-        os << std::boolalpha << *M_value_ptr;
+        std::cerr << "(ParamEntity::printValue) " << e.what() << std::endl;
     }
     return os;
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-ParamSwitch::analyze( const std::string & value_str )
-{
-    if ( value_str.empty()
-         || is_true( value_str ) )
-    {
-        *M_value_ptr = true;
-    }
-    else if ( is_false( value_str ) )
-    {
-        *M_value_ptr = false;
-    }
-    else
-    {
-        std::cerr << __FILE__ << ':' << __LINE__
-                  << " ***ERROR*** Unexpected value string: type switch. ["
-                  << value_str << "]"
-                  << std::endl;
-        return false;
-    }
-
-    if ( M_negate )
-    {
-        *M_value_ptr = ! *M_value_ptr;
-    }
-
-    return true;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-ParamSwitch::printFormat( std::ostream & os ) const
-{
-    os << "--" << longName();
-    if ( ! shortName().empty() )
-    {
-        os << " [ -" << shortName() << " ]";
-    }
-
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-std::ostream &
-ParamSwitch::printValue( std::ostream & os ) const
-{
-    if ( M_negate )
-    {
-        os << ( *M_value_ptr ? "off" : "on" );
-    }
-    else
-    {
-        os << ( *M_value_ptr ? "on" : "off" );
-    }
-    return os;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
 ParamMap::Registrar &
 ParamMap::Registrar::operator()( const std::string & long_name,
                                  const std::string & short_name,
-                                 const NegateBool & value,
+                                 ParamEntity::ValuePtr value_ptr,
                                  const char * description )
 {
     if ( ! checkName( long_name, short_name ) )
@@ -226,95 +350,30 @@ ParamMap::Registrar::operator()( const std::string & long_name,
         return *this;
     }
 
-    if ( ! value.ptr_ )
+    try
     {
-        std::cerr << "***ERROR*** detected null pointer for the option "
-                  << long_name << std::endl;
+        if ( ! std::visit( PointerCheck(), value_ptr ) )
+        {
+            std::cerr << "***ERROR*** detected null pointer for the option "
+                      << long_name << std::endl;
+            M_param_map.M_valid = false;
+            return *this;
+        }
+    }
+    catch ( std::exception & e )
+    {
+        std::cerr << "(ParamMap::Regstrar) ERROR " << long_name << "\n"
+                  << e.what() << std::endl;
         M_param_map.M_valid = false;
         return *this;
     }
 
-    ParamEntity::Ptr ptr( new ParamGeneric< bool >( long_name,
-                                                    short_name,
-                                                    value,
-                                                    description ) );
-
+    ParamEntity::Ptr ptr( new ParamEntity( long_name, short_name, value_ptr, description ) );
     M_param_map.add( ptr );
-
-    return *this;
-}
-
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-ParamMap::Registrar &
-ParamMap::Registrar::operator()( const std::string & long_name,
-                                 const std::string & short_name,
-                                 const BoolSwitch & value,
-                                 const char * description )
-{
-    if ( ! checkName( long_name, short_name ) )
-    {
-        M_param_map.M_valid = false;
-        return *this;
-    }
-
-    if ( ! value.ptr_ )
-    {
-        std::cerr << "***ERROR*** detected null pointer for the option "
-                  << long_name << std::endl;
-        M_param_map.M_valid = false;
-        return *this;
-    }
-
-    ParamEntity::Ptr ptr( new ParamSwitch( long_name,
-                                           short_name,
-                                           value.ptr_,
-                                           description ) );
-    M_param_map.add( ptr );
-
     return *this;
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
-ParamMap::Registrar &
-ParamMap::Registrar::operator()( const std::string & long_name,
-                                 const std::string & short_name,
-                                 const NegateSwitch & value,
-                                 const char * description )
-{
-    if ( ! checkName( long_name, short_name ) )
-    {
-        M_param_map.M_valid = false;
-        return *this;
-    }
-
-    if ( ! value.ptr_ )
-    {
-        std::cerr << "***ERROR*** detected null pointer for the option "
-                  << long_name << std::endl;
-        M_param_map.M_valid = false;
-        return *this;
-    }
-
-    ParamEntity::Ptr ptr( new ParamSwitch( long_name,
-                                           short_name,
-                                           value,
-                                           description ) );
-    M_param_map.add( ptr );
-
-    return *this;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
 bool
 ParamMap::Registrar::checkName( const std::string & long_name,
                                 const std::string & short_name ) const
@@ -344,31 +403,6 @@ ParamMap::Registrar::checkName( const std::string & long_name,
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
-// ParamMap &
-// ParamMap::add( ParamMap & param_map )
-// {
-//     if ( this == &param_map )
-//     {
-//         return *this;
-//     }
-//
-//     for ( std::vector< ParamEntity::Ptr >::iterator it = param_map.M_parameters.begin();
-//           it != param_map.M_parameters.end();
-//           ++it )
-//     {
-//         add( *it );
-//     }
-//
-//     return *this;
-// }
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
 ParamMap::Registrar &
 ParamMap::add( ParamEntity::Ptr param )
 {
@@ -434,9 +468,6 @@ ParamMap::add( ParamEntity::Ptr param )
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 void
 ParamMap::remove( const std::string & long_name )
 {
@@ -448,12 +479,12 @@ ParamMap::remove( const std::string & long_name )
                                           } ),
                         M_parameters.end() );
 
-    std::map< std::string, ParamEntity::Ptr >::iterator it_long = M_long_name_map.find( long_name );
+    Map::iterator it_long = M_long_name_map.find( long_name );
     if ( it_long != M_long_name_map.end() )
     {
         if ( ! it_long->second->shortName().empty() )
         {
-            std::map< std::string, ParamEntity::Ptr >::iterator it_short = M_short_name_map.find( it_long->second->shortName() );
+            std::unordered_map< std::string, ParamEntity::Ptr >::iterator it_short = M_short_name_map.find( it_long->second->shortName() );
             M_short_name_map.erase( it_short );
         }
 
@@ -462,13 +493,10 @@ ParamMap::remove( const std::string & long_name )
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 ParamEntity::Ptr
 ParamMap::findLongName( const std::string & long_name )
 {
-    std::map< std::string, ParamEntity::Ptr >::iterator it = M_long_name_map.find( long_name );
+    Map::iterator it = M_long_name_map.find( long_name );
 
     if ( it != M_long_name_map.end() )
     {
@@ -479,13 +507,10 @@ ParamMap::findLongName( const std::string & long_name )
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 ParamEntity::Ptr
 ParamMap::findShortName( const std::string & short_name )
 {
-    std::map< std::string, ParamEntity::Ptr >::iterator it = M_short_name_map.find( short_name );
+    Map::iterator it = M_short_name_map.find( short_name );
 
     if ( it != M_short_name_map.end() )
     {
@@ -496,9 +521,6 @@ ParamMap::findShortName( const std::string & short_name )
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 std::ostream &
 ParamMap::printHelp( std::ostream & os,
                      const bool with_default ) const

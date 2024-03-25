@@ -32,12 +32,11 @@
 #ifndef RCSC_PARAM_PARAM_MAP_H
 #define RCSC_PARAM_PARAM_MAP_H
 
-#include <boost/lexical_cast.hpp>
-
 #include <memory>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <string>
+#include <variant>
 #include <iostream>
 #include <cassert>
 
@@ -132,37 +131,44 @@ private:
 class ParamEntity {
 public:
 
+    //! value pointer type
+    using ValuePtr = std::variant< int*, size_t*, double*, bool*, NegateBool, BoolSwitch, NegateSwitch, std::string* >;
+
     //! ParamEntity smart pointer type
-    typedef std::shared_ptr< ParamEntity > Ptr;
+    using Ptr = std::shared_ptr< ParamEntity >;
 
 private:
     //! long parameter name
     std::string M_long_name;
     //! short parameter name
     std::string M_short_name;
+    // parameter value pointer holder as variant
+    ValuePtr M_value_ptr;
     //! parameter description
     std::string M_description;
 
     //! not used
     ParamEntity() = delete;
 
-protected:
+public:
 
     /*!
       \brief construct with all arguments
       \param long_name long parameter name
       \param short_name short parameter name
+      \param value_ptr pointer type to the paramter variable
       \param description description message about this parameter
     */
     ParamEntity( const std::string & long_name,
-                const std::string & short_name,
-                const char * description = "" )
+                 const std::string & short_name,
+                 ValuePtr value_ptr,
+                 const char * description = "" )
         : M_long_name( long_name ),
           M_short_name( short_name ),
+          M_value_ptr( value_ptr ),
           M_description( description )
       { }
 
-public:
 
     /*!
       \brief destructor as virtual method
@@ -198,34 +204,22 @@ public:
       }
 
     /*!
-      \brief get the formatted name string for help messages
-      \return formatted name string
-     */
-    std::string helpName() const;
-
-    /*!
-      \brief (virtual) check if this parameter is switch type or not.
+      \brief check if this parameter is switch type or not.
       \return true if this parameter is switch type..
     */
-    virtual
-    bool isSwitch() const
-      {
-          return false;
-      }
+    bool isSwitch() const;
 
     /*!
       \brief pure virtual method. analyze value string.
       \return boolean status of analysis result
     */
-    virtual
-    bool analyze( const std::string & value_str ) = 0;
+    bool analyze( const std::string & value_str );
 
     /*!
       \brief print help name strings
       \param os reference to the stream
       \return reference to the stream
      */
-    virtual
     std::ostream & printFormat( std::ostream & os ) const;
 
     /*!
@@ -233,248 +227,9 @@ public:
       \param os reference to the stream
       \return reference to the stream
      */
-    virtual
-    std::ostream & printValue( std::ostream & os ) const = 0;
-
-};
-
-/*-------------------------------------------------------------------*/
-/*!
-  \class ParamGeneric
-  \brief generic parameter
-*/
-template < typename ValueType >
-class ParamGeneric
-    : public ParamEntity {
-public:
-    typedef ValueType Type; //!< value type alias
-
-private:
-    //! pointer to parameter variable instance
-    Type * M_value_ptr;
-
-public:
-
-    /*!
-      \brief constructor
-      \param long_name parameter's long name string
-      \param short_name parameter's short name string(ommitable)
-      \param value_ptr pointer to variable instance
-      \param description description message(ommitable)
-     */
-    ParamGeneric( const std::string & long_name,
-                  const std::string & short_name,
-                  Type * value_ptr,
-                  const char * description = "" )
-        : ParamEntity( long_name, short_name, description ),
-          M_value_ptr( value_ptr )
-      {
-          assert( value_ptr );
-      }
-
-    /*!
-      \brief analyze value string and substitute it to variable.
-      \param value_str string that contains value
-      \return boolean status of analysis result
-     */
-    bool analyze( const std::string & value_str )
-      {
-          try
-          {
-              *M_value_ptr = boost::lexical_cast< Type >( value_str );
-              return true;
-          }
-          catch ( boost::bad_lexical_cast & e )
-          {
-              std::cerr << e.what() << "  [" << value_str << "]"
-                        << std::endl;
-              return false;
-          }
-      }
-
-private:
-
-    template < typename T >
-    std::ostream & printValueImpl( std::ostream & os,
-                                   const T & value ) const
-      {
-          os << value;
-          return os;
-      }
-
-    std::ostream & printValueImpl( std::ostream & os,
-                                   const std::string & value ) const
-      {
-          os << '"' << value << '"';
-          return os;
-      }
-
-public:
-    /*!
-      \brief print value to stream
-      \param os reference to the stream
-      \return reference to the stream
-     */
-    std::ostream & printValue( std::ostream & os ) const
-      {
-          return printValueImpl( os, *M_value_ptr );
-      }
-
-};
-
-/*-------------------------------------------------------------------*/
-/*!
-  \class ParamGeneric< bool >
-  \brief specialized template class
-*/
-template <>
-class ParamGeneric< bool >
-    : public ParamEntity {
-private:
-    const bool M_negate;
-
-    //! pointer to parameter variable instance
-    bool * M_value_ptr;
-
-public:
-
-    /*!
-      \brief constructor
-      \param long_name parameter's long name string
-      \param short_name parameter's short name string(ommitable)
-      \param value_ptr pointer to variable instance
-      \param description description message(ommitable)
-     */
-    ParamGeneric( const std::string & long_name,
-                  const std::string & short_name,
-                  bool * value_ptr,
-                  const char * description = "" )
-        : ParamEntity( long_name, short_name, description ),
-          M_negate( false ),
-          M_value_ptr( value_ptr )
-      {
-          assert( value_ptr );
-      }
-
-    /*!
-      \brief constructor
-      \param long_name parameter's long name string
-      \param short_name parameter's short name string(ommitable)
-      \param value negate bool object
-      \param description description message(ommitable)
-     */
-    ParamGeneric( const std::string & long_name,
-                  const std::string & short_name,
-                  const NegateBool & value,
-                  const char * description = "" )
-        : ParamEntity( long_name, short_name, description ),
-          M_negate( true ),
-          M_value_ptr( value.ptr_ )
-      {
-          assert( M_value_ptr );
-      }
-
-    /*!
-      \brief analyze value string and substitute it to variable.
-      \param value_str string that contains value
-      \return boolean status of analysis result
-    */
-    bool analyze( const std::string & value_str );
-
-    /*!
-      \brief print value to stream
-      \param os reference to the stream
-      \return reference to the stream
-     */
     std::ostream & printValue( std::ostream & os ) const;
 
 };
-
-/*-------------------------------------------------------------------*/
-/*!
-  \class ParamSwitch
-  \brief switch type parameter
-*/
-class ParamSwitch
-    : public ParamEntity {
-private:
-    const bool M_negate;
-
-    //! pointer to parameter variable instance
-    bool * M_value_ptr;
-
-public:
-
-    /*!
-      \brief constructor
-      \param long_name parameter's long name string
-      \param short_name parameter's short name string(ommitable)
-      \param value_ptr pointer to variable instance
-      \param description description message(ommitable)
-     */
-    ParamSwitch( const std::string & long_name,
-                 const std::string & short_name,
-                 bool * value_ptr,
-                 const char * description = "" )
-        : ParamEntity( long_name, short_name, description ),
-          M_negate( false ),
-          M_value_ptr( value_ptr )
-      {
-          assert( value_ptr );
-      }
-
-
-    /*!
-      \brief constructor
-      \param long_name parameter's long name string
-      \param short_name parameter's short name string(ommitable)
-      \param value negate bool object
-      \param description description message(ommitable)
-     */
-    ParamSwitch( const std::string & long_name,
-                 const std::string & short_name,
-                 const NegateSwitch & value,
-                 const char * description = "" )
-        : ParamEntity( long_name, short_name, description ),
-          M_negate( true ),
-          M_value_ptr( value.ptr_ )
-      {
-          assert( M_value_ptr );
-      }
-
-    /*!
-      \brief (virtual) check if this parameter is switch type or not.
-      \return always true.
-    */
-    virtual
-    bool isSwitch() const
-      {
-          return true;
-      }
-
-    /*!
-      \brief analyze value string and substitute it to variable.
-      \param value_str string that contains value
-      \return boolean status of analysis result
-    */
-    bool analyze( const std::string & value_str );
-
-    /*!
-      \brief print usage format.
-      \param os reference to the stream
-      \return reference to the stream
-     */
-    std::ostream & printFormat( std::ostream & os ) const;
-
-    /*!
-      \brief print value to stream
-      \param os reference to the stream
-      \return reference to the stream
-     */
-    std::ostream & printValue( std::ostream & os ) const;
-
-};
-
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -482,6 +237,9 @@ public:
   \brief parameter container
 */
 class ParamMap {
+public:
+    //! map type
+    using Map = std::unordered_map< std::string, ParamEntity::Ptr >;
 private:
 
     /*!
@@ -512,71 +270,9 @@ private:
           \param description parameter's description message(ommitable)
           \return reference to itself
          */
-        template < typename ValueType >
         Registrar & operator()( const std::string & long_name,
                                 const std::string & short_name,
-                                ValueType * value_ptr,
-                                const char * description = "" )
-          {
-              if ( ! checkName( long_name, short_name ) )
-              {
-                  M_param_map.M_valid = false;
-                  return *this;
-              }
-
-              if ( ! value_ptr )
-              {
-                  std::cerr << "***ERROR*** detected null pointer for the option "
-                            << long_name << std::endl;
-                  M_param_map.M_valid = false;
-                  return *this;
-              }
-
-              ParamEntity::Ptr ptr( new ParamGeneric< ValueType >( long_name,
-                                                                   short_name,
-                                                                   value_ptr,
-                                                                   description ) );
-              M_param_map.add( ptr );
-              return *this;
-          }
-
-        /*!
-          \brief parameter registration operator for negate bool
-          \param long_name parameter's long name
-          \param short_name parameter's short name(ommitable)
-          \param value wrapper object
-          \param description parameter's description message(ommitable)
-          \return reference to itself
-         */
-        Registrar & operator()( const std::string & long_name,
-                                const std::string & short_name,
-                                const NegateBool & value,
-                                const char * description = "" );
-
-        /*!
-          \brief parameter registration operator for bool switch
-          \param long_name parameter's long name
-          \param short_name parameter's short name(ommitable)
-          \param value wrapper object
-          \param description parameter's description message(ommitable)
-          \return reference to itself
-         */
-        Registrar & operator()( const std::string & long_name,
-                                const std::string & short_name,
-                                const BoolSwitch & value,
-                                const char * description = "" );
-
-       /*!
-          \brief parameter registration operator for negate bool switch
-          \param long_name parameter's long name
-          \param short_name parameter's short name(ommitable)
-          \param value wrapper object
-          \param description parameter's description message(ommitable)
-          \return reference to itself
-         */
-        Registrar & operator()( const std::string & long_name,
-                                const std::string & short_name,
-                                const NegateSwitch & value,
+                                ParamEntity::ValuePtr value_ptr,
                                 const char * description = "" );
 
     private:
@@ -602,10 +298,10 @@ private:
     std::vector< ParamEntity::Ptr > M_parameters;
 
     //! long name option map
-    std::map< std::string, ParamEntity::Ptr > M_long_name_map;
+    Map M_long_name_map;
 
     //! short name option map
-    std::map< std::string, ParamEntity::Ptr > M_short_name_map;
+    Map M_short_name_map;
 
 
     // no copyable
@@ -670,7 +366,7 @@ public:
       \brief get the long name parameter map
       \return const reference to the container instance
      */
-    const std::map< std::string, ParamEntity::Ptr > & longNameMap() const
+    const Map & longNameMap() const
       {
           return M_long_name_map;
       }
@@ -679,7 +375,7 @@ public:
       \brief get the short name parameter map
       \return const reference to the container instance
      */
-    const std::map< std::string, ParamEntity::Ptr > & shortNameMap() const
+    const Map & shortNameMap() const
       {
           return M_short_name_map;
       }
