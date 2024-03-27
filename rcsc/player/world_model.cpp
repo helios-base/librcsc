@@ -358,7 +358,6 @@ WorldModel::WorldModel()
       M_localize(),
       M_intercept_table(),
       M_audio_memory( new AudioMemory() ),
-      M_penalty_kick_state( new PenaltyKickState() ),
       M_our_side( NEUTRAL ),
       M_time( -1, 0 ),
       M_sense_body_time( -1, 0 ),
@@ -397,8 +396,6 @@ WorldModel::WorldModel()
       M_last_kicker_unum( Unum_Unknown ),
       M_view_area_cont( MAX_RECORD, ViewArea() )
 {
-    assert( M_penalty_kick_state );
-
     for ( int i = 0; i < 11; ++i )
     {
         M_our_recovery[i] = 1.0;
@@ -425,11 +422,7 @@ WorldModel::WorldModel()
  */
 WorldModel::~WorldModel()
 {
-    if ( M_penalty_kick_state )
-    {
-        delete M_penalty_kick_state;
-        M_penalty_kick_state = nullptr;
-    }
+
 }
 
 /*-------------------------------------------------------------------*/
@@ -502,17 +495,6 @@ void
 WorldModel::setValid( bool is_valid )
 {
     M_valid = is_valid;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-const
-PenaltyKickState *
-WorldModel::penaltyKickState() const
-{
-    return M_penalty_kick_state;
 }
 
 /*-------------------------------------------------------------------*/
@@ -719,7 +701,7 @@ void
 WorldModel::setPenaltyKickTakerOrder( const std::vector< int > & unum_set )
 {
     if ( gameMode().isPenaltyKickMode()
-         && ( M_penalty_kick_state->ourTakerCounter() > 0
+         && ( M_penalty_kick_state.ourTakerCounter() > 0
               && gameMode().type() != GameMode::PenaltySetup_ ) )
     {
         std::cerr << teamName() << " : " << self().unum()
@@ -729,7 +711,7 @@ WorldModel::setPenaltyKickTakerOrder( const std::vector< int > & unum_set )
         return;
     }
 
-    M_penalty_kick_state->setKickTakerOrder( unum_set );
+    M_penalty_kick_state.setKickTakerOrder( unum_set );
 }
 
 /*-------------------------------------------------------------------*/
@@ -1523,7 +1505,7 @@ WorldModel::updateGameMode( const GameMode & game_mode,
     //
     if ( pk_mode )
     {
-        M_penalty_kick_state->update( game_mode, ourSide(), current );
+        M_penalty_kick_state.update( game_mode, ourSide(), current );
     }
 }
 
@@ -2198,7 +2180,7 @@ WorldModel::localizeSelf( const VisualSensor & see,
                           const ActionEffector & act,
                           const GameTime & current )
 {
-    const bool reverse_side = is_reverse_side( *this, *M_penalty_kick_state );
+    const bool reverse_side = is_reverse_side( *this, M_penalty_kick_state );
 
     double angle_face = -360.0;
     double angle_face_error = 0.0;
