@@ -266,30 +266,6 @@ get_their_goalie_loop( const WorldModel & wm )
     return nullptr;
 }
 
-
-struct PlayerUpdater {
-    void operator()( PlayerObject & player )
-      {
-          player.update();
-      }
-};
-
-struct PlayerValidChecker {
-    bool operator()( const PlayerObject & player ) const
-      {
-          return ( ! player.posValid() );
-      }
-};
-
-struct PlayerUnumSorter {
-
-    bool operator()( const PlayerObject & lhs,
-                     const PlayerObject & rhs ) const
-      {
-          return lhs.unum() < rhs.unum();
-      }
-};
-
 struct PlayerCountSorter {
 
     bool operator()( const PlayerObject & lhs,
@@ -318,23 +294,6 @@ struct PlayerPtrAccuracySorter {
           }
           return lhs->posCount() + lhs->ghostCount() * 10
               < rhs->posCount() + rhs->ghostCount() * 10;
-      }
-};
-
-struct PlayerPtrSelfDistSorter {
-    bool operator()( const PlayerObject * lhs,
-                     const PlayerObject * rhs ) const
-      {
-          return lhs->distFromSelf() < rhs->distFromSelf();
-      }
-};
-
-
-struct PlayerPtrBallDistSorter {
-    bool operator()( const PlayerObject * lhs,
-                     const PlayerObject * rhs ) const
-      {
-          return lhs->distFromBall() < rhs->distFromBall();
       }
 };
 
@@ -857,16 +816,16 @@ WorldModel::update( const ActionEffector & act,
     }
 
     // update teammates
-    std::for_each( M_teammates.begin(), M_teammates.end(), PlayerUpdater() );
-    M_teammates.remove_if( PlayerValidChecker() );
+    std::for_each( M_teammates.begin(), M_teammates.end(), []( PlayerObject & p ) { p.update(); } );
+    M_teammates.remove_if( []( const PlayerObject & p ) { return ( ! p.posValid() ); } );
 
     // update opponents
-    std::for_each( M_opponents.begin(), M_opponents.end(), PlayerUpdater() );
-    M_opponents.remove_if( PlayerValidChecker() );
+    std::for_each( M_opponents.begin(), M_opponents.end(), []( PlayerObject & p ) { p.update(); } );
+    M_opponents.remove_if( []( const PlayerObject & p ) { return ( ! p.posValid() ); } );
 
     // update unknown players
-    std::for_each( M_unknown_players.begin(), M_unknown_players.end(), PlayerUpdater() );
-    M_unknown_players.remove_if( PlayerValidChecker() );
+    std::for_each( M_unknown_players.begin(), M_unknown_players.end(), []( PlayerObject & p ) { p.update(); } );
+    M_unknown_players.remove_if( []( const PlayerObject & p ) { return ( ! p.posValid() ); } );
 
     // update view area
 
@@ -3078,8 +3037,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
 
     // check invalid player
     // if exist, that player is removed from instance list
-    M_teammates.remove_if( PlayerValidChecker() );
-    M_opponents.remove_if( PlayerValidChecker() );
+    M_teammates.remove_if( []( const PlayerObject & p ) { return ( ! p.posValid() ); } );
+    M_opponents.remove_if( []( const PlayerObject & p ) { return ( ! p.posValid() ); } );
 
     //////////////////////////////////////////////////////////////////
     // it is not necessary to check the all unknown list
@@ -3866,11 +3825,27 @@ WorldModel::updatePlayerStateCache()
     //
     // sort by distance from self or ball
     //
-    std::sort( M_teammates_from_self.begin(), M_teammates_from_self.end(), PlayerPtrSelfDistSorter() );
-    std::sort( M_opponents_from_self.begin(), M_opponents_from_self.end(), PlayerPtrSelfDistSorter() );
+    std::sort( M_teammates_from_self.begin(), M_teammates_from_self.end(),
+               []( const PlayerObject * lhs, const PlayerObject * rhs )
+                 {
+                     return lhs->distFromSelf() < rhs->distFromSelf();
+                 } );
+    std::sort( M_opponents_from_self.begin(), M_opponents_from_self.end(),
+               []( const PlayerObject * lhs, const PlayerObject * rhs )
+                 {
+                     return lhs->distFromSelf() < rhs->distFromSelf();
+                 } );
 
-    std::sort( M_teammates_from_ball.begin(), M_teammates_from_ball.end(), PlayerPtrBallDistSorter() );
-    std::sort( M_opponents_from_ball.begin(), M_opponents_from_ball.end(), PlayerPtrBallDistSorter() );
+    std::sort( M_teammates_from_ball.begin(), M_teammates_from_ball.end(),
+               []( const PlayerObject * lhs, const PlayerObject * rhs )
+                 {
+                     return lhs->distFromBall() < rhs->distFromBall();
+                 } );
+    std::sort( M_opponents_from_ball.begin(), M_opponents_from_ball.end(),
+               []( const PlayerObject * lhs, const PlayerObject * rhs )
+                 {
+                     return lhs->distFromBall() < rhs->distFromBall();
+                 } );
 
     estimateUnknownPlayerUnum();
     estimateGoalie();
@@ -3924,7 +3899,7 @@ WorldModel::updatePlayerStateCache()
     dlog.addText( Logger::WORLD,
                   " opponentsFromBall %zd", M_opponents_from_ball.size() );
 
-    M_teammates.sort( PlayerUnumSorter() );
+    M_teammates.sort( []( const PlayerObject & lhs, const PlayerObject & rhs ) { return lhs.unum() < rhs.unum(); } );
     for ( const PlayerObject & p : M_teammates )
     {
         dlog.addText( Logger::WORLD,
@@ -3933,7 +3908,7 @@ WorldModel::updatePlayerStateCache()
                       ( p.goalie() ? "goalie" : "" ) );
     }
 
-    M_opponents.sort( PlayerUnumSorter() );
+    M_opponents.sort( []( const PlayerObject & lhs, const PlayerObject & rhs ) { return lhs.unum() < rhs.unum(); } );
     for ( const PlayerObject & p : M_opponents )
     {
         dlog.addText( Logger::WORLD,
@@ -3942,7 +3917,6 @@ WorldModel::updatePlayerStateCache()
                       ( p.goalie() ? "goalie" : "" ) );
     }
 
-    //M_unknown_players.sort( PlayerCountSorter() );
     for ( const PlayerObject & p : M_unknown_players )
     {
         dlog.addText( Logger::WORLD,
