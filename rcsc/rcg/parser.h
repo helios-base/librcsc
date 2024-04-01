@@ -51,9 +51,9 @@ class Handler;
 class Parser {
 public:
 
-    typedef std::shared_ptr< Parser > Ptr; //!< rcg parser pointer type
-    typedef Ptr (*Creator)(); //!< rcg parser creator function
-    typedef rcss::Factory< Creator, int > Creators; //!< creator function holder
+    using Ptr = std::shared_ptr< Parser >; //!< rcg parser pointer type
+    using Creator = Ptr(*)(); //!< rcg parser creator function
+    using Creators = rcss::Factory< Creator, int >; //!< creator function holder
 
     /*!
       \brief factory holder singleton
