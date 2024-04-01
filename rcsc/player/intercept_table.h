@@ -37,10 +37,12 @@
 #include <rcsc/game_time.h>
 #include <vector>
 #include <map>
+#include <memory>
 
 namespace rcsc {
 
 class AbstractPlayerObject;
+class InterceptSimulatorSelf;
 class PlayerObject;
 class WorldModel;
 
@@ -55,6 +57,9 @@ private:
 
     //! last updated time
     GameTime M_update_time;
+
+    //! self intercept simulator
+    std::shared_ptr< InterceptSimulatorSelf > M_self_simulator;
 
     //! predicted min reach step for self without stamina exhaust
     int M_self_step;
@@ -102,6 +107,12 @@ public:
     virtual
     ~InterceptTable()
       { }
+
+    /*!
+      \brief set intercept simuator.
+      \param self pointer to the self intercept simulator
+     */
+    void setSimulator( std::shared_ptr< InterceptSimulatorSelf > self );
 
     /*!
       \brief update table information

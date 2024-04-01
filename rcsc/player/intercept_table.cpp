@@ -36,6 +36,7 @@
 #include "intercept_table.h"
 
 #include "intercept_simulator_self_v17.h"
+#include "intercept_simulator_self.h"
 #include "intercept_simulator_player.h"
 
 #include "world_model.h"
@@ -62,7 +63,8 @@ const int MAX_STEP = 50;
 
 */
 InterceptTable::InterceptTable()
-    : M_update_time( 0, 0 )
+    : M_update_time( 0, 0 ),
+      M_self_simulator( new InterceptSimulatorSelfV17 )
 {
     M_self_results.reserve( ( MAX_STEP + 1 ) * 2 );
 
@@ -92,6 +94,13 @@ InterceptTable::clear()
     M_self_results.clear();
 
     M_player_map.clear();
+}
+
+/*-------------------------------------------------------------------*/
+void
+InterceptTable::setSimulator( std::shared_ptr< InterceptSimulatorSelf > self )
+{
+    M_self_simulator = self;
 }
 
 /*-------------------------------------------------------------------*/
@@ -339,8 +348,11 @@ InterceptTable::predictSelf( const WorldModel & wm )
 
     constexpr int max_step = 50;
 
-    std::shared_ptr< InterceptSimulatorSelf > sim( new InterceptSimulatorSelfV17() );
-    sim->simulate( wm, max_step, M_self_results );
+    if ( ! M_self_simulator )
+    {
+        M_self_simulator = std::make_shared< InterceptSimulatorSelfV17 >();
+    }
+    M_self_simulator->simulate( wm, max_step, M_self_results );
 
     if ( M_self_results.empty() )
     {

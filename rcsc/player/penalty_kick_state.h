@@ -29,8 +29,8 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef PENALTY_KICK_STATE_H
-#define PENALTY_KICK_STATE_H
+#ifndef RCSC_PLAYER_PENALTY_KICK_STATE_H
+#define RCSC_PLAYER_PENALTY_KICK_STATE_H
 
 #include <rcsc/game_time.h>
 #include <rcsc/types.h>
@@ -79,6 +79,10 @@ public:
       \brief init member variables
     */
     PenaltyKickState();
+
+    // no copyable
+    PenaltyKickState( const PenaltyKickState & ) = delete;
+    const PenaltyKickState& operator=( const PenaltyKickState & ) = delete;
 
     /*!
       \brief get time when playmode is changed

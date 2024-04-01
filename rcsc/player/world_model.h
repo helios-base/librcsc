@@ -38,6 +38,7 @@
 #include <rcsc/player/view_area.h>
 #include <rcsc/player/view_grid_map.h>
 #include <rcsc/player/intercept_table.h>
+#include <rcsc/player/penalty_kick_state.h>
 
 #include <rcsc/time/timer.h>
 #include <rcsc/geom/vector_2d.h>
@@ -54,8 +55,8 @@ class AudioMemory;
 class ActionEffector;
 class BodySensor;
 class FullstateSensor;
+class InterceptSimualtorSelf;
 class Localization;
-class PenaltyKickState;
 class PlayerPredicate;
 class PlayerType;
 class VisualSensor;
@@ -82,8 +83,8 @@ private:
 
     std::shared_ptr< Localization > M_localize; //!< localization module
     InterceptTable M_intercept_table; //!< interception info table
-    std::shared_ptr< AudioMemory > M_audio_memory; //!< heard deqinfo memory
-    PenaltyKickState * M_penalty_kick_state; //!< penalty kick mode status
+    std::shared_ptr< AudioMemory > M_audio_memory; //!< heard message holder
+    PenaltyKickState M_penalty_kick_state; //!< penalty kick mode status
 
     //////////////////////////////////////////////////
     std::string M_our_team_name; //!< our teamname
@@ -266,7 +267,10 @@ public:
       \brief get penalty kick state
       \return const pointer to the penalty kick state instance
     */
-    const PenaltyKickState * penaltyKickState() const;
+    const PenaltyKickState & penaltyKickState() const
+      {
+          return M_penalty_kick_state;
+      }
 
     /*!
       \brief get audio memory
@@ -289,6 +293,12 @@ public:
       \param localization pointer to the localization instance.
     */
     void setLocalization( std::shared_ptr< Localization > localization );
+
+    /*!
+      \brief set intercept simuator.
+      \param self pointer to the self intercept simulator
+     */
+    void setInterceptSimulator( std::shared_ptr< InterceptSimulatorSelf > self );
 
     /*!
       \brief set server param. this method have to be called only once just after server_param message received.
