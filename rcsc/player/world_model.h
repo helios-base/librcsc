@@ -55,6 +55,7 @@ class AudioMemory;
 class ActionEffector;
 class BodySensor;
 class FullstateSensor;
+class InterceptSimualtorSelf;
 class Localization;
 class PlayerPredicate;
 class PlayerType;
@@ -292,6 +293,12 @@ public:
       \param localization pointer to the localization instance.
     */
     void setLocalization( std::shared_ptr< Localization > localization );
+
+    /*!
+      \brief set intercept simuator.
+      \param self pointer to the self intercept simulator
+     */
+    void setInterceptSimulator( std::shared_ptr< InterceptSimulatorSelf > self );
 
     /*!
       \brief set server param. this method have to be called only once just after server_param message received.

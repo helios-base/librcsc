@@ -36,6 +36,7 @@
 #include "world_model.h"
 
 #include "action_effector.h"
+#include "intercept_simulator_self.h"
 #include "localization_default.h"
 #include "body_sensor.h"
 #include "visual_sensor.h"
@@ -474,6 +475,13 @@ void
 WorldModel::setLocalization( std::shared_ptr< Localization > localization )
 {
     M_localize = localization;
+}
+
+/*-------------------------------------------------------------------*/
+void
+WorldModel::setInterceptSimulator( std::shared_ptr< InterceptSimulatorSelf > self )
+{
+    M_intercept_table.setSimulator( self );
 }
 
 /*-------------------------------------------------------------------*/
