@@ -1392,6 +1392,8 @@ TrainerAgent::action()
 {
     if ( M_impl->last_decision_time_ != M_impl->current_time_ )
     {
+        M_worldmodel.updateJustBeforeDecision( M_impl->current_time_ );
+
         actionImpl();
         M_impl->last_decision_time_ = M_impl->current_time_;
     }
