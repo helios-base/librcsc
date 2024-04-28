@@ -60,8 +60,9 @@ public:
     */
     enum ActionType {
         OMNI_DASH = 0,
-        TURN_FORWARD_DASH = 1,
-        TURN_BACK_DASH = 2,
+        BIPEDAL_DASH,
+        TURN_FORWARD_DASH,
+        TURN_BACK_DASH,
         UNKNOWN_TYPE = 100,
     };
 
