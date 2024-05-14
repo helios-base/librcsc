@@ -490,7 +490,10 @@ public:
       \brief get the reliable distance for the catch command. This value is the length of the diagonal line of the reliable catchable area rectangle.
       \return the diagonal line length of the reliable catch area rectangle. if server::catch_probability < 1.0, 0.0 is always returned.
      */
-    double reliableCatchableDist() const;
+    double reliableCatchableDist() const
+    {
+        return M_reliable_catchable_dist;
+    }
 
     /*!
       \brief get reliable catchable distance. This value is the length of the diagonal line of the reliable catchable area rectangle.
