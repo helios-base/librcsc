@@ -324,7 +324,7 @@ InterceptSimulatorSelfV17::simulateNoDash( const WorldModel & wm,
     const double ball_noise = ballVel().r() * ServerParam::i().ballRand() * BALL_NOISE_RATE;
     const double ball_next_dist = self_next.dist( ball_next );
 
-    if ( ball_next_dist > control_area - CONTROL_BUF - ball_noise )
+    if ( ball_next_dist > std::max( 0.3, control_area - CONTROL_BUF - ball_noise ) )
     {
 #ifdef DEBUG_PRINT_ONE_STEP
         dlog.addText( Logger::INTERCEPT,
@@ -1002,7 +1002,7 @@ simulate_turn_step( const WorldModel & wm,
 
     int n_turn = 0;
 
-    if ( control_area - CONTROL_BUF - ball_noise < inertia_dist )
+    if ( std::max( control_area * 0.7, control_area - CONTROL_BUF - ball_noise ) < inertia_dist )
     {
         const ServerParam & SP = ServerParam::i();
         const PlayerType & ptype = wm.self().playerType();
@@ -1155,6 +1155,7 @@ InterceptSimulatorSelfV17::getTurnDash( const WorldModel & wm,
     const double control_buf = ( goalie_mode
                                  ? 0.0
                                  : CONTROL_BUF + ball_noise );
+    const double kickable_thr2 = std::pow( std::max( ptype.kickableArea() * 0.7, ptype.kickableArea() - control_buf ), 2 );
 
     AngleDeg dash_angle = ( back_dash
                             ? wm.self().body() + 180.0
@@ -1214,10 +1215,12 @@ InterceptSimulatorSelfV17::getTurnDash( const WorldModel & wm,
     const Vector2D ball_rel = rotate_matrix.transform( ball_pos - wm.self().pos() );
 
     const int max_dash_step = step - n_turn;
+    const Vector2D self_final_pos = inertia_n_step_point( self_pos, self_vel, max_dash_step, ptype.playerDecay() );
+
     double first_dash_power = 0.0;
     for ( int i = 0; i < max_dash_step; ++i )
     {
-        double required_vel_x = ( ball_rel.x - self_pos.x )
+        double required_vel_x = ( ball_rel.x - self_final_pos.x )
             * ( 1.0 - ptype.playerDecay() )
             / ( 1.0 - std::pow( ptype.playerDecay(), max_dash_step - i ) );
         double required_accel_x = required_vel_x - self_vel.x;
@@ -1247,7 +1250,7 @@ InterceptSimulatorSelfV17::getTurnDash( const WorldModel & wm,
 
     if ( self_pos.absX() > ball_rel.absX() - 1.0e-5
          || self_pos.r2() > ball_rel.r2()
-         || self_pos.dist2( ball_rel ) < std::pow( ptype.kickableArea() - control_buf, 2 ) )
+         || self_pos.dist2( ball_rel ) < kickable_thr2 )
     {
         ok = true;
     }
@@ -1338,15 +1341,15 @@ InterceptSimulatorSelfV17::simulateOmniDashAny( const WorldModel & wm,
                                       ? 0.0
                                       : CONTROL_BUF + ball_noise );
 
-        const Vector2D self_inertia = wm.self().inertiaPoint( ball_step );
+        const Vector2D self_final_pos = wm.self().inertiaPoint( ball_step );
 
-        const Vector2D ball_rel = rotate_matrix.transform( ball_pos - self_inertia );
+        const Vector2D ball_rel = rotate_matrix.transform( ball_pos - self_final_pos );
         if ( ball_rel.absY() - control_area > max_side_speed * ball_step )
         {
             continue;
         }
 
-        //const AngleDeg accel_angle = ( ball_pos - self_inertia ).th();
+        //const AngleDeg accel_angle = ( ball_pos - self_final_pos ).th();
 
         double first_dash_power = 0.0;
         double first_dash_dir = 0.0;
@@ -1357,7 +1360,7 @@ InterceptSimulatorSelfV17::simulateOmniDashAny( const WorldModel & wm,
 
         for ( int step = 1; step <= ball_step; ++step )
         {
-            const Vector2D required_vel = ( ball_pos - self_pos )
+            const Vector2D required_vel = ( ball_pos - self_final_pos )
                 * ( ( 1.0 - ptype.playerDecay() )
                     / ( 1.0 - std::pow( ptype.playerDecay(), ball_step - step + 1 ) ) );
             const Vector2D required_accel = required_vel - self_vel;
@@ -1381,8 +1384,8 @@ InterceptSimulatorSelfV17::simulateOmniDashAny( const WorldModel & wm,
 
             bool ok = false;
 
-            if ( self_pos.dist2( ball_pos ) < std::pow( ptype.kickableArea() - control_buf, 2 )
-                 || self_inertia.dist2( self_pos ) > self_inertia.dist2( ball_pos ) )
+            if ( self_pos.dist2( ball_pos ) < std::pow( std::max( ptype.kickableArea() * 0.7, ptype.kickableArea() - control_buf ), 2 )
+                 || self_final_pos.dist2( self_pos ) > self_final_pos.dist2( ball_pos ) )
             {
                 ok = true;
             }
@@ -1557,9 +1560,10 @@ InterceptSimulatorSelfV17::simulateOmniDashOld( const WorldModel & wm,
                       "%d: ball_pos=(%.2f %.2f) ball_noise=%.3f",
                       reach_step, ball_pos.x, ball_pos.y, ball_noise );
 #endif
+        const Vector2D self_final_pos = inertia_n_step_point( self_pos, self_vel, reach_step, ptype.playerDecay() );
         for ( int step = 1; step <= reach_step; ++step )
         {
-            const Vector2D required_vel = ( ball_pos - self_pos )
+            const Vector2D required_vel = ( ball_pos - self_final_pos )
                 * ( ( 1.0 - ptype.playerDecay() )
                     / ( 1.0 - std::pow( ptype.playerDecay(), reach_step - step + 1 ) ) );
             const Vector2D required_accel = required_vel - self_vel;
@@ -1626,7 +1630,7 @@ InterceptSimulatorSelfV17::simulateOmniDashOld( const WorldModel & wm,
 
             if ( ! found )
             {
-                if ( self_pos.dist2( ball_pos ) < std::pow( control_area - control_buf, 2 )
+                if ( self_pos.dist2( ball_pos ) < std::pow( std::max( control_area * 0.7, control_area - control_buf ), 2 )
                      || ( wm.self().pos().dist2( self_pos ) > wm.self().pos().dist2( ball_pos )
                           && Line2D( wm.self().pos(), self_pos ).dist2( ball_pos ) < std::pow( control_area, 2 ) ) )
                 {
