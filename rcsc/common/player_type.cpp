@@ -801,18 +801,18 @@ PlayerType::reliableCatchLength() const
 /*!
 
 */
-double
-PlayerType::reliableCatchableDist() const
-{
-    if ( ServerParam::i().catchProbability() < 1.0 )
-    {
-        return 0.0;
-    }
-    else
-    {
-        return M_reliable_catchable_dist;
-    }
-}
+// double
+// PlayerType::reliableCatchableDist() const
+// {
+//     if ( ServerParam::i().catchProbability() < 1.0 )
+//     {
+//         return 0.0;
+//     }
+//     else
+//     {
+//         return M_reliable_catchable_dist;
+//     }
+// }
 
 /*-------------------------------------------------------------------*/
 /*!
