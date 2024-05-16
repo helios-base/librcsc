@@ -79,8 +79,12 @@ private:
     double M_turn_angle; //!< angle difference between current body angle and dash angle
 
     int M_dash_step; //!< estimated dash step
-    double M_dash_power; //!< first dash power
-    double M_dash_dir; //!< first dash direction (relative to body)
+    double M_dash_power; //!< first dash power (for v18 or older)
+    double M_dash_dir; //!< first dash dir (for v18 or older)
+    double M_dash_power_left; //!< first dash power for left leg
+    double M_dash_dir_left; //!< first dash direction for left leg (relative to body)
+    double M_dash_power_right; //!< first dash power for right leg
+    double M_dash_dir_right; //!< first dash directionfor right leg (relative to body)
 
     Vector2D M_self_pos; //!< estimated final self position
     double M_ball_dist; //!< estimated final ball distance
@@ -89,7 +93,7 @@ private:
 public:
 
     /*!
-      \brief create invalid info
+      \brief create invalid data
     */
     Intercept()
         : M_index( -1 ),
@@ -99,8 +103,12 @@ public:
           M_turn_step( 10000 ),
           M_turn_angle( 0.0 ),
           M_dash_step( 10000 ),
-          M_dash_power( 100000.0 ),
+          M_dash_power( 0.0 ),
           M_dash_dir( 0.0 ),
+          M_dash_power_left( 0.0 ),
+          M_dash_dir_left( 0.0 ),
+          M_dash_power_right( 0.0 ),
+          M_dash_dir_right( 0.0 ),
           M_self_pos( -10000.0, 0.0 ),
           M_ball_dist( 10000000.0 ),
           M_stamina( 0.0 )
@@ -128,6 +136,44 @@ public:
           M_dash_step( dash_step ),
           M_dash_power( dash_power ),
           M_dash_dir( dash_dir ),
+          M_dash_power_left( dash_power ),
+          M_dash_dir_left( dash_dir ),
+          M_dash_power_right( dash_power ),
+          M_dash_dir_right( dash_dir ),
+          M_self_pos( self_pos ),
+          M_ball_dist( ball_dist ),
+          M_stamina( stamina )
+    { }
+
+
+    /*!
+      \brief construct with all variables
+    */
+    Intercept( const StaminaType stamina_type,
+               const ActionType action_type,
+               const int turn_step,
+               const double turn_angle,
+               const int dash_step,
+               const double dash_power_left,
+               const double dash_dir_left,
+               const double dash_power_right,
+               const double dash_dir_right,
+               const Vector2D & self_pos,
+               const double ball_dist,
+               const double stamina )
+        : M_index( -1 ),
+          M_value( MIN_VALUE ),
+          M_stamina_type( stamina_type ),
+          M_action_type( action_type ),
+          M_turn_step( turn_step ),
+          M_turn_angle( turn_angle ),
+          M_dash_step( dash_step ),
+          M_dash_power( 0.0 ),
+          M_dash_dir( 0.0 ),
+          M_dash_power_left( dash_power_left ),
+          M_dash_dir_left( dash_dir_left ),
+          M_dash_power_right( dash_power_right ),
+          M_dash_dir_right( dash_dir_right ),
           M_self_pos( self_pos ),
           M_ball_dist( ball_dist ),
           M_stamina( stamina )
@@ -243,6 +289,42 @@ public:
     double dashDir() const
     {
         return M_dash_dir;
+    }
+
+    /*!
+      \brief get dash power for the first dash
+      \return dash power value
+    */
+    double dashPowerLeft() const
+    {
+        return M_dash_power_left;
+    }
+
+    /*!
+      \brief ger the dash direction for the first dash
+      \return dash direction value (relative to body)
+    */
+    double dashDirLeft() const
+    {
+        return M_dash_dir_left;
+    }
+
+    /*!
+      \brief get dash power for the first dash
+      \return dash power value
+    */
+    double dashPowerRight() const
+    {
+        return M_dash_power_right;
+    }
+
+    /*!
+      \brief ger the dash direction for the first dash
+      \return dash direction value (relative to body)
+    */
+    double dashDirRight() const
+    {
+        return M_dash_dir_right;
     }
 
     /*!

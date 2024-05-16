@@ -181,7 +181,8 @@ struct InterceptEqual {
             && lhs.actionType() == rhs.actionType()
             && lhs.turnStep() == rhs.turnStep()
             && lhs.dashStep() == rhs.dashStep()
-            && lhs.dashDir() == rhs.dashDir();
+            && lhs.dashDirLeft() == rhs.dashDirLeft()
+            && lhs.dashDirRight() == rhs.dashDirRight();
     }
 };
 
