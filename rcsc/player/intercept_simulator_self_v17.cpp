@@ -231,7 +231,7 @@ InterceptSimulatorSelfV17::simulate( const WorldModel & wm,
     {
         simulateTurnDash( wm, max_step, true, self_cache ); // back dash
     }
-    simulateOmniDash( wm, max_step, self_cache ); // omni dash
+    simulateOmniDash( wm, std::min( 5, max_step ), self_cache ); // omni dash
 
     if ( self_cache.empty() )
     {
@@ -1224,7 +1224,8 @@ InterceptSimulatorSelfV17::getTurnDash( const WorldModel & wm,
         double required_vel_x = ( ball_rel.x - self_final_pos.x )
             * ( 1.0 - ptype.playerDecay() )
             / ( 1.0 - std::pow( ptype.playerDecay(), max_dash_step - i ) );
-        double required_accel_x = required_vel_x - self_vel.x;
+        //double required_accel_x = required_vel_x - self_vel.x;
+        double required_accel_x = required_vel_x;
         double dash_power = required_accel_x / ( ptype.dashPowerRate() * stamina_model.effort() );
         dash_power = bound( SP.minDashPower(), dash_power, SP.maxDashPower() );
         dash_power = stamina_model.getSafetyDashPower( ptype, dash_power, 1.0 );
@@ -1364,7 +1365,8 @@ InterceptSimulatorSelfV17::simulateOmniDashAny( const WorldModel & wm,
             const Vector2D required_vel = ( ball_pos - self_final_pos )
                 * ( ( 1.0 - ptype.playerDecay() )
                     / ( 1.0 - std::pow( ptype.playerDecay(), ball_step - step + 1 ) ) );
-            const Vector2D required_accel = required_vel - self_vel;
+            //const Vector2D required_accel = required_vel - self_vel;
+            const Vector2D required_accel = required_vel;
 
             const double dash_dir = SP.discretizeDashAngle( ( required_accel.th() - wm.self().body() ).degree() );
             const double dash_rate = SP.dashDirRate( dash_dir ) * ptype.dashPowerRate() * stamina_model.effort();
@@ -1567,7 +1569,8 @@ InterceptSimulatorSelfV17::simulateOmniDashOld( const WorldModel & wm,
             const Vector2D required_vel = ( ball_pos - self_final_pos )
                 * ( ( 1.0 - ptype.playerDecay() )
                     / ( 1.0 - std::pow( ptype.playerDecay(), reach_step - step + 1 ) ) );
-            const Vector2D required_accel = required_vel - self_vel;
+            //const Vector2D required_accel = required_vel - self_vel;
+            const Vector2D required_accel = required_vel;
 
             double min_dist2 = 1000000.0;
             Vector2D best_self_pos = self_pos;
