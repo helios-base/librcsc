@@ -191,6 +191,18 @@ public:
         M_value = value;
     }
 
+    void setBipedalDash( const double power_left,
+                         const double dir_left,
+                         const double power_right,
+                         const double dir_right )
+    {
+        M_action_type = BIPEDAL_DASH;
+        M_dash_power_left = power_left;
+        M_dash_dir_left = dir_left;
+        M_dash_power_right = power_right;
+        M_dash_dir_right = dir_right;
+    }
+
     /*!
       \brief check if this object is legal one or not.
       \return checked result.
