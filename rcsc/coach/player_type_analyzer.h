@@ -53,6 +53,7 @@ private:
 
     struct Data {
         bool turned_; //!< player performed turn
+        double rotation_; //!< rotated degree
         bool kicked_; //!< player perfomed kick
         bool tackling_; //!< player perfoming tackle
         bool maybe_referee_; //!< player may be moved by referee
@@ -187,6 +188,9 @@ private:
       \brief check turn moment range
      */
     void checkTurnMoment();
+
+    //
+    void debugPrintIllegalMatrix();
 };
 
 }
