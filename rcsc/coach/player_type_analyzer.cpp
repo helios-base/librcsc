@@ -409,7 +409,7 @@ PlayerTypeAnalyzer::checkTurn()
 #ifdef DEBUG_PRINT
                 dlog.addText( Logger::ANALYZER,
                               __FILE__" (checkTurn) teammate %d turned 1",
-                              (*p)->unum() );
+                              t->unum() );
 #endif
             }
 #ifdef DEBUG_PRINT
@@ -417,7 +417,7 @@ PlayerTypeAnalyzer::checkTurn()
             {
                 dlog.addText( Logger::ANALYZER,
                               __FILE__" (checkTurn) teammate %d turned 0",
-                              (*p)->unum() );
+                              t->unum() );
             }
 #endif
         }
@@ -437,7 +437,7 @@ PlayerTypeAnalyzer::checkTurn()
 #ifdef DEBUG_PRINT
                 dlog.addText( Logger::ANALYZER,
                               __FILE__" (checkTurn) opponent %d turned 1",
-                              (*p)->unum() );
+                              o->unum() );
 #endif
             }
 #ifdef DEBUG_PRINT
@@ -445,7 +445,7 @@ PlayerTypeAnalyzer::checkTurn()
             {
                 dlog.addText( Logger::ANALYZER,
                               __FILE__" (checkTurn) opponent %d turned 0",
-                              (*p)->unum() );
+                              o->unum() );
             }
 #endif
         }
@@ -473,8 +473,8 @@ PlayerTypeAnalyzer::checkTackle()
         M_teammate_data[p->unum() - 1].tackling_ = p->isTackling();
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::ANALYZER,
-                      __FILE__" (checkTackle) teammate %d tackling %d",
-                      (*p)->unum(), (int)(*p)->isTackling() );
+                      __FILE__" (checkTackle) teammate %d tackling [%s]",
+                      p->unum(), ( p->isTackling() ? "true" : "false" ) );
 #endif
     }
 
@@ -485,8 +485,8 @@ PlayerTypeAnalyzer::checkTackle()
         M_opponent_data[p->unum() - 1].tackling_ = p->isTackling();
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::ANALYZER,
-                      __FILE__" (checkTackle) opponent %d tackling %d",
-                      p->unum(), (int)(*p->isTackling()) );
+                      __FILE__" (checkTackle) opponent %d tackling [%s]",
+                      p->unum(), ( p->isTackling() ? "true" : "false" ) );
 #endif
     }
 
@@ -597,7 +597,7 @@ PlayerTypeAnalyzer::checkCollisions()
 #ifdef DEBUG_PRINT
             dlog.addText( Logger::ANALYZER,
                           __FILE__" (checkCollisions) opponent %d. may be collided with ball",
-                          (*p)->unum() );
+                          p->unum() );
 #endif
         }
     }
@@ -653,7 +653,7 @@ PlayerTypeAnalyzer::checkCollisions()
 #ifdef DEBUG_PRINT
                 dlog.addText( Logger::ANALYZER,
                               __FILE__" (checkCollisions) opponent %d. may be collided with teammate %d",
-                              (*o)->unum(), (*t)->unum() );
+                              o->unum(), t->unum() );
 #endif
                 break;
             }
@@ -764,8 +764,8 @@ PlayerTypeAnalyzer::checkKick()
             }
 #ifdef DEBUG_PRINT
             dlog.addText( Logger::ANALYZER,
-                          __FILE__" (checkKick) teammate %d. kicking %d",
-                          p->unum(), (int)p->kicked() );
+                          __FILE__" (checkKick) teammate %d. kicking [%s]",
+                          p->unum(), ( p->isKicking() ? "true" : "false" ) );
 #endif
         }
 
@@ -783,8 +783,8 @@ PlayerTypeAnalyzer::checkKick()
             }
 #ifdef DEBUG_PRINT
             dlog.addText( Logger::ANALYZER,
-                          __FILE__" (checkKick) opponent %d. kicking %d",
-                          p->unum(), (int)p->kicked() );
+                          __FILE__" (checkKick) opponent %d. kicking [%s]",
+                          p->unum(), ( p->isKicking() ? "true" : "false" ) );
 #endif
         }
     }
