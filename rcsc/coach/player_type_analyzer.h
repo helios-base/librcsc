@@ -187,6 +187,9 @@ private:
       \brief check turn moment range
      */
     void checkTurnMoment();
+
+    //
+    void debugPrintIllegalMatrix();
 };
 
 }

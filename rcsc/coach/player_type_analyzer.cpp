@@ -44,7 +44,13 @@
 #include <rcsc/common/logger.h>
 #include <rcsc/game_mode.h>
 
-//#define DEBUG_PRINT
+#include <sstream>
+#include <iomanip>
+
+// #define DEBUG_PRINT
+// #define DEBUG_PRINT_RESULT
+// #define DEBUG_PRINT_DETECT_INVALID
+// #define DEBUG_PRINT_MATRIX
 
 namespace rcsc {
 
@@ -277,6 +283,10 @@ PlayerTypeAnalyzer::analyze()
     checkPlayerSpeedMax();
     checkTurnMoment();
 
+#ifdef DEBUG_PRINT_MATRIX
+    debugPrintIllegalMatrix();
+#endif
+
     const int max_types = PlayerParam::i().playerTypes();
 
     for ( const CoachPlayerObject * p : M_world.opponents() )
@@ -317,7 +327,7 @@ PlayerTypeAnalyzer::analyze()
             }
         }
 
-#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT_RESULT
         dlog.addText( Logger::ANALYZER,
                       __FILE__" (analyze) opponent %d. invalid count=%d",
                       p->unum(), invalid_count );
@@ -330,7 +340,7 @@ PlayerTypeAnalyzer::analyze()
                       << " no player type for opponent " << p->unum()
                       << ". restart analysis."
                       << std::endl;
-#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT_RESULT
             dlog.addText( Logger::ANALYZER,
                           __FILE__" (analyze) opponent %d. no player type candidate. restart analysis.",
                           p->unum() );
@@ -347,7 +357,7 @@ PlayerTypeAnalyzer::analyze()
                     std::cout << M_world.ourTeamName() << " coach: " << M_world.time()
                               << " determined opponent "
                               << p->unum() << " type = " << t << std::endl;
-#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT_RESULT
                     dlog.addText( Logger::ANALYZER,
                                   __FILE__" (analyze) determined opponent %d. type=%d",
                                   p->unum(), t );
@@ -372,7 +382,7 @@ PlayerTypeAnalyzer::analyze()
         else
         {
             // several candidates
-#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT_RESULT
             dlog.addText( Logger::ANALYZER,
                           __FILE__" (analyze) opponent %d. several player type candidates = %d.",
                           p->unum(),
@@ -867,12 +877,12 @@ PlayerTypeAnalyzer::checkKick()
                 if ( ball_dist > player_type->kickableArea() + 0.001 )
                 {
                     data.invalid_flags_[t] = 1;
-#ifdef DEBUG_PRINT
-                    std::cout << M_world.ourTeamName() << " coach: " << M_world.time()
-                              << " opponent " << kicker_idx + 1
-                              << "  detect invalid kickable area. type = "
-                              << t
-                              << std::endl;
+#ifdef DEBUG_PRINT_DETECT_INVALID
+                    // std::cout << M_world.ourTeamName() << " coach: " << M_world.time()
+                    //           << " opponent " << kicker_idx + 1
+                    //           << "  detect invalid kickable area. type = "
+                    //           << t
+                    //           << std::endl;
                     dlog.addText( Logger::ANALYZER,
                                   __FILE__" (checkKick) opponent=%d type=%d,"
                                   " out of range kickable area."
@@ -967,7 +977,7 @@ PlayerTypeAnalyzer::checkPlayerDecay()
             if ( rand_r > rand_max + 0.0000001 )
             {
                 data.invalid_flags_[t] = 1;
-#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT_DETECT_INVALID
                 dlog.addText( Logger::ANALYZER,
                               __FILE__" (checkPlayerDecay) opponent=%d type=%d"
                               " out of range player decay. rand_r=%f rand_max=%f",
@@ -1027,7 +1037,7 @@ PlayerTypeAnalyzer::checkPlayerSpeedMax()
             if ( last_accel_r > max_accel + last_max_noise + 0.0001 )
             {
                 data.invalid_flags_[t] = 1;
-#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT_DETECT_INVALID
                 std::cout << M_world.ourTeamName() << " coach: " << M_world.time()
                           << " opponent " << p->unum()
                           << " type = " << t
@@ -1066,7 +1076,7 @@ PlayerTypeAnalyzer::checkPlayerSpeedMax()
             if ( last_move_dist > max_move )
             {
                 data.invalid_flags_[t] = 1;
-#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT_DETECT_INVALID
                 std::cout << M_world.ourTeamName() << " coach: " << M_world.time()
                           << " opponent " << p->unum()
                           << " type = " << t
@@ -1118,7 +1128,7 @@ PlayerTypeAnalyzer::checkTurnMoment()
             if ( turn_angle > max_turn * ( 1.0 + ServerParam::i().playerRand() ) + 1.0001 )
             {
                 data.invalid_flags_[t] = 1;
-#ifdef DEBUG_PRINT
+#ifdef DEBUG_PRINT_DETECT_INVALID
                 std::cout << M_world.ourTeamName() << " coach: " << M_world.time()
                           << " opponent " << p->unum()
                           << " type = " << t
@@ -1134,6 +1144,31 @@ PlayerTypeAnalyzer::checkTurnMoment()
                               turn_angle, max_turn );
 #endif
             }
+        }
+    }
+}
+
+/*-------------------------------------------------------------------*/
+void
+PlayerTypeAnalyzer::debugPrintIllegalMatrix()
+{
+    dlog.addText( Logger::ANALYZER,
+                  "(PlayerTypeAnalyzer) === print matrix ===" );
+    for ( int i = 0; i < 11; ++i )
+    {
+        std::ostringstream ostr;
+        int invalid_count = 0;
+        for ( const int flag : M_opponent_data[i].invalid_flags_ )
+        {
+            ostr << " " << std::setw( 2 ) << flag;
+            invalid_count += flag;
+        }
+
+        if ( M_opponent_data[i].type_ == Hetero_Unknown )
+        {
+            dlog.addText( Logger::ANALYZER,
+                          "%02d: %s  ->  invalid=%d",
+                          i + 1, ostr.str().c_str(), invalid_count );
         }
     }
 }
