@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.65)
 LT_PREREQ(2.2)
-AC_INIT([librcsc],[2023],[akky@users.sourceforge.jp])
+AC_INIT([librcsc],[2024],[akky@users.sourceforge.jp])
 
 #LT_PREREQ(2.2.4)
 
