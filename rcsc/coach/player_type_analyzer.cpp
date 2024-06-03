@@ -60,6 +60,7 @@ namespace rcsc {
 */
 PlayerTypeAnalyzer::Data::Data()
     : turned_( false ),
+      rotation_( 0.0 ),
       kicked_( false ),
       tackling_( false ),
       maybe_referee_( false ),
@@ -402,7 +403,9 @@ PlayerTypeAnalyzer::checkTurn()
     for ( int i = 0; i < 11 ; ++i )
     {
         M_teammate_data[i].turned_ = false;
+        M_teammate_data[i].rotation_ = 0.0;
         M_opponent_data[i].turned_ = false;
+        M_opponent_data[i].rotation_ = 0.0;
     }
 
     for ( const CoachPlayerObject * t : M_world.teammates() )
@@ -413,7 +416,8 @@ PlayerTypeAnalyzer::checkTurn()
 
         if ( data.body_ != -360.0 )
         {
-            if ( std::fabs( data.body_ - t->body().degree() ) > 0.5 )
+            data.rotation_ = AngleDeg::normalize_angle( data.body_ - t->body().degree() );
+            if ( std::fabs( data.rotation_ ) > 0.5 )
             {
                 data.turned_ = true;
 #ifdef DEBUG_PRINT
@@ -441,7 +445,8 @@ PlayerTypeAnalyzer::checkTurn()
 
         if ( data.body_ != -360.0 )
         {
-            if ( std::fabs( data.body_ - o->body().degree() ) > 0.5 )
+            data.rotation_ = AngleDeg::normalize_angle( data.body_ - o->body().degree() );
+            if ( std::fabs( data.rotation_ ) > 0.5 )
             {
                 data.turned_ = true;
 #ifdef DEBUG_PRINT
@@ -577,10 +582,10 @@ PlayerTypeAnalyzer::checkCollisions()
     const double ball_collide_dist2
         = std::pow( ServerParam::i().defaultPlayerSize()
                     + ServerParam::i().ballSize()
-                    + 0.02,
+                    + 0.001,
                     2 );
     const double player_collide_dist2
-        = std::pow( ServerParam::i().defaultPlayerSize() * 2.0 + 0.02, 2 );
+        = std::pow( ServerParam::i().defaultPlayerSize() * 2.0 + 0.001, 2 );
     const Vector2D pole_pos( ServerParam::i().pitchHalfLength()
                              - ServerParam::i().goalPostRadius(),
                              ServerParam::i().goalHalfWidth()
@@ -921,8 +926,14 @@ PlayerTypeAnalyzer::checkPlayerDecay()
 
         // If the player rotates by the two legs dash model,
         // turn and acceleration occur simultaneously.
-        // In that case, it is impossible to determine the player type based on the player decay noise.
-        if ( data.turned_ ) continue;
+        // In that case, it is impossible to determine the player type based on the player decay noise
+        // if ( data.turned_ ) continue;
+        if ( 0.5 < std::fabs( data.rotation_ )
+            //&& std::fabs( data.rotation_ ) < 50.0 ) // magic number
+            && std::fabs( data.rotation_ ) < 100.0 ) // magic number
+        {
+            continue;
+        }
 
         if ( data.maybe_collide_ ) continue;
         if ( data.maybe_referee_ ) continue;
@@ -970,19 +981,19 @@ PlayerTypeAnalyzer::checkPlayerDecay()
             }
 #else
             // rcssserver-13 or lator
-            Vector2D rand_vec
+            const Vector2D noise_vec
                 = ( p->vel() - data.vel_ * player_type->playerDecay() )
                 / player_type->playerDecay();
-            double rand_r = rand_vec.r();
-            if ( rand_r > rand_max + 0.0000001 )
+            const double noise_magnitude = noise_vec.r();
+            if ( noise_magnitude > rand_max + 1.0e-10 )
             {
                 data.invalid_flags_[t] = 1;
 #ifdef DEBUG_PRINT_DETECT_INVALID
                 dlog.addText( Logger::ANALYZER,
                               __FILE__" (checkPlayerDecay) opponent=%d type=%d"
-                              " out of range player decay. rand_r=%f rand_max=%f",
+                              " out of range player decay. noise=%f rand_max=%f",
                               p->unum(), t,
-                              rand_r, rand_max );
+                              noise_magnitude, rand_max );
 #endif
             }
 #endif
@@ -1034,7 +1045,7 @@ PlayerTypeAnalyzer::checkPlayerSpeedMax()
                                             * ServerParam::i().playerRand()
                                             / ( 1.0 + ServerParam::i().playerRand() ) );
 
-            if ( last_accel_r > max_accel + last_max_noise + 0.0001 )
+            if ( last_accel_r > max_accel + last_max_noise + 1.0e-10 )
             {
                 data.invalid_flags_[t] = 1;
 #ifdef DEBUG_PRINT_DETECT_INVALID
