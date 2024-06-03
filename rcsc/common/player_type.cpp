@@ -1197,6 +1197,46 @@ PlayerType::dashRate( const double & effort,
 }
 
 /*-------------------------------------------------------------------*/
+double
+PlayerType::getBipedalRotation( const double dash_power_left,
+                                const double dash_dir_left,
+                                const double dash_power_right,
+                                const double dash_dir_right,
+                                const double effort ) const
+{
+    const ServerParam & SP = ServerParam::i();
+
+    const Vector2D accel_left = Vector2D::from_polar( SP.normalizeDashPower( dash_power_left ) * dashRate( effort, dash_dir_left ),
+                                                      SP.discretizeDashAngle( dash_dir_left ) );
+    const Vector2D accel_right = Vector2D::from_polar( SP.normalizeDashPower( dash_power_right ) * dashRate( effort, dash_dir_right ),
+                                                       SP.discretizeDashAngle( dash_dir_right ) );
+
+    return AngleDeg::normalize_angle( AngleDeg::RAD2DEG * ( accel_left.x - accel_right.x ) / ( playerSize() * 2.0 ) );
+}
+
+/*-------------------------------------------------------------------*/
+double
+PlayerType::getBipedalRotation( const double dash_power_backward,
+                                const double effort ) const
+{
+    const ServerParam & SP = ServerParam::i();
+
+    const double accel = SP.normalizeDashPower( dash_power_backward ) * dashRate( effort ) * SP.backDashRate();
+
+    return AngleDeg::normalize_angle( AngleDeg::RAD2DEG * ( accel * 2.0 ) / ( playerSize() * 2.0 ) );
+}
+
+/*-------------------------------------------------------------------*/
+double
+PlayerType::getRotationDashPowers( const AngleDeg & rotation,
+                                   const double effort ) const
+{
+    const double required_accel_diff = std::fabs( rotation.radian() ) * ( playerSize() * 2.0 );
+    const double required_power_diff = required_accel_diff / dashRate( effort );
+    return required_power_diff / ( 1.0 + ServerParam::i().backDashRate() );
+}
+
+/*-------------------------------------------------------------------*/
 /*!
 
 */

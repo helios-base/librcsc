@@ -721,6 +721,37 @@ public:
       }
 
     /*!
+      \brief calculate the rotation with the given bipedal dash powers and direction
+      \param dash_power_left the dash power for the left leg
+      \param dash_dir_left the dash direction for both legs
+      \param dash_power_right the dash power for the right leg
+      \param dash_dir_right the dash direction for both legs
+      \param effort the effort value
+      \return estimated result rotation
+     */
+    double getBipedalRotation( const double dash_power_left,
+                               const double dash_dir_left,
+                               const double dash_power_right,
+                               const double dash_dir_right,
+                               const double effort ) const;
+    /*!
+      \brief calculate the rotation with the given bipedal dash powers
+      \param dash_power_backward the dash power for backword
+      \param effort the effort value
+      \return estimated result rotation
+     */
+    double getBipedalRotation( const double dash_power_backward,
+                               const double effort ) const;
+
+    /*!
+      \brief calculate the dash power to rotate the given rotation
+      \param effort the effort value
+      \return the dash power for the backward acceleration
+     */
+    double getRotationDashPowers( const AngleDeg & rotation,
+                                  const double effort ) const;
+
+    /*!
       \brief calculate final reachable speed
       \param dash_power used dash power
       \param effort current effort
