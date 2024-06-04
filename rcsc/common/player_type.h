@@ -744,12 +744,15 @@ public:
                                const double effort ) const;
 
     /*!
-      \brief calculate the dash power to rotate the given rotation
+      \brief calculate the dash powers(outer and inner) to achieve the target rotation.
+      The outer power is assumed to be used as the acceleration in the direction of the body(dash_dir=0).
+      The inner power is assumed to be used as the acceleration in the opposite direction of the body(dash_dir=180).
+      Which leg is on the outside is determined by the positive or negative rotation angle, which must be determined outside of this function call.
       \param effort the effort value
-      \return the dash power for the backward acceleration
+      \return the dash powers [outer(dash_dir=0), inner(dash_dir=180)]
      */
-    double getRotationDashPowers( const AngleDeg & rotation,
-                                  const double effort ) const;
+    std::pair< double, double > getBipedalPowers( const AngleDeg & rotation,
+                                                  const double effort ) const;
 
     /*!
       \brief calculate final reachable speed
