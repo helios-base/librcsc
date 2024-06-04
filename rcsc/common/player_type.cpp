@@ -1197,6 +1197,67 @@ PlayerType::dashRate( const double & effort,
 }
 
 /*-------------------------------------------------------------------*/
+double
+PlayerType::getBipedalRotation( const double dash_power_left,
+                                const double dash_dir_left,
+                                const double dash_power_right,
+                                const double dash_dir_right,
+                                const double effort ) const
+{
+    const ServerParam & SP = ServerParam::i();
+
+    const Vector2D accel_left
+        = Vector2D::from_polar( SP.normalizeDashPower( dash_power_left ) * dashRate( effort, dash_dir_left ),
+                                SP.discretizeDashAngle( dash_dir_left ) );
+    const Vector2D accel_right
+        = Vector2D::from_polar( SP.normalizeDashPower( dash_power_right ) * dashRate( effort, dash_dir_right ),
+                                SP.discretizeDashAngle( dash_dir_right ) );
+
+    return AngleDeg::normalize_angle( AngleDeg::RAD2DEG * ( accel_left.x - accel_right.x ) / ( playerSize() * 2.0 ) );
+}
+
+/*-------------------------------------------------------------------*/
+double
+PlayerType::getBipedalRotation( const double dash_power_backward,
+                                const double effort ) const
+{
+    // the magnitude of the forward accel must be same as the backward one.
+    const double accel = ServerParam::i().normalizeDashPower( dash_power_backward )
+        * dashRate( effort )
+        * ServerParam::i().backDashRate();
+    // the difference between the forward accel and the backward one is the twile of the backword accel
+    return AngleDeg::normalize_angle( AngleDeg::RAD2DEG * ( accel * 2.0 ) / ( playerSize() * 2.0 ) );
+}
+
+/*-------------------------------------------------------------------*/
+std::pair< double, double >
+PlayerType::getBipedalPowers( const AngleDeg & rotation,
+                              const double effort ) const
+{
+    /*
+      (accel_outer + accel_inner) / (player_size * 2) = rotation_radian
+      accel_outer + accel_inner = rotation_radian * player_size * 2
+
+      accel_outer = outer_power * dprate * effort
+      accel_inner = inner_power * back_dash_rate * dprate * effort
+
+      outer_power = inner_power * back_dash_rate
+      accel_outer = inner_power * back_dash_rate * dprate * effort
+      accel_inner = inner_power * back_dash_rate * dprate * effort
+
+      2 * accel_inner = rotation_radian * player_size * 2
+      accel_inner = rotation_radian * player_size
+      inner_power * back_dash_rate * dprate * effort = rotation_radian * player_size
+      inner_power = ( rotation_radian * player_size ) / (back_dash_rate * dprate * effort)
+     */
+    const double inner_power
+        = ( std::fabs( rotation.radian() ) * playerSize() )
+        / ( dashRate( effort ) * ServerParam::i().backDashRate() );
+    return std::make_pair( inner_power * ServerParam::i().backDashRate(),
+                           inner_power );
+}
+
+/*-------------------------------------------------------------------*/
 /*!
 
 */
