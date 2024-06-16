@@ -2365,6 +2365,7 @@ WorldModel::localizeBall( const VisualSensor & see,
                   && ! self().isKicking()
                   && M_ball.seenPosCount() <= 6
                   && M_ball.seenPosCount() >= 2 // ball is not seen at least 2 or more cycles
+                  && ball().heardVelCount() > ball().seenPosCount()
                   && self().lastMove( 0 ).isValid() // no collision in this cycle
                   && self().lastMove( 1 ).isValid() ) // no collision in previous cycle
         {
