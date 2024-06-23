@@ -1033,7 +1033,7 @@ ActionEffector::setDash( const double left_power,
 
     // estimate command effect
     double left_dir_rate = ServerParam::i().dashDirRate( left_command_dir );
-    double right_dir_rate = ServerParam::i().dashDirRate( left_command_dir );
+    double right_dir_rate = ServerParam::i().dashDirRate( right_command_dir );
 
     double left_accel_mag = std::fabs( left_command_power * left_dir_rate * wm.self().dashRate() );
     double right_accel_mag = std::fabs( right_command_power * right_dir_rate * wm.self().dashRate() );
