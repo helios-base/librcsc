@@ -193,6 +193,8 @@ PlayerObject::update()
     M_pointto_count = std::min( 1000, M_pointto_count + 1 );
     M_kicking = false;
     M_tackle_count = std::min( 1000, M_tackle_count + 1 );
+
+    M_last_seen_move_accuracy = std::min( 1000, M_last_seen_move_accuracy + 1 );
 }
 
 /*-------------------------------------------------------------------*/
@@ -225,6 +227,9 @@ PlayerObject::updateBySee( const SideID side,
 
     const Vector2D last_seen_move = p.pos_ - M_seen_pos;
     const int last_seen_pos_count = M_seen_pos_count;
+
+    M_last_seen_move = last_seen_move;
+    M_last_seen_move_accuracy = last_seen_pos_count;
 
     if ( p.hasVel() )
     {

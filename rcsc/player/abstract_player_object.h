@@ -92,6 +92,9 @@ protected:
 
     bool M_kicking; //!< kicking state
 
+    Vector2D M_last_seen_move;
+    int M_last_seen_move_accuracy;
+
     double M_dist_from_ball; //!< distance from ball
     AngleDeg M_angle_from_ball; //!< angle from ball
     double M_dist_from_self; //!< distance from self
@@ -410,6 +413,24 @@ public:
       {
           return M_kicking;
       }
+
+    /*!
+      \brief get the last observed movement
+      \return move vector
+     */
+    const Vector2D & lastSeenMove() const
+    {
+        return M_last_seen_move;
+    }
+
+    /*!
+      \brief get the accuracy count of the last observed moement. Time count since the last observation.
+      \return Time count since the last observation.
+     */
+    int lastSeenMoveAccuracy() const
+    {
+        return M_last_seen_move_accuracy;
+    }
 
     /*!
       \brief get the squared distance from this player to the target player

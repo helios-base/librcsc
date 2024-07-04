@@ -73,6 +73,8 @@ AbstractPlayerObject::AbstractPlayerObject( const int id )
       M_pointto_angle( 0.0 ),
       M_pointto_count( 1000 ),
       M_kicking( false ),
+      M_last_seen_move( Vector2D::INVALIDATED ),
+      M_last_seen_move_accuracy( 1000 ),
       M_dist_from_ball( 1000.0 ),
       M_angle_from_ball( 0.0 ),
       M_dist_from_self( 1000.0 ),
