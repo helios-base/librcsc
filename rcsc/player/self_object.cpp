@@ -374,6 +374,8 @@ SelfObject::update( const ActionEffector & act,
     ++M_face_count;
     M_pointto_count = std::min( 1000, M_pointto_count + 1 );
 
+    M_last_seen_move_accuracy = std::min( 1000, M_last_seen_move_accuracy + 1 );
+
     // update action effect count
     M_tackle_expires = std::max( 0, M_tackle_expires - 1 );
     M_arm_movable = std::max( 0, M_arm_movable - 1 );
@@ -820,6 +822,12 @@ SelfObject::updatePosBySee( const Vector2D & pos,
 {
     // other param is updated in update or update_after_sense
     M_time = current;
+
+    if ( this->pos().isValid() )
+    {
+        M_last_seen_move = pos - this->pos();
+        M_last_seen_move_accuracy = this->posCount();
+    }
 
     // I saw my position in last cycle
     if ( M_pos_count == 1 )
