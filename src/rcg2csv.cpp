@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -343,24 +344,27 @@ std::ostream &
 CSVPrinter::printShowHeader() const
 {
     M_os << "#"
-         << ", cycle, stopped"
-         << ", playmode"
-         << ", l_name, l_score, l_pen_score"
-         << ", r_name, r_score, r_pen_score"
-         << ", b_x, b_y, b_vx, b_vy";
+         << ",cycle,stopped"
+         << ",playmode"
+         << ",l_name,l_score,l_pen_score"
+         << ",r_name,r_score,r_pen_score"
+         << ",b_x,b_y,b_vx,b_vy";
 
     char side = 'l';
     for ( int s = 0; s < 2; ++s )
     {
         for ( int i = 1; i <= rcsc::MAX_PLAYER; ++i )
         {
-            M_os << ", " << side << i << "_t"
-                 << ", " << side << i << "_x"
-                 << ", " << side << i << "_y"
-                 << ", " << side << i << "_vx"
-                 << ", " << side << i << "_vy"
-                 << ", " << side << i << "_body"
-                 << ", " << side << i << "_neck";
+            M_os << "," << side << i << "_t"
+                 << "," << side << i << "_x"
+                 << "," << side << i << "_y"
+                 << "," << side << i << "_vx"
+                 << "," << side << i << "_vy"
+                 << "," << side << i << "_body"
+                 << "," << side << i << "_neck"
+                 << "," << side << i << "_vwidth"
+                 << "," << side << i << "_stamina"
+                ;
         }
         side = 'r';
     }
@@ -416,7 +420,7 @@ CSVPrinter::printTime() const
 std::ostream &
 CSVPrinter::printPlayMode() const
 {
-    M_os << ',' << getPlayModeString( M_playmode );
+    M_os << ',' << std::quoted( getPlayModeString( M_playmode ) );
     return M_os;
 }
 
@@ -429,7 +433,7 @@ CSVPrinter::printTeams() const
 {
     for ( const auto & t : M_teams )
     {
-        M_os << ',' << t.name_
+        M_os << ',' << std::quoted( t.name_ )
              << ',' << t.score_
              << ',' << t.pen_score_;
     }
@@ -482,6 +486,8 @@ CSVPrinter::printPlayer( const rcsc::rcg::PlayerT & player ) const
              << ',' //<< player.vy_
              << ',' //<< player.body_
              << ',' //<< player.neck_;
+             << ',' //<< player.view_width_;
+             << ',' //<< player.stamina_;
             ;
     }
     else
@@ -493,6 +499,8 @@ CSVPrinter::printPlayer( const rcsc::rcg::PlayerT & player ) const
              << ',' << player.vy_
              << ',' << player.body_
              << ',' << player.neck_
+             << ',' << player.view_width_
+             << ',' << player.stamina_
             ;
     }
     return M_os;
