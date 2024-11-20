@@ -343,24 +343,24 @@ std::ostream &
 CSVPrinter::printShowHeader() const
 {
     M_os << "#"
-         << ", cycle, stopped"
-         << ", playmode"
-         << ", l_name, l_score, l_pen_score"
-         << ", r_name, r_score, r_pen_score"
-         << ", b_x, b_y, b_vx, b_vy";
+         << ",cycle,stopped"
+         << ",playmode"
+         << ",l_name,l_score,l_pen_score"
+         << ",r_name,r_score,r_pen_score"
+         << ",b_x,b_y,b_vx,b_vy";
 
     char side = 'l';
     for ( int s = 0; s < 2; ++s )
     {
         for ( int i = 1; i <= rcsc::MAX_PLAYER; ++i )
         {
-            M_os << ", " << side << i << "_t"
-                 << ", " << side << i << "_x"
-                 << ", " << side << i << "_y"
-                 << ", " << side << i << "_vx"
-                 << ", " << side << i << "_vy"
-                 << ", " << side << i << "_body"
-                 << ", " << side << i << "_neck";
+            M_os << "," << side << i << "_t"
+                 << "," << side << i << "_x"
+                 << "," << side << i << "_y"
+                 << "," << side << i << "_vx"
+                 << "," << side << i << "_vy"
+                 << "," << side << i << "_body"
+                 << "," << side << i << "_neck";
         }
         side = 'r';
     }
