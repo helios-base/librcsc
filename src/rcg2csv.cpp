@@ -361,6 +361,7 @@ CSVPrinter::printShowHeader() const
                  << "," << side << i << "_vy"
                  << "," << side << i << "_body"
                  << "," << side << i << "_neck"
+                 << "," << side << i << "_vwidth"
                  << "," << side << i << "_stamina"
                 ;
         }
@@ -484,6 +485,7 @@ CSVPrinter::printPlayer( const rcsc::rcg::PlayerT & player ) const
              << ',' //<< player.vy_
              << ',' //<< player.body_
              << ',' //<< player.neck_;
+             << ',' //<< player.view_width_;
              << ',' //<< player.stamina_;
             ;
     }
@@ -496,6 +498,7 @@ CSVPrinter::printPlayer( const rcsc::rcg::PlayerT & player ) const
              << ',' << player.vy_
              << ',' << player.body_
              << ',' << player.neck_
+             << ',' << player.view_width_
              << ',' << player.stamina_
             ;
     }
