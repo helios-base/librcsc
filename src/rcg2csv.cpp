@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -419,7 +420,7 @@ CSVPrinter::printTime() const
 std::ostream &
 CSVPrinter::printPlayMode() const
 {
-    M_os << ',' << getPlayModeString( M_playmode );
+    M_os << ',' << std::quoted( getPlayModeString( M_playmode ) );
     return M_os;
 }
 
@@ -432,7 +433,7 @@ CSVPrinter::printTeams() const
 {
     for ( const auto & t : M_teams )
     {
-        M_os << ',' << t.name_
+        M_os << ',' << std::quoted( t.name_ )
              << ',' << t.score_
              << ',' << t.pen_score_;
     }
