@@ -41,6 +41,7 @@
 
 #include "simdjson/simdjson.h"
 
+#include <unordered_map>
 #include <string_view>
 #include <functional>
 
