@@ -28,21 +28,25 @@
 #include <config.h>
 #endif
 
-#include <cmath>
-#include <cstring>
-#include <iomanip>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-
 #include <rcsc/common/server_param.h>
 #include <rcsc/common/player_param.h>
 #include <rcsc/common/player_type.h>
 
+#include <rcsc/param/param_map.h>
+#include <rcsc/param/cmd_line_parser.h>
+
 #include <rcsc/types.h>
 #include <rcsc/gz.h>
 #include <rcsc/rcg.h>
+
+#include <filesystem>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <iomanip>
+#include <iostream>
+#include <cmath>
+
 
 class CSVPrinter
     : public rcsc::rcg::Handler {
@@ -66,33 +70,34 @@ private:
             , catch_( 0 )
             , move_( 0 )
             , change_view_( 0 )
-          { }
+        { }
         void update( const rcsc::rcg::player_t & player )
-          {
-              kick_ = rcsc::rcg::nstohi( player.kick_count );
-              dash_ = rcsc::rcg::nstohi( player.dash_count );
-              turn_ = rcsc::rcg::nstohi( player.turn_count );
-              say_ = rcsc::rcg::nstohi( player.say_count );
-              turn_neck_ = rcsc::rcg::nstohi( player.turn_neck_count );
-              catch_ = rcsc::rcg::nstohi( player.catch_count );
-              move_ = rcsc::rcg::nstohi( player.move_count );
-              change_view_ = rcsc::rcg::nstohi( player.change_view_count );
-          }
+        {
+            kick_ = rcsc::rcg::nstohi( player.kick_count );
+            dash_ = rcsc::rcg::nstohi( player.dash_count );
+            turn_ = rcsc::rcg::nstohi( player.turn_count );
+            say_ = rcsc::rcg::nstohi( player.say_count );
+            turn_neck_ = rcsc::rcg::nstohi( player.turn_neck_count );
+            catch_ = rcsc::rcg::nstohi( player.catch_count );
+            move_ = rcsc::rcg::nstohi( player.move_count );
+            change_view_ = rcsc::rcg::nstohi( player.change_view_count );
+        }
         void update( const rcsc::rcg::PlayerT & player )
-          {
-              kick_ = player.kick_count_;
-              dash_ = player.dash_count_;
-              turn_ = player.turn_count_;
-              say_ = player.say_count_;
-              turn_neck_ = player.turn_neck_count_;
-              catch_ = player.catch_count_;
-              move_ = player.move_count_;
-              change_view_ = player.change_view_count_;
-          }
+        {
+            kick_ = player.kick_count_;
+            dash_ = player.dash_count_;
+            turn_ = player.turn_count_;
+            say_ = player.say_count_;
+            turn_neck_ = player.turn_neck_count_;
+            catch_ = player.catch_count_;
+            move_ = player.move_count_;
+            change_view_ = player.change_view_count_;
+        }
     };
 
 
-    std::ostream & M_os;
+    std::ostream & M_tracking_out;
+    std::ostream & M_player_types_out;
 
     int M_show_count;
 
@@ -109,7 +114,8 @@ private:
 public:
 
     explicit
-    CSVPrinter( std::ostream & os );
+    CSVPrinter( std::ostream & trakcing_out,
+                std::ostream & player_types_out );
 
     bool handleLogVersion( const int ver ) override;
 
@@ -135,9 +141,9 @@ public:
                             const int,
                             const int,
                             const std::vector< std::string > & ) override
-      {
-          return true;
-      }
+    {
+        return true;
+    }
 
 private:
     const std::string & getPlayModeString( const rcsc::PlayMode playmode ) const;
@@ -166,8 +172,10 @@ private:
 /*!
 
  */
-CSVPrinter::CSVPrinter( std::ostream & os )
-    : M_os( os ),
+CSVPrinter::CSVPrinter( std::ostream & tracking_out,
+                        std::ostream & player_types_out)
+    : M_tracking_out( tracking_out ),
+      M_player_types_out( player_types_out ),
       M_show_count( 0 ),
       M_cycle( 0 ),
       M_stopped( 0 ),
@@ -309,34 +317,30 @@ CSVPrinter::handlePlayerParam( const rcsc::rcg::PlayerParamT & param )
 bool
 CSVPrinter::handlePlayerType( const rcsc::rcg::PlayerTypeT & ptype )
 {
-#if 0
     static bool s_header = false;
     if ( ! s_header )
     {
-        M_os << "id,player_speed_max,stamina_inc_max,player_decay,inertia_moment,dash_power_rate,player_size,kickable_margin,kick_rand,extra_stamina,effort_max,effort_min,kick_power_rate,foul_detect_probability,catchable_area_l_stretch"
-             << '\n';
+        M_player_types_out << "id,player_speed_max,stamina_inc_max,player_decay,inertia_moment,dash_power_rate,player_size,kickable_margin,kick_rand,extra_stamina,effort_max,effort_min,kick_power_rate,foul_detect_probability,catchable_area_l_stretch"
+                       << '\n';
         s_header = true;
     }
 
-    M_os << ptype.id_
-         << ',' << ptype.player_speed_max_
-         << ',' << ptype.stamina_inc_max_
-         << ',' << ptype.player_decay_
-         << ',' << ptype.inertia_moment_
-         << ',' << ptype.dash_power_rate_
-         << ',' << ptype.player_size_
-         << ',' << ptype.kickable_margin_
-         << ',' << ptype.kick_rand_
-         << ',' << ptype.extra_stamina_
-         << ',' << ptype.effort_max_
-         << ',' << ptype.effort_min_
-         << ',' << ptype.kick_power_rate_
-         << ',' << ptype.foul_detect_probability_
-         << ',' << ptype.catchable_area_l_stretch_
-         << '\n';
-#else
-    (void)ptype;
-#endif
+    M_player_types_out << ptype.id_
+                       << ',' << ptype.player_speed_max_
+                       << ',' << ptype.stamina_inc_max_
+                       << ',' << ptype.player_decay_
+                       << ',' << ptype.inertia_moment_
+                       << ',' << ptype.dash_power_rate_
+                       << ',' << ptype.player_size_
+                       << ',' << ptype.kickable_margin_
+                       << ',' << ptype.kick_rand_
+                       << ',' << ptype.extra_stamina_
+                       << ',' << ptype.effort_max_
+                       << ',' << ptype.effort_min_
+                       << ',' << ptype.kick_power_rate_
+                       << ',' << ptype.foul_detect_probability_
+                       << ',' << ptype.catchable_area_l_stretch_
+                       << '\n';
     return true;
 }
 
@@ -365,7 +369,7 @@ CSVPrinter::getPlayModeString( const rcsc::PlayMode playmode ) const
 std::ostream &
 CSVPrinter::printServerParam() const
 {
-    return M_os;
+    return M_tracking_out;
 }
 
 /*-------------------------------------------------------------------*/
@@ -375,7 +379,7 @@ CSVPrinter::printServerParam() const
 std::ostream &
 CSVPrinter::printPlayerParam() const
 {
-    return M_os;
+    return M_tracking_out;
 }
 
 /*-------------------------------------------------------------------*/
@@ -385,7 +389,7 @@ CSVPrinter::printPlayerParam() const
 std::ostream &
 CSVPrinter::printPlayerTypes() const
 {
-    return M_os;
+    return M_player_types_out;
 }
 
 /*-------------------------------------------------------------------*/
@@ -395,34 +399,34 @@ CSVPrinter::printPlayerTypes() const
 std::ostream &
 CSVPrinter::printShowHeader() const
 {
-    M_os << "#"
-         << ",cycle,stopped"
-         << ",playmode"
-         << ",l_name,l_score,l_pen_score"
-         << ",r_name,r_score,r_pen_score"
-         << ",b_x,b_y,b_vx,b_vy";
+    M_tracking_out << "#"
+                   << ",cycle,stopped"
+                   << ",playmode"
+                   << ",l_name,l_score,l_pen_score"
+                   << ",r_name,r_score,r_pen_score"
+                   << ",b_x,b_y,b_vx,b_vy";
 
     char side = 'l';
     for ( int s = 0; s < 2; ++s )
     {
         for ( int i = 1; i <= rcsc::MAX_PLAYER; ++i )
         {
-            M_os << "," << side << i << "_t"
-                 << "," << side << i << "_x"
-                 << "," << side << i << "_y"
-                 << "," << side << i << "_vx"
-                 << "," << side << i << "_vy"
-                 << "," << side << i << "_body"
-                 << "," << side << i << "_neck"
-                 << "," << side << i << "_vwidth"
-                 << "," << side << i << "_stamina"
+            M_tracking_out << "," << side << i << "_t"
+                           << "," << side << i << "_x"
+                           << "," << side << i << "_y"
+                           << "," << side << i << "_vx"
+                           << "," << side << i << "_vy"
+                           << "," << side << i << "_body"
+                           << "," << side << i << "_neck"
+                           << "," << side << i << "_vwidth"
+                           << "," << side << i << "_stamina"
                 ;
         }
         side = 'r';
     }
 
-    M_os << '\n';
-    return M_os;
+    M_tracking_out << '\n';
+    return M_tracking_out;
 }
 
 /*-------------------------------------------------------------------*/
@@ -439,8 +443,8 @@ CSVPrinter::printShowData( const rcsc::rcg::ShowInfoT & show ) const
     printBall( show.ball_ );
     printPlayers( show );
 
-    M_os << '\n';
-    return M_os;
+    M_tracking_out << '\n';
+    return M_tracking_out;
 }
 
 /*-------------------------------------------------------------------*/
@@ -450,8 +454,8 @@ CSVPrinter::printShowData( const rcsc::rcg::ShowInfoT & show ) const
 std::ostream &
 CSVPrinter::printShowCount() const
 {
-    M_os << M_show_count;
-    return M_os;
+    M_tracking_out << M_show_count;
+    return M_tracking_out;
 }
 
 /*-------------------------------------------------------------------*/
@@ -461,8 +465,8 @@ CSVPrinter::printShowCount() const
 std::ostream &
 CSVPrinter::printTime() const
 {
-    M_os << ',' << M_cycle << ',' << M_stopped;
-    return M_os;
+    M_tracking_out << ',' << M_cycle << ',' << M_stopped;
+    return M_tracking_out;
 }
 
 /*-------------------------------------------------------------------*/
@@ -472,8 +476,8 @@ CSVPrinter::printTime() const
 std::ostream &
 CSVPrinter::printPlayMode() const
 {
-    M_os << ',' << std::quoted( getPlayModeString( M_playmode ) );
-    return M_os;
+    M_tracking_out << ',' << std::quoted( getPlayModeString( M_playmode ) );
+    return M_tracking_out;
 }
 
 /*-------------------------------------------------------------------*/
@@ -485,12 +489,12 @@ CSVPrinter::printTeams() const
 {
     for ( const auto & t : M_teams )
     {
-        M_os << ',' << std::quoted( t.name_ )
-             << ',' << t.score_
-             << ',' << t.pen_score_;
+        M_tracking_out << ',' << std::quoted( t.name_ )
+                       << ',' << t.score_
+                       << ',' << t.pen_score_;
     }
 
-    return M_os;
+    return M_tracking_out;
 }
 
 /*-------------------------------------------------------------------*/
@@ -500,11 +504,11 @@ CSVPrinter::printTeams() const
 std::ostream &
 CSVPrinter::printBall( const rcsc::rcg::BallT & ball ) const
 {
-    M_os << ',' << ball.x_
-         << ',' << ball.y_
-         << ',' << ball.vx_
-         << ',' << ball.vy_;
-    return M_os;
+    M_tracking_out << ',' << ball.x_
+                   << ',' << ball.y_
+                   << ',' << ball.vx_
+                   << ',' << ball.vy_;
+    return M_tracking_out;
 }
 
 /*-------------------------------------------------------------------*/
@@ -519,7 +523,7 @@ CSVPrinter::printPlayers( const rcsc::rcg::ShowInfoT & show ) const
         printPlayer( p );
     }
 
-    return M_os;
+    return M_tracking_out;
 }
 
 /*-------------------------------------------------------------------*/
@@ -531,31 +535,53 @@ CSVPrinter::printPlayer( const rcsc::rcg::PlayerT & player ) const
 {
     if ( player.state_ == rcsc::rcg::DISABLE )
     {
-        M_os << ',' //<< player.type_
-             << ',' //<< player.x_
-             << ',' //<< player.y_
-             << ',' //<< player.vx_
-             << ',' //<< player.vy_
-             << ',' //<< player.body_
-             << ',' //<< player.neck_;
-             << ',' //<< player.view_width_;
-             << ',' //<< player.stamina_;
+        M_tracking_out << ',' //<< player.type_
+                       << ',' //<< player.x_
+                       << ',' //<< player.y_
+                       << ',' //<< player.vx_
+                       << ',' //<< player.vy_
+                       << ',' //<< player.body_
+                       << ',' //<< player.neck_;
+                       << ',' //<< player.view_width_;
+                       << ',' //<< player.stamina_;
             ;
     }
     else
     {
-        M_os << ',' << player.type_
-             << ',' << player.x_
-             << ',' << player.y_
-             << ',' << player.vx_
-             << ',' << player.vy_
-             << ',' << player.body_
-             << ',' << player.neck_
-             << ',' << player.view_width_
-             << ',' << player.stamina_
+        M_tracking_out << ',' << player.type_
+                       << ',' << player.x_
+                       << ',' << player.y_
+                       << ',' << player.vx_
+                       << ',' << player.vy_
+                       << ',' << player.body_
+                       << ',' << player.neck_
+                       << ',' << player.view_width_
+                       << ',' << player.stamina_
             ;
     }
-    return M_os;
+    return M_tracking_out;
+}
+
+////////////////////////////////////////////////////////////////////////
+std::string
+get_base_name( const std::string & path )
+{
+    // remove all extension (".rcg" or ".rcg.gz")from file name
+    std::filesystem::path p( path );
+
+    // if file name has .gz extension, remove it
+    if ( p.extension() == ".gz" )
+    {
+        p.replace_extension();
+    }
+
+    // if file name has .rcg extension, remove it
+    if ( p.extension() == ".rcg" )
+    {
+        p.replace_extension();
+    }
+
+    return p.string();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -563,21 +589,58 @@ CSVPrinter::printPlayer( const rcsc::rcg::PlayerT & player ) const
 int
 main( int argc, char** argv )
 {
-    if ( argc != 2
-         || ! std::strncmp( argv[1], "--help", 6 )
-         || ! std::strncmp( argv[1], "-h", 2 ) )
+    bool help = false;
+    bool print_player_types = false;
+
+    rcsc::ParamMap options( "Options" );
+    options.add()
+        ( "help", "", rcsc::BoolSwitch( &help ), "print help message." )
+        ( "player-types", "p", rcsc::BoolSwitch( &print_player_types ), "print player_type information."  )
+        ;
+
+    rcsc::CmdLineParser cmd_parser( argc, argv );
+    cmd_parser.parse( options );
+
+    if ( help
+         || cmd_parser.failed()
+         || cmd_parser.positionalOptions().empty() )
     {
-        std::cerr << "usage: " << argv[0] << " <RCGFile>[.gz]" << std::endl;
+        std::cerr << " usage:\n";
+        std::cerr << "  " << argv[0] << " [-p] <RCGFile>[.gz] ...\n";
+        options.printHelp( std::cerr );
         return 0;
     }
 
-    rcsc::gzifstream fin( argv[1] );
+    const std::string infile = cmd_parser.positionalOptions().front();
+    rcsc::gzifstream fin( infile.c_str() );
 
     if ( ! fin.is_open() )
     {
-        std::cerr << "Failed to open file : " << argv[1] << std::endl;
+        std::cerr << "Failed to open file : " << infile << std::endl;
         return 1;
     }
+
+    const std::string basename = get_base_name( infile );
+    const std::string tracking_csv = basename + ".tracking.csv";
+    const std::string player_types_csv = basename + ".player_types.csv";
+
+    std::ofstream tracking_out( tracking_csv );
+    if ( ! tracking_out.is_open() )
+    {
+        std::cerr << "Failed to open the output file : " << tracking_csv << std::endl;
+        return 1;
+    }
+
+    std::ofstream player_types_out( player_types_csv );
+    if ( ! player_types_out.is_open() )
+    {
+        std::cerr << "Failed to open the output file : " << player_types_csv << std::endl;
+        return 1;
+    }
+
+    std::cerr << " in:           " << infile << '\n';
+    std::cerr << " tracking:     " << tracking_csv << '\n';
+    std::cerr << " player_types: " << player_types_csv << std::endl;
 
     rcsc::rcg::Parser::Ptr parser = rcsc::rcg::Parser::create( fin );
 
@@ -587,7 +650,7 @@ main( int argc, char** argv )
         return 1;
     }
 
-    CSVPrinter printer( std::cout );
+    CSVPrinter printer( tracking_out, player_types_out );
 
     parser->parse( fin, printer );
 
