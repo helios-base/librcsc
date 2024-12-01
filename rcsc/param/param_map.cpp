@@ -318,7 +318,10 @@ ParamEntity::printFormat( std::ostream & os ) const
         os << " [ -" << shortName() << " ]";
     }
 
-    os << " <Value>";
+    if ( ! isSwitch() )
+    {
+        os << " <Value>";
+    }
     return os;
 }
 
