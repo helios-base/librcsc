@@ -74,6 +74,8 @@ private:
 
     StaminaModel M_stamina; //!< (heared or estimated) stamina value
 
+    int M_dash_count; //< the number of dash command (if available, otherwise always 0)
+
     int M_pointto_cycle; //< if player is pointing, this value in incremented
     AngleDeg M_pointto_angle; //!< player's global arm angle
 
@@ -234,6 +236,11 @@ public:
       {
           return M_stamina.capacity();
       }
+
+    int dashCount() const
+    {
+        return M_dash_count;
+    }
 
     /*!
       \brief get player's pointto status
