@@ -27,6 +27,7 @@ rcg2txt
 rcgrenameteam
 rcgresultprinter
 rcgreverse
+rcgvalidator
 rcgverconv
 rcgversion
 rclmscheduler
@@ -34,4 +35,3 @@ rclmtableprinter
 stamp-h1
 tmp
 thermo_color_test
-

@@ -7,6 +7,7 @@ bin_PROGRAMS = \
 	rcgrenameteam \
 	rcgresultprinter \
 	rcgreverse \
+	rcgvalidator \
 	rcgverconv \
 	rcgversion
 
@@ -60,6 +61,13 @@ rcgreverse_CXXFLAGS = -Wall -W
 rcgreverse_LDFLAGS = \
 	-L$(top_builddir)/rcsc
 rcgreverse_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
+
+rcgvalidator_SOURCES = \
+	rcgvalidator.cpp
+rcgvalidator_CXXFLAGS = -Wall -W
+rcgvalidator_LDFLAGS = \
+	-L$(top_builddir)/rcsc
+rcgvalidator_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
 
 rcgverconv_SOURCES = \
 	rcgverconv.cpp
