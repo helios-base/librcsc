@@ -56,6 +56,7 @@ CoachPlayerObject::CoachPlayerObject()
       M_body( 0.0 ),
       M_face( 0.0 ),
       M_stamina(),
+      M_dash_count( 0 ),
       M_pointto_cycle( 0 ),
       M_pointto_angle( 0.0 ),
       M_kicking( false ),
@@ -234,6 +235,8 @@ CoachPlayerObject::update( const rcg::PlayerT & p )
                              p.recovery_,
                              p.stamina_capacity_ );
     }
+
+    M_dash_count = p.dash_count_;
 
     if ( p.isPointing() )
     {
