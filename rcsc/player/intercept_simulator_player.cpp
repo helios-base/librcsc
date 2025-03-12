@@ -56,7 +56,7 @@ inline
 Vector2D
 get_pos( const PlayerObject & p )
 {
-    return ( p.heardPosCount() < p.seenPosCount()
+    return ( p.heardPosCount() <= p.seenPosCount() - 2
              ? p.heardPos()
              : p.seenPos() );
 }
@@ -351,6 +351,11 @@ InterceptSimulatorPlayer::canReachAfterTurnDash( const PlayerData & data,
     int max_dash = total_step - n_turn - data.penalty_step_;
     if ( max_dash < 0 )
     {
+#ifdef DEBUG2
+    dlog.addText( Logger::INTERCEPT,
+                  "______ step %d [false] max_dash=%d",
+                  total_step, max_dash );
+#endif
         return false;
     }
 
@@ -387,6 +392,13 @@ InterceptSimulatorPlayer::predictTurnCycle( const PlayerData & data,
         // assume back dash
         angle_diff = 180.0 - angle_diff;
     }
+
+#ifdef DEBUG2
+    dlog.addText( Logger::INTERCEPT,
+                  "______ step %d: player=(%.1f %.1f) ball_dist=%.3f angle_diff=%.1f turn_margin=%.1f",
+                  total_step, data.pos_.x, data.pos_.y,//inertia_pos.x, inertia_pos.y,
+                  ball_dist, angle_diff, turn_margin );
+#endif
 
     int n_turn = 0;
 
@@ -454,6 +466,12 @@ InterceptSimulatorPlayer::canReachAfterDash( const PlayerData & data,
 #endif
         return true;
     }
+
+#ifdef DEBUG2
+    dlog.addText( Logger::INTERCEPT,
+                  "______ unum=%d [false] total=%d >= turn=%d dash=%d -bonus=%d penalty=%d",
+                  data.player_.unum(), total_step, n_turn, n_dash, bonus_step, data.penalty_step_ );
+#endif
 
     return false;
 }

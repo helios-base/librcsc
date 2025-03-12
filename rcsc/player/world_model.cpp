@@ -59,8 +59,8 @@
 #include <cassert>
 #include <cmath>
 
-#define DEBUG_PROFILE
-#define DEBUG_PRINT
+// #define DEBUG_PROFILE
+// #define DEBUG_PRINT
 
 // #define DEBUG_PRINT_SELF_UPDATE
 // #define DEBUG_PRINT_BALL_UPDATE
@@ -2378,12 +2378,17 @@ WorldModel::localizeBall( const VisualSensor & see,
         gvel = self().vel() + rvel;
         vel_error += self().velError();
         vel_count = 0;
+#ifdef DEBUG_PRINT_BALL_UPDATE
+        dlog.addText( Logger::WORLD,
+                      __FILE__" (localizeBall) self_vel=(%.3f %.3f) ball_rvel=(%.3f %.3f) r=%.3f th=%.1f gvel=(%.3f %.3f)",
+                      self().vel().x, self().vel().y, rvel.x, rvel.y, rvel.r(), rvel.th().degree(), gvel.x, gvel.y );
+#endif
     }
 
     //////////////////////////////////////////////////////////////////
     // calc global velocity using rpos diff (if ball is out of view cone and within vis_dist)
 
-    if ( ! gvel.isValid() )
+    //if ( ! gvel.isValid() )
     {
         estimateBallVelByPosDiff( see, act, rpos, rpos_error,
                                   gvel, vel_error, vel_count );
@@ -2524,6 +2529,12 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
             tmp_vel *= ServerParam::i().ballDecay();
             tmp_vel_error *= ServerParam::i().ballDecay();
 
+            // collision
+            // if ( self().collidesWithBall() )
+            // {
+            //     tmp_vel *= -0.1;
+            //     tmp_vel_error *= 0.1;
+            // }
 #ifdef DEBUG_PRINT_BALL_UPDATE
             dlog.addText( Logger::WORLD,
                           "________ rpos(%.3f %.3f) prev_rpos(%.3f %.3f)",
@@ -2566,12 +2577,28 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
             dlog.addText( Logger::WORLD,
                           __FILE__" (estimateBallVelByPosDiff) update" );
 #endif
-            vel = tmp_vel;
-            vel_error = tmp_vel_error;
-            vel_count = 1;
+            if ( ! vel.isValid() )
+            {
+                vel = tmp_vel;
+                vel_error = tmp_vel_error;
+                vel_count = 1;
+            }
+            else
+            {
+                // the player has observed the ball velocity by see message
+                if ( ! self().collidesWithBall()
+                     && prevBall().rpos().r2() < std::pow( ServerParam::i().visibleDistance() - 0.2, 2 )
+                     && tmp_vel.r() * 0.5 < vel.r() ) // if the ball collides with other players, the seen vel would be much smaller.
+                {
+                    vel = tmp_vel;
+                    vel_error = tmp_vel_error;
+                    vel_count = 1;
+                }
+            }
         }
     }
-    else if ( ball().rposCount() == 2 )
+    else if ( ! vel.isValid()
+              && ball().rposCount() == 2 )
     {
 #ifdef DEBUG_PRINT_BALL_UPDATE
         dlog.addText( Logger::WORLD,
@@ -2639,7 +2666,8 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
 
         }
     }
-    else if ( ball().rposCount() == 3 )
+    else if ( ! vel.isValid()
+              && ball().rposCount() == 3 )
     {
 #ifdef DEBUG_PRINT_BALL_UPDATE
         dlog.addText( Logger::WORLD,
@@ -4557,7 +4585,7 @@ WorldModel::updateTheirOffenseLine()
 void
 WorldModel::updateTheirDefenseLine()
 {
-    double first = 0.0, second = 0.0;
+    double first_x = 0.0, second_x = 0.0;
     int first_count = 1000, second_count = 1000;
 
     const PlayerObject * first_player = nullptr;
@@ -4566,11 +4594,47 @@ WorldModel::updateTheirDefenseLine()
     for ( const PlayerObject * p : M_opponents_from_self )
     {
         // 2015-07-14
-        const PlayerType * ptype = p->playerTypePtr();
-        double x = p->pos().x;
-        double adjust = 0.0;
-        if ( x > ball().pos().x + 3.0 )
+        // 2023-06-24
+        double player_x = p->pos().x;
+        if ( p->posCount() > 0
+             && player_x > ball().pos().x + 3.0 )
         {
+            const PlayerType * ptype = p->playerTypePtr();
+#if 1
+            Vector2D opponent_pos = p->pos();
+            Vector2D opponent_vel = p->vel();
+            Vector2D accel_unit = ( p->bodyCount() <= 3
+                                    ? Vector2D::from_polar( 1.0, p->body() )
+                                    : Vector2D( -1.0, 0.0 ) );
+            const int max_count = std::min( 3, p->posCount() );
+            // dlog.addText( Logger::WORLD,
+            //               "(updateTheirDefenseLine) opponent=%d accel_unit=(%.3f %.3f) max_count=%d pos=(%.1f %.1f)",
+            //               p->unum(), accel_unit.x, accel_unit.y, max_count, opponent_pos.x, opponent_pos.y );
+            for ( int i = 0; i < max_count; ++i )
+            {
+                if ( i == 0
+                     && p->bodyCount() <= 3
+                     && accel_unit.th().abs() < 160.0 )
+                {
+                    // turn
+                    opponent_pos += opponent_vel;
+                    opponent_vel *= ptype->playerDecay();
+                    accel_unit.assign( -1.0, 0.0 );
+                    continue;
+                }
+                opponent_vel += accel_unit * ( 0.7 * ( ServerParam::i().maxDashPower() * ptype->dashRate( ptype->effortMax() ) ) );
+                opponent_pos += opponent_vel;
+                // dlog.addText( Logger::WORLD,
+                //               "(updateTheirDefenseLine) opponent=%d accel_unit=(%.3f %.3f) loop=%d pos=(%.1f %.1f) vel=(%.2f %.2f)",
+                //               p->unum(), accel_unit.x, accel_unit.y, i, opponent_pos.x, opponent_pos.y,
+                //               opponent_vel.x, opponent_vel.y );
+                opponent_vel *= ptype->playerDecay();
+            }
+            player_x = opponent_pos.x;
+            dlog.addText( Logger::WORLD,
+                          "(updateTheirDefenseLine) opponent=%d world_x=%.1f predict_x=%.1f",
+                          p->unum(), p->pos().x, player_x );
+#else
             double rate = 0.1;
             if ( p->vel().x < -ptype->realSpeedMax()*ptype->playerDecay() * 0.8
                  || ball().pos().x > 25.0 )
@@ -4580,28 +4644,29 @@ WorldModel::updateTheirDefenseLine()
             // dlog.addText( Logger::WORLD,
             //               "(updateTheirDefenseLine) %d rate=%.1f",
             //               p->unum(), rate );
-            adjust = rate * ptype->realSpeedMax() * std::min( 3, p->posCount() );
+            double adjust = rate * ptype->realSpeedMax() * std::min( 3, p->posCount() );
+            // dlog.addText( Logger::WORLD,
+            //               "(updateTheirDefenseLine) %d x=%.1f adjust=%.1f",
+            //               (*it)->unum(), x, adjust );
+            player_x -= adjust;
+#endif
         }
-        // dlog.addText( Logger::WORLD,
-        //               "(updateTheirDefenseLine) %d x=%.1f adjust=%.1f",
-        //               (*it)->unum(), x, adjust );
-        x -= adjust;
 
-        if ( x > second )
+        if ( player_x > second_x )
         {
-            second = x;
+            second_x = player_x;
             second_count = p->posCount();
             second_player = p;
-            if ( second > first )
+            if ( second_x > first_x )
             {
-                std::swap( first, second );
+                std::swap( first_x, second_x );
                 std::swap( first_count, second_count );
                 std::swap( first_player, second_player );
             }
         }
     }
 
-    double new_line = second;
+    double new_line = second_x;
     int count = second_count;
 
     // dlog.addText( Logger::WORLD,
@@ -4613,12 +4678,12 @@ WorldModel::updateTheirDefenseLine()
         if ( 20.0 < ball().pos().x
              && ball().pos().x < ServerParam::i().theirPenaltyAreaLineX() )
         {
-            if ( first < ServerParam::i().theirPenaltyAreaLineX() )
+            if ( first_x < ServerParam::i().theirPenaltyAreaLineX() )
             {
                 // dlog.addText( Logger::WORLD,
                 //               "(updateTheirDefenseLine) no goalie. %.1f -> %.1f",
                 //               second, first );
-                new_line = first;
+                new_line = first_x;
                 count = 30;
             }
         }
