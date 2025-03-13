@@ -37,9 +37,8 @@
 
 #include "util.h"
 
-
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
 #endif
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
@@ -85,7 +84,7 @@ Handler::handleDispInfo( const dispinfo_t & dinfo )
         break;
     case MSG_MODE:
         return handleMsg( M_read_time,
-                          dinfo.body.msg.board,
+                          ntohs( dinfo.body.msg.board ),
                           std::string( dinfo.body.msg.message ) );
         break;
     case DRAW_MODE:
@@ -116,7 +115,7 @@ Handler::handleDispInfo2( const dispinfo_t2 & dinfo2 )
         break;
     case MSG_MODE:
         return handleMsg( M_read_time,
-                          dinfo2.body.msg.board,
+                          ntohs( dinfo2.body.msg.board ),
                           std::string( dinfo2.body.msg.message ) );
         break;
     case PT_MODE:
@@ -225,11 +224,7 @@ bool
 Handler::handleTeamInfo( const team_t & team_left,
                          const team_t & team_right )
 {
-    TeamT l, r;
-    convert( team_left, l );
-    convert( team_right, r );
-
-    return handleTeam( M_read_time, l, r );
+    return handleTeam( M_read_time, TeamT( team_left ), TeamT( team_right ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -239,7 +234,7 @@ Handler::handleTeamInfo( const team_t & team_left,
 bool
 Handler::handlePlayerType( const player_type_t & type )
 {
-    return handlePlayerType( to_string( type ) );
+    return handlePlayerType( PlayerTypeT( type ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -249,7 +244,7 @@ Handler::handlePlayerType( const player_type_t & type )
 bool
 Handler::handleServerParam( const server_params_t & param )
 {
-    return handleServerParam( to_string( param ) );
+    return handleServerParam( ServerParamT( param ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -259,7 +254,15 @@ Handler::handleServerParam( const server_params_t & param )
 bool
 Handler::handlePlayerParam( const player_params_t & param )
 {
-    return handlePlayerParam( to_string( param ) );
+    return handlePlayerParam( PlayerParamT( param ) );
+}
+
+/*-------------------------------------------------------------------*/
+bool
+Handler::handlePlayMode( const int time,
+                         const std::string & playmode )
+{
+    return handlePlayMode( time, to_playmode_enum( playmode ) );
 }
 
 } // end namespace

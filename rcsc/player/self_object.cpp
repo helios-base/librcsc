@@ -211,7 +211,9 @@ SelfObject::update( const ActionEffector & act,
     M_pos_prev = M_pos;
 
     Vector2D accel( 0.0, 0.0 );
-    double dash_power = 0.0;
+    double dash_rotation = 0.0;
+    double left_dash_power = 0.0;
+    double right_dash_power = 0.0;
     double turn_moment = 0.0, turn_err = 0.0;
     double neck_moment = 0.0;
 
@@ -219,7 +221,8 @@ SelfObject::update( const ActionEffector & act,
     // base command
     switch ( act.lastBodyCommandType() ) {
     case PlayerCommand::DASH:
-        act.getDashInfo( &accel, &dash_power );
+        //act.getDashInfo( &accel, &dash_power );
+        act.getDashInfo( &accel, &dash_rotation, &left_dash_power, &right_dash_power );
         break;
     case PlayerCommand::TURN:
         act.getTurnInfo( &turn_moment, &turn_err );
@@ -274,9 +277,13 @@ SelfObject::update( const ActionEffector & act,
     }
 
     // stamina
-    M_stamina.simulateDash( playerType(), dash_power );
+    //M_stamina.simulateDash( playerType(), dash_power );
+    M_stamina.simulateDash( playerType(), left_dash_power, right_dash_power );
 
 #ifdef DEBUG_PRINT
+    dlog.addText( Logger::WORLD,
+                  __FILE__" (update) estimated turn=%.1f dash_rot=%.1f",
+                  turn_moment, dash_rotation );
     dlog.addText( Logger::WORLD,
                   __FILE__" (update) estimated stamina=%.1f effort=%f recovery=%f capacity=%.1f",
                   M_stamina.stamina(),
@@ -288,6 +295,7 @@ SelfObject::update( const ActionEffector & act,
     /////////////////////////////////////////////////////////////////
     // turn
     M_body += turn_moment;
+    M_body += dash_rotation;
 
     /////////////////////////////////////////////////////////////////
     // face
@@ -307,6 +315,12 @@ SelfObject::update( const ActionEffector & act,
     {
         M_pos += M_vel;
     }
+
+#ifdef DEBUG_PRINT
+    dlog.addText( Logger::WORLD,
+                  __FILE__" (update) estimated body=%.1f neck=%.1f face=%.1f",
+                  M_body.degree(), M_neck.degree(), M_face.degree() );
+#endif
 
     // rcssserver/src/object.C
     // PVector MPObject::noise()
@@ -359,6 +373,8 @@ SelfObject::update( const ActionEffector & act,
     ++M_body_count;
     ++M_face_count;
     M_pointto_count = std::min( 1000, M_pointto_count + 1 );
+
+    M_last_seen_move_accuracy = std::min( 1000, M_last_seen_move_accuracy + 1 );
 
     // update action effect count
     M_tackle_expires = std::max( 0, M_tackle_expires - 1 );
@@ -806,6 +822,12 @@ SelfObject::updatePosBySee( const Vector2D & pos,
 {
     // other param is updated in update or update_after_sense
     M_time = current;
+
+    if ( this->pos().isValid() )
+    {
+        M_last_seen_move = pos - this->pos();
+        M_last_seen_move_accuracy = this->posCount();
+    }
 
     // I saw my position in last cycle
     if ( M_pos_count == 1 )

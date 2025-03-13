@@ -425,6 +425,14 @@ convert( const short_showinfo_t2 & from,
 void convert( const std::string & from,
               msginfo_t & to );
 
+/*-------------------------------------------------------------------*/
+/*!
+  \brief convert from a playmode string to the playmode enum type value .
+  \param playmode playmode string
+  \return playmode id
+*/
+PlayMode
+to_playmode_enum( const std::string & playmode );
 
 /*-------------------------------------------------------------------*/
 /*!

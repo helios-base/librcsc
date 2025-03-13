@@ -1342,6 +1342,21 @@ TrainerAgent::doMovePlayer( const std::string & teamname,
 
 */
 bool
+TrainerAgent::doMovePlayer( const std::string & teamname,
+                            const int unum,
+                            const Vector2D & pos,
+                            const AngleDeg & angle,
+                            const Vector2D & vel )
+{
+    TrainerMovePlayerCommand com( teamname, unum, pos, angle, vel );
+    return sendCommand( com );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+bool
 TrainerAgent::doRecover()
 {
     TrainerRecoverCommand com;
@@ -1392,6 +1407,8 @@ TrainerAgent::action()
 {
     if ( M_impl->last_decision_time_ != M_impl->current_time_ )
     {
+        M_worldmodel.updateJustBeforeDecision( M_impl->current_time_ );
+
         actionImpl();
         M_impl->last_decision_time_ = M_impl->current_time_;
     }

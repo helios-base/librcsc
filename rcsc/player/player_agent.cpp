@@ -1333,6 +1333,11 @@ PlayerAgent::Impl::sendSettingCommands()
         ostr << "(synch_see)";
     }
 
+    if ( agent_.config().gaussianSee() )
+    {
+        ostr << "(gaussian_see)";
+    }
+
     // turn off opponent all audio message
 
     if ( ! agent_.config().hearOpponentAudio() )
@@ -2159,14 +2164,14 @@ PlayerAgent::Impl::analyzeInit( const char * msg )
     //
     //
     see_state_.setProtocolVersion( agent_.config().version() );
-    if ( agent_.config().version() >= 18.0 )
-    {
-        std::cerr << agent_.world().teamName() << ' '
-                  << agent_.world().self().unum() << ": "
-                  << agent_.world().time()
-                  << " (v18+) force synch see mode."
-                  << std::endl;
-    }
+    // if ( agent_.config().version() >= 18.0 )
+    // {
+    //     std::cerr << agent_.world().teamName() << ' '
+    //               << agent_.world().self().unum() << ": "
+    //               << agent_.world().time()
+    //               << " (v18+) force synch see mode."
+    //               << std::endl;
+    // }
 
     //
     // call init message event handler
@@ -2248,6 +2253,19 @@ PlayerAgent::Impl::analyzeOK( const char * msg )
                                 agent_.world().self().viewQuality() );
         return;
     }
+
+    if ( ! std::strncmp( msg,
+                         "(ok gaussian_see)",
+                         std::strlen( "(ok gaussian_see)" ) ) )
+    {
+        std::cerr << agent_.world().teamName() << ' '
+                  << agent_.world().self().unum() << ": "
+                  << agent_.world().time()
+                  << " set gaussian see mode."
+                  << std::endl;
+        return;
+    }
+
     if ( ! std::strncmp( msg,
                          "(ok compression ",
                          std::strlen( "(ok compression " ) ) )
@@ -2819,6 +2837,34 @@ PlayerAgent::doDash( const double & power,
     M_effector.setDash( power, rel_dir );
     return true;
 }
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+PlayerAgent::doDash( const double left_power,
+                     const AngleDeg & left_dir,
+                     const double right_power,
+                     const AngleDeg & right_dir )
+{
+    if ( world().self().isFrozen() )
+    {
+        dlog.addText( Logger::ACTION,
+                      __FILE__": (PlayerAgent::doDash) [false ]tackle expire period  %d",
+                      world().self().tackleExpires() );
+        std::cerr << world().teamName() << ' '
+                  << world().self().unum() << ": "
+                  << world().time()
+                  << " (PlayerAgent::doDash) [false] Tackle expire period" << std::endl;
+        return false;
+    }
+
+    M_effector.setDash( left_power, left_dir, right_power, right_dir );
+    return true;
+}
+
 
 /*-------------------------------------------------------------------*/
 /*!

@@ -33,13 +33,6 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef HAVE_WINDOWS_H
-#include <windows.h>
-#endif
-
 #include "serializer.h"
 
 #include "util.h"
@@ -49,12 +42,22 @@
 #include "serializer_v3.h"
 #include "serializer_v4.h"
 #include "serializer_v5.h"
-
+#include "serializer_v6.h"
+#include "serializer_json.h"
 
 #include <algorithm>
 #include <cstring>
 #include <cmath>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
+
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
 
 namespace rcsc {
 namespace rcg {
@@ -85,7 +88,11 @@ Serializer::create( const int version )
     if ( Serializer::creators().getCreator( creator, version ) )
     {
         ptr = creator();
+        return ptr;
     }
+
+    if ( version == REC_VERSION_JSON ) ptr = Serializer::Ptr( new SerializerJSON() );
+    else if ( version == REC_VERSION_6 ) ptr = Serializer::Ptr( new SerializerV6() );
     else if ( version == REC_VERSION_5 ) ptr = Serializer::Ptr( new SerializerV5() );
     else if ( version == REC_VERSION_4 ) ptr = Serializer::Ptr( new SerializerV4() );
     else if ( version == REC_VERSION_3 ) ptr = Serializer::Ptr( new SerializerV3() );
@@ -118,7 +125,13 @@ Serializer::serializeImpl( std::ostream & os,
 {
     if ( version == REC_OLD_VERSION )
     {
-        // v1 protocl does not have header.
+        // v1 protocl does not have a header information.
+        return os;
+    }
+
+    if ( version == REC_VERSION_JSON )
+    {
+        // json protocl does not have a header information.
         return os;
     }
 
@@ -452,6 +465,28 @@ Serializer::serializeImpl( std::ostream & os,
     }
 
     return os;
+}
+
+/*-------------------------------------------------------------------*/
+std::ostream &
+Serializer::serializeAsMsg( std::ostream & os,
+                            const char side,
+                            const int x,
+                            const int y,
+                            const std::vector< std::string > & xpm )
+{
+
+    std::ostringstream ostr;
+    ostr << "(team_graphic_" << side
+         << ' ' << '(' << x << ' ' << y;
+
+    for ( const std::string & s : xpm )
+    {
+        ostr << ' ' << std::quoted( s );
+    }
+    ostr << ')';
+
+    return serialize( os, 1, ostr.str() );
 }
 
 } // end of namespace

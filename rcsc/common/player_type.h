@@ -33,7 +33,6 @@
 #define RCSC_PARAM_PLAYER_TYPE_H
 
 #include <rcsc/geom/vector_2d.h>
-#include <rcsc/rcg/types.h>
 #include <rcsc/soccer_math.h>
 #include <rcsc/types.h>
 
@@ -42,6 +41,11 @@
 #include <iostream>
 
 namespace rcsc {
+
+namespace rcg {
+struct player_type_t;
+struct PlayerTypeT;
+}
 
 /*!
   \class PlayerType
@@ -77,6 +81,12 @@ private:
     double M_flag_chg_far_length; //!< Distance where the flag relative velocity becomes ambiguous in see message
     double M_flag_chg_too_far_length;//!< Distance where the flag relative velocityr becomes completely unobservable
     double M_flag_max_observation_length; //!< Maximum distance where the flag can be observed
+
+    // v19
+    double M_dist_noise_rate; //!< noise rate for movable objects in Gaussian see mode
+    double M_focus_dist_noise_rate; //!< focus noise rate for movable objects in Gaussian see mode
+    double M_land_dist_noise_rate; //!< noise rate for landmark objects in Gaussian see mode
+    double M_land_focus_dist_noise_rate; //!< focus noise rate for landmark objects in Gaussian see mode
 
     //
     // additional parameters
@@ -125,11 +135,19 @@ public:
                 const double & version );
 
     /*!
-      \brief construct with monitor protocol
+      \brief construct by monitor data
       \param from monitor protocol data
      */
     explicit
     PlayerType( const rcg::player_type_t & from );
+
+    /*!
+      \brief construct by monitor data
+      \param from monitor protocol data
+     */
+    explicit
+    PlayerType( const rcg::PlayerTypeT & from );
+
 
     /*!
       \brief create new player type with randomly generated parameters, same as server's algorithm
@@ -144,6 +162,12 @@ public:
       \param to reference to the data variable.
      */
     void convertTo( rcg::player_type_t & to ) const;
+
+    /*!
+      \brief conver to the data format in the rcg library
+      \param to reference to the data variable.
+     */
+    void convertTo( rcg::PlayerTypeT & to ) const;
 
     /*!
       \brief convert to the rcss parameter message
@@ -411,6 +435,32 @@ public:
           return M_flag_max_observation_length;
       }
 
+    // v19
+
+    /*!
+      \brief get the distance noise rate value for movable objects in Gaussian see mode.
+      \return distance noise rate value
+     */
+    double distNoiseRate() const { return M_dist_noise_rate; }
+
+    /*!
+      \brief get the focus distance noise rate value for movable objects in Gaussian see mode.
+      \return distance noise rate value
+     */
+    double focusDistNoiseRate() const { return M_focus_dist_noise_rate; }
+
+    /*!
+      \brief get the distance noise rate value for landmark objects in Gaussian see mode.
+      \return distance noise rate value
+     */
+    double landDistNoiseRate() const { return M_land_dist_noise_rate; }
+
+    /*!
+      \brief get the focus distance noise rate value for landmark objects in Gaussian see mode.
+      \return distance noise rate value
+     */
+    double landFocusDistNoiseRate() const { return M_land_focus_dist_noise_rate; }
+
     ////////////////////////////////////////////////
     // additional parameters
 
@@ -440,7 +490,10 @@ public:
       \brief get the reliable distance for the catch command. This value is the length of the diagonal line of the reliable catchable area rectangle.
       \return the diagonal line length of the reliable catch area rectangle. if server::catch_probability < 1.0, 0.0 is always returned.
      */
-    double reliableCatchableDist() const;
+    double reliableCatchableDist() const
+    {
+        return M_reliable_catchable_dist;
+    }
 
     /*!
       \brief get reliable catchable distance. This value is the length of the diagonal line of the reliable catchable area rectangle.
@@ -666,6 +719,40 @@ public:
       {
           return command_moment / ( 1.0 + inertiaMoment() * speed );
       }
+
+    /*!
+      \brief calculate the rotation with the given bipedal dash powers and direction
+      \param dash_power_left the dash power for the left leg
+      \param dash_dir_left the dash direction for both legs
+      \param dash_power_right the dash power for the right leg
+      \param dash_dir_right the dash direction for both legs
+      \param effort the effort value
+      \return estimated result rotation
+     */
+    double getBipedalRotation( const double dash_power_left,
+                               const double dash_dir_left,
+                               const double dash_power_right,
+                               const double dash_dir_right,
+                               const double effort ) const;
+    /*!
+      \brief calculate the rotation with the given bipedal dash powers
+      \param dash_power_backward the dash power for backword
+      \param effort the effort value
+      \return estimated result rotation
+     */
+    double getBipedalRotation( const double dash_power_backward,
+                               const double effort ) const;
+
+    /*!
+      \brief calculate the dash powers(outer and inner) to achieve the target rotation.
+      The outer power is assumed to be used as the acceleration in the direction of the body(dash_dir=0).
+      The inner power is assumed to be used as the acceleration in the opposite direction of the body(dash_dir=180).
+      Which leg is on the outside is determined by the positive or negative rotation angle, which must be determined outside of this function call.
+      \param effort the effort value
+      \return the dash powers [outer(dash_dir=0), inner(dash_dir=180)]
+     */
+    std::pair< double, double > getBipedalPowers( const AngleDeg & rotation,
+                                                  const double effort ) const;
 
     /*!
       \brief calculate final reachable speed

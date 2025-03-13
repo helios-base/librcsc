@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(librcsc VERSION 2023)
+project(librcsc VERSION 2024)
 
-set(LIBRCSC_SOVERSION 18) # protocol version
+set(LIBRCSC_SOVERSION 19) # protocol version
 set(LIBRCSC_BUILDVERSION ${LIBRCSC_SOVERSION}.0.0)
 
 if(CMAKE_VERSION VERSION_LESS "3.7.0")
@@ -32,7 +32,6 @@ if(WIN32)
 endif()
 check_include_file_cxx("arpa/inet.h" HAVE_ARPA_INET_H)
 check_include_file_cxx("fcntl.h" HAVE_FCNTL_H)
-check_include_file_cxx("netinet/in.h" HAVE_NETINET_IN_H)
 check_include_file_cxx("netdb.h" HAVE_NETDB_H)
 check_include_file_cxx("sys/socket.h" HAVE_SYS_SOCKET_H)
 check_include_file_cxx("sys/time.h" HAVE_SYS_TIME_H)

@@ -190,7 +190,7 @@ InterceptSimulatorPlayer::simulate( const WorldModel & wm,
                                     const PlayerObject & player,
                                     const bool goalie ) const
 {
-    if ( player.posCount() >= 10 )
+    if ( player.posCount() >= 15 )
     {
         return 1000;
     }

@@ -44,6 +44,7 @@ namespace rcsc {
 
 namespace rcg {
 struct server_params_t;
+struct ServerParamT;
 }
 class ParamMap;
 
@@ -231,7 +232,7 @@ public:
 
     static const bool   DEFAULT_VERBOSE_MODE;
 
-    static const int    DEFAULT_COACH_SEND_VI_STEP; // defined as SEND_VISUALINFO_INTERVAL_MSEC in rcssserver/param.h
+    static const int    DEFAULT_ONLINE_COACH_LOOK_STEP; // defined as SEND_VISUALINFO_INTERVAL_MSEC in rcssserver/param.h
 
     static const std::string DEFAULT_REPLAY_FILE; // unused after rcsserver-9+
     static const std::string DEFAULT_LANDMARK_FILE;
@@ -344,9 +345,7 @@ public:
     static const int ILLEGAL_DEFENSE_NUMBER;
     static const double ILLEGAL_DEFENSE_DIST_X;
     static const double ILLEGAL_DEFENSE_WIDTH;
-    // 17.0
-    static const double MAX_CATCH_ANGLE;
-    static const double MIN_CATCH_ANGLE;
+
 private:
 
     //////////////////////////////////////////////////////
@@ -505,7 +504,7 @@ private:
 
     bool M_verbose_mode;
 
-    int M_coach_send_vi_step; // coach's visual info step
+    int M_online_coach_look_step; // coach's visual info step
 
     std::string M_replay_file; // unused after rcsserver-9+
     std::string M_landmark_file;
@@ -643,6 +642,12 @@ private:
     double M_max_catch_angle;
     double M_min_catch_angle;
 
+    // 19.0
+    double M_dist_noise_rate;
+    double M_focus_dist_noise_rate;
+    double M_land_dist_noise_rate;
+    double M_land_focus_dist_noise_rate;
+
     // xxx
     int M_random_seed;
     double M_long_kick_power_factor;
@@ -734,10 +739,22 @@ public:
     void convertFrom( const rcg::server_params_t & from );
 
     /*!
+      \brief convert from the data type in the rcg parser library.
+      \param from monitor protocol data structure
+     */
+    void convertFrom( const rcg::ServerParamT & from );
+
+    /*!
       \brief convert to the monitor protocol format
       \param to monitor protocol data structure
      */
     void convertTo( rcg::server_params_t & to ) const;
+
+    /*!
+      \brief convert from the data type in the rcg parser library.
+      \param from monitor protocol data structure
+     */
+    void convertTo( rcg::ServerParamT & to ) const;
 
     /*!
       \brief convert to the rcss parameter message
@@ -983,7 +1000,7 @@ public:
 
     bool verboseMode() const { return M_verbose_mode; }
 
-    int coachSendVIStep() const { return M_coach_send_vi_step; }
+    int onlineCoachLookStep() const { return M_online_coach_look_step; }
 
     const std::string & replayFile() const { return M_replay_file; }
     const std::string & landmarkFile() const { return M_landmark_file; }
@@ -1114,6 +1131,12 @@ public:
     // v17
     double maxCatchAngle() const { return M_max_catch_angle; }
     double minCatchAngle() const { return M_min_catch_angle; }
+
+    // v19
+    double distNoiseRate() const { return M_dist_noise_rate; }
+    double focusDistNoiseRate() const { return M_focus_dist_noise_rate; }
+    double landDistNoiseRate() const { return M_land_dist_noise_rate; }
+    double landFocusDistNoiseRate() const { return M_land_focus_dist_noise_rate; }
 
     // XXX
     int randomSeed() const { return M_random_seed; }

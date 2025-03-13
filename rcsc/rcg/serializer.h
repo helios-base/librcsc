@@ -38,6 +38,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include <ostream>
 
 namespace rcsc {
@@ -224,6 +225,19 @@ protected:
     std::ostream & serializeImpl( std::ostream & os,
                                   const dispinfo_t2 & disp2 );
 
+    /*!
+      \brief write team_graphic
+      \param os output stream
+      \param side team side
+      \param x index of the xpm_tile
+      \param y index of the xpm_tile
+      \param xpm xpm tile
+     */
+    std::ostream & serializeAsMsg( std::ostream & os,
+                                   const char side,
+                                   const int x,
+                                   const int y,
+                                   const std::vector< std::string > & xpm );
 
 
 public:
@@ -234,20 +248,25 @@ public:
     /*!
       \brief write header
       \param os reference to the output stream
+      \aram server_version server version string
+      \aram timestamp time stamp string
       \return reference to the output stream
     */
     virtual
-    std::ostream & serializeHeader( std::ostream & os ) = 0;
+    std::ostream & serializeBegin( std::ostream & os,
+                                   const std::string & server_version,
+                                   const std::string & timestamp ) = 0;
 
     /*!
-      \brief write parameter message
+      \brief write the end of file
       \param os reference to the output stream
-      \param msg server parameter message
       \return reference to the output stream
-    */
+     */
     virtual
-    std::ostream & serializeParam( std::ostream & os,
-                                   const std::string & msg ) = 0;
+    std::ostream & serializeEnd( std::ostream & os )
+      {
+          return os;
+      }
 
     /*!
       \brief write header
@@ -404,6 +423,50 @@ public:
     virtual
     std::ostream & serialize( std::ostream & os,
                               const DispInfoT & disp ) = 0;
+
+    /*!
+      \brief write ServerParamT
+      \param os reference to the output stream
+      \param param data to be written
+      \return reference to the output stream
+     */
+    virtual
+    std::ostream & serialize( std::ostream & os,
+                              const ServerParamT & param ) = 0;
+
+    /*!
+      \brief write PlayerParamT
+      \param os reference to the output stream
+      \param param data to be written
+      \return reference to the output stream
+     */
+    virtual
+    std::ostream & serialize( std::ostream & os,
+                              const PlayerParamT & param ) = 0;
+    /*!
+      \brief write PlayerTypeT
+      \param os reference to the output stream
+      \param param data to be written
+      \return reference to the output stream
+     */
+    virtual
+    std::ostream & serialize( std::ostream & os,
+                              const PlayerTypeT & param ) = 0;
+
+    /*!
+      \brief write team_graphic
+      \param os output stream
+      \param side team side
+      \param x index of the xpm_tile
+      \param y index of the xpm_tile
+      \param xpm xpm tile
+     */
+    virtual
+    std::ostream & serialize( std::ostream & os,
+                              const char side,
+                              const int x,
+                              const int y,
+                              const std::vector< std::string > & xpm ) = 0;
 
 };
 

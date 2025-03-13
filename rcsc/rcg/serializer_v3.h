@@ -58,20 +58,13 @@ public:
     /*!
       \brief write header
       \param os reference to the output stream
-      \return serialization result
-    */
-    virtual
-    std::ostream & serializeHeader( std::ostream & os ) override;
-
-    /*!
-      \brief write parameter message
-      \param os reference to the output stream
-      \param msg server parameter message
+      \aram server_version server version string
+      \aram timestamp time stamp string
       \return reference to the output stream
     */
-    virtual
-    std::ostream & serializeParam( std::ostream & os,
-                                   const std::string & msg ) override;
+    std::ostream & serializeBegin( std::ostream & os,
+                                   const std::string & server_version,
+                                   const std::string & timestamp ) override;
 
     /*!
       \brief write server param
@@ -229,44 +222,45 @@ public:
     std::ostream & serialize( std::ostream & os,
                               const DispInfoT & disp ) override;
 
-private:
+    /*!
+      \brief write ServerParamT
+      \param os reference to the output stream
+      \param param data to be written
+      \return reference to the output stream
+     */
+    std::ostream & serialize( std::ostream & os,
+                              const ServerParamT & param ) override;
 
     /*!
-      \brief analyze parameter message and store all elements
-      \param msg source message
-      \param param_map map variable to store all elements
-      \return parsing result
+      \brief write PlayerParamT
+      \param os reference to the output stream
+      \param param data to be written
+      \return reference to the output stream
      */
-    bool parseParam( const std::string & msg,
-                     std::map< std::string, std::string > & param_map );
+    std::ostream & serialize( std::ostream & os,
+                              const PlayerParamT & param ) override;
+    /*!
+      \brief write PlayerTypeT
+      \param os reference to the output stream
+      \param param data to be written
+      \return reference to the output stream
+     */
+    std::ostream & serialize( std::ostream & os,
+                              const PlayerTypeT & param ) override;
 
     /*!
-      \brief convert server message to parameters
-      \param from source message
-      \param to destination variable
-      \return parsing result
+      \brief no output in v3 format.
+      \param os output stream
+      \return output stream
      */
-    bool parseParam( const std::string & from,
-                     server_params_t & to );
-
-    /*!
-      \brief convert server message to parameters
-      \param from source message
-      \param to destination variable
-      \return parsing result
-     */
-    bool parseParam( const std::string & from,
-                     player_params_t & to );
-
-    /*!
-      \brief convert server message to parameters
-      \param from source message
-      \param to destination variable
-      \return parsing result
-     */
-    bool parseParam( const std::string & from,
-                     player_type_t & to );
-
+    std::ostream & serialize( std::ostream & os,
+                              const char,
+                              const int,
+                              const int,
+                              const std::vector< std::string > & ) override
+      {
+          return os;
+      }
 };
 
 } // end of namespace rcg

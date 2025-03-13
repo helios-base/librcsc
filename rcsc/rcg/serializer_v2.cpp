@@ -33,19 +33,19 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef HAVE_WINDOWS_H
-#include <windows.h>
-#endif
-
 #include "serializer_v2.h"
 
 #include "util.h"
 
 #include <cstring>
 #include <cmath>
+
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
 
 namespace rcsc {
 namespace rcg {
@@ -55,21 +55,11 @@ namespace rcg {
 
 */
 std::ostream &
-SerializerV2::serializeHeader( std::ostream & os )
-{
-    return serializeImpl( os, REC_VERSION_2 );
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
-std::ostream &
-SerializerV2::serializeParam( std::ostream & os,
+SerializerV2::serializeBegin( std::ostream & os,
+                              const std::string &,
                               const std::string & )
 {
-    // nothing to do
-    return os;
+    return serializeImpl( os, REC_VERSION_2 );
 }
 
 /*-------------------------------------------------------------------*/
@@ -209,7 +199,7 @@ SerializerV2::serialize( std::ostream & os,
 {
     msginfo_t info;
 
-    info.board = board;
+    info.board = htons( board );
     std::memset( info.message, 0, sizeof( info.message ) );
     std::strncpy( info.message, msg.c_str(),
                   std::min( sizeof( info.message ) - 1, msg.length() ) );
@@ -304,6 +294,30 @@ SerializerV2::serialize( std::ostream & os,
     return serialize( os, disp.show_ );
 }
 
+/*-------------------------------------------------------------------*/
+std::ostream &
+SerializerV2::serialize( std::ostream & os,
+                         const ServerParamT & )
+{
+
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+std::ostream &
+SerializerV2::serialize( std::ostream & os,
+                         const PlayerParamT & )
+{
+    return os;
+}
+
+/*-------------------------------------------------------------------*/
+std::ostream &
+SerializerV2::SerializerV2::serialize( std::ostream & os,
+                                       const PlayerTypeT & )
+{
+    return os;
+}
 
 /*-------------------------------------------------------------------*/
 /*!

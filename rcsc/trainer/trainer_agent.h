@@ -187,6 +187,21 @@ public:
                        const AngleDeg & angle );
 
     /*!
+     * \brief send player move command
+     * \param teamname target player's team name
+     * \param unum target player's uniform number
+     * \param pos new position
+     * \param angle new body angle
+     * \param vel player's velocity after move
+     * \return true if command is generated and set
+     */
+     bool doMovePlayer( const std::string & teamname,
+                        const int unum,
+                        const Vector2D & pos,
+                        const AngleDeg & angle,
+                        const Vector2D & vel );
+
+    /*!
       \brief send recover command
       \return true if command is generated and sent
     */

@@ -61,6 +61,11 @@ private:
     //! pointer of body action for dynamic allocation
     PlayerBodyCommand * M_command_body;
 
+    //! left leg command
+    // PlayerLegCommand * M_command_left_leg;
+    //! right leg command
+    // PlayerLegCommand * M_command_right_leg;
+
     //! pointer of turn_neck for dynamic allocation
     PlayerTurnNeckCommand * M_command_turn_neck;
     //! pointer of change_view for dynamic allocation
@@ -83,6 +88,8 @@ private:
 
     //! last body command type
     PlayerCommand::Type M_last_body_command_type[2];
+    // PlayerCommand::Type M_last_left_leg_command_type[2];
+    // PlayerCommand::Type M_last_right_leg_command_type[2];
 
     //! checker of turn_neck. true if turn_neck was done at last
     bool M_done_turn_neck;
@@ -98,10 +105,11 @@ private:
     double M_turn_error;  //!< estimated turn moment error
 
     // dash effect
+    double M_dash_power; //!< command power: need to estimate the consumed stamina
+    double M_left_dash_power; //!< command power: need to estimate the consumed stamina
+    double M_right_dash_power; //!< command power: need to estimate the consumed stamina
     Vector2D M_dash_accel; //!< estimated last dash accel
-    //Vector2D M_dash_accel_error;
-    double M_dash_power; //!< last dash power to update stamina
-    double M_dash_dir; //!< last dash direction relative to body (or reverse body)
+    double M_dash_rotation; //!< rotation degree by differntial drive
 
     // move effect
     Vector2D M_move_pos; //!< last move coordinates
@@ -264,6 +272,21 @@ public:
     */
     void setDash( const double & power,
                   const AngleDeg & rel_dir );
+
+    /*!
+      \brief register dash command for each leg.
+      \param left_power dash power for left leg
+      \param left_dir dash direction for left leg
+      \param right_power dash power for right leg
+      \param right_dir dash direction for right leg
+
+      power is normalized by server parameter
+      useless dash power is reduceed automatically.
+    */
+    void setDash( const double left_power,
+                  const AngleDeg left_dir,
+                  const double right_power,
+                  const AngleDeg right_dir );
 
     /*!
       \brief create turn command and its effect with turn parameter
@@ -448,16 +471,23 @@ public:
     //////////////////////////////////////////
     /*!
       \brief get estimated dash action effect
-      \param accel variable pointer to store the estimated dash accel
-      \param power variable pointer to store the used dash power
     */
     void getDashInfo( Vector2D * accel,
-                      /*Vector2D * acc_err,*/
                       double * power ) const
       {
           if ( accel ) *accel = M_dash_accel;
-          //if ( acc_err ) *acc_err = M_dash_accel_error;
           if ( power ) *power = M_dash_power;
+      }
+
+    void getDashInfo( Vector2D * accel,
+                      double * rotation,
+                      double * left_power,
+                      double * right_power ) const
+      {
+          if ( accel ) *accel = M_dash_accel;
+          if ( rotation ) *rotation = M_dash_rotation;
+          if ( left_power ) *left_power = M_left_dash_power;
+          if ( right_power ) *right_power = M_right_dash_power;
       }
 
     //////////////////////////////////////////

@@ -1,5 +1,6 @@
 .libs
 .deps
+.vscode
 *.la
 *.lo
 *.o
@@ -9,6 +10,7 @@ Makefile
 Makefile.in
 aclocal.m4
 autom4te.cache
+build
 config.*
 config
 configure
@@ -19,14 +21,17 @@ librcscenv
 libtool
 m4/lt*
 m4/libtool.m4
-thermo_color_test
+object_table_printer
+rcg2csv
 rcg2txt
 rcgrenameteam
 rcgresultprinter
 rcgreverse
+rcgvalidator
 rcgverconv
 rcgversion
 rclmscheduler
 rclmtableprinter
 stamp-h1
 tmp
+thermo_color_test
