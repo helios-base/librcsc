@@ -623,9 +623,22 @@ public:
       \param dash_dist distance to reach
       \return estimated cycles to reach
     */
-    int cyclesToReachDistance( const double & dash_dist ) const;
+    int cyclesToReachDistance( const double dash_dist ) const;
 
+    /*!
+      \brief estimate the duration time (in real value) to reach the specific distance from the stationary state.
+      \param dash_dist distance to reach
+      \return estimated cycles to reach
+    */
+    double timeToReachDistance( const double dash_dist ) const;
+
+    /*!
+      \brief estimate the maximum movable distance in given simulation steps from the stationary state.
+      \param step duration step
+      \return estimated distance valu
+     */
     double getMovableDistance( const size_t step ) const;
+
     ////////////////////////////////////////////////
     /*!
       \brief check if this type player can over player_speed_max

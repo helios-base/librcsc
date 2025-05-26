@@ -1107,7 +1107,7 @@ PlayerType::cyclesToReachMaxSpeed( const double & dash_power ) const
 
 */
 int
-PlayerType::cyclesToReachDistance( const double & dash_dist ) const
+PlayerType::cyclesToReachDistance( const double dash_dist ) const
 {
     if ( dash_dist <= 0.001 )
     {
@@ -1132,6 +1132,33 @@ PlayerType::cyclesToReachDistance( const double & dash_dist ) const
     cycle += static_cast< int >( std::ceil( rest_dist / realSpeedMax() ) );
 
     return cycle;
+}
+
+/*-------------------------------------------------------------------*/
+double
+PlayerType::timeToReachDistance( const double dash_dist ) const
+{
+    if ( dash_dist <= 0.001 )
+    {
+        return 0.0;
+    }
+
+    const int n = cyclesToReachDistance( dash_dist );
+    if ( n <= 0 )
+    {
+        return 0.0;
+    }
+
+    const double dist_n_prev = getMovableDistance( n - 1 );
+    const double dist_n = getMovableDistance( n );
+
+    if ( dist_n_prev > dash_dist
+         || dist_n < dash_dist )
+    {
+        return static_cast< double >( n );
+    }
+
+    return n - 1.0 + ( dist_n - dist_n_prev ) / ( dash_dist - dist_n_prev );
 }
 
 /*-------------------------------------------------------------------*/
