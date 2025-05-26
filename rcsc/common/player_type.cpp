@@ -1158,7 +1158,7 @@ PlayerType::timeToReachDistance( const double dash_dist ) const
         return static_cast< double >( n );
     }
 
-    return n - 1.0 + ( dist_n - dist_n_prev ) / ( dash_dist - dist_n_prev );
+    return n - 1.0 + ( dash_dist - dist_n_prev ) / ( dist_n - dist_n_prev );
 }
 
 /*-------------------------------------------------------------------*/
