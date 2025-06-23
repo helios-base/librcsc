@@ -1313,6 +1313,8 @@ CoachAgent::Impl::analyzeHearPlayer( const char * msg )
 
     if ( agent_.config().hearSay() )
     {
+        // dlog.addText( Logger::SENSOR,
+        //           "---- hear[%s]", msg );
         audio_.parsePlayerMessage( msg, current_time_ );
     }
 }

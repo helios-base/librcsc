@@ -872,8 +872,8 @@ RecoveryMessageParser::parse( const int sender,
         + ServerParam::i().recoverMin();
 
     dlog.addText( Logger::SENSOR,
-                  "RecoverMessageParser::parse() success! rate=%f recovery=%.3f",
-                  rate, recovery );
+                  "(RecoverMessageParser::parse) success! sender=%d rate=%f recovery=%.3f",
+                  sender, rate, recovery );
 
     M_memory->setRecovery( sender, rate, current );
 

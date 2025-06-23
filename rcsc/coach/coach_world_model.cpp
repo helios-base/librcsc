@@ -431,6 +431,10 @@ CoachWorldModel::updateAfterSeeGlobal( const CoachVisualSensor & see_global,
 
     updateTeamNames( see_global );
 
+    // update stamina data using heared information before updating the current state
+    // This call is required to prevent misupdating if "hear" messages arrive after commands are sent in the previous cycle.
+    M_current_state->updatePlayerStamina( *M_audio_memory );
+
     M_previous_state = M_current_state;
     M_current_state = CoachWorldState::Ptr( new CoachWorldState( see_global,
                                                                  ourSide(),
