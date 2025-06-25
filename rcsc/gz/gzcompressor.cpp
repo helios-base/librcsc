@@ -40,6 +40,9 @@
 #include "gzcompressor.h"
 
 #include <cstdlib>
+#include <memory>
+#include <algorithm>
+#include <stdexcept>
 
 namespace rcsc {
 
@@ -53,10 +56,12 @@ class GZCompressor::Impl {
 private:
 #ifdef HAVE_LIBZ
     z_stream M_stream;
-
-    char * M_out_buffer;
-    int M_out_size;
-    int M_out_avail;
+    
+    // Use smart pointer for automatic memory management
+    std::unique_ptr<char[]> M_out_buffer;
+    size_t M_out_size;
+    size_t M_out_avail;
+    bool M_initialized;
 #endif
 public:
 
@@ -70,6 +75,7 @@ public:
         : M_out_buffer( nullptr )
         , M_out_size( 0 )
         , M_out_avail( 0 )
+        , M_initialized( false )
 #endif
       {
 #ifdef HAVE_LIBZ
@@ -77,11 +83,20 @@ public:
           M_stream.zfree = Z_NULL;
           M_stream.opaque = nullptr;
 
-          int lv = std::max( Z_BEST_SPEED, level );
-          lv = std::min( level, Z_BEST_COMPRESSION );
+          int lv = std::clamp(level, Z_BEST_SPEED, Z_BEST_COMPRESSION);
 
-          deflateInit( &M_stream, lv );
-          deflateParams( &M_stream, lv, Z_DEFAULT_STRATEGY );
+          int result = deflateInit( &M_stream, lv );
+          if (result != Z_OK) {
+              throw std::runtime_error("Failed to initialize deflate");
+          }
+          
+          result = deflateParams( &M_stream, lv, Z_DEFAULT_STRATEGY );
+          if (result != Z_OK) {
+              deflateEnd(&M_stream);
+              throw std::runtime_error("Failed to set deflate parameters");
+          }
+          
+          M_initialized = true;
 #endif
       }
 
@@ -91,8 +106,10 @@ public:
     ~Impl()
       {
 #ifdef HAVE_LIBZ
-          deflateEnd( &M_stream );
-          std::free( M_out_buffer );
+          if (M_initialized) {
+              deflateEnd( &M_stream );
+          }
+          // M_out_buffer will be automatically freed by unique_ptr
 #endif
       }
 
@@ -102,9 +119,11 @@ public:
     int setLevel( const int level )
       {
 #ifdef HAVE_LIBZ
-          int lv = std::max( Z_BEST_SPEED, level );
-          lv = std::min( level, Z_BEST_COMPRESSION );
-
+          if (!M_initialized) {
+              return Z_STREAM_ERROR;
+          }
+          
+          int lv = std::clamp(level, Z_BEST_SPEED, Z_BEST_COMPRESSION);
           return deflateParams( &M_stream, lv, Z_DEFAULT_STRATEGY );
 #else
           return 0;
@@ -121,47 +140,64 @@ public:
                   std::string & dest )
       {
           dest.clear();
+          
+          if (!src_buf || src_size <= 0) {
+              return Z_STREAM_ERROR;
+          }
+          
 #ifdef HAVE_LIBZ
-          // allocate output buffer
-          if ( M_out_buffer == nullptr )
+          if (!M_initialized) {
+              return Z_STREAM_ERROR;
+          }
+          
+          // allocate output buffer with better size estimation
+          if ( !M_out_buffer )
           {
-              M_out_avail = static_cast< int >( src_size * 1.01 + 12 );
-              M_out_buffer = static_cast< char * >( std::malloc( M_out_avail ) );
-
-              if ( M_out_buffer == nullptr )
-              {
+              // Better size estimation: worst case is ~1% + 12 bytes for small data
+              // For larger data, compression ratio is typically better
+              M_out_avail = std::max(static_cast<size_t>(src_size * 1.01 + 12), 
+                                   static_cast<size_t>(1024));
+              
+              try {
+                  M_out_buffer = std::make_unique<char[]>(M_out_avail);
+              } catch (const std::bad_alloc&) {
                   return Z_MEM_ERROR;
               }
 
-              M_stream.next_out = (Bytef*)M_out_buffer;
-              M_stream.avail_out = M_out_avail;
+              M_stream.next_out = reinterpret_cast<Bytef*>(M_out_buffer.get());
+              M_stream.avail_out = static_cast<uInt>(M_out_avail);
           }
 
-          M_stream.next_in = (Bytef*)src_buf;
-          M_stream.avail_in = src_size;
+          M_stream.next_in = const_cast<Bytef*>(reinterpret_cast<const Bytef*>(src_buf));
+          M_stream.avail_in = static_cast<uInt>(src_size);
 
-          int bytes_out = M_stream.total_out;
-          int err = 0;
-          for ( ; ; )
+          const uLong bytes_out = M_stream.total_out;
+          int err = Z_OK;
+          
+          // Process all input data
+          while ( M_stream.avail_in > 0 )
           {
               if ( M_stream.avail_out == 0 )
               {
-                  int extra = static_cast< int >( M_out_avail * 0.5 );
-                  M_out_buffer
-                      = static_cast< char * >( std::realloc( M_out_buffer,
-                                                             M_out_avail + extra ) );
-                  if ( M_out_buffer == nullptr )
-                  {
+                  // Expand buffer by 50%
+                  const size_t extra = M_out_avail / 2;
+                  const size_t new_size = M_out_avail + extra;
+                  
+                  try {
+                      auto new_buffer = std::make_unique<char[]>(new_size);
+                      std::copy_n(M_out_buffer.get(), M_out_avail, new_buffer.get());
+                      M_out_buffer = std::move(new_buffer);
+                      M_out_avail = new_size;
+                  } catch (const std::bad_alloc&) {
                       err = Z_MEM_ERROR;
                       break;
                   }
 
-                  M_stream.next_out = (Bytef*)( M_out_buffer + M_out_avail );
-                  M_stream.avail_out += extra;
-                  M_out_avail += extra;
+                  M_stream.next_out = reinterpret_cast<Bytef*>(M_out_buffer.get() + (M_out_avail - extra));
+                  M_stream.avail_out = static_cast<uInt>(extra);
               }
 
-              err = deflate( &M_stream, Z_SYNC_FLUSH ); //Z_NO_FLUSH );
+              err = deflate( &M_stream, Z_SYNC_FLUSH );
 
               if ( err != Z_OK )
               {
@@ -172,13 +208,14 @@ public:
           M_out_size = M_stream.total_out - bytes_out;
 
           // copy to the destination buffer
-
-          dest.assign( M_out_buffer, M_out_size );
+          if (M_out_size > 0) {
+              dest.assign( M_out_buffer.get(), M_out_size );
+          }
 
           M_out_size = 0;
           deflateReset( &M_stream );
-          M_stream.next_out = (Bytef*)M_out_buffer;
-          M_stream.avail_out = M_out_avail;
+          M_stream.next_out = reinterpret_cast<Bytef*>(M_out_buffer.get());
+          M_stream.avail_out = static_cast<uInt>(M_out_avail);
 
           return err;
 #else
@@ -199,9 +236,11 @@ private:
 #ifdef HAVE_LIBZ
     z_stream M_stream;
 
-    char * M_out_buffer;
-    int M_out_size;
-    int M_out_avail;
+    // Use smart pointer for automatic memory management
+    std::unique_ptr<char[]> M_out_buffer;
+    size_t M_out_size;
+    size_t M_out_avail;
+    bool M_initialized;
 #endif
 public:
     Impl()
@@ -209,6 +248,7 @@ public:
         : M_out_buffer( nullptr )
         , M_out_size( 0 )
         , M_out_avail( 0 )
+        , M_initialized( false )
 #endif
       {
 #ifdef HAVE_LIBZ
@@ -216,15 +256,21 @@ public:
           M_stream.zfree = Z_NULL;
           M_stream.opaque = nullptr;
 
-          inflateInit( &M_stream );
+          int result = inflateInit( &M_stream );
+          if (result != Z_OK) {
+              throw std::runtime_error("Failed to initialize inflate");
+          }
+          M_initialized = true;
 #endif
       }
 
     ~Impl()
       {
 #ifdef HAVE_LIBZ
-          inflateEnd( &M_stream );
-          std::free( M_out_buffer );
+          if (M_initialized) {
+              inflateEnd( &M_stream );
+          }
+          // M_out_buffer will be automatically freed by unique_ptr
 #endif
       }
 
@@ -239,48 +285,63 @@ public:
                     std::string & dest )
       {
           dest.clear();
+          
+          if (!src_buf || src_size <= 0) {
+              return Z_STREAM_ERROR;
+          }
+          
 #ifdef HAVE_LIBZ
+          if (!M_initialized) {
+              return Z_STREAM_ERROR;
+          }
+          
           // allocate output buffer
-          if ( M_out_buffer == nullptr )
+          if ( !M_out_buffer )
           {
-              M_out_avail = src_size * 2;
-              M_out_buffer
-                  = static_cast< char * >( std::malloc( M_out_avail ) );
-              if ( M_out_buffer == nullptr )
-              {
+              // Start with 2x the input size for decompression
+              M_out_avail = std::max(static_cast<size_t>(src_size * 2), 
+                                   static_cast<size_t>(1024));
+              
+              try {
+                  M_out_buffer = std::make_unique<char[]>(M_out_avail);
+              } catch (const std::bad_alloc&) {
                   return Z_MEM_ERROR;
               }
 
-              M_stream.next_out = (Bytef*)M_out_buffer;
-              M_stream.avail_out = M_out_avail;
+              M_stream.next_out = reinterpret_cast<Bytef*>(M_out_buffer.get());
+              M_stream.avail_out = static_cast<uInt>(M_out_avail);
           }
 
-          M_stream.next_in = (Bytef*)src_buf;
-          M_stream.avail_in = src_size;
+          M_stream.next_in = const_cast<Bytef*>(reinterpret_cast<const Bytef*>(src_buf));
+          M_stream.avail_in = static_cast<uInt>(src_size);
 
-          int bytes_out = M_stream.total_out;
-
-          int err;
-          for ( ; ; )
+          const uLong bytes_out = M_stream.total_out;
+          int err = Z_OK;
+          
+          // Process all input data
+          while ( M_stream.avail_in > 0 )
           {
               if ( M_stream.avail_out == 0 )
               {
-                  int extra = static_cast< int >( M_out_avail * 0.5 );
-                  M_out_buffer
-                      = static_cast< char * >( std::realloc( M_out_buffer,
-                                                             M_out_avail + extra ) );
-                  if ( M_out_buffer == nullptr )
-                  {
+                  // Expand buffer by 50%
+                  const size_t extra = M_out_avail / 2;
+                  const size_t new_size = M_out_avail + extra;
+                  
+                  try {
+                      auto new_buffer = std::make_unique<char[]>(new_size);
+                      std::copy_n(M_out_buffer.get(), M_out_avail, new_buffer.get());
+                      M_out_buffer = std::move(new_buffer);
+                      M_out_avail = new_size;
+                  } catch (const std::bad_alloc&) {
                       err = Z_MEM_ERROR;
                       break;
                   }
 
-                  M_stream.next_out = (Bytef*)( M_out_buffer + M_out_avail );
-                  M_stream.avail_out += extra;
-                  M_out_avail += extra;
+                  M_stream.next_out = reinterpret_cast<Bytef*>(M_out_buffer.get() + (M_out_avail - extra));
+                  M_stream.avail_out = static_cast<uInt>(extra);
               }
 
-              err = inflate( &M_stream, Z_SYNC_FLUSH ); // Z_NO_FLUSH );
+              err = inflate( &M_stream, Z_SYNC_FLUSH );
 
               if ( err != Z_OK )
               {
@@ -291,13 +352,14 @@ public:
           M_out_size = M_stream.total_out - bytes_out;
 
           // copy to the destination buffer
-
-          dest.assign( M_out_buffer, M_out_size );
+          if (M_out_size > 0) {
+              dest.assign( M_out_buffer.get(), M_out_size );
+          }
 
           M_out_size = 0;
           inflateReset( &M_stream );
-          M_stream.next_out = (Bytef*)M_out_buffer;
-          M_stream.avail_out = M_out_avail;
+          M_stream.next_out = reinterpret_cast<Bytef*>(M_out_buffer.get());
+          M_stream.avail_out = static_cast<uInt>(M_out_avail);
 
           return err;
 #else

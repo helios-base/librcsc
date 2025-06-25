@@ -42,23 +42,61 @@
 #include <cstdio>
 #include <cstdarg>
 #include <cstring>
+#include <mutex>
+#include <memory>
+#include <atomic>
 
 namespace rcsc {
 
 namespace  {
 
 //! buffer size for the log message.
-#define G_BUFFER_SIZE 2048
+constexpr size_t G_BUFFER_SIZE = 2048;
 
-//! temporary buffer
-char g_buffer[G_BUFFER_SIZE];
+//! main buffer - now thread-safe with mutex protection
+struct ThreadSafeBuffer {
+    std::string buffer;
+    std::mutex mutex;
+    
+    ThreadSafeBuffer() {
+        buffer.reserve(8192 * 4);
+    }
+    
+    void append(const std::string& str) {
+        std::lock_guard<std::mutex> lock(mutex);
+        buffer += str;
+    }
+    
+    void clear() {
+        std::lock_guard<std::mutex> lock(mutex);
+        buffer.clear();
+    }
+    
+    std::string extract() {
+        std::lock_guard<std::mutex> lock(mutex);
+        std::string result = std::move(buffer);
+        buffer.clear();
+        return result;
+    }
+    
+    size_t size() const {
+        std::lock_guard<std::mutex> lock(mutex);
+        return buffer.size();
+    }
+};
 
-//! main buffer
-std::string g_str;
+//! thread-safe global buffer
+static ThreadSafeBuffer g_thread_safe_buffer;
+
+//! temporary buffer - thread-local for better performance
+thread_local char g_buffer[G_BUFFER_SIZE];
 
 }
 
-//! global variable
+//! global variable - now thread-safe
+static std::atomic<Logger*> g_global_logger{nullptr};
+
+//! global logger instance
 Logger dlog;
 
 /*-------------------------------------------------------------------*/
@@ -72,8 +110,12 @@ Logger::Logger()
       M_start_time( -1 ),
       M_end_time( 99999999 )
 {
-    g_str.reserve( 8192 * 4 );
-    std::strcpy( g_buffer, "" );
+    // Initialize thread-local buffer
+    std::memset(g_buffer, 0, G_BUFFER_SIZE);
+    
+    // Set as global logger atomically
+    Logger* expected = nullptr;
+    g_global_logger.compare_exchange_strong(expected, this);
 }
 
 /*-------------------------------------------------------------------*/
@@ -83,6 +125,10 @@ Logger::Logger()
 Logger::~Logger()
 {
     close();
+    
+    // Clear global logger reference if it's this instance
+    Logger* expected = this;
+    g_global_logger.compare_exchange_strong(expected, nullptr);
 }
 
 /*-------------------------------------------------------------------*/
@@ -130,7 +176,7 @@ Logger::close()
         {
             fclose( M_fout );
         }
-        M_fout = NULL;
+        M_fout = nullptr;
     }
 }
 
@@ -177,13 +223,14 @@ Logger::openStandardError()
 void
 Logger::flush()
 {
-    if ( M_fout && g_str.length() > 0 )
+    if ( M_fout && g_thread_safe_buffer.size() > 0 )
     {
-        fputs( g_str.c_str(), M_fout );
-        //fwrite( g_str.c_str(), sizeof( char ), g_str.length(), M_fout );
-        fflush( M_fout );
+        std::string data = g_thread_safe_buffer.extract();
+        if (!data.empty()) {
+            fputs( data.c_str(), M_fout );
+            fflush( M_fout );
+        }
     }
-    g_str.erase();
 }
 
 /*-------------------------------------------------------------------*/
@@ -193,7 +240,7 @@ Logger::flush()
 void
 Logger::clear()
 {
-    g_str.erase();
+    g_thread_safe_buffer.clear();
 }
 
 /*-------------------------------------------------------------------*/
@@ -213,19 +260,27 @@ Logger::addText( const std::int32_t level,
     {
         va_list argp;
         va_start( argp, msg );
-        vsnprintf( g_buffer, G_BUFFER_SIZE, msg, argp );
+        
+        // Use vsnprintf with proper bounds checking
+        int result = vsnprintf( g_buffer, G_BUFFER_SIZE, msg, argp );
         va_end( argp );
+        
+        if (result < 0 || static_cast<size_t>(result) >= G_BUFFER_SIZE) {
+            // Handle truncation or error
+            g_buffer[G_BUFFER_SIZE - 1] = '\0';
+        }
 
-        char header[32];
-        snprintf( header, 32, "%ld,%ld %d M ",
+        char header[64];
+        snprintf( header, sizeof(header), "%ld,%ld %d M ",
                   M_time->cycle(),
                   M_time->stopped(),
                   level );
 
-        g_str += header;
-        g_str += g_buffer;
-        g_str += '\n';
-        if ( g_str.length() > 8192 * 3 )
+        std::string log_entry = header + std::string(g_buffer) + '\n';
+        g_thread_safe_buffer.append(log_entry);
+        
+        // Flush if buffer gets too large
+        if ( g_thread_safe_buffer.size() > 8192 * 3 )
         {
             flush();
         }
@@ -254,12 +309,12 @@ Logger::addPoint( const std::int32_t level,
                   M_time->stopped(),
                   level,
                   x, y );
-        g_str += msg;
+        g_thread_safe_buffer.append(msg);
         if ( color )
         {
-            g_str += color;
+            g_thread_safe_buffer.append(color);
         }
-        g_str += '\n';
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -286,8 +341,8 @@ Logger::addPoint( const std::int32_t level,
                   level,
                   x, y,
                   r, g, b );
-        g_str += msg;
-        g_str += '\n';
+        g_thread_safe_buffer.append(msg);
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -315,12 +370,12 @@ Logger::addLine( const std::int32_t level,
                   M_time->stopped(),
                   level,
                   x1, y1, x2, y2 );
-        g_str += msg;
+        g_thread_safe_buffer.append(msg);
         if ( color )
         {
-            g_str += color;
+            g_thread_safe_buffer.append(color);
         }
-        g_str += '\n';
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -349,8 +404,8 @@ Logger::addLine( const std::int32_t level,
                   level,
                   x1, y1, x2, y2,
                   r, g, b );
-        g_str += msg;
-        g_str += '\n';
+        g_thread_safe_buffer.append(msg);
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -379,14 +434,14 @@ Logger::addArc( const std::int32_t level,
                   M_time->stopped(),
                   level,
                   x, y, radius, start_angle.degree(), span_angle );
-        g_str += msg;
+        g_thread_safe_buffer.append(msg);
 
         if ( color )
         {
-            g_str += color;
+            g_thread_safe_buffer.append(color);
         }
 
-        g_str += '\n';
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -417,8 +472,8 @@ Logger::addArc( const std::int32_t level,
                   level,
                   x, y, radius, start_angle.degree(), span_angle,
                   r, g, b );
-        g_str += msg;
-        g_str += '\n';
+        g_thread_safe_buffer.append(msg);
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -447,12 +502,12 @@ Logger::addCircle( const std::int32_t level,
                   level,
                   ( fill ? 'C' : 'c' ),
                   x, y, radius );
-        g_str += msg;
+        g_thread_safe_buffer.append(msg);
         if ( color )
         {
-            g_str += color;
+            g_thread_safe_buffer.append(color);
         }
-        g_str += '\n';
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -482,8 +537,8 @@ Logger::addCircle( const std::int32_t level,
                   ( fill ? 'C' : 'c' ),
                   x, y, radius,
                   r, g, b );
-        g_str += msg;
-        g_str += '\n';
+        g_thread_safe_buffer.append(msg);
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -515,12 +570,12 @@ Logger::addTriangle( const std::int32_t level,
                   level,
                   ( fill ? 'T' : 't' ),
                   x1, y1, x2, y2, x3, y3 );
-        g_str += msg;
+        g_thread_safe_buffer.append(msg);
         if ( color )
         {
-            g_str += color;
+            g_thread_safe_buffer.append(color);
         }
-        g_str += '\n';
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -553,8 +608,8 @@ Logger::addTriangle( const std::int32_t level,
                   ( fill ? 'T' : 't' ),
                   x1, y1, x2, y2, x3, y3,
                   r, g, b );
-        g_str += msg;
-        g_str += '\n';
+        g_thread_safe_buffer.append(msg);
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -584,12 +639,12 @@ Logger::addRect( const std::int32_t level,
                   level,
                   ( fill ? 'R' : 'r' ),
                   left, top, length, width );
-        g_str += msg;
+        g_thread_safe_buffer.append(msg);
         if ( color )
         {
-            g_str += color;
+            g_thread_safe_buffer.append(color);
         }
-        g_str += '\n';
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -620,8 +675,8 @@ Logger::addRect( const std::int32_t level,
                   ( fill ? 'R' : 'r' ),
                   left, top, length, width,
                   r, g, b );
-        g_str += msg;
-        g_str += '\n';
+        g_thread_safe_buffer.append(msg);
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -654,12 +709,12 @@ Logger::addSector( const std::int32_t level,
                   ( fill ? 'S' : 's' ),
                   x, y, min_radius, max_radius,
                   start_angle.degree(), span_angle );
-        g_str += msg;
+        g_thread_safe_buffer.append(msg);
         if ( color )
         {
-            g_str += color;
+            g_thread_safe_buffer.append(color);
         }
-        g_str += '\n';
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -693,8 +748,8 @@ Logger::addSector( const std::int32_t level,
                   x, y, min_radius, max_radius,
                   start_angle.degree(), span_angle,
                   r, g, b );
-        g_str += msg;
-        g_str += '\n';
+        g_thread_safe_buffer.append(msg);
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -726,12 +781,12 @@ Logger::addSector( const std::int32_t level,
                   sector.center().x, sector.center().y,
                   sector.radiusMin(), sector.radiusMax(),
                   sector.angleLeftStart().degree(), span_angle );
-        g_str += msg;
+        g_thread_safe_buffer.append(msg);
         if ( color )
         {
-            g_str += color;
+            g_thread_safe_buffer.append(color);
         }
-        g_str += '\n';
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -764,8 +819,8 @@ Logger::addSector( const std::int32_t level,
                   sector.radiusMin(), sector.radiusMax(),
                   sector.angleLeftStart().degree(), span_angle,
                   r, g, b );
-        g_str += msg;
-        g_str += '\n';
+        g_thread_safe_buffer.append(msg);
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -792,17 +847,17 @@ Logger::addMessage( const std::int32_t level,
                   M_time->stopped(),
                   level,
                   x, y );
-        g_str += header;
+        g_thread_safe_buffer.append(header);
 
         if ( color )
         {
-            g_str += "(c ";
-            g_str += color;
-            g_str += ") ";
+            g_thread_safe_buffer.append("(c ");
+            g_thread_safe_buffer.append(color);
+            g_thread_safe_buffer.append(") ");
         }
 
-        g_str += msg;
-        g_str += '\n';
+        g_thread_safe_buffer.append(msg);
+        g_thread_safe_buffer.append("\n");
     }
 }
 
@@ -829,16 +884,16 @@ Logger::addMessage( const std::int32_t level,
                   M_time->stopped(),
                   level,
                   x, y );
-        g_str += header;
+        g_thread_safe_buffer.append(header);
 
         char col[8];
         snprintf( col, 8, "#%02x%02x%02x", r, g, b );
-        g_str += "(c ";
-        g_str += col;
-        g_str += ") ";
+        g_thread_safe_buffer.append("(c ");
+        g_thread_safe_buffer.append(col);
+        g_thread_safe_buffer.append(") ");
 
-        g_str += msg;
-        g_str += '\n';
+        g_thread_safe_buffer.append(msg);
+        g_thread_safe_buffer.append("\n");
     }
 }
 
