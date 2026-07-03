@@ -1014,7 +1014,7 @@ public:
     double getDistTeammateNearestToBall( const int count_thr,
                                          const bool with_goalie ) const
       {
-          const PlayerObject * p = getTeammateNearestToSelf( count_thr, with_goalie );
+          const PlayerObject * p = getTeammateNearestToBall( count_thr, with_goalie );
           return ( p ? p->distFromBall() : DIST_TOO_FAR );
       }
 
