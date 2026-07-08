@@ -39,10 +39,20 @@ class ThermoColorProvider
     : public GradationColorProvider {
 public:
 
-    /*
-      \brief constructor
+    /*!
+      \brief constructor with alpha channel value
+      \param alpha alpha channel value
      */
-    ThermoColorProvider();
+    explicit
+    ThermoColorProvider( const double alpha = 1.0 );
+
+private:
+    // not used
+    ThermoColorProvider( const ThermoColorProvider & ) = delete;
+    ThermoColorProvider & operator=( const ThermoColorProvider & ) = delete;
+
+    void initColors();
+
 };
 
 }

@@ -46,6 +46,9 @@ private:
     //! blue value
     double M_blue;
 
+    //! alpha channel. The defalut value is 1.0(=opaque).
+    double M_alpha;
+
 public:
     /*
       \brief construct with black
@@ -53,45 +56,57 @@ public:
     RGBColor()
         : M_red( 0.0 ),
           M_green( 0.0 ),
-          M_blue( 0.0 )
-      { }
+          M_blue( 0.0 ),
+          M_alpha( 1.0 )
+    { }
 
     /*
       \brief constructor from red/green/blue components
       \param r red value
       \param g green value
       \param b blue value
+      \param a alpha channel value
     */
     RGBColor( const double r,
               const double g,
-              const double b );
+              const double b,
+              const double a = 1.0 );
 
     /*
       \brief retrieve red component
       \return red component value in range [0.0, 1.0]
     */
     double red() const
-      {
-          return M_red;
-      }
+    {
+        return M_red;
+    }
 
     /*
       \brief retrieve green component
       \return green component value in range [0.0, 1.0]
     */
     double green() const
-      {
-          return M_green;
-      }
+    {
+        return M_green;
+    }
 
     /*
       \brief retrieve blue component
       \return blue component value in range [0.0, 1.0]
     */
     double blue() const
-      {
-          return M_blue;
-      }
+    {
+        return M_blue;
+    }
+
+    /*
+      \brief retrieve alpha channel value
+      \return alpha channel value in range [0.0, 1.0]
+    */
+    double alpha() const
+    {
+        return M_alpha;
+    }
 
     /*
       \brief retrieve red component in range [0, 255]
@@ -112,6 +127,12 @@ public:
     int blue8bit() const;
 
     /*
+      \brief retrieve the alpha channel value in range [0, 255]
+      \return alpha channel value in range [0, 255]
+    */
+    int alpha8bit() const;
+
+    /*
       \brief get the color name string as "#RRGGBB"
       \return color name string
     */
@@ -128,6 +149,20 @@ public:
     RGBColor blend( const RGBColor & c1,
                     const RGBColor & c2,
                     const double c1_rate );
+
+    /*
+      \brief blend two colors with alpha channel value
+      \param c1 1st souece color to blend
+      \param c2 2nd souece color to blend
+      \param c1_rate rate of weight of 1st souece color
+      \param alpha alpha channel value of the blended color
+      \return blended color
+    */
+    static
+    RGBColor blend( const RGBColor & c1,
+                    const RGBColor & c2,
+                    const double c1_rate,
+                    const double alpha );
 };
 
 }

@@ -30,17 +30,13 @@
 
 #include "gradation_color_provider.h"
 
-#include <rcsc/math_util.h>
-
+#include <algorithm>
 #include <vector>
 
 
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
-/*!
-
-*/
 void
 GradationColorProvider::addColor( const RGBColor & color )
 {
@@ -48,9 +44,13 @@ GradationColorProvider::addColor( const RGBColor & color )
 }
 
 /*-------------------------------------------------------------------*/
-/*!
+void
+GradationColorProvider::setAlpha( const double alpha )
+{
+    M_alpha = std::clamp( alpha, 0.0, 1.0 );
+}
 
-*/
+/*-------------------------------------------------------------------*/
 RGBColor
 GradationColorProvider::convertToColor( const double value ) const
 {
@@ -76,8 +76,8 @@ GradationColorProvider::convertToColor( const double value ) const
     //
     const int n_color_range = n_colors - 1;
     const double rate_split_width = 1.0 / n_color_range;
-    const int n = bound( 0, static_cast< int >( value / rate_split_width ), n_color_range );
-    const double rate = bound( 0.0, ( value - rate_split_width * n ) * n_color_range, 1.0 );
+    const int n = std::clamp( static_cast< int >( value / rate_split_width ), 0, n_color_range );
+    const double rate = std::clamp( ( value - rate_split_width * n ) * n_color_range, 0.0, 1.0 );
 
     //
     // blend colors
@@ -85,7 +85,7 @@ GradationColorProvider::convertToColor( const double value ) const
     const RGBColor & c1 = M_colors[ n ];
     const RGBColor & c2 = M_colors[ n + 1 ];
 
-    return RGBColor::blend( c2, c1, rate );
+    return RGBColor::blend( c2, c1, rate, M_alpha );
 }
 
 }

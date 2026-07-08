@@ -35,11 +35,15 @@
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
-/*!
+GrayScaleProvider::GrayScaleProvider( const double alpha )
+    : GradationColorProvider( alpha )
+{
+    initColors();
+}
 
-*/
-GrayScaleProvider::GrayScaleProvider()
-    : GradationColorProvider()
+/*-------------------------------------------------------------------*/
+void
+GrayScaleProvider::initColors()
 {
     addColor( RGBColor( 0.0, 0.0, 0.0 ) ); // black
     addColor( RGBColor( 1.0, 1.0, 1.0 ) ); // white

@@ -38,11 +38,15 @@
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
-/*!
+ThermoColorProvider::ThermoColorProvider( const double alpha )
+    : GradationColorProvider( alpha )
+{
+    initColors();
+}
 
-*/
-ThermoColorProvider::ThermoColorProvider()
-    : GradationColorProvider()
+/*-------------------------------------------------------------------*/
+void
+ThermoColorProvider::initColors()
 {
     addColor( RGBColor( 0.0, 0.0, 0.0 ) ); // black
     addColor( RGBColor( 0.0, 0.0, 1.0 ) ); // blue
