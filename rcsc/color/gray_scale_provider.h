@@ -39,10 +39,20 @@ class GrayScaleProvider
     : public GradationColorProvider {
 public:
 
-    /*
-      \brief constructor
+    /*!
+      \brief constructor with alpha channel value
+      \param alpha alpha channel value in range [0.0, 1.0]
      */
-    GrayScaleProvider();
+    explicit
+    GrayScaleProvider( const double alpha = 1.0 );
+
+private:
+
+    // not used
+    GrayScaleProvider( const GrayScaleProvider & ) = delete;
+    GrayScaleProvider & operator=( const GrayScaleProvider & ) = delete;
+
+    void initColors();
 };
 
 }

@@ -29,6 +29,7 @@
 
 #include <rcsc/color/rgb_color.h>
 
+#include <algorithm>
 #include <vector>
 
 namespace rcsc {
@@ -43,6 +44,9 @@ private:
     //! color set for gradation
     std::vector< RGBColor > M_colors;
 
+    //! alpha channel value for all colors
+    double M_alpha = 1.0;
+
     // not used
     GradationColorProvider( const GradationColorProvider & ) = delete;
     GradationColorProvider & operator=( const GradationColorProvider & ) = delete;
@@ -50,9 +54,13 @@ private:
 protected:
 
     /*!
-      \brief protected constructor
+      \brief protected constructor with alpha channel value
+      \param alpha alpha channel value in range [0.0, 1.0]
      */
-    GradationColorProvider() = default;
+    explicit
+    GradationColorProvider( const double alpha = 1.0 )
+        : M_alpha( std::clamp( alpha, 0.0, 1.0 ) )
+    { }
 
     /*!
       \brief add new color that means the highest value.
@@ -67,6 +75,12 @@ public:
      */
     virtual
     ~GradationColorProvider() = default;
+
+    /*!
+      \brief set alpha channel value for all colors.
+      \param alpha alpha channel value in range [0.0, 1.0]
+    */
+   void setAlpha( const double alpha );
 
     /*
       \brief convert [0.0, 1.0] value to a color

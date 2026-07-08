@@ -30,11 +30,8 @@
 
 #include "rgb_color.h"
 
-#include <rcsc/math_util.h>
-
+#include <algorithm>
 #include <cstdio>
-// #include <sstream>
-// #include <iomanip>
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -44,32 +41,29 @@ namespace {
 
 inline
 int
-float_to_8bit( const double value )
+to_8bit( const double value )
 {
-    return rcsc::bound( 0, static_cast< int >( value * 256 ), 255 );
+    return static_cast< int >( value * 256 );
 }
+
 }
 
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 RGBColor::RGBColor( const double r,
                     const double g,
-                    const double b )
-    : M_red( bound( 0.0, r, 1.0 ) ),
-      M_green( bound( 0.0, g, 1.0 ) ),
-      M_blue( bound( 0.0, b, 1.0 ) )
+                    const double b,
+                    const double a )
+    : M_red( std::clamp( r, 0.0, 1.0 ) ),
+      M_green( std::clamp( g, 0.0, 1.0 ) ),
+      M_blue( std::clamp( b, 0.0, 1.0 ) ),
+      M_alpha( std::clamp( a, 0.0, 1.0 ) )
 {
 
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 RGBColor
 RGBColor::blend( const RGBColor & c1,
                  const RGBColor & c2,
@@ -77,64 +71,71 @@ RGBColor::blend( const RGBColor & c1,
 {
     const double c2_rate = 1.0 - c1_rate;
 
-    return RGBColor( bound( 0.0, c1.red()   * c1_rate + c2.red()   * c2_rate, 1.0 ),
-                     bound( 0.0, c1.green() * c1_rate + c2.green() * c2_rate, 1.0 ),
-                     bound( 0.0, c1.blue()  * c1_rate + c2.blue()  * c2_rate, 1.0 ) );
+    return RGBColor( c1.red()   * c1_rate + c2.red()   * c2_rate,
+                     c1.green() * c1_rate + c2.green() * c2_rate,
+                     c1.blue()  * c1_rate + c2.blue()  * c2_rate,
+                     c1.alpha() * c1_rate + c2.alpha() * c2_rate );
 }
 
 /*-------------------------------------------------------------------*/
-/*!
+RGBColor
+RGBColor::blend( const RGBColor & c1,
+                 const RGBColor & c2,
+                 const double c1_rate,
+                 const double alpha )
+{
+    const double c2_rate = 1.0 - c1_rate;
 
- */
+    return RGBColor( c1.red()   * c1_rate + c2.red()   * c2_rate,
+                     c1.green() * c1_rate + c2.green() * c2_rate,
+                     c1.blue()  * c1_rate + c2.blue()  * c2_rate,
+                     alpha );
+}
+
+/*-------------------------------------------------------------------*/
 std::string
 RGBColor::name() const
 {
-    char buf[8];
-    snprintf( buf, 8, "#%02X%02X%02X", red8bit(), green8bit(), blue8bit() );
+    char buf[10];
+
+    if ( alpha() == 1.0 )
+    {
+        snprintf( buf, sizeof( buf ), "#%02X%02X%02X", red8bit(), green8bit(), blue8bit() );
+    }
+    else
+    {
+        snprintf( buf, sizeof( buf ), "#%02X%02X%02X%02X", alpha8bit(), red8bit(), green8bit(), blue8bit() );
+    }
+
     return buf;
-
-#if 0
-    std::ostringstream buf;
-    buf.setf( std::ios::hex, std::ios::basefield );
-    buf.fill( '0' );
-
-    buf << "#"
-        << std::setw( 2 ) << red8bit()
-        << std::setw( 2 ) << green8bit()
-        << std::setw( 2 ) << blue8bit();
-
-    return buf.str();
-#endif
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 int
 RGBColor::red8bit() const
 {
-    return float_to_8bit( red() );
+    return to_8bit( red() );
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 int
 RGBColor::green8bit() const
 {
-    return float_to_8bit( green() );
+    return to_8bit( green() );
 }
 
 /*-------------------------------------------------------------------*/
-/*!
-
- */
 int
 RGBColor::blue8bit() const
 {
-    return float_to_8bit( blue() );
+    return to_8bit( blue() );
+}
+
+/*-------------------------------------------------------------------*/
+int
+RGBColor::alpha8bit() const
+{
+    return to_8bit( alpha() );
 }
 
 }
