@@ -43,7 +43,7 @@ inline
 int
 to_8bit( const double value )
 {
-    return static_cast< int >( value * 256 );
+    return std::clamp( static_cast< int >( value * 256 ), 0, 255 );
 }
 
 }
