@@ -291,18 +291,14 @@ DelaunayTriangulation::clearResults()
     M_edge_count = M_tri_count = 0;
     M_hint_triangle_id = -1;
 
-    for ( TriangleCont::iterator it = M_triangles.begin();
-          it != M_triangles.end();
-          ++it )
+    for ( std::pair< const int, TrianglePtr > & t : M_triangles )
     {
-        delete it->second;
+        delete t.second;
     }
 
-    for ( EdgeCont::iterator it = M_edges.begin();
-          it != M_edges.end();
-          ++it )
+    for ( std::pair< const int, EdgePtr > & e : M_edges )
     {
-        delete it->second;
+        delete e.second;
     }
 
     M_triangles.clear();
@@ -320,11 +316,9 @@ int
 DelaunayTriangulation::addVertex( const double x,
                                   const double y )
 {
-    for ( VertexCont::iterator it = M_vertices.begin(), end = M_vertices.end();
-          it != end;
-          ++it )
+    for ( const Vertex & v : M_vertices )
     {
-        if ( std::pow( it->pos().x - x, 2 ) + std::pow( it->pos().y - y,2) < VERTEX_MERGE_DIST2 )
+        if ( std::pow( v.pos().x - x, 2 ) + std::pow( v.pos().y - y,2) < VERTEX_MERGE_DIST2 )
         {
             // detect same coordinate vertex
             return -1;
@@ -473,22 +467,18 @@ DelaunayTriangulation::createInitialTriangle()
         return;
     }
 
-    VertexCont::iterator vit = M_vertices.begin();
+    double min_x = M_vertices.front().pos().x;
+    double max_x = min_x;
+    double min_y = M_vertices.front().pos().y;
+    double max_y = min_y;
 
-    double min_x = vit->pos().x;
-    double max_x = vit->pos().x;
-    double min_y = vit->pos().y;
-    double max_y = vit->pos().y;
-
-    ++vit;
-    const VertexCont::iterator vend = M_vertices.end();
-    for ( ; vit != vend; ++vit )
+    for ( const Vertex & v : M_vertices )
     {
-        if ( vit->pos().x < min_x ) min_x = vit->pos().x;
-        else if ( max_x < vit->pos().x ) max_x = vit->pos().x;
+        if ( v.pos().x < min_x ) min_x = v.pos().x;
+        else if ( max_x < v.pos().x ) max_x = v.pos().x;
 
-        if ( vit->pos().y < min_y ) min_y = vit->pos().y;
-        else if ( max_y < vit->pos().y ) max_y = vit->pos().y;
+        if ( v.pos().y < min_y ) min_y = v.pos().y;
+        else if ( max_y < v.pos().y ) max_y = v.pos().y;
     }
 
     // std::cout << __FILE__": createInitialTriangle() min="
@@ -510,30 +500,26 @@ DelaunayTriangulation::removeInitialVertices()
     std::vector< EdgePtr > removed_edges;
 
     // search removed edges that has initial vertex
-    for ( EdgeCont::iterator it = M_edges.begin(), end = M_edges.end();
-          it != end;
-          ++it )
+    for ( std::pair< const int, EdgePtr > & v : M_edges )
     {
         for ( std::size_t i = 0; i < 3; ++i )
         {
-            if ( it->second->vertex( 0 ) == &M_initial_vertex[i]
-                 || it->second->vertex( 1 ) == &M_initial_vertex[i] )
+            if ( v.second->vertex( 0 ) == &M_initial_vertex[i]
+                 || v.second->vertex( 1 ) == &M_initial_vertex[i] )
             {
-                removed_edges.push_back( it->second );
+                removed_edges.push_back( v.second );
                 break;
             }
         }
     }
 
     // remove edges and triangles
-    for ( std::vector< EdgePtr >::iterator it = removed_edges.begin(), end = removed_edges.end();
-          it != end;
-          ++it )
+    for ( EdgePtr edge : removed_edges )
     {
-        removeTriangle( (*it)->triangle( 0 ) );
-        removeTriangle( (*it)->triangle( 1 ) );
+        removeTriangle( edge->triangle( 0 ) );
+        removeTriangle( edge->triangle( 1 ) );
 
-        removeEdge( (*it)->id() );
+        removeEdge( edge->id() );
     }
 }
 
@@ -591,14 +577,12 @@ DelaunayTriangulation::findNearestVertex( const Vector2D & pos ) const
     const Vertex * candidate = nullptr;
 
     double min_dist2 = 10000000.0;
-    for ( VertexCont::const_iterator it = M_vertices.begin(), end = M_vertices.end();
-          it != end;
-          ++it )
+    for ( const Vertex & v : M_vertices )
     {
-        double d2 = it->pos().dist2( pos );
+        double d2 = v.pos().dist2( pos );
         if ( d2 < min_dist2 )
         {
-            candidate = &(*it);
+            candidate = &v;
             min_dist2 = d2;
         }
     }
@@ -633,16 +617,14 @@ DelaunayTriangulation::compute()
     //           << std::endl;
 
     int loop = 0;
-    for ( VertexCont::iterator vit = M_vertices.begin(), end = M_vertices.end();
-          vit != end;
-          ++vit )
+    for ( Vertex & v : M_vertices )
     {
         ++loop;
         //std::cout << "compute() ********** vertex loop " << loop
-        //          << vit->pos() << std::endl;
+        //          << v.pos() << std::endl;
         // find triangle that contains 'vertex'
         TrianglePtr tri = nullptr;
-        ContainedType type = findTriangleContains( vit->pos(), &tri );
+        ContainedType type = findTriangleContains( v.pos(), &tri );
 
         ////////////////////////////////////////////////////
         if ( ! tri
@@ -651,7 +633,7 @@ DelaunayTriangulation::compute()
             std::cerr << __FILE__ << ':' << __LINE__
                       << " compute()"
                       << " could not determine ContainedType. "
-                      << vit->pos()
+                      << v.pos()
                       << std::endl;
             clearResults();
             return;
@@ -661,7 +643,7 @@ DelaunayTriangulation::compute()
         // new vertex is contained by old triangle
         if ( type == CONTAINED )
         {
-            if ( ! updateContainedVertex( &(*vit), tri ) )
+            if ( ! updateContainedVertex( &v, tri ) )
             {
                 std::cerr << __FILE__ << ':' << __LINE__
                           << " ERROR in updateContainedVertex(). illegal vertex. index=" << loop
@@ -673,7 +655,7 @@ DelaunayTriangulation::compute()
         else
         {
             // type == ONLINE
-            if ( ! updateOnlineVertex( &(*vit), tri ) )
+            if ( ! updateOnlineVertex( &v, tri ) )
             {
                 std::cerr << __FILE__ << ':' << __LINE__
                           << " ERROR in updateOnlineVertex(). illegal vertex. index=" << loop
@@ -689,14 +671,12 @@ DelaunayTriangulation::compute()
                   << " edge num= " << M_edges.size()
                   << " triangle num= " << M_triangles.size()
                   << std::endl;
-        for ( TriangleCont::iterator it = M_triangles.begin();
-              it != M_triangles.end();
-              ++it )
+        for ( std::pair< const int, TrianglePtr > & v : M_triangles )
         {
-            std::cout << "  triangle " << it->second->id()
-                      << it->second->vertex( 0 )->pos()
-                      << it->second->vertex( 1 )->pos()
-                      << it->second->vertex( 2 )->pos()
+            std::cout << "  triangle " << v.second->id()
+                      << v.second->vertex( 0 )->pos()
+                      << v.second->vertex( 1 )->pos()
+                      << v.second->vertex( 2 )->pos()
                       << std::endl;
         }
         std::cout << "--------------------------------------" << std::endl;
@@ -712,14 +692,12 @@ DelaunayTriangulation::compute()
               << " triangle num= " << M_triangles.size()
               << std::endl;
 
-    for ( TriangleCont::iterator it = M_triangles.begin();
-          it != M_triangles.end();
-          ++it )
+    for ( std::pair< const int, TrianglePtr > & v : M_triangles )
     {
-        std::cout << "  triangle " << it->second->id()
-                  << it->second->vertex( 0 )->pos()
-                  << it->second->vertex( 1 )->pos()
-                  << it->second->vertex( 2 )->pos()
+        std::cout << "  triangle " << v.second->id()
+                  << v.second->vertex( 0 )->pos()
+                  << v.second->vertex( 1 )->pos()
+                  << v.second->vertex( 2 )->pos()
                   << std::endl;
     }
 #endif
@@ -732,11 +710,9 @@ DelaunayTriangulation::compute()
 void
 DelaunayTriangulation::updateVoronoiVertex()
 {
-    for ( TriangleCont::iterator it = M_triangles.begin(), end = M_triangles.end();
-          it != end;
-          ++it )
+    for ( std::pair< const int, TrianglePtr > & v : M_triangles )
     {
-        it->second->updateVoronoiVertex();
+        v.second->updateVoronoiVertex();
     }
 }
 
@@ -1370,11 +1346,9 @@ DelaunayTriangulation::ContainedType
 DelaunayTriangulation::exhaustiveFindTriangleContains( const Vector2D & pos,
                                                        TrianglePtr * sol ) const
 {
-    for ( TriangleCont::const_iterator it = M_triangles.begin(), end = M_triangles.end();
-          it != end;
-          ++it )
+    for ( const std::pair< const int, TrianglePtr > & v : M_triangles )
     {
-        const TrianglePtr tri = it->second;
+        const TrianglePtr tri = v.second;
         const ContainedType result = test_triangle_contains( tri, pos );
         if ( result != NOT_CONTAINED )
         {
@@ -1552,11 +1526,9 @@ DelaunayTriangulation::buildQuadTree() const
     std::vector< std::pair< TrianglePtr, Rect2D > > items;
     items.reserve( M_triangles.size() );
 
-    for ( TriangleCont::const_iterator it = M_triangles.begin(), end = M_triangles.end();
-          it != end;
-          ++it )
+    for ( const std::pair< const int, TrianglePtr > & v : M_triangles )
     {
-        const TrianglePtr tri = it->second;
+        const TrianglePtr tri = v.second;
 
         double tminx = tri->vertex( 0 )->pos().x;
         double tmaxx = tminx;
