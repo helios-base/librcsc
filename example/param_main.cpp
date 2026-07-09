@@ -3,6 +3,7 @@
 #include <rcsc/param/param_map.h>
 #include <rcsc/param/cmd_line_parser.h>
 #include <rcsc/param/conf_file_parser.h>
+#include <rcsc/param/ini_parser.h>
 
 using namespace rcsc;
 
@@ -36,6 +37,15 @@ main( int argc, char ** argv )
     if ( ! confparser.parse( param_map ) )
     {
         std::cerr << "Invalid config file" << std::endl;
+        return 1;
+    }
+
+    //////////////////////////////////
+    IniParser iniparser( "test.ini", "test" );
+
+    if ( ! iniparser.parse( param_map ) )
+    {
+        std::cerr << "Invalid ini file" << std::endl;
         return 1;
     }
 

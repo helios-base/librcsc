@@ -6,6 +6,7 @@ noinst_LTLIBRARIES = librcsc_param.la
 librcsc_param_la_SOURCES = \
 	cmd_line_parser.cpp \
 	conf_file_parser.cpp \
+	ini_parser.cpp \
 	param_map.cpp \
 	rcss_param_parser.cpp
 
@@ -16,6 +17,7 @@ librcsc_paramincludedir = $(includedir)/rcsc/param
 librcsc_paraminclude_HEADERS = \
 	cmd_line_parser.h \
 	conf_file_parser.h \
+	ini_parser.h \
 	param_map.h \
 	param_parser.h \
 	rcss_param_parser.h
