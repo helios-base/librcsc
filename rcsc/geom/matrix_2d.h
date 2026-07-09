@@ -444,8 +444,6 @@ public:
 
 };
 
-}
-
 /*!
   \brief multiplication operator of Matrix x Matrix.
   \param lhs left hand side matrix.
@@ -489,5 +487,6 @@ operator<<( std::ostream & os,
     return m.print( os );
 }
 
+} // end namespace rcsc
 
 #endif

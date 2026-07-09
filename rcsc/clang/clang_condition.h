@@ -104,8 +104,6 @@ public:
 
 };
 
-}
-
 inline
 std::ostream &
 operator<<( std::ostream & os,
@@ -114,8 +112,6 @@ operator<<( std::ostream & os,
     return cond.print( os );
 }
 
-
-namespace rcsc {
 
 /*!
   \class CLangConditionBool

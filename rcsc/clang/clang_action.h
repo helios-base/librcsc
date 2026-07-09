@@ -111,8 +111,6 @@ public:
 
 };
 
-}
-
 
 /*!
   \brief stream operator
@@ -128,8 +126,6 @@ operator<<( std::ostream & os,
     return act.print( os );
 }
 
-
-namespace rcsc {
 
 /*!
   \class CLangActionMark

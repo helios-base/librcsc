@@ -529,8 +529,6 @@ public:
 
 };
 
-} // end of namespace
-
 
 ////////////////////////////////////////////////////////
 // arith operators
@@ -739,5 +737,7 @@ operator<<( std::ostream & os,
 {
     return a.print( os );
 }
+
+} // end namespace rcsc
 
 #endif

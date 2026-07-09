@@ -99,8 +99,6 @@ public:
 
 };
 
-}
-
 /*!
   \brief stream operator
   \param os reference to the output stream
@@ -114,5 +112,7 @@ operator<<( std::ostream & os,
 {
     return msg.print( os );
 }
+
+} // end namespace rcsc
 
 #endif
