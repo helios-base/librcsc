@@ -5,6 +5,7 @@ add_library(rcsc_geom OBJECT
   angle_deg.cpp
   circle_2d.cpp
   composite_region_2d.cpp
+  constrained_delaunay_triangulation.cpp
   convex_hull.cpp
   delaunay_triangulation.cpp
   line_2d.cpp
@@ -35,6 +36,7 @@ install(FILES
   angle_deg.h
   circle_2d.h
   composite_region_2d.h
+  constrained_delaunay_triangulation.h
   convex_hull.h
   delaunay_triangulation.h
   line_2d.h

@@ -34,6 +34,7 @@
 
 #include <rcsc/geom/angle_deg.h>
 #include <rcsc/geom/circle_2d.h>
+#include <rcsc/geom/constrained_delaunay_triangulation.h>
 #include <rcsc/geom/delaunay_triangulation.h>
 #include <rcsc/geom/line_2d.h>
 #include <rcsc/geom/matrix_2d.h>
