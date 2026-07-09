@@ -109,7 +109,7 @@ public:
               && M_c.isValid()
               && M_a != M_b
               && M_b != M_c
-              && M_a != M_a;
+              && M_c != M_a;
       }
 
     /*!
