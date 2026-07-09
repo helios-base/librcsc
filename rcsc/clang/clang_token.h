@@ -81,8 +81,6 @@ public:
 
 };
 
-}
-
 /*!
   \brief stream operator
   \param os reference to the output stream
@@ -96,8 +94,6 @@ operator<<( std::ostream & os,
 {
     return tok.print( os );
 }
-
-namespace rcsc {
 
 /*!
   \class CLangTokenClear

@@ -97,8 +97,6 @@ public:
 
 };
 
-}
-
 /*!
   \brief stream operator
   \param os reference to the output stream
@@ -112,8 +110,6 @@ operator<<( std::ostream & os,
 {
     return dir.print( os );
 }
-
-namespace rcsc {
 
 class CLangDirectiveCommon
     : public CLangDirective {

@@ -772,8 +772,6 @@ public:
 
 };
 
-} // end of namespace
-
 
 ////////////////////////////////////////////////////////
 // comparison operators
@@ -971,5 +969,6 @@ operator<<( std::ostream & os,
     return v.print( os );
 }
 
+} // end namespace rcsc
 
 #endif
