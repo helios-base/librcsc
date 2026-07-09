@@ -38,8 +38,13 @@
 #include <rcsc/geom/triangle_2d.h>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
+#include <unordered_map>
 #include <utility>
+
+//#define DEBUG
+//#define DEBUG2
 
 namespace rcsc {
 
@@ -53,6 +58,35 @@ edge_pairs[3] = { std::pair< std::size_t, std::size_t >( 0, 1 ),
                   std::pair< std::size_t, std::size_t >( 2, 0 ),
 };
 
+//! two vertices closer than this squared distance are treated as the same
+//! coordinate by addVertex()/addVertices().
+constexpr double VERTEX_MERGE_DIST2 = 1.0e-6;
+
+//! grid cell coordinate type used by the spatial hash in addVertices().
+typedef std::pair< long, long > GridCell;
+
+/*-------------------------------------------------------------------*/
+struct GridCellHash {
+    std::size_t operator()( const GridCell & cell ) const
+    {
+        return std::hash< long >()( cell.first ) * 73856093u
+            ^ std::hash< long >()( cell.second ) * 19349663u;
+    }
+};
+
+/*-------------------------------------------------------------------*/
+//! cell containing (x,y) when the plane is tiled with cell_size squares.
+inline
+GridCell
+grid_cell( const double x,
+           const double y,
+           const double cell_size )
+{
+    return GridCell( static_cast< long >( std::floor( x / cell_size ) ),
+                     static_cast< long >( std::floor( y / cell_size ) ) );
+}
+
+/*-------------------------------------------------------------------*/
 /*!
   \brief check how 'pos' relates to a single triangle. shared by
   DelaunayTriangulation::exhaustiveFindTriangleContains() (which calls this
@@ -63,10 +97,8 @@ DelaunayTriangulation::ContainedType
 test_triangle_contains( const DelaunayTriangulation::TrianglePtr tri,
                         const Vector2D & pos )
 {
-    if ( std::fabs( tri->circumcenter().x - pos.x )
-         > tri->circumradius()
-         || std::fabs( tri->circumcenter().y - pos.y )
-         > tri->circumradius() )
+    if ( std::fabs( tri->circumcenter().x - pos.x ) > tri->circumradius()
+         || std::fabs( tri->circumcenter().y - pos.y ) > tri->circumradius() )
     {
         // out of circumcircle
         return DelaunayTriangulation::NOT_CONTAINED;
@@ -123,9 +155,6 @@ test_triangle_contains( const DelaunayTriangulation::TrianglePtr tri,
 }
 
 }
-
-//#define DEBUG
-//#define DEBUG2
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -295,7 +324,7 @@ DelaunayTriangulation::addVertex( const double x,
           it != end;
           ++it )
     {
-        if ( std::pow( it->pos().x - x, 2 ) + std::pow( it->pos().y - y,2) < 1.0e-6 )
+        if ( std::pow( it->pos().x - x, 2 ) + std::pow( it->pos().y - y,2) < VERTEX_MERGE_DIST2 )
         {
             // detect same coordinate vertex
             return -1;
@@ -314,14 +343,70 @@ DelaunayTriangulation::addVertex( const double x,
 void
 DelaunayTriangulation::addVertices( const std::vector< Vector2D > & v )
 {
+    if ( v.empty() )
+    {
+        return;
+    }
+
     M_vertices.reserve( M_vertices.size() + v.size() );
 
-    int id = M_vertices.size();
+    // duplicate-coordinate check equivalent to addVertex(), but backed by a
+    // spatial hash instead of a linear scan: a vertex duplicated within 'v'
+    // (or already present in M_vertices) must still be rejected here, since
+    // compute() would otherwise later hit a vertex sitting exactly on top
+    // of an existing one, which trips the "same vertex in old triangle"
+    // safety check in updateOnlineVertex() and discards the whole
+    // triangulation. Bucketing by a cell size equal to the merge distance
+    // guarantees any existing vertex within that distance of a candidate
+    // lies in one of the 3x3 neighboring cells, so each lookup is O(1) on
+    // average instead of addVertex()'s O(current vertex count) scan
+    // repeated for every point in 'v'.
+    const double cell_size = std::sqrt( VERTEX_MERGE_DIST2 );
+
+    std::unordered_map< GridCell, std::vector< std::size_t >, GridCellHash > grid;
+    grid.reserve( M_vertices.size() + v.size() );
+
+    for ( std::size_t i = 0; i < M_vertices.size(); ++i )
+    {
+        const Vector2D & p = M_vertices[i].pos();
+        grid[ grid_cell( p.x, p.y, cell_size ) ].push_back( i );
+    }
 
     for ( const Vector2D & d : v )
     {
+        const GridCell c = grid_cell( d.x, d.y, cell_size );
+
+        bool duplicate = false;
+        for ( long dx = -1; dx <= 1 && ! duplicate; ++dx )
+        {
+            for ( long dy = -1; dy <= 1 && ! duplicate; ++dy )
+            {
+                const auto it = grid.find( GridCell( c.first + dx, c.second + dy ) );
+                if ( it == grid.end() )
+                {
+                    continue;
+                }
+
+                for ( const std::size_t idx : it->second )
+                {
+                    if ( M_vertices[idx].pos().dist2( d ) < VERTEX_MERGE_DIST2 )
+                    {
+                        duplicate = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if ( duplicate )
+        {
+            // detect same coordinate vertex
+            continue;
+        }
+
+        const int id = static_cast< int >( M_vertices.size() );
         M_vertices.emplace_back( id, d.x, d.y );
-        ++id;
+        grid[c].push_back( M_vertices.size() - 1 );
     }
 }
 
