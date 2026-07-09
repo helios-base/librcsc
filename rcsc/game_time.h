@@ -33,6 +33,7 @@
 #define RCSC_GAME_TIME_H
 
 #include <iostream>
+#include <functional>
 
 namespace rcsc {
 
@@ -294,5 +295,42 @@ operator>=(  const rcsc::GameTime & lhs,
                   && lhs.stopped() >= rhs.stopped() )
              );
 }
+
+namespace std {
+
+/*!
+  \struct hash<rcsc::GameTime>
+  \brief hash function object for rcsc::GameTime, needed to use
+  rcsc::GameTime as a key of std::unordered_map/std::unordered_set.
+ */
+template<>
+struct hash< rcsc::GameTime > {
+    std::size_t operator()( const rcsc::GameTime & t ) const noexcept
+      {
+          const std::size_t h1 = std::hash< long >()( t.cycle() );
+          const std::size_t h2 = std::hash< long >()( t.stopped() );
+          return h1 ^ ( h2 + 0x9e3779b9 + ( h1 << 6 ) + ( h1 >> 2 ) );
+      }
+};
+
+/*!
+  \struct equal_to<rcsc::GameTime>
+  \brief equality function object for rcsc::GameTime. Defined explicitly
+  (rather than relying on the default std::equal_to which looks up
+  operator== via ADL) because rcsc::GameTime's operator== is declared in
+  the global namespace and is therefore not found by ADL from within
+  namespace rcsc::GameTime's associated namespaces.
+ */
+template<>
+struct equal_to< rcsc::GameTime > {
+    bool operator()( const rcsc::GameTime & lhs,
+                      const rcsc::GameTime & rhs ) const noexcept
+      {
+          return ( lhs.cycle() == rhs.cycle()
+                   && lhs.stopped() == rhs.stopped() );
+      }
+};
+
+} // namespace std
 
 #endif
