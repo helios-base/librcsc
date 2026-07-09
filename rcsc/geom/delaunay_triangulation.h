@@ -551,6 +551,11 @@ private:
     //! triangle instance holder. key: id
     TriangleCont M_triangles;
 
+    //! id of the triangle found by the previous findTriangleContains() call.
+    //! used as the start triangle ("hint") of the next point location walk,
+    //! since queries (and vertex insertion order) tend to be spatially coherent.
+    mutable int M_hint_triangle_id = -1;
+
     // not used
     DelaunayTriangulation & operator=( const DelaunayTriangulation & ) = delete;
 
@@ -738,12 +743,46 @@ private:
 
     /*!
       \brief find triangle that contains pos from the computed triangle set.
+      Internally walks the triangle adjacency graph starting from a cached
+      hint triangle (O(sqrt(N)) expected), falling back to
+      exhaustiveFindTriangleContains() if the walk cannot reach a conclusive
+      answer, so the result is always identical to the exhaustive search.
       \param pos coordinates of the target point
       \param sol pointer to the solution variable.
       \return how the vertex is contained.
      */
     ContainedType findTriangleContains( const Vector2D & pos,
                                         TrianglePtr * sol ) const;
+
+    /*!
+      \brief try to find the triangle that contains pos by walking through
+      triangle adjacency (crossing from one triangle to its neighbor across
+      whichever edge separates the current triangle from pos), starting from
+      'start'.
+      \param pos coordinates of the target point
+      \param start triangle to start the walk from
+      \param sol pointer to the solution variable.
+      \return CONTAINED or ONLINE if conclusively found. NOT_CONTAINED means
+      either pos is confirmed outside the triangulated region, or the walk
+      could not reach a conclusive answer (e.g. floating point degeneracy or
+      the step budget was exceeded) -- callers must not treat NOT_CONTAINED
+      from this method as a definitive answer and should fall back to
+      exhaustiveFindTriangleContains().
+     */
+    ContainedType walkTriangleContains( const Vector2D & pos,
+                                        TrianglePtr start,
+                                        TrianglePtr * sol ) const;
+
+    /*!
+      \brief find triangle that contains pos by exhaustively checking every
+      triangle in the current triangle set. O(N), but always conclusive;
+      used as the correctness fallback for walkTriangleContains().
+      \param pos coordinates of the target point
+      \param sol pointer to the solution variable.
+      \return how the vertex is contained.
+     */
+    ContainedType exhaustiveFindTriangleContains( const Vector2D & pos,
+                                                  TrianglePtr * sol ) const;
 
     /*!
       \brief remove the specified edge from edge set

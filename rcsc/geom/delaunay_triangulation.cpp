@@ -187,6 +187,7 @@ void
 DelaunayTriangulation::clearResults()
 {
     M_edge_count = M_tri_count = 0;
+    M_hint_triangle_id = -1;
 
     for ( TriangleCont::iterator it = M_triangles.begin();
           it != M_triangles.end();
@@ -1038,11 +1039,162 @@ DelaunayTriangulation::legalizeEdge( TrianglePtr new_tri,
 
 /*-------------------------------------------------------------------*/
 /*!
-
+  Point location is the hot path of compute() (called once per inserted
+  vertex while the triangle set is being mutated) and of repeated external
+  queries (e.g. formation interpolation every cycle). Rather than maintain a
+  separate spatial index that would need to be kept in sync with every
+  triangle creation/removal, this walks the triangle adjacency graph that
+  the triangulation already maintains via Edge::triangle(0/1), starting from
+  the triangle found by the previous call. This is the standard
+  "visibility/orientation walk" technique for point location in a Delaunay
+  triangulation and is expected O(sqrt(N)) instead of O(N) per query.
+  Whenever the walk cannot conclusively resolve pos (it reached the
+  boundary of the mesh, hit the step budget, or hit a degenerate direction)
+  exhaustiveFindTriangleContains() is used instead, so the result is always
+  identical to what the plain exhaustive search would have returned.
 */
 DelaunayTriangulation::ContainedType
 DelaunayTriangulation::findTriangleContains( const Vector2D & pos,
                                              TrianglePtr * sol ) const
+{
+    if ( M_triangles.empty() )
+    {
+        return NOT_CONTAINED;
+    }
+
+    TriangleCont::const_iterator hint = M_triangles.find( M_hint_triangle_id );
+    if ( hint != M_triangles.end() )
+    {
+        TrianglePtr start = hint->second;
+        ContainedType result = walkTriangleContains( pos, start, sol );
+        if ( result == CONTAINED || result == ONLINE )
+        {
+            M_hint_triangle_id = (*sol)->id();
+            return result;
+        }
+    }
+
+    ContainedType result = exhaustiveFindTriangleContains( pos, sol );
+    if ( result == CONTAINED || result == ONLINE )
+    {
+        M_hint_triangle_id = (*sol)->id();
+    }
+    return result;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+DelaunayTriangulation::ContainedType
+DelaunayTriangulation::walkTriangleContains( const Vector2D & pos,
+                                             TrianglePtr start,
+                                             TrianglePtr * sol ) const
+{
+    TrianglePtr tri = start;
+
+    // generous but bounded step budget: a converging walk on a Delaunay
+    // triangulation takes O(sqrt(N)) steps on average, so hitting this
+    // means the walk is not converging (degenerate input, numerical
+    // corner case) and the exhaustive fallback should take over.
+    const std::size_t max_steps = M_triangles.size() + 8;
+
+    for ( std::size_t step = 0; tri && step < max_steps; ++step )
+    {
+        const Vector2D rel0( tri->vertex( 0 )->pos() - pos );
+        const Vector2D rel1( tri->vertex( 1 )->pos() - pos );
+        const Vector2D rel2( tri->vertex( 2 )->pos() - pos );
+
+        const double outer0 = rel0.outerProduct( rel1 );
+        const double outer1 = rel1.outerProduct( rel2 );
+        const double outer2 = rel2.outerProduct( rel0 );
+
+        // edge index whose opposite triangle should be visited next if pos
+        // turns out not to be online/contained in 'tri'. 3 == "unknown".
+        std::size_t cross_edge = 3;
+
+        if ( std::fabs( outer0 ) <= EPSILON )
+        {
+            if ( ! ( rel0.x * rel1.x > EPSILON || rel0.y * rel1.y > EPSILON ) )
+            {
+                *sol = tri;
+                return ONLINE;
+            }
+        }
+        else if ( std::fabs( outer1 ) <= EPSILON )
+        {
+            if ( ! ( rel1.x * rel2.x > EPSILON || rel1.y * rel2.y > EPSILON ) )
+            {
+                *sol = tri;
+                return ONLINE;
+            }
+        }
+        else if ( std::fabs( outer2 ) <= EPSILON )
+        {
+            if ( ! ( rel2.x * rel0.x > EPSILON || rel2.y * rel0.y > EPSILON ) )
+            {
+                *sol = tri;
+                return ONLINE;
+            }
+        }
+        else if ( ( outer0 >= 0.0 && outer1 >= 0.0 && outer2 >= 0.0 )
+                  || ( outer0 <= 0.0 && outer1 <= 0.0 && outer2 <= 0.0 ) )
+        {
+            *sol = tri;
+            return CONTAINED;
+        }
+        else
+        {
+            // pos is outside 'tri'. vertices 0,1,2 are consistently wound
+            // (all CW or all CCW), so the sign of the triangle's own
+            // (unsigned by pos) signed area tells us, for each edge, which
+            // side is "inside" -- an outer_i disagreeing with that sign
+            // means pos is beyond edge i, so cross into its neighbor.
+            const double signed_area
+                = ( tri->vertex( 1 )->pos() - tri->vertex( 0 )->pos() )
+                .outerProduct( tri->vertex( 2 )->pos() - tri->vertex( 0 )->pos() );
+
+            if ( signed_area >= 0.0 )
+            {
+                if ( outer0 < -EPSILON ) cross_edge = 0;
+                else if ( outer1 < -EPSILON ) cross_edge = 1;
+                else if ( outer2 < -EPSILON ) cross_edge = 2;
+            }
+            else
+            {
+                if ( outer0 > EPSILON ) cross_edge = 0;
+                else if ( outer1 > EPSILON ) cross_edge = 1;
+                else if ( outer2 > EPSILON ) cross_edge = 2;
+            }
+        }
+
+        if ( cross_edge == 3 )
+        {
+            // could not determine a walk direction (should not normally
+            // happen); let the caller fall back to the exhaustive search.
+            return NOT_CONTAINED;
+        }
+
+        const Vertex * va = tri->vertex( cross_edge );
+        const Vertex * vb = tri->vertex( ( cross_edge + 1 ) % 3 );
+        Edge * e = tri->getEdgeInclude( va, vb );
+
+        // if the neighbor is null, 'e' is on the boundary of the
+        // triangulated region and pos is outside it in this direction; the
+        // loop condition (tri == nullptr) ends the walk on the next check.
+        tri = ( e->triangle( 0 ) == tri ? e->triangle( 1 ) : e->triangle( 0 ) );
+    }
+
+    return NOT_CONTAINED;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+DelaunayTriangulation::ContainedType
+DelaunayTriangulation::exhaustiveFindTriangleContains( const Vector2D & pos,
+                                                       TrianglePtr * sol ) const
 {
     for ( TriangleCont::const_iterator it = M_triangles.begin(), end = M_triangles.end();
           it != end;
