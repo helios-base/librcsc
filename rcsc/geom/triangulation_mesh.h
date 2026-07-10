@@ -52,16 +52,12 @@ namespace rcsc {
   incremental construction), the mechanics of splitting a triangle around a
   newly inserted vertex (both the case where the vertex lands strictly
   inside a triangle and the case where it lands exactly on an existing
-  edge), and generic Lawson-flip Delaunay legalization (which stops
-  propagating at any edge marked "constrained" -- unused by
-  DelaunayTriangulation, which never constrains an edge, so this reduces to
-  plain Delaunay legalization for it).
-
-  It intentionally has no notion of a "search strategy" for point location
-  beyond a plain O(N) exhaustive scan (exhaustiveFindTriangleContains()):
-  faster strategies (hint-based walk, quadtree) are specific to
-  DelaunayTriangulation and layered on top of this class rather than shared,
-  since ConstrainedDelaunayTriangulation has no equivalent need for them.
+  edge), generic Lawson-flip Delaunay legalization (which stops propagating
+  at any edge marked "constrained" -- unused by DelaunayTriangulation, which
+  never constrains an edge, so this reduces to plain Delaunay legalization
+  for it), and the two fast point-location search strategies shared by both
+  subclasses: a hint-based adjacency walk (WALK, default) and an optional
+  quadtree spatial index (QUAD_TREE).
 
   This class is not intended to be used polymorphically (no virtual
   functions, protected non-virtual destructor): it exists purely so its two
@@ -82,6 +78,24 @@ public:
         NOT_CONTAINED,
         CONTAINED,
         ONLINE,
+    };
+
+    ////////////////////////////////////////////////////////////////
+    /*!
+      \enum SearchMethod
+      \brief strategy used by findTriangleContains() to locate the triangle
+      that contains a query point.
+     */
+    enum class SearchMethod {
+        WALK,      //!< walk the triangle adjacency graph from a cached hint
+                   //!< triangle (default). cheap to keep correct while the
+                   //!< triangle set is being mutated, so compute() always
+                   //!< uses this internally.
+        QUAD_TREE, //!< static quadtree spatial index over the current
+                   //!< triangle set, (re)built lazily the first time it is
+                   //!< queried after the triangle set changes. faster than
+                   //!< WALK when a triangulation is computed once and then
+                   //!< queried many times without further mutation.
     };
 
     ////////////////////////////////////////////////////////////////
@@ -591,10 +605,29 @@ protected:
     TriangleCont M_triangles;
 
     //! set whenever a triangle is created or removed (including by
-    //! clearResults()). DelaunayTriangulation uses this to know when its
-    //! (subclass-only) spatial search caches have gone stale; unused by
-    //! (and at zero behavioral cost to) ConstrainedDelaunayTriangulation.
+    //! clearResults()). Used to know when the quadtree spatial index has
+    //! gone stale and needs to be rebuilt before the next query.
     mutable bool M_topology_dirty = true;
+
+    //! id of the triangle found by the previous findTriangleContainsFast()
+    //! call. used as the start triangle ("hint") of the next point location
+    //! walk, since queries tend to be spatially coherent.
+    mutable int M_hint_triangle_id = -1;
+
+    //! search strategy used by findTriangleContainsFast().
+    SearchMethod M_search_method = SearchMethod::WALK;
+
+    //! opaque quadtree node type, defined in the .cpp file.
+    class QuadTreeNode;
+
+    //! root of the quadtree spatial index. only built/used when
+    //! M_search_method == SearchMethod::QUAD_TREE. owning raw pointer,
+    //! released by clearQuadTree().
+    mutable QuadTreeNode * M_quad_tree_root = nullptr;
+
+    //! reused across quadTreeFindTriangleContains() calls to avoid a heap
+    //! allocation per query.
+    mutable std::vector< TrianglePtr > M_quad_tree_candidates;
 
     TriangulationMesh() = default;
 
@@ -607,6 +640,27 @@ protected:
     TriangulationMesh & operator=( const TriangulationMesh & ) = delete;
 
 public:
+
+    /*!
+      \brief select the search strategy used by findTriangleContainsFast().
+      Does not affect the search compute() performs internally while building
+      the triangulation, which always uses exhaustiveFindTriangleContains().
+      \param method the new search strategy.
+     */
+    void setSearchMethod( SearchMethod method )
+      {
+          M_search_method = method;
+      }
+
+    /*!
+      \brief get the search strategy currently used by
+      findTriangleContainsFast().
+      \return the current search strategy
+     */
+    SearchMethod searchMethod() const
+      {
+          return M_search_method;
+      }
 
     /*!
       \brief get vertices
@@ -816,6 +870,57 @@ protected:
      */
     ContainedType exhaustiveFindTriangleContains( const Vector2D & pos,
                                                   TrianglePtr * sol ) const;
+
+    /*!
+      \brief find triangle that contains pos using the selected search
+      strategy (WALK or QUAD_TREE), falling back to
+      exhaustiveFindTriangleContains() when needed. This is the shared
+      implementation used by both DelaunayTriangulation and
+      ConstrainedDelaunayTriangulation for their public
+      findTriangleContains().
+      \param pos coordinates of the target point
+      \param sol pointer to the solution variable.
+      \return how the point is contained.
+     */
+    ContainedType findTriangleContainsFast( const Vector2D & pos,
+                                            TrianglePtr * sol ) const;
+
+    /*!
+      \brief try to find the triangle that contains pos by walking through
+      triangle adjacency, starting from 'start'.
+      \param pos coordinates of the target point
+      \param start triangle to start the walk from
+      \param sol pointer to the solution variable.
+      \return CONTAINED or ONLINE if conclusively found. NOT_CONTAINED means
+      either pos is confirmed outside the triangulated region, or the walk
+      could not reach a conclusive answer — callers must fall back to
+      exhaustiveFindTriangleContains().
+     */
+    ContainedType walkTriangleContains( const Vector2D & pos,
+                                        TrianglePtr start,
+                                        TrianglePtr * sol ) const;
+
+    /*!
+      \brief find triangle that contains pos using the quadtree spatial
+      index, (re)building it first if it is missing or stale.
+      \param pos coordinates of the target point
+      \param sol pointer to the solution variable.
+      \return CONTAINED or ONLINE if conclusively found via the index.
+      NOT_CONTAINED means the index could not conclusively resolve pos.
+     */
+    ContainedType quadTreeFindTriangleContains( const Vector2D & pos,
+                                                TrianglePtr * sol ) const;
+
+    /*!
+      \brief build (or rebuild) the quadtree spatial index from the current
+      triangle set. Marks M_topology_dirty false on success.
+     */
+    void buildQuadTree() const;
+
+    /*!
+      \brief release the quadtree spatial index.
+     */
+    void clearQuadTree() const;
 
     /*!
       \brief remove the specified edge from edge set

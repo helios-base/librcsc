@@ -56,6 +56,16 @@ ConstrainedDelaunayTriangulation::~ConstrainedDelaunayTriangulation()
 }
 
 /*-------------------------------------------------------------------*/
+const
+ConstrainedDelaunayTriangulation::Triangle *
+ConstrainedDelaunayTriangulation::findTriangleContains( const Vector2D & pos ) const
+{
+    TrianglePtr tri = nullptr;
+    findTriangleContainsFast( pos, &tri );
+    return tri;
+}
+
+/*-------------------------------------------------------------------*/
 int
 ConstrainedDelaunayTriangulation::findOrCreateVertex( const Vector2D & p )
 {

@@ -187,15 +187,11 @@ public:
 
     /*!
       \brief find triangle that contains pos from the computed triangle set.
+      Uses the search strategy selected by setSearchMethod() (default: WALK).
       \param pos coordinates of the target point
       \return const pointer to the found triangle. if no triangle, NULL is returned.
      */
-    const Triangle * findTriangleContains( const Vector2D & pos ) const
-      {
-          TrianglePtr tri = nullptr;
-          exhaustiveFindTriangleContains( pos, &tri );
-          return tri;
-      }
+    const Triangle * findTriangleContains( const Vector2D & pos ) const;
 
     /*!
       \brief check whether the edge connecting the two vertices is registered

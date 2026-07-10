@@ -166,6 +166,8 @@ TriangulationMesh::clearResults()
     M_edges.clear();
 
     M_topology_dirty = true;
+    M_hint_triangle_id = -1;
+    clearQuadTree();
 }
 
 /*-------------------------------------------------------------------*/
@@ -348,7 +350,7 @@ TriangulationMesh::createInitialTriangle()
     }
 
     createInitialTriangle( Rect2D( Vector2D( min_x - 1.0, min_y - 1.0 ),
-                                   Vector2D( min_x + 1.0, min_y + 1.0 ) ) );
+                                   Vector2D( max_x + 1.0, max_y + 1.0 ) ) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -908,6 +910,368 @@ TriangulationMesh::exhaustiveFindTriangleContains( const Vector2D & pos,
     }
 
     return NOT_CONTAINED;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  Nested type backing SearchMethod::QUAD_TREE. Defined here (rather than in
+  the header) since it is a pure implementation detail: a static index built
+  once (lazily, on first use after the triangle set changes) over whichever
+  triangles exist at that time, then queried read-only. This is a good
+  trade-off only when the triangulation is computed once and then queried
+  many times without further mutation -- compute() itself never uses it, so
+  there is no cost paid for the frequent create/remove churn of incremental
+  construction.
+*/
+class TriangulationMesh::QuadTreeNode {
+public:
+    static constexpr int MAX_DEPTH = 12;
+    static constexpr std::size_t LEAF_CAPACITY = 8;
+
+private:
+    Rect2D M_bounds;
+    bool M_leaf;
+    std::array< QuadTreeNode *, 4 > M_children;
+    std::vector< TrianglePtr > M_triangles;
+
+    QuadTreeNode( const QuadTreeNode & ) = delete;
+    QuadTreeNode & operator=( const QuadTreeNode & ) = delete;
+
+public:
+    explicit
+    QuadTreeNode( const Rect2D & bounds )
+        : M_bounds( bounds ),
+          M_leaf( true )
+      {
+          M_children.fill( nullptr );
+      }
+
+    ~QuadTreeNode()
+      {
+          for ( QuadTreeNode * c : M_children )
+          {
+              delete c;
+          }
+      }
+
+    /*!
+      \brief build a (sub)tree covering 'bounds' that indexes 'items'
+      (triangle + its axis-aligned bounding box).
+     */
+    static
+    QuadTreeNode * build( const Rect2D & bounds,
+                         const std::vector< std::pair< TrianglePtr, Rect2D > > & items,
+                         const int depth )
+      {
+          QuadTreeNode * node = new QuadTreeNode( bounds );
+
+          if ( items.size() <= LEAF_CAPACITY || depth >= MAX_DEPTH )
+          {
+              node->M_triangles.reserve( items.size() );
+              for ( const auto & item : items )
+              {
+                  node->M_triangles.push_back( item.first );
+              }
+              return node;
+          }
+
+          const Vector2D c = bounds.center();
+          const Rect2D quad_bounds[4] = {
+              Rect2D( bounds.topLeft(), c ),
+              Rect2D( Vector2D( c.x, bounds.top() ), Vector2D( bounds.right(), c.y ) ),
+              Rect2D( Vector2D( bounds.left(), c.y ), Vector2D( c.x, bounds.bottom() ) ),
+              Rect2D( c, bounds.bottomRight() ),
+          };
+
+          std::array< std::vector< std::pair< TrianglePtr, Rect2D > >, 4 > buckets;
+          for ( const auto & item : items )
+          {
+              for ( int q = 0; q < 4; ++q )
+              {
+                  if ( quad_bounds[q].left() <= item.second.right()
+                       && item.second.left() <= quad_bounds[q].right()
+                       && quad_bounds[q].top() <= item.second.bottom()
+                       && item.second.top() <= quad_bounds[q].bottom() )
+                  {
+                      buckets[q].push_back( item );
+                  }
+              }
+          }
+
+          bool shrank = false;
+          for ( int q = 0; q < 4; ++q )
+          {
+              if ( buckets[q].size() < items.size() )
+              {
+                  shrank = true;
+                  break;
+              }
+          }
+
+          if ( ! shrank )
+          {
+              node->M_triangles.reserve( items.size() );
+              for ( const auto & item : items )
+              {
+                  node->M_triangles.push_back( item.first );
+              }
+              return node;
+          }
+
+          node->M_leaf = false;
+          for ( int q = 0; q < 4; ++q )
+          {
+              if ( ! buckets[q].empty() )
+              {
+                  node->M_children[q] = build( quad_bounds[q], buckets[q], depth + 1 );
+              }
+          }
+          return node;
+      }
+
+    /*!
+      \brief append every triangle indexed by the leaf cell that contains
+      'pos' to 'candidates'.
+     */
+    void collectCandidates( const Vector2D & pos,
+                            std::vector< TrianglePtr > & candidates ) const
+      {
+          if ( M_leaf )
+          {
+              candidates.insert( candidates.end(), M_triangles.begin(), M_triangles.end() );
+              return;
+          }
+
+          const Vector2D c = M_bounds.center();
+          const int q = ( pos.x > c.x ? 1 : 0 ) + ( pos.y > c.y ? 2 : 0 );
+          if ( M_children[q] )
+          {
+              M_children[q]->collectCandidates( pos, candidates );
+          }
+      }
+};
+
+/*-------------------------------------------------------------------*/
+void
+TriangulationMesh::buildQuadTree() const
+{
+    clearQuadTree();
+    M_topology_dirty = false;
+
+    if ( M_triangles.empty() )
+    {
+        return;
+    }
+
+    double min_x = std::numeric_limits< double >::max();
+    double max_x = std::numeric_limits< double >::lowest();
+    double min_y = std::numeric_limits< double >::max();
+    double max_y = std::numeric_limits< double >::lowest();
+
+    std::vector< std::pair< TrianglePtr, Rect2D > > items;
+    items.reserve( M_triangles.size() );
+
+    for ( const std::pair< const int, TrianglePtr > & v : M_triangles )
+    {
+        const TrianglePtr tri = v.second;
+
+        double tminx = tri->vertex( 0 )->pos().x;
+        double tmaxx = tminx;
+        double tminy = tri->vertex( 0 )->pos().y;
+        double tmaxy = tminy;
+        for ( std::size_t i = 1; i < 3; ++i )
+        {
+            const Vector2D & p = tri->vertex( i )->pos();
+            tminx = std::min( tminx, p.x );
+            tmaxx = std::max( tmaxx, p.x );
+            tminy = std::min( tminy, p.y );
+            tmaxy = std::max( tmaxy, p.y );
+        }
+
+        min_x = std::min( min_x, tminx );
+        max_x = std::max( max_x, tmaxx );
+        min_y = std::min( min_y, tminy );
+        max_y = std::max( max_y, tmaxy );
+
+        items.emplace_back( tri, Rect2D( Vector2D( tminx, tminy ), Vector2D( tmaxx, tmaxy ) ) );
+    }
+
+    const double pad = 1.0;
+    const Rect2D root_bounds( Vector2D( min_x - pad, min_y - pad ),
+                              Vector2D( max_x + pad, max_y + pad ) );
+
+    M_quad_tree_root = QuadTreeNode::build( root_bounds, items, 0 );
+}
+
+/*-------------------------------------------------------------------*/
+void
+TriangulationMesh::clearQuadTree() const
+{
+    delete M_quad_tree_root;
+    M_quad_tree_root = nullptr;
+}
+
+/*-------------------------------------------------------------------*/
+TriangulationMesh::ContainedType
+TriangulationMesh::quadTreeFindTriangleContains( const Vector2D & pos,
+                                                 TrianglePtr * sol ) const
+{
+    if ( M_topology_dirty || ! M_quad_tree_root )
+    {
+        buildQuadTree();
+    }
+
+    if ( ! M_quad_tree_root )
+    {
+        return NOT_CONTAINED;
+    }
+
+    M_quad_tree_candidates.clear();
+    M_quad_tree_root->collectCandidates( pos, M_quad_tree_candidates );
+
+    for ( TrianglePtr tri : M_quad_tree_candidates )
+    {
+        const ContainedType result = classifyPoint( tri, pos );
+        if ( result != NOT_CONTAINED )
+        {
+            *sol = tri;
+            return result;
+        }
+    }
+
+    return NOT_CONTAINED;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  Point location hot path: walks the triangle adjacency graph starting from
+  the triangle found by the previous call (the "hint"), falling back to
+  exhaustiveFindTriangleContains() if the walk cannot reach a conclusive
+  answer. Result is always identical to the exhaustive search.
+*/
+TriangulationMesh::ContainedType
+TriangulationMesh::walkTriangleContains( const Vector2D & pos,
+                                         TrianglePtr start,
+                                         TrianglePtr * sol ) const
+{
+    TrianglePtr tri = start;
+
+    const std::size_t max_steps = M_triangles.size() + 8;
+
+    for ( std::size_t step = 0; tri && step < max_steps; ++step )
+    {
+        const Vector2D rel0( tri->vertex( 0 )->pos() - pos );
+        const Vector2D rel1( tri->vertex( 1 )->pos() - pos );
+        const Vector2D rel2( tri->vertex( 2 )->pos() - pos );
+
+        const double outer0 = rel0.outerProduct( rel1 );
+        const double outer1 = rel1.outerProduct( rel2 );
+        const double outer2 = rel2.outerProduct( rel0 );
+
+        std::size_t cross_edge = 3;
+
+        if ( std::fabs( outer0 ) <= EPSILON )
+        {
+            if ( ! ( rel0.x * rel1.x > EPSILON || rel0.y * rel1.y > EPSILON ) )
+            {
+                *sol = tri;
+                return ONLINE;
+            }
+        }
+        else if ( std::fabs( outer1 ) <= EPSILON )
+        {
+            if ( ! ( rel1.x * rel2.x > EPSILON || rel1.y * rel2.y > EPSILON ) )
+            {
+                *sol = tri;
+                return ONLINE;
+            }
+        }
+        else if ( std::fabs( outer2 ) <= EPSILON )
+        {
+            if ( ! ( rel2.x * rel0.x > EPSILON || rel2.y * rel0.y > EPSILON ) )
+            {
+                *sol = tri;
+                return ONLINE;
+            }
+        }
+        else if ( ( outer0 >= 0.0 && outer1 >= 0.0 && outer2 >= 0.0 )
+                  || ( outer0 <= 0.0 && outer1 <= 0.0 && outer2 <= 0.0 ) )
+        {
+            *sol = tri;
+            return CONTAINED;
+        }
+        else
+        {
+            const double signed_area
+                = ( tri->vertex( 1 )->pos() - tri->vertex( 0 )->pos() )
+                .outerProduct( tri->vertex( 2 )->pos() - tri->vertex( 0 )->pos() );
+
+            if ( signed_area >= 0.0 )
+            {
+                if ( outer0 < -EPSILON ) cross_edge = 0;
+                else if ( outer1 < -EPSILON ) cross_edge = 1;
+                else if ( outer2 < -EPSILON ) cross_edge = 2;
+            }
+            else
+            {
+                if ( outer0 > EPSILON ) cross_edge = 0;
+                else if ( outer1 > EPSILON ) cross_edge = 1;
+                else if ( outer2 > EPSILON ) cross_edge = 2;
+            }
+        }
+
+        if ( cross_edge == 3 )
+        {
+            return NOT_CONTAINED;
+        }
+
+        const Vertex * va = tri->vertex( cross_edge );
+        const Vertex * vb = tri->vertex( ( cross_edge + 1 ) % 3 );
+        Edge * e = tri->getEdgeInclude( va, vb );
+
+        tri = ( e->triangle( 0 ) == tri ? e->triangle( 1 ) : e->triangle( 0 ) );
+    }
+
+    return NOT_CONTAINED;
+}
+
+/*-------------------------------------------------------------------*/
+TriangulationMesh::ContainedType
+TriangulationMesh::findTriangleContainsFast( const Vector2D & pos,
+                                             TrianglePtr * sol ) const
+{
+    if ( M_triangles.empty() )
+    {
+        return NOT_CONTAINED;
+    }
+
+    if ( M_search_method == SearchMethod::QUAD_TREE )
+    {
+        const ContainedType result = quadTreeFindTriangleContains( pos, sol );
+        if ( result == CONTAINED || result == ONLINE )
+        {
+            return result;
+        }
+    }
+
+    TriangleCont::const_iterator hint = M_triangles.find( M_hint_triangle_id );
+    if ( hint != M_triangles.end() )
+    {
+        TrianglePtr start = hint->second;
+        ContainedType result = walkTriangleContains( pos, start, sol );
+        if ( result == CONTAINED || result == ONLINE )
+        {
+            M_hint_triangle_id = (*sol)->id();
+            return result;
+        }
+    }
+
+    ContainedType result = exhaustiveFindTriangleContains( pos, sol );
+    if ( result == CONTAINED || result == ONLINE )
+    {
+        M_hint_triangle_id = (*sol)->id();
+    }
+    return result;
 }
 
 }
