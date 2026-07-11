@@ -20,7 +20,6 @@ add_subdirectory(trainer)
 
 add_library(rcsc SHARED
   $<TARGET_OBJECTS:rcsc_util>
-  $<TARGET_OBJECTS:rcsc_geom_triangle>
   $<TARGET_OBJECTS:rcsc_geom>
   $<TARGET_OBJECTS:rcsc_gz>
   $<TARGET_OBJECTS:rcsc_param>
