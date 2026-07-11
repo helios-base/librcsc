@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = triangle .
+SUBDIRS = .
 
 noinst_LTLIBRARIES = librcsc_geom.la
 #lib_LTLIBRARIES = librcsc_geom.la
@@ -21,10 +21,8 @@ librcsc_geom_la_SOURCES = \
 	sector_2d.cpp \
 	segment_2d.cpp \
 	triangle_2d.cpp \
-	triangulation.cpp \
 	vector_2d.cpp \
-	voronoi_diagram.cpp \
-	voronoi_diagram_triangle.cpp
+	voronoi_diagram.cpp
 
 
 librcsc_geomincludedir = $(includedir)/rcsc/geom
@@ -48,15 +46,8 @@ librcsc_geominclude_HEADERS = \
 	size_2d.h \
 	segment_2d.h \
 	triangle_2d.h \
-	triangulation.h \
 	vector_2d.h \
-	voronoi_diagram.h \
-	voronoi_diagram_triangle.h
-
-
-
-librcsc_geom_la_LIBADD = \
-	triangle/librcsc_geom_triangle.la
+	voronoi_diagram.h
 
 
 librcsc_geom_la_LDFLAGS = -version-info 8:0:1

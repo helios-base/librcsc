@@ -205,7 +205,6 @@ AC_CONFIG_FILES([Doxyfile
                  rcsc/clang/Makefile
                  rcsc/color/Makefile
                  rcsc/geom/Makefile
-                 rcsc/geom/triangle/Makefile
                  rcsc/gz/Makefile
                  rcsc/monitor/Makefile
                  rcsc/net/Makefile
