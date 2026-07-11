@@ -142,7 +142,7 @@ VoronoiDiagram::compute()
     // #if 1
     //     std::cerr << "VoronoiDiagram input points:\n";
     //     int count = 0;
-    //     for ( DelaunayTriangulation::VertexCont::const_iterator v = M_triangulation.vertices().begin();
+    //     for ( DelaunayTriangulationCore::VertexCont::const_iterator v = M_triangulation.vertices().begin();
     //           v != M_triangulation.vertices().end();
     //           ++v, ++count )
     //     {
@@ -152,12 +152,9 @@ VoronoiDiagram::compute()
     // #endif
 
     Vector2D centroid( 0.0, 0.0 );
-    for ( DelaunayTriangulation::VertexCont::const_iterator v = M_triangulation.vertices().begin(),
-              end = M_triangulation.vertices().end();
-          v != end;
-          ++v )
+    for ( const DelaunayTriangulationCore::Vertex & v : M_triangulation.vertices() )
     {
-        centroid += v->pos();
+        centroid += v.pos();
     }
     centroid /= static_cast< double >( input_points_size );
 
@@ -171,13 +168,10 @@ VoronoiDiagram::compute()
     //           << "  triangle size = " << M_triangulation.triangles().size() << '\n'
     //           << std::endl;
 
-    for ( DelaunayTriangulation::EdgeCont::const_iterator e = M_triangulation.edges().begin(),
-              end = M_triangulation.edges().end();
-          e != end;
-          ++e )
+    for ( const DelaunayTriangulationCore::EdgeCont::value_type & e : M_triangulation.edges() )
     {
-        const DelaunayTriangulation::Triangle * t0 = e->second->triangle( 0 );
-        const DelaunayTriangulation::Triangle * t1 = e->second->triangle( 1 );
+        const DelaunayTriangulationCore::Triangle * t0 = e.second->triangle( 0 );
+        const DelaunayTriangulationCore::Triangle * t1 = e.second->triangle( 1 );
 
         if ( t0 && t1 )
         {
@@ -239,11 +233,11 @@ VoronoiDiagram::compute()
         }
         else if ( t0 || t1 )
         {
-            const DelaunayTriangulation::Triangle * t = ( t0 ? t0 : t1 );
+            const DelaunayTriangulationCore::Triangle * t = ( t0 ? t0 : t1 );
 
             Vector2D mid
-                = e->second->vertex( 0 )->pos()
-                + e->second->vertex( 1 )->pos();
+                = e.second->vertex( 0 )->pos()
+                + e.second->vertex( 1 )->pos();
             mid *= 0.5;
             AngleDeg dir = ( mid - t->voronoiVertex() ).th();
 
@@ -316,12 +310,9 @@ VoronoiDiagram::getPointsOnSegments( const double min_length,
     //
     // add points on segment
     //
-    for ( Segment2DCont::const_iterator it = M_segments.begin(),
-              end = M_segments.end();
-          it != end;
-          ++it )
+    for ( const Segment2D & s : M_segments )
     {
-        const double len = it->length();
+        const double len = s.length();
         if ( len < min_length )
         {
             continue;
@@ -332,8 +323,8 @@ VoronoiDiagram::getPointsOnSegments( const double min_length,
 
         for ( int d = 1; d < div; ++d )
         {
-            result->push_back( it->origin() * ( static_cast< double >( d ) / div )
-                               + it->terminal() * ( static_cast< double >( div - d ) / div ) );
+            result->push_back( s.origin() * ( static_cast< double >( d ) / div )
+                               + s.terminal() * ( static_cast< double >( div - d ) / div ) );
         }
     }
 }

@@ -197,8 +197,7 @@ public:
           \brief get the coordinates of the kernel point
           \return const reference to the vector object.
          */
-        const
-        Vector2D & pos() const
+        const Vector2D & pos() const
           {
               return M_pos;
           }
@@ -209,8 +208,8 @@ public:
     class Edge;
     class Triangle;
 
-    typedef Edge* EdgePtr; //!< alias of Edge pointer
-    typedef Triangle* TrianglePtr; //!< alias of Triangle pointer
+    using EdgePtr = Edge*; //!< alias of Edge pointer
+    using TrianglePtr = Triangle*; //!< alias of Triangle pointer
 
     ////////////////////////////////////////////////////////////////
     /*!
@@ -303,8 +302,7 @@ public:
           \param i specifies array index
           \return const pointer to the vertex
          */
-        const
-        Vertex * vertex( const std::size_t i ) const
+        const Vertex * vertex( const std::size_t i ) const
           {
               return M_vertices[i];
           }
@@ -449,8 +447,7 @@ public:
           \brief get the circumcenter point of this triangle
           \return coordinates of the circumcenter
          */
-        const
-        Vector2D & circumcenter() const
+        const Vector2D & circumcenter() const
           {
               return M_circumcenter;
           }
@@ -513,9 +510,8 @@ public:
           \param v2 second vertex
           \return if exist, const pointer to the vertex. else NULL is returned.
          */
-        const
-        Vertex * getVertexExclude( const Vertex * v1,
-                                   const Vertex * v2 ) const
+        const Vertex * getVertexExclude( const Vertex * v1,
+                                         const Vertex * v2 ) const
           {
               for ( std::size_t i = 0; i < 3; ++i )
               {
@@ -533,8 +529,7 @@ public:
           \param edge target edge
           \return if exist, const pointer to the vertex, else NULL is returned.
          */
-        const
-        Vertex * getVertexExclude( const Edge * edge ) const
+        const Vertex * getVertexExclude( const Edge * edge ) const
           {
               return getVertexExclude( edge->vertex( 0 ),
                                        edge->vertex( 1 ) );
@@ -581,9 +576,9 @@ public:
 
     ////////////////////////////////////////////////////////////////
 
-    typedef std::vector< Vertex > VertexCont; //!< vertex container type
-    typedef std::unordered_map< int, EdgePtr > EdgeCont; //!< edge pointer container type
-    typedef std::unordered_map< int, TrianglePtr > TriangleCont; //!< triangle pointer container type
+    using VertexCont = std::vector< Vertex >; //!< vertex container type
+    using EdgeCont = std::unordered_map< int, EdgePtr >; //!< edge pointer container type
+    using TriangleCont = std::unordered_map< int, TrianglePtr >; //!< triangle pointer container type
 
 protected:
 
@@ -642,6 +637,11 @@ protected:
 public:
 
     /*!
+      \brief clear all data and reset the state.
+     */
+    void clear();
+
+    /*!
       \brief select the search strategy used by findTriangleContainsFast().
       Does not affect the search compute() performs internally while building
       the triangulation, which always uses exhaustiveFindTriangleContains().
@@ -666,8 +666,7 @@ public:
       \brief get vertices
       \return const reference to the vertices container
      */
-    const
-    VertexCont & vertices() const
+    const VertexCont & vertices() const
       {
           return M_vertices;
       }
@@ -676,8 +675,7 @@ public:
       \brief get edge set
       \return const referenct to the map container. key=id, value=raw pointer
      */
-    const
-    EdgeCont & edges() const
+    const EdgeCont & edges() const
       {
           return M_edges;
       }
@@ -686,8 +684,7 @@ public:
       \brief get triangle set
       \return const referenct to the map container. key=id, value=raw pointer
      */
-    const
-    TriangleCont & triangles() const
+    const TriangleCont & triangles() const
       {
           return M_triangles;
       }
@@ -722,16 +719,14 @@ public:
       \param id wanted vertex Id number.
       \return const pointer to the vertex instance. if no vertex, NULL is returned.
      */
-    const
-    Vertex * getVertex( const int id ) const;
+    const Vertex * getVertex( const int id ) const;
 
     /*!
       \brief find the vertex nearest to the specified point
       \param pos coordinates of the target point
       \return const pointer to the found vertex, if no vertex, NULL is returned.
      */
-    const
-    Vertex * findNearestVertex( const Vector2D & pos ) const;
+    const Vertex * findNearestVertex( const Vector2D & pos ) const;
 
 protected:
 

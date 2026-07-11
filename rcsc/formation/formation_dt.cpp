@@ -67,7 +67,7 @@ FormationDT::getPosition( const int num,
         return Vector2D::INVALIDATED;
     }
 
-    const DelaunayTriangulation::Triangle * tri = M_triangulation.findTriangleContains( focus_point );
+    const DelaunayTriangulationCore::Triangle * tri = M_triangulation.findTriangleContains( focus_point );
 
     // linear interpolation
     return interpolate( num, focus_point, tri );
@@ -80,7 +80,7 @@ FormationDT::getPositions( const Vector2D & focus_point,
 {
     positions.clear();
 
-    const DelaunayTriangulation::Triangle * tri = M_triangulation.findTriangleContains( focus_point );
+    const DelaunayTriangulationCore::Triangle * tri = M_triangulation.findTriangleContains( focus_point );
 
     for ( int num = 1; num <= 11; ++num )
     {
@@ -92,12 +92,12 @@ FormationDT::getPositions( const Vector2D & focus_point,
 Vector2D
 FormationDT::interpolate( const int num,
                           const Vector2D & focus_point,
-                          const DelaunayTriangulation::Triangle * tri ) const
+                          const DelaunayTriangulationCore::Triangle * tri ) const
 {
 
     if ( ! tri )
     {
-        const DelaunayTriangulation::Vertex * v = M_triangulation.findNearestVertex( focus_point );
+        const DelaunayTriangulationCore::Vertex * v = M_triangulation.findNearestVertex( focus_point );
 
         if ( ! v )
         {

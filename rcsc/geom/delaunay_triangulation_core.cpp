@@ -148,6 +148,15 @@ DelaunayTriangulationCore::Triangle::updateVoronoiVertex()
 
 /*-------------------------------------------------------------------*/
 void
+DelaunayTriangulationCore::clear()
+{
+    clearResults();
+    M_vertices.clear();
+}
+
+
+/*-------------------------------------------------------------------*/
+void
 DelaunayTriangulationCore::clearResults()
 {
     M_edge_count = 0;

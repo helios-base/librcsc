@@ -80,39 +80,39 @@ public:
     */
     explicit
     DelaunayTriangulation( const Rect2D & region )
-      {
-          clearResults();
-          createInitialTriangle( region );
-      }
+    {
+        clearResults();
+        createInitialTriangle( region );
+    }
 
     /*!
       \brief destruct
-     */
+    */
     ~DelaunayTriangulation();
 
     /*!
       \brief initialize with target field rectangle data.
       All data are cleared.
       Initial triangle is crated.
-     */
+    */
     void init( const Rect2D & region )
-      {
-          clear();
-          createInitialTriangle( region );
-      }
+    {
+        clear();
+        createInitialTriangle( region );
+    }
 
     /*!
       \brief clear all vertices and all computed results.
-     */
+    */
     void clear()
-      {
-          clearResults();
-          M_vertices.clear();
-      }
+    {
+        clearResults();
+        M_vertices.clear();
+    }
 
     /*!
       \brief clear all computed results
-     */
+    */
     void clearResults();
 
     /*!
@@ -130,20 +130,8 @@ public:
       Uses the search strategy selected by setSearchMethod() (default: WALK).
       \param pos coordinates of the target point
       \return const pointer to the found triangle. if no triangle, NULL is returned.
-     */
-    const
-    Triangle * findTriangleContains( const Vector2D & pos ) const;
-
-    /*!
-      \brief (re)build the quadtree spatial index from the current triangle
-      set. Any previous index is discarded first.
-     */
-    void buildQuadTree() const;
-
-    /*!
-      \brief release the quadtree spatial index, if any.
-     */
-    void clearQuadTree() const;
+    */
+    const Triangle * findTriangleContains( const Vector2D & pos ) const;
 
 };
 

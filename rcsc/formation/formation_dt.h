@@ -119,7 +119,7 @@ private:
 
     Vector2D interpolate( const int num,
                           const Vector2D & focus_point,
-                          const DelaunayTriangulation::Triangle * tri ) const;
+                          const DelaunayTriangulationCore::Triangle * tri ) const;
 
 public:
 
