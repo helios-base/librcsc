@@ -33,6 +33,7 @@
 #define RCSC_GAME_TIME_H
 
 #include <iostream>
+#include <cstdint>
 #include <functional>
 
 namespace rcsc {
@@ -40,13 +41,17 @@ namespace rcsc {
 /*!
   \class GameTime
   \brief game time object
- */
+*/
 class GameTime {
+public:
+    using CountType = std::int32_t; //!< type for cycle and stopped values
+    using KeyType = std::uint64_t; //!< type for unique key value
+
 private:
     //! normal simulation time
-    long M_cycle;
+    CountType M_cycle;
     //! stoppage time
-    long M_stopped;
+    CountType M_stopped;
 
 public:
     /*!
@@ -55,123 +60,134 @@ public:
     GameTime()
         : M_cycle( 0 ),
           M_stopped( 0 )
-      { }
+    { }
 
     /*!
       \brief construct with the specified values.
       \param c normal cycle count
       \param s stopped cycle count
-     */
-    GameTime( const long c,
-              const long s )
+    */
+    GameTime( const CountType c,
+              const CountType s )
         : M_cycle( c ),
           M_stopped( s )
-      { }
+    { }
 
     /*!
       \brief get normal time value
       \return const reference to the normal cycle value
-     */
-    long cycle() const
-      {
-          return M_cycle;
-      }
+    */
+    CountType cycle() const
+    {
+        return M_cycle;
+    }
 
     /*!
       \brief get stoppage time value
       \return const reference to the stopped cycle value
-     */
-    long stopped() const
-      {
-          return M_stopped;
-      }
+    */
+    CountType stopped() const
+    {
+        return M_stopped;
+    }
+
+    /*!
+      \brief get a unique key for the game time
+      \return unique key value
+    */
+    KeyType key() const
+    {
+        const KeyType hi = static_cast< KeyType >( static_cast< std::uint32_t >( M_cycle ) );
+        const KeyType lo = static_cast< KeyType >( static_cast< std::uint32_t >( M_stopped ) );
+        return ( hi << 32 ) | lo;
+    }
 
     /*!
       \brief assign new value
       \param c new normal cycle value
       \param s new stopped cycle value
       \return const reference to itself
-     */
-    const GameTime & assign( const long c,
-                             const long s )
-      {
-          M_cycle = c;
-          M_stopped = s;
-          return *this;
-      }
+    */
+    const GameTime & assign( const CountType c,
+                             const CountType s )
+    {
+        M_cycle = c;
+        M_stopped = s;
+        return *this;
+    }
 
     /*!
       \brief assign new normal cycle
       \param c new normal cycle value
       \return const reference to itself
-     */
-    const GameTime & setCycle( const long c )
-      {
-          M_cycle = c;
-          return *this;
-      }
+    */
+    const GameTime & setCycle( const CountType c )
+    {
+        M_cycle = c;
+        return *this;
+    }
 
     /*!
       \brief assign new stopped cycle
       \param s new stopped cycle value
       \return const reference to itself
-     */
-    const GameTime & setStopped( const long s )
-      {
-          M_stopped = s;
-          return *this;
-      }
+    */
+    const GameTime & setStopped( const CountType s )
+    {
+        M_stopped = s;
+        return *this;
+    }
 
     /*!
       \brief add to normal cycle
       \param t added value
       \return const reference to itself
-     */
-    const GameTime & addCycle( const long t )
-      {
-          M_cycle += t;
-          return *this;
-      }
+    */
+    const GameTime & addCycle( const CountType t )
+    {
+        M_cycle += t;
+        return *this;
+    }
 
     /*!
       \brief add to stopped cycle
       \param t added value
       \return const reference to itself
-     */
-    const GameTime & addStopped( const long t )
-      {
-          M_stopped += t;
-          return *this;
-      }
+    */
+    const GameTime & addStopped( const CountType t )
+    {
+        M_stopped += t;
+        return *this;
+    }
 
     /*!
       \struct Less
       \brief compare function
-     */
+    */
     struct Less {
         bool operator()( const GameTime & lhs,
                          const GameTime & rhs ) const
-          {
-              return ( lhs.cycle() < rhs.cycle()
-                       || ( lhs.cycle() == rhs.cycle()
-                            && lhs.stopped() < rhs.stopped() )
-                       );
-          }
+        {
+            return ( lhs.cycle() < rhs.cycle()
+                     || ( lhs.cycle() == rhs.cycle()
+                          && lhs.stopped() < rhs.stopped() )
+                     );
+        }
     };
 
     /*!
       \struct Greater
       \brief compare function
-     */
+    */
     struct Greater {
         bool operator()( const GameTime & lhs,
                          const GameTime & rhs ) const
-          {
-              return ( lhs.cycle() > rhs.cycle()
-                       || ( lhs.cycle() == rhs.cycle()
-                            && lhs.stopped() > rhs.stopped() )
-                       );
-          }
+        {
+            return ( lhs.cycle() > rhs.cycle()
+                     || ( lhs.cycle() == rhs.cycle()
+                          && lhs.stopped() > rhs.stopped() )
+                     );
+        }
     };
 };
 
@@ -201,8 +217,8 @@ operator<<( std::ostream & o,
 */
 inline
 bool
-operator==( const rcsc::GameTime & lhs,
-            const rcsc::GameTime & rhs )
+operator==( const GameTime & lhs,
+            const GameTime & rhs )
 {
     return ( lhs.cycle() == rhs.cycle()
              && lhs.stopped() == rhs.stopped() );
@@ -216,8 +232,8 @@ operator==( const rcsc::GameTime & lhs,
   \return boolean value
 */
 inline
-bool operator!=( const rcsc::GameTime & lhs,
-                 const rcsc::GameTime & rhs )
+bool operator!=( const GameTime & lhs,
+                 const GameTime & rhs )
 {
     return !( lhs == rhs );
 }
@@ -231,8 +247,8 @@ bool operator!=( const rcsc::GameTime & lhs,
 */
 inline
 bool
-operator<( const rcsc::GameTime & lhs,
-           const rcsc::GameTime & rhs )
+operator<( const GameTime & lhs,
+           const GameTime & rhs )
 {
     return ( lhs.cycle() < rhs.cycle()
              || ( lhs.cycle() == rhs.cycle()
@@ -249,8 +265,8 @@ operator<( const rcsc::GameTime & lhs,
 */
 inline
 bool
-operator<=( const rcsc::GameTime & lhs,
-            const rcsc::GameTime & rhs )
+operator<=( const GameTime & lhs,
+            const GameTime & rhs )
 {
     return ( lhs.cycle() < rhs.cycle()
              || ( lhs.cycle() == rhs.cycle()
@@ -267,8 +283,8 @@ operator<=( const rcsc::GameTime & lhs,
 */
 inline
 bool
-operator>( const rcsc::GameTime & lhs,
-           const rcsc::GameTime & rhs )
+operator>( const GameTime & lhs,
+           const GameTime & rhs )
 {
     return ( lhs.cycle() > rhs.cycle()
              || ( lhs.cycle() == rhs.cycle()
@@ -285,8 +301,8 @@ operator>( const rcsc::GameTime & lhs,
 */
 inline
 bool
-operator>=(  const rcsc::GameTime & lhs,
-             const rcsc::GameTime & rhs )
+operator>=( const GameTime & lhs,
+            const GameTime & rhs )
 {
     return ( lhs.cycle() > rhs.cycle()
              || ( lhs.cycle() == rhs.cycle()
@@ -296,23 +312,29 @@ operator>=(  const rcsc::GameTime & lhs,
 
 } // end namespace rcsc
 
+
 namespace std {
 
-/*!
-  \struct hash<rcsc::GameTime>
-  \brief hash function object for rcsc::GameTime, needed to use
-  rcsc::GameTime as a key of std::unordered_map/std::unordered_set.
- */
 template<>
 struct hash< rcsc::GameTime > {
     std::size_t operator()( const rcsc::GameTime & t ) const noexcept
-      {
-          const std::size_t h1 = std::hash< long >()( t.cycle() );
-          const std::size_t h2 = std::hash< long >()( t.stopped() );
-          return h1 ^ ( h2 + 0x9e3779b9 + ( h1 << 6 ) + ( h1 >> 2 ) );
-      }
+    {
+        if constexpr ( sizeof( std::size_t ) >= sizeof( rcsc::GameTime::KeyType ) )
+        {
+            // if std::size_t is large enough to hold the key, just use it directly
+            return static_cast< std::size_t >( t.key() );
+        }
+        else
+        {
+            // if std::size_t is smaller than KeyType, combine the two 32-bit values into a single hash
+            // Use a simple hash combining technique, boost::hash_combine inspired
+            std::size_t seed = t.cycle();
+            seed ^= t.stopped() + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            return seed;
+        }
+    }
 };
 
-} // namespace std
+} // end namespace std
 
 #endif
