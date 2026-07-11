@@ -121,7 +121,7 @@ public:
       \brief check if this player is ghost object or not
       \return true if this player may be ghost object
      */
-    bool isGhost() const
+    bool isGhost() const override
       {
           return M_ghost_count > 0;
       }
@@ -130,7 +130,7 @@ public:
       \brief get the count of ghost check
       \return count of ghost check
      */
-    int ghostCount() const
+    int ghostCount() const override
       {
           return M_ghost_count;
       }
@@ -148,7 +148,7 @@ public:
       \brief check if player is tackling
       \return true if tackle accuracy is less than tackle cycles in ServerParam
     */
-    bool isTackling() const;
+    bool isTackling() const override;
 
     /*!
       \brief velify global position accuracy

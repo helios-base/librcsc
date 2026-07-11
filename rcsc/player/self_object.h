@@ -158,7 +158,7 @@ public:
       \return true if this player is self
      */
     virtual
-    bool isSelf() const
+    bool isSelf() const override
       {
           return true;
       }
@@ -168,7 +168,7 @@ public:
       \param type new player type id
      */
     virtual
-    void setPlayerType( const int type );
+    void setPlayerType( const int type ) override;
 
     /*!
       \brief get player type parameter
@@ -333,7 +333,7 @@ public:
       \brief check if player is tackling or not.
       \return checked result.
      */
-    bool isTackling() const
+    bool isTackling() const override
       {
           return M_tackle_expires > 0;
       }
@@ -526,7 +526,7 @@ public:
       \brief get current estimated kick power rate
       \return calculated kick rate value
     */
-    double kickRate() const
+    double kickRate() const override
       {
           return M_kick_rate;
       }
