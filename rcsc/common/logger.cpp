@@ -217,7 +217,7 @@ Logger::addText( const std::int32_t level,
         va_end( argp );
 
         char header[32];
-        snprintf( header, 32, "%ld,%ld %d M ",
+        snprintf( header, 32, "%d,%d %d M ",
                   M_time->cycle(),
                   M_time->stopped(),
                   level );
@@ -249,7 +249,7 @@ Logger::addPoint( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char msg[128];
-        snprintf( msg, 128, "%ld,%ld %d p %.4f %.4f ",
+        snprintf( msg, 128, "%d,%d %d p %.4f %.4f ",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -280,7 +280,7 @@ Logger::addPoint( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char msg[128];
-        snprintf( msg, 128, "%ld,%ld %d p %.4f %.4f #%02x%02x%02x",
+        snprintf( msg, 128, "%d,%d %d p %.4f %.4f #%02x%02x%02x",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -310,7 +310,7 @@ Logger::addLine( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char msg[128];
-        snprintf( msg, 128, "%ld,%ld %d l %.4f %.4f %.4f %.4f ",
+        snprintf( msg, 128, "%d,%d %d l %.4f %.4f %.4f %.4f ",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -343,7 +343,7 @@ Logger::addLine( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char msg[128];
-        snprintf( msg, 128, "%ld,%ld %d l %.4f %.4f %.4f %.4f #%02x%02x%02x",
+        snprintf( msg, 128, "%d,%d %d l %.4f %.4f %.4f %.4f #%02x%02x%02x",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -374,7 +374,7 @@ Logger::addArc( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char msg[128];
-        snprintf( msg, 128, "%ld,%ld %d a %.4f %.4f %.4f %.4f %.4f ",
+        snprintf( msg, 128, "%d,%d %d a %.4f %.4f %.4f %.4f %.4f ",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -411,7 +411,7 @@ Logger::addArc( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char msg[128];
-        snprintf( msg, 128, "%ld,%ld %d a %.4f %.4f %.4f %.4f %.4f #%02x%02x%02x",
+        snprintf( msg, 128, "%d,%d %d a %.4f %.4f %.4f %.4f %.4f #%02x%02x%02x",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -441,7 +441,7 @@ Logger::addCircle( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char msg[128];
-        snprintf( msg, 128, "%ld,%ld %d %c %.4f %.4f %.4f ",
+        snprintf( msg, 128, "%d,%d %d %c %.4f %.4f %.4f ",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -475,7 +475,7 @@ Logger::addCircle( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char msg[128];
-        snprintf( msg, 128, "%ld,%ld %d %c %.4f %.4f %.4f #%02x%02x%02x",
+        snprintf( msg, 128, "%d,%d %d %c %.4f %.4f %.4f #%02x%02x%02x",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -509,7 +509,7 @@ Logger::addTriangle( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char msg[128];
-        snprintf( msg, 128, "%ld,%ld %d %c %.4f %.4f %.4f %.4f %.4f %.4f ",
+        snprintf( msg, 128, "%d,%d %d %c %.4f %.4f %.4f %.4f %.4f %.4f ",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -546,7 +546,7 @@ Logger::addTriangle( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char msg[128];
-        snprintf( msg, 128, "%ld,%ld %d %c %.4f %.4f %.4f %.4f %.4f %.4f #%02x%02x%02x",
+        snprintf( msg, 128, "%d,%d %d %c %.4f %.4f %.4f %.4f %.4f %.4f #%02x%02x%02x",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -578,7 +578,7 @@ Logger::addRect( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char msg[128];
-        snprintf( msg, 128, "%ld,%ld %d %c %.4f %.4f %.4f %.4f ",
+        snprintf( msg, 128, "%d,%d %d %c %.4f %.4f %.4f %.4f ",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -613,7 +613,7 @@ Logger::addRect( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char msg[128];
-        snprintf( msg, 128, "%ld,%ld %d %c %.4f %.4f %.4f %.4f #%02x%02x%02x",
+        snprintf( msg, 128, "%d,%d %d %c %.4f %.4f %.4f %.4f #%02x%02x%02x",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -647,7 +647,7 @@ Logger::addSector( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char msg[128];
-        snprintf( msg, 128, "%ld,%ld %d %c %.4f %.4f %.4f %.4f %.4f %.4f ",
+        snprintf( msg, 128, "%d,%d %d %c %.4f %.4f %.4f %.4f %.4f %.4f ",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -685,7 +685,7 @@ Logger::addSector( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char msg[128];
-        snprintf( msg, 128, "%ld,%ld %d %c %.4f %.4f %.4f %.4f %.4f %.4f #%02x%02x%02x",
+        snprintf( msg, 128, "%d,%d %d %c %.4f %.4f %.4f %.4f %.4f %.4f #%02x%02x%02x",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -718,7 +718,7 @@ Logger::addSector( const std::int32_t level,
         double span_angle = ( sector.angleLeftStart().isLeftOf( sector.angleRightEnd() )
                               ? ( sector.angleLeftStart() - sector.angleRightEnd() ).abs()
                               : 360.0 - ( sector.angleLeftStart() - sector.angleRightEnd() ).abs() );
-        snprintf( msg, 128, "%ld,%ld %d %c %.4f %.4f %.4f %.4f %.4f %.4f ",
+        snprintf( msg, 128, "%d,%d %d %c %.4f %.4f %.4f %.4f %.4f %.4f ",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -755,7 +755,7 @@ Logger::addSector( const std::int32_t level,
         double span_angle = ( sector.angleLeftStart().isLeftOf( sector.angleRightEnd() )
                               ? ( sector.angleLeftStart() - sector.angleRightEnd() ).abs()
                               : 360.0 - ( sector.angleLeftStart() - sector.angleRightEnd() ).abs() );
-        snprintf( msg, 128, "%ld,%ld %d %c %.4f %.4f %.4f %.4f %.4f %.4f #%02x%02x%02x",
+        snprintf( msg, 128, "%d,%d %d %c %.4f %.4f %.4f %.4f %.4f %.4f #%02x%02x%02x",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -787,7 +787,7 @@ Logger::addMessage( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char header[128];
-        snprintf( header, 128, "%ld,%ld %d m %.4f %.4f ",
+        snprintf( header, 128, "%d,%d %d m %.4f %.4f ",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
@@ -824,7 +824,7 @@ Logger::addMessage( const std::int32_t level,
          && M_time->cycle() <= M_end_time )
     {
         char header[128];
-        snprintf( header, 128, "%ld,%ld %d m %.4f %.4f ",
+        snprintf( header, 128, "%d,%d %d m %.4f %.4f ",
                   M_time->cycle(),
                   M_time->stopped(),
                   level,
