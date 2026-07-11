@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = triangle .
+SUBDIRS = .
 
 noinst_LTLIBRARIES = librcsc_geom.la
 #lib_LTLIBRARIES = librcsc_geom.la
@@ -12,6 +12,7 @@ librcsc_geom_la_SOURCES = \
 	constrained_delaunay_triangulation.cpp \
 	convex_hull.cpp \
 	delaunay_triangulation.cpp \
+	delaunay_triangulation_core.cpp \
 	line_2d.cpp \
 	matrix_2d.cpp \
 	polygon_2d.cpp \
@@ -20,12 +21,8 @@ librcsc_geom_la_SOURCES = \
 	sector_2d.cpp \
 	segment_2d.cpp \
 	triangle_2d.cpp \
-	triangulation.cpp \
 	vector_2d.cpp \
-	voronoi_diagram.cpp \
-	voronoi_diagram_triangle.cpp
-
-#	segment_intersection.cpp
+	voronoi_diagram.cpp
 
 
 librcsc_geomincludedir = $(includedir)/rcsc/geom
@@ -38,6 +35,7 @@ librcsc_geominclude_HEADERS = \
 	constrained_delaunay_triangulation.h \
 	convex_hull.h \
 	delaunay_triangulation.h \
+	delaunay_triangulation_core.h \
 	line_2d.h \
 	matrix_2d.h \
 	polygon_2d.h \
@@ -48,19 +46,8 @@ librcsc_geominclude_HEADERS = \
 	size_2d.h \
 	segment_2d.h \
 	triangle_2d.h \
-	triangulation.h \
 	vector_2d.h \
-	voronoi_diagram.h \
-	voronoi_diagram_triangle.h
-
-#	segment_intersection.h
-
-
-librcsc_geom_la_LIBADD = \
-	triangle/librcsc_geom_triangle.la
-
-#	qhull/src/libqhull.la
-#	tetgen/librcsc_geom_tetgen.la
+	voronoi_diagram.h
 
 
 librcsc_geom_la_LDFLAGS = -version-info 8:0:1
