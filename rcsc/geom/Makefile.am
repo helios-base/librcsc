@@ -50,7 +50,7 @@ librcsc_geominclude_HEADERS = \
 	voronoi_diagram.h
 
 
-librcsc_geom_la_LDFLAGS = -version-info 8:0:1
+librcsc_geom_la_LDFLAGS = -version-info 9:0:0
 #libXXXX_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 #    1. Start with version information of `0:0:0' for each libtool library.
 #
