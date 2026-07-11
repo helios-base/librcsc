@@ -1,7 +1,7 @@
 // -*-c++-*-
 
 /*!
-  \file triangulation_mesh.h
+  \file delaunay_triangulation_core.h
   \brief shared planar triangle mesh (vertex/edge/triangle graph plus
   incremental point insertion and edge-flip legalization) Header File.
 */
@@ -30,8 +30,8 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#ifndef RCSC_GEOM_TRIANGULATION_MESH_H
-#define RCSC_GEOM_TRIANGULATION_MESH_H
+#ifndef RCSC_GEOM_DELAUNAY_TRIANGULATION_CORE_H
+#define RCSC_GEOM_DELAUNAY_TRIANGULATION_CORE_H
 
 #include <rcsc/geom/rect_2d.h>
 #include <rcsc/geom/vector_2d.h>
@@ -43,7 +43,7 @@
 namespace rcsc {
 
 /*!
-  \class TriangulationMesh
+  \class DelaunayTriangulationCore
   \brief common vertex/edge/triangle graph and algorithms shared by
   rcsc::DelaunayTriangulation and rcsc::ConstrainedDelaunayTriangulation.
 
@@ -64,7 +64,7 @@ namespace rcsc {
   subclasses can share an implementation, not as a public abstraction in its
   own right.
 */
-class TriangulationMesh {
+class DelaunayTriangulationCore {
 public:
 
     static const double EPSILON; //!< tolerance threshold
@@ -629,15 +629,15 @@ protected:
     //! allocation per query.
     mutable std::vector< TrianglePtr > M_quad_tree_candidates;
 
-    TriangulationMesh() = default;
+    DelaunayTriangulationCore() = default;
 
     //! not meant to be used/destroyed polymorphically: this class exists
     //! purely to share an implementation between its two subclasses.
-    ~TriangulationMesh() = default;
+    ~DelaunayTriangulationCore() = default;
 
     // not used
-    TriangulationMesh( const TriangulationMesh & ) = delete;
-    TriangulationMesh & operator=( const TriangulationMesh & ) = delete;
+    DelaunayTriangulationCore( const DelaunayTriangulationCore & ) = delete;
+    DelaunayTriangulationCore & operator=( const DelaunayTriangulationCore & ) = delete;
 
 public:
 

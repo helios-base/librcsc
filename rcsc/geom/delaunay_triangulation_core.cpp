@@ -1,7 +1,7 @@
 // -*-c++-*-
 
 /*!
-  \file triangulation_mesh.cpp
+  \file delaunay_triangulation_core.cpp
   \brief shared planar triangle mesh (vertex/edge/triangle graph plus
   incremental point insertion and edge-flip legalization) Source File.
 */
@@ -34,7 +34,7 @@
 #include <config.h>
 #endif
 
-#include "triangulation_mesh.h"
+#include "delaunay_triangulation_core.h"
 
 #include <rcsc/geom/segment_2d.h>
 #include <rcsc/geom/triangle_2d.h>
@@ -47,14 +47,14 @@
 
 namespace rcsc {
 
-const double TriangulationMesh::EPSILON = 1.0e-10;
+const double DelaunayTriangulationCore::EPSILON = 1.0e-10;
 
 namespace {
 
 const std::pair< std::size_t, std::size_t >
 edge_pairs[3] = { std::pair< std::size_t, std::size_t >( 0, 1 ),
-                  std::pair< std::size_t, std::size_t >( 1, 2 ),
-                  std::pair< std::size_t, std::size_t >( 2, 0 ),
+    std::pair< std::size_t, std::size_t >( 1, 2 ),
+    std::pair< std::size_t, std::size_t >( 2, 0 ),
 };
 
 //! two vertices closer than this squared distance are treated as the same
@@ -88,10 +88,10 @@ grid_cell( const double x,
 }
 
 /*-------------------------------------------------------------------*/
-TriangulationMesh::Triangle::Triangle( const int id,
-                                       EdgePtr e0,
-                                       EdgePtr e1,
-                                       EdgePtr e2 )
+DelaunayTriangulationCore::Triangle::Triangle( const int id,
+                                               EdgePtr e0,
+                                               EdgePtr e1,
+                                               EdgePtr e2 )
     : M_id( id ),
       M_voronoi_vertex( Vector2D::INVALIDATED )
 {
@@ -123,7 +123,7 @@ TriangulationMesh::Triangle::Triangle( const int id,
 
 /*-------------------------------------------------------------------*/
 void
-TriangulationMesh::Triangle::updateVoronoiVertex()
+DelaunayTriangulationCore::Triangle::updateVoronoiVertex()
 {
     Line2D l1 = Line2D::perpendicular_bisector( M_vertices[0]->pos(),
                                                 M_vertices[1]->pos() );
@@ -139,7 +139,7 @@ TriangulationMesh::Triangle::updateVoronoiVertex()
 
         if ( ! M_voronoi_vertex.isValid() )
         {
-            std::cerr << "(TriangulationMesh::Triangle::updateVoronoiVertex):"
+            std::cerr << "(DelaunayTriangulationCore::Triangle::updateVoronoiVertex):"
                       << " Could not calculate the vertex candidate point."
                       << std::endl;
         }
@@ -148,7 +148,7 @@ TriangulationMesh::Triangle::updateVoronoiVertex()
 
 /*-------------------------------------------------------------------*/
 void
-TriangulationMesh::clearResults()
+DelaunayTriangulationCore::clearResults()
 {
     M_edge_count = 0;
     M_tri_count = 0;
@@ -172,8 +172,8 @@ TriangulationMesh::clearResults()
 
 /*-------------------------------------------------------------------*/
 int
-TriangulationMesh::addVertex( const double x,
-                              const double y )
+DelaunayTriangulationCore::addVertex( const double x,
+                                      const double y )
 {
     for ( const Vertex & v : M_vertices )
     {
@@ -191,7 +191,7 @@ TriangulationMesh::addVertex( const double x,
 
 /*-------------------------------------------------------------------*/
 void
-TriangulationMesh::addVertices( const std::vector< Vector2D > & v )
+DelaunayTriangulationCore::addVertices( const std::vector< Vector2D > & v )
 {
     if ( v.empty() )
     {
@@ -262,8 +262,8 @@ TriangulationMesh::addVertices( const std::vector< Vector2D > & v )
 
 /*-------------------------------------------------------------------*/
 const
-TriangulationMesh::Vertex *
-TriangulationMesh::getVertex( const int id ) const
+DelaunayTriangulationCore::Vertex *
+DelaunayTriangulationCore::getVertex( const int id ) const
 {
     if ( M_vertices.empty()
          || id < 0
@@ -276,8 +276,8 @@ TriangulationMesh::getVertex( const int id ) const
 
 /*-------------------------------------------------------------------*/
 const
-TriangulationMesh::Vertex *
-TriangulationMesh::findNearestVertex( const Vector2D & pos ) const
+DelaunayTriangulationCore::Vertex *
+DelaunayTriangulationCore::findNearestVertex( const Vector2D & pos ) const
 {
     const Vertex * candidate = nullptr;
 
@@ -297,7 +297,7 @@ TriangulationMesh::findNearestVertex( const Vector2D & pos ) const
 
 /*-------------------------------------------------------------------*/
 void
-TriangulationMesh::createInitialTriangle( const Rect2D & region )
+DelaunayTriangulationCore::createInitialTriangle( const Rect2D & region )
 {
     // create double size rectangle
     const double max_size = std::max( region.size().length() + 1.0,
@@ -328,7 +328,7 @@ TriangulationMesh::createInitialTriangle( const Rect2D & region )
 
 /*-------------------------------------------------------------------*/
 void
-TriangulationMesh::createInitialTriangle()
+DelaunayTriangulationCore::createInitialTriangle()
 {
     if ( M_vertices.empty() )
     {
@@ -355,7 +355,7 @@ TriangulationMesh::createInitialTriangle()
 
 /*-------------------------------------------------------------------*/
 void
-TriangulationMesh::removeInitialVertices()
+DelaunayTriangulationCore::removeInitialVertices()
 {
     std::vector< EdgePtr > removed_edges;
 
@@ -385,8 +385,8 @@ TriangulationMesh::removeInitialVertices()
 
 /*-------------------------------------------------------------------*/
 bool
-TriangulationMesh::updateContainedVertex( const Vertex * new_vertex,
-                                          const TrianglePtr tri )
+DelaunayTriangulationCore::updateContainedVertex( const Vertex * new_vertex,
+                                                  const TrianglePtr tri )
 {
     // split 'tri' to 3 pieces
     // --> create new 3 triangle in 'tri'
@@ -415,7 +415,7 @@ TriangulationMesh::updateContainedVertex( const Vertex * new_vertex,
         if ( ! new_tri[i]->circumcenter().isValid() )
         {
             std::cerr << __FILE__ << ':' << __LINE__
-                      << " TriangulationMesh::updateContainedVertex()"
+                      << " DelaunayTriangulationCore::updateContainedVertex()"
                       << " detected an illegal (degenerate) triangle."
                       << std::endl;
             return false;
@@ -439,8 +439,8 @@ TriangulationMesh::updateContainedVertex( const Vertex * new_vertex,
 
 /*-------------------------------------------------------------------*/
 bool
-TriangulationMesh::updateOnlineVertex( const Vertex * new_vertex,
-                                       const TrianglePtr tri )
+DelaunayTriangulationCore::updateOnlineVertex( const Vertex * new_vertex,
+                                               const TrianglePtr tri )
 {
     // find edge that vertex is on-line
     int online_count = 0;
@@ -460,7 +460,7 @@ TriangulationMesh::updateOnlineVertex( const Vertex * new_vertex,
     if ( online_count >= 2 )
     {
         std::cerr << __FILE__ << ':' << __LINE__
-                  << " ***ERROR*** TriangulationMesh::updateOnlineVertex()."
+                  << " ***ERROR*** DelaunayTriangulationCore::updateOnlineVertex()."
                   << " detect the same vertex in old triangle="
                   << tri->vertex( 0 )->pos()
                   << tri->vertex( 1 )->pos()
@@ -473,7 +473,7 @@ TriangulationMesh::updateOnlineVertex( const Vertex * new_vertex,
     if ( ! online_edge )
     {
         std::cerr << __FILE__ << ':' << __LINE__
-                  << " ***ERROR*** TriangulationMesh::updateOnlineVertex()."
+                  << " ***ERROR*** DelaunayTriangulationCore::updateOnlineVertex()."
                   << " failed to find online edge."
                   << " illegal_vertex=" << new_vertex->pos()
                   << std::endl;
@@ -489,7 +489,7 @@ TriangulationMesh::updateOnlineVertex( const Vertex * new_vertex,
         // sites have been inserted; refuse rather than silently splitting a
         // constraint edge.
         std::cerr << __FILE__ << ':' << __LINE__
-                  << " ***ERROR*** TriangulationMesh::updateOnlineVertex()."
+                  << " ***ERROR*** DelaunayTriangulationCore::updateOnlineVertex()."
                   << " new vertex lies on a constrained edge."
                   << std::endl;
         return false;
@@ -517,7 +517,7 @@ TriangulationMesh::updateOnlineVertex( const Vertex * new_vertex,
         if ( ! tri_vertex )
         {
             std::cerr << __FILE__ << ':' << __LINE__
-                      << " TriangulationMesh::updateOnlineVertex()."
+                      << " DelaunayTriangulationCore::updateOnlineVertex()."
                       << " failed to find vertex of tri."
                       << std::endl;
             return false;
@@ -539,7 +539,7 @@ TriangulationMesh::updateOnlineVertex( const Vertex * new_vertex,
             if ( ! new_tri_in_tri[i]->circumcenter().isValid() )
             {
                 std::cerr << __FILE__ << ':' << __LINE__
-                          << " TriangulationMesh::updateOnlineVertex()"
+                          << " DelaunayTriangulationCore::updateOnlineVertex()"
                           << " detected an illegal (degenerate) triangle."
                           << std::endl;
                 return false;
@@ -566,7 +566,7 @@ TriangulationMesh::updateOnlineVertex( const Vertex * new_vertex,
         if ( ! adjacent_vertex )
         {
             std::cerr << __FILE__ << ':' << __LINE__
-                      << " TriangulationMesh::updateOnlineVertex()."
+                      << " DelaunayTriangulationCore::updateOnlineVertex()."
                       << " failed to find vertex of adjacent."
                       << std::endl;
             return false;
@@ -589,7 +589,7 @@ TriangulationMesh::updateOnlineVertex( const Vertex * new_vertex,
             if ( ! new_tri_in_adjacent[i]->circumcenter().isValid() )
             {
                 std::cerr << __FILE__ << ':' << __LINE__
-                          << " TriangulationMesh::updateOnlineVertex()"
+                          << " DelaunayTriangulationCore::updateOnlineVertex()"
                           << " detected an illegal (degenerate) triangle."
                           << std::endl;
                 return false;
@@ -634,7 +634,7 @@ TriangulationMesh::updateOnlineVertex( const Vertex * new_vertex,
 
 /*-------------------------------------------------------------------*/
 bool
-TriangulationMesh::isLocallyDelaunay( const EdgePtr edge ) const
+DelaunayTriangulationCore::isLocallyDelaunay( const EdgePtr edge ) const
 {
     if ( ! edge || edge->constrained() )
     {
@@ -660,8 +660,8 @@ TriangulationMesh::isLocallyDelaunay( const EdgePtr edge ) const
 
 /*-------------------------------------------------------------------*/
 bool
-TriangulationMesh::legalizeEdge( EdgePtr edge,
-                                 const Vertex * new_vertex )
+DelaunayTriangulationCore::legalizeEdge( EdgePtr edge,
+                                         const Vertex * new_vertex )
 {
     if ( isLocallyDelaunay( edge ) )
     {
@@ -739,10 +739,10 @@ TriangulationMesh::legalizeEdge( EdgePtr edge,
 
 /*-------------------------------------------------------------------*/
 bool
-TriangulationMesh::flipEdge( EdgePtr edge,
-                             EdgePtr outer_edges[4],
-                             EdgePtr * new_edge,
-                             const Vertex * new_vertex )
+DelaunayTriangulationCore::flipEdge( EdgePtr edge,
+                                     EdgePtr outer_edges[4],
+                                     EdgePtr * new_edge,
+                                     const Vertex * new_vertex )
 {
     TrianglePtr t0 = edge->triangle( 0 );
     TrianglePtr t1 = edge->triangle( 1 );
@@ -823,7 +823,7 @@ TriangulationMesh::flipEdge( EdgePtr edge,
     if ( ! nt0->circumcenter().isValid() || ! nt1->circumcenter().isValid() )
     {
         std::cerr << __FILE__ << ':' << __LINE__
-                  << " TriangulationMesh::flipEdge()"
+                  << " DelaunayTriangulationCore::flipEdge()"
                   << " detected an illegal (degenerate) triangle after flip."
                   << std::endl;
         return false;
@@ -833,9 +833,9 @@ TriangulationMesh::flipEdge( EdgePtr edge,
 }
 
 /*-------------------------------------------------------------------*/
-TriangulationMesh::ContainedType
-TriangulationMesh::classifyPoint( const TrianglePtr tri,
-                                  const Vector2D & pos )
+DelaunayTriangulationCore::ContainedType
+DelaunayTriangulationCore::classifyPoint( const TrianglePtr tri,
+                                          const Vector2D & pos )
 {
     if ( std::fabs( tri->circumcenter().x - pos.x ) > tri->circumradius()
          || std::fabs( tri->circumcenter().y - pos.y ) > tri->circumradius() )
@@ -894,9 +894,9 @@ TriangulationMesh::classifyPoint( const TrianglePtr tri,
 }
 
 /*-------------------------------------------------------------------*/
-TriangulationMesh::ContainedType
-TriangulationMesh::exhaustiveFindTriangleContains( const Vector2D & pos,
-                                                   TrianglePtr * sol ) const
+DelaunayTriangulationCore::ContainedType
+DelaunayTriangulationCore::exhaustiveFindTriangleContains( const Vector2D & pos,
+                                                           TrianglePtr * sol ) const
 {
     for ( const std::pair< const int, TrianglePtr > & v : M_triangles )
     {
@@ -923,7 +923,7 @@ TriangulationMesh::exhaustiveFindTriangleContains( const Vector2D & pos,
   there is no cost paid for the frequent create/remove churn of incremental
   construction.
 */
-class TriangulationMesh::QuadTreeNode {
+class DelaunayTriangulationCore::QuadTreeNode {
 public:
     static constexpr int MAX_DEPTH = 12;
     static constexpr std::size_t LEAF_CAPACITY = 8;
@@ -942,118 +942,118 @@ public:
     QuadTreeNode( const Rect2D & bounds )
         : M_bounds( bounds ),
           M_leaf( true )
-      {
-          M_children.fill( nullptr );
-      }
+    {
+        M_children.fill( nullptr );
+    }
 
     ~QuadTreeNode()
-      {
-          for ( QuadTreeNode * c : M_children )
-          {
-              delete c;
-          }
-      }
+    {
+        for ( QuadTreeNode * c : M_children )
+        {
+            delete c;
+        }
+    }
 
     /*!
       \brief build a (sub)tree covering 'bounds' that indexes 'items'
       (triangle + its axis-aligned bounding box).
-     */
+    */
     static
     QuadTreeNode * build( const Rect2D & bounds,
-                         const std::vector< std::pair< TrianglePtr, Rect2D > > & items,
-                         const int depth )
-      {
-          QuadTreeNode * node = new QuadTreeNode( bounds );
+                          const std::vector< std::pair< TrianglePtr, Rect2D > > & items,
+                          const int depth )
+    {
+        QuadTreeNode * node = new QuadTreeNode( bounds );
 
-          if ( items.size() <= LEAF_CAPACITY || depth >= MAX_DEPTH )
-          {
-              node->M_triangles.reserve( items.size() );
-              for ( const auto & item : items )
-              {
-                  node->M_triangles.push_back( item.first );
-              }
-              return node;
-          }
+        if ( items.size() <= LEAF_CAPACITY || depth >= MAX_DEPTH )
+        {
+            node->M_triangles.reserve( items.size() );
+            for ( const auto & item : items )
+            {
+                node->M_triangles.push_back( item.first );
+            }
+            return node;
+        }
 
-          const Vector2D c = bounds.center();
-          const Rect2D quad_bounds[4] = {
-              Rect2D( bounds.topLeft(), c ),
-              Rect2D( Vector2D( c.x, bounds.top() ), Vector2D( bounds.right(), c.y ) ),
-              Rect2D( Vector2D( bounds.left(), c.y ), Vector2D( c.x, bounds.bottom() ) ),
-              Rect2D( c, bounds.bottomRight() ),
-          };
+        const Vector2D c = bounds.center();
+        const Rect2D quad_bounds[4] = {
+            Rect2D( bounds.topLeft(), c ),
+            Rect2D( Vector2D( c.x, bounds.top() ), Vector2D( bounds.right(), c.y ) ),
+            Rect2D( Vector2D( bounds.left(), c.y ), Vector2D( c.x, bounds.bottom() ) ),
+            Rect2D( c, bounds.bottomRight() ),
+        };
 
-          std::array< std::vector< std::pair< TrianglePtr, Rect2D > >, 4 > buckets;
-          for ( const auto & item : items )
-          {
-              for ( int q = 0; q < 4; ++q )
-              {
-                  if ( quad_bounds[q].left() <= item.second.right()
-                       && item.second.left() <= quad_bounds[q].right()
-                       && quad_bounds[q].top() <= item.second.bottom()
-                       && item.second.top() <= quad_bounds[q].bottom() )
-                  {
-                      buckets[q].push_back( item );
-                  }
-              }
-          }
+        std::array< std::vector< std::pair< TrianglePtr, Rect2D > >, 4 > buckets;
+        for ( const auto & item : items )
+        {
+            for ( int q = 0; q < 4; ++q )
+            {
+                if ( quad_bounds[q].left() <= item.second.right()
+                     && item.second.left() <= quad_bounds[q].right()
+                     && quad_bounds[q].top() <= item.second.bottom()
+                     && item.second.top() <= quad_bounds[q].bottom() )
+                {
+                    buckets[q].push_back( item );
+                }
+            }
+        }
 
-          bool shrank = false;
-          for ( int q = 0; q < 4; ++q )
-          {
-              if ( buckets[q].size() < items.size() )
-              {
-                  shrank = true;
-                  break;
-              }
-          }
+        bool shrank = false;
+        for ( int q = 0; q < 4; ++q )
+        {
+            if ( buckets[q].size() < items.size() )
+            {
+                shrank = true;
+                break;
+            }
+        }
 
-          if ( ! shrank )
-          {
-              node->M_triangles.reserve( items.size() );
-              for ( const auto & item : items )
-              {
-                  node->M_triangles.push_back( item.first );
-              }
-              return node;
-          }
+        if ( ! shrank )
+        {
+            node->M_triangles.reserve( items.size() );
+            for ( const auto & item : items )
+            {
+                node->M_triangles.push_back( item.first );
+            }
+            return node;
+        }
 
-          node->M_leaf = false;
-          for ( int q = 0; q < 4; ++q )
-          {
-              if ( ! buckets[q].empty() )
-              {
-                  node->M_children[q] = build( quad_bounds[q], buckets[q], depth + 1 );
-              }
-          }
-          return node;
-      }
+        node->M_leaf = false;
+        for ( int q = 0; q < 4; ++q )
+        {
+            if ( ! buckets[q].empty() )
+            {
+                node->M_children[q] = build( quad_bounds[q], buckets[q], depth + 1 );
+            }
+        }
+        return node;
+    }
 
     /*!
       \brief append every triangle indexed by the leaf cell that contains
       'pos' to 'candidates'.
-     */
+    */
     void collectCandidates( const Vector2D & pos,
                             std::vector< TrianglePtr > & candidates ) const
-      {
-          if ( M_leaf )
-          {
-              candidates.insert( candidates.end(), M_triangles.begin(), M_triangles.end() );
-              return;
-          }
+    {
+        if ( M_leaf )
+        {
+            candidates.insert( candidates.end(), M_triangles.begin(), M_triangles.end() );
+            return;
+        }
 
-          const Vector2D c = M_bounds.center();
-          const int q = ( pos.x > c.x ? 1 : 0 ) + ( pos.y > c.y ? 2 : 0 );
-          if ( M_children[q] )
-          {
-              M_children[q]->collectCandidates( pos, candidates );
-          }
-      }
+        const Vector2D c = M_bounds.center();
+        const int q = ( pos.x > c.x ? 1 : 0 ) + ( pos.y > c.y ? 2 : 0 );
+        if ( M_children[q] )
+        {
+            M_children[q]->collectCandidates( pos, candidates );
+        }
+    }
 };
 
 /*-------------------------------------------------------------------*/
 void
-TriangulationMesh::buildQuadTree() const
+DelaunayTriangulationCore::buildQuadTree() const
 {
     clearQuadTree();
     M_topology_dirty = false;
@@ -1105,16 +1105,16 @@ TriangulationMesh::buildQuadTree() const
 
 /*-------------------------------------------------------------------*/
 void
-TriangulationMesh::clearQuadTree() const
+DelaunayTriangulationCore::clearQuadTree() const
 {
     delete M_quad_tree_root;
     M_quad_tree_root = nullptr;
 }
 
 /*-------------------------------------------------------------------*/
-TriangulationMesh::ContainedType
-TriangulationMesh::quadTreeFindTriangleContains( const Vector2D & pos,
-                                                 TrianglePtr * sol ) const
+DelaunayTriangulationCore::ContainedType
+DelaunayTriangulationCore::quadTreeFindTriangleContains( const Vector2D & pos,
+                                                         TrianglePtr * sol ) const
 {
     if ( M_topology_dirty || ! M_quad_tree_root )
     {
@@ -1149,10 +1149,10 @@ TriangulationMesh::quadTreeFindTriangleContains( const Vector2D & pos,
   exhaustiveFindTriangleContains() if the walk cannot reach a conclusive
   answer. Result is always identical to the exhaustive search.
 */
-TriangulationMesh::ContainedType
-TriangulationMesh::walkTriangleContains( const Vector2D & pos,
-                                         TrianglePtr start,
-                                         TrianglePtr * sol ) const
+DelaunayTriangulationCore::ContainedType
+DelaunayTriangulationCore::walkTriangleContains( const Vector2D & pos,
+                                                 TrianglePtr start,
+                                                 TrianglePtr * sol ) const
 {
     TrianglePtr tri = start;
 
@@ -1236,9 +1236,9 @@ TriangulationMesh::walkTriangleContains( const Vector2D & pos,
 }
 
 /*-------------------------------------------------------------------*/
-TriangulationMesh::ContainedType
-TriangulationMesh::findTriangleContainsFast( const Vector2D & pos,
-                                             TrianglePtr * sol ) const
+DelaunayTriangulationCore::ContainedType
+DelaunayTriangulationCore::findTriangleContainsFast( const Vector2D & pos,
+                                                     TrianglePtr * sol ) const
 {
     if ( M_triangles.empty() )
     {

@@ -8,6 +8,7 @@ add_library(rcsc_geom OBJECT
   constrained_delaunay_triangulation.cpp
   convex_hull.cpp
   delaunay_triangulation.cpp
+  delaunay_triangulation_core.cpp
   line_2d.cpp
   matrix_2d.cpp
   polygon_2d.cpp
@@ -17,7 +18,6 @@ add_library(rcsc_geom OBJECT
   segment_2d.cpp
   triangle_2d.cpp
   triangulation.cpp
-  triangulation_mesh.cpp
   vector_2d.cpp
   voronoi_diagram.cpp
   voronoi_diagram_triangle.cpp
@@ -40,6 +40,7 @@ install(FILES
   constrained_delaunay_triangulation.h
   convex_hull.h
   delaunay_triangulation.h
+  delaunay_triangulation_core.h
   line_2d.h
   matrix_2d.h
   polygon_2d.h
@@ -51,7 +52,6 @@ install(FILES
   segment_2d.h
   triangle_2d.h
   triangulation.h
-  triangulation_mesh.h
   vector_2d.h
   voronoi_diagram.h
   voronoi_diagram_triangle.h

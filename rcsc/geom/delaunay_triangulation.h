@@ -32,7 +32,7 @@
 #ifndef RCSC_GEOM_DELAUNAY_TRIANGULATION_H
 #define RCSC_GEOM_DELAUNAY_TRIANGULATION_H
 
-#include <rcsc/geom/triangulation_mesh.h>
+#include <rcsc/geom/delaunay_triangulation_core.h>
 #include <rcsc/geom/rect_2d.h>
 #include <rcsc/geom/vector_2d.h>
 
@@ -47,17 +47,17 @@ namespace rcsc {
   The vertex/edge/triangle graph, incremental point insertion,
   Lawson-flip legalization, and the two point-location search strategies
   (hint-based adjacency walk and optional quadtree spatial index) are
-  implemented once in the TriangulationMesh base class (shared with
+  implemented once in the DelaunayTriangulationCore base class (shared with
   ConstrainedDelaunayTriangulation). This class adds Voronoi-vertex
   bookkeeping that is specific to plain (unconstrained) Delaunay
   triangulation.
 */
 class DelaunayTriangulation
-    : public TriangulationMesh {
+    : public DelaunayTriangulationCore {
 public:
 
-    //! backward-compatibility alias; prefer TriangulationMesh::SearchMethod.
-    using SearchMethod = TriangulationMesh::SearchMethod;
+    //! backward-compatibility alias; prefer DelaunayTriangulationCore::SearchMethod.
+    using SearchMethod = DelaunayTriangulationCore::SearchMethod;
 
 private:
 

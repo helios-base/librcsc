@@ -51,7 +51,7 @@ DelaunayTriangulation::~DelaunayTriangulation()
 void
 DelaunayTriangulation::clearResults()
 {
-    TriangulationMesh::clearResults();
+    DelaunayTriangulationCore::clearResults();
 }
 
 /*-------------------------------------------------------------------*/

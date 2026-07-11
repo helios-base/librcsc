@@ -44,7 +44,7 @@ namespace rcsc {
 
 namespace {
 
-//! must match the vertex-merge tolerance used by TriangulationMesh::addVertex().
+//! must match the vertex-merge tolerance used by DelaunayTriangulationCore::addVertex().
 constexpr double VERTEX_MERGE_DIST2 = 1.0e-6;
 
 }

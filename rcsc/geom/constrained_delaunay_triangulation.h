@@ -32,7 +32,7 @@
 #ifndef RCSC_GEOM_CONSTRAINED_DELAUNAY_TRIANGULATION_H
 #define RCSC_GEOM_CONSTRAINED_DELAUNAY_TRIANGULATION_H
 
-#include <rcsc/geom/triangulation_mesh.h>
+#include <rcsc/geom/delaunay_triangulation_core.h>
 #include <rcsc/geom/rect_2d.h>
 #include <rcsc/geom/vector_2d.h>
 
@@ -52,7 +52,7 @@ namespace rcsc {
   remains locally Delaunay.
 
   The vertex/edge/triangle graph, incremental point insertion, and
-  Lawson-flip legalization are implemented once in the TriangulationMesh
+  Lawson-flip legalization are implemented once in the DelaunayTriangulationCore
   base class (shared with DelaunayTriangulation). This class adds
   constraint-segment recovery (Sloan-style: force a segment in by flipping
   the edges that cross it, then re-legalize everywhere except constrained
@@ -63,7 +63,7 @@ namespace rcsc {
   "triangle" library) and of the code under the geom/triangle directory.
 */
 class ConstrainedDelaunayTriangulation
-    : public TriangulationMesh {
+    : public DelaunayTriangulationCore {
 public:
 
     typedef std::pair< int, int > ConstraintSegment; //!< constraint segment (pair of vertex Id)
@@ -127,7 +127,7 @@ public:
      */
     void clearResults()
       {
-          TriangulationMesh::clearResults();
+          DelaunayTriangulationCore::clearResults();
       }
 
     /*!
