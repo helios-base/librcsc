@@ -9,6 +9,7 @@ librcsc_time_la_SOURCES = \
 librcsc_timeincludedir = $(includedir)/rcsc/time
 
 librcsc_timeinclude_HEADERS = \
+	time_stamp.h \
 	timer.h
 
 librcsc_time_la_LDFLAGS = -version-info 0:0:0
