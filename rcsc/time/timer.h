@@ -32,82 +32,23 @@
 #ifndef RCSC_TIME_TIMER_H
 #define RCSC_TIME_TIMER_H
 
+#include <rcsc/time/time_stamp.h>
+
 #include <chrono>
 #include <cstdint>
 
 namespace rcsc {
 
 /*!
-  \class TimeStamp
-  \brief wrapper class of the system time point
- */
-class TimeStamp {
-public:
-    typedef std::chrono::system_clock::time_point value_type;
-private:
-    std::chrono::system_clock::time_point M_time_point;
-
-public:
-
-    /*!
-      \brief construct an invalid time stamp instance. time_point is initialized with duration::zero()
-     */
-    TimeStamp()
-        : M_time_point()
-      { }
-
-    /*!
-      \brief construct with the given time point
-      \param tp time point
-     */
-    explicit
-    TimeStamp( const value_type & tp )
-        : M_time_point( tp )
-      { }
-
-    bool isValid() const
-      {
-          return M_time_point.time_since_epoch().count() > 0;
-      }
-
-    /*!
-      \brief update to the current time point
-     */
-    void setNow()
-      {
-          M_time_point = std::chrono::system_clock::now();
-      }
-
-    /*!
-      \brief get the time point value
-      \return const reference to the time_point instance
-     */
-    const value_type & timePoint() const
-      {
-          return M_time_point;
-      }
-
-    /*!
-      \brief get the milliseconds value since the given time stamp
-      \return count value in the order of millisecond
-     */
-    std::int64_t elapsedSince( const TimeStamp & other ) const
-      {
-          return std::chrono::duration_cast< std::chrono::milliseconds >( this->timePoint() - other.timePoint() ).count();
-      }
-
-};
-
-/*!
   \class Timer
   \brief this class enables to measure the elapsed time.
- */
+*/
 class Timer {
 public:
     /*!
       \enum Type
       \brief unit type of returned value
-     */
+    */
     enum Type {
         MSec, //!< milli second
         Sec, //!< second
@@ -123,61 +64,31 @@ private:
 public:
     /*!
       \brief construct with the current system clock time
-     */
+    */
     Timer()
         : M_start_time( std::chrono::system_clock::now() )
-      { }
+    { }
 
     /*!
       \brief reset the start time
-     */
+    */
     void restart()
-      {
-          M_start_time.setNow();
-      }
+    {
+        M_start_time.setNow();
+    }
 
     /*!
       \brief elapsed milli seconds since last start time.
       \return elapsed milli seconde by long integer
-     */
+    */
     std::int64_t elapsed( const Type type = MSec ) const;
 
     /*!
       \brief elapsed milli seconds since last start time.
       \return elapsed milli seconde by floating point number
-     */
+    */
     double elapsedReal( const Type type = MSec ) const;
 };
-
-/*-------------------------------------------------------------------*/
-/*!
-  \brief operator '<' for rcsc::TimeStamp
-  \param lhs left hand side argument
-  \param rhs right hand side argument
-  \return boolean value
-*/
-inline
-bool
-operator<( const rcsc::TimeStamp & lhs,
-           const rcsc::TimeStamp & rhs )
-{
-    return lhs.timePoint() < rhs.timePoint();
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-  \brief operator '>' for rcsc::TimeStamp
-  \param lhs left hand side argument
-  \param rhs right hand side argument
-  \return boolean value
-*/
-inline
-bool
-operator>( const rcsc::TimeStamp & lhs,
-           const rcsc::TimeStamp & rhs )
-{
-    return lhs.timePoint() > rhs.timePoint();
-}
 
 }
 
