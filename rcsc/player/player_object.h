@@ -115,7 +115,9 @@ public:
     static
     void reset_player_count();
 
-    // ------------------------------------------
+    //
+    // overrided methods
+    //
 
     /*!
       \brief check if this player is ghost object or not
@@ -136,6 +138,16 @@ public:
       }
 
     /*!
+      \brief check if player is tackling
+      \return true if tackle accuracy is less than tackle cycles in ServerParam
+    */
+    bool isTackling() const override;
+
+    //
+    // normal methods
+    //
+
+    /*!
       \brief get tackling status accuracy
       \return count from last observation
     */
@@ -143,12 +155,6 @@ public:
       {
           return M_tackle_count;
       }
-
-    /*!
-      \brief check if player is tackling
-      \return true if tackle accuracy is less than tackle cycles in ServerParam
-    */
-    bool isTackling() const override;
 
     /*!
       \brief velify global position accuracy

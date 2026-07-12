@@ -39,6 +39,7 @@
 #include <rcsc/types.h>
 
 #include <vector>
+#include <memory>
 
 namespace rcsc {
 
@@ -52,8 +53,8 @@ class PlayerEvaluator;
 class AbstractPlayerObject {
 public:
 
-    //! type of pointer container
-    typedef std::vector< const AbstractPlayerObject * > Cont;
+    //! alias of the const pointer container
+    using Cont = std::vector< const AbstractPlayerObject * >;
 
 protected:
 
@@ -147,9 +148,9 @@ public:
      */
     virtual
     bool isGhost() const
-      {
-          return false;
-      }
+    {
+        return false;
+    }
 
     /*!
       \brief get the counter value as a ghost recognition
@@ -157,16 +158,9 @@ public:
      */
     virtual
     int ghostCount() const
-      {
-          return 0;
-      }
-
-    /*!
-      \brief check if player is tackling or not
-      \return checked result
-     */
-    virtual
-    bool isTackling() const = 0;
+    {
+        return 0;
+    }
 
     /*!
       \brief update player type id
@@ -174,6 +168,20 @@ public:
      */
     virtual
     void setPlayerType( const int type );
+
+    /*!
+      \brief get current estimated kick power rate
+      \return calculated kick rate value
+    */
+    virtual
+    double kickRate() const;
+
+    /*!
+      \brief check if player is tackling or not
+      \return checked result
+     */
+    virtual
+    bool isTackling() const = 0;
 
 public:
 
@@ -496,13 +504,6 @@ public:
       {
           return M_ball_reach_step;
       }
-
-    /*!
-      \brief get current estimated kick power rate
-      \return calculated kick rate value
-    */
-    virtual
-    double kickRate() const;
 
     /*!
       \brief estimate reach point

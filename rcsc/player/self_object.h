@@ -153,15 +153,19 @@ public:
                const int unum,
                const bool goalie );
 
+    //
+    // overrided methods
+    //
+
    /*!
       \brief check if this player is self or not
       \return true if this player is self
      */
     virtual
     bool isSelf() const override
-      {
-          return true;
-      }
+    {
+        return true;
+    }
 
     /*!
       \brief update player type id
@@ -169,6 +173,28 @@ public:
      */
     virtual
     void setPlayerType( const int type ) override;
+
+    /*!
+      \brief get current estimated kick power rate
+      \return calculated kick rate value
+    */
+    double kickRate() const override
+    {
+        return M_kick_rate;
+    }
+
+    /*!
+      \brief check if player is tackling or not.
+      \return checked result.
+     */
+    bool isTackling() const override
+    {
+        return M_tackle_expires > 0;
+    }
+
+    //
+    // normal methods
+    //
 
     /*!
       \brief get player type parameter
@@ -327,15 +353,6 @@ public:
       {
           return M_tackle_expires > 0
               || M_charged_expires > 0;
-      }
-
-    /*!
-      \brief check if player is tackling or not.
-      \return checked result.
-     */
-    bool isTackling() const override
-      {
-          return M_tackle_expires > 0;
       }
 
     /*!
@@ -520,15 +537,6 @@ public:
     bool isKickable() const
       {
           return M_kickable;
-      }
-
-    /*!
-      \brief get current estimated kick power rate
-      \return calculated kick rate value
-    */
-    double kickRate() const override
-      {
-          return M_kick_rate;
       }
 
     /*!
