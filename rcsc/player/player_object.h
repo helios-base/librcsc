@@ -75,8 +75,6 @@ private:
     int M_ghost_count; //!< count that this object is recognized as a ghost object.
     int M_tackle_count; //!< time count since the last tackle observation
 
-    std::list< Vector2D > M_pos_history;
-
 public:
 
     /*!
@@ -190,15 +188,6 @@ public:
     bool faceValid() const
     {
         return M_face_count < S_face_count_thr;
-    }
-
-    /*!
-      \brief get the history of estimated position.
-      \return position list. the front element is the position at the previous cycle.
-    */
-    const std::list< Vector2D > & posHistory() const
-    {
-        return M_pos_history;
     }
 
     // ------------------------------------------

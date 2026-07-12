@@ -128,12 +128,6 @@ void
 BallObject::update( const ActionEffector & act,
                     const GameMode & game_mode )
 {
-    M_pos_history.push_front( M_pos );
-    if ( M_pos_history.size() > 100 )
-    {
-        M_pos_history.pop_back();
-    }
-
     Vector2D new_vel( 0.0, 0.0 );
 
     ////////////////////////////////////////////////////////////////////////

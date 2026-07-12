@@ -286,15 +286,6 @@ public:
     const AngleDeg & angleFromSelf() const { return M_angle_from_self; }
 
     /*!
-      \brief get the history of estimated position.
-      \return position list. the front element is the position at the previous cycle.
-     */
-    const std::list< Vector2D > & posHistory() const
-      {
-          return M_pos_history;
-      }
-
-    /*!
       \brief clear all confidence values
     */
     void setGhost();
