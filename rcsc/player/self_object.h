@@ -175,6 +175,15 @@ public:
     void setPlayerType( const int type ) override;
 
     /*!
+      \brief check if player can kick the ball or not
+      \return true if ball kickable
+    */
+    bool isKickable() const override
+    {
+        return M_kickable;
+    }
+
+    /*!
       \brief get current estimated kick power rate
       \return calculated kick rate value
     */
@@ -528,15 +537,6 @@ public:
       {
           if ( i < 0 || 2 < i ) return M_last_moves[3];
           return M_last_moves[i];
-      }
-
-    /*!
-      \brief get ball kickable status
-      \return true if ball kickable
-    */
-    bool isKickable() const
-      {
-          return M_kickable;
       }
 
     /*!

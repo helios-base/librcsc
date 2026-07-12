@@ -170,6 +170,16 @@ public:
     void setPlayerType( const int type );
 
     /*!
+      \brief check if player can kick the ball or not
+      \return true if player can kick the ball
+     */
+    virtual
+    bool isKickable() const
+    {
+        return isKickable( 0.05 );
+    }
+
+    /*!
       \brief get current estimated kick power rate
       \return calculated kick rate value
     */
@@ -421,6 +431,13 @@ public:
       {
           return M_kicking;
       }
+
+    /*!
+      \brief check if player can kick the ball or not
+      \brief buf kickable area buffer
+      \return true if player can kick the ball
+     */
+    bool isKickable( const double & buf ) const;
 
     /*!
       \brief get the last observed movement

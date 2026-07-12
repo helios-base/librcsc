@@ -201,13 +201,6 @@ public:
           return M_pos_history;
       }
 
-    /*!
-      \brief check if player can kick the ball or not
-      \brief buf kickable area buffer
-      \return true if player can kick the ball
-     */
-    bool isKickable( const double & buf = 0.05 ) const;
-
     // ------------------------------------------
     /*!
       \brief update status only with intenal info
