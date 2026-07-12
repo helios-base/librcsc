@@ -427,7 +427,7 @@ PlayerObject::updateByHear( const SideID heard_side,
                             const int heard_unum,
                             const bool goalie,
                             const Vector2D & heard_pos,
-                            const double & heard_body )
+                            const double heard_body )
 {
     updateByHear( heard_side, heard_unum, goalie, heard_pos );
 

@@ -272,7 +272,7 @@ public:
                        const int heard_unum,
                        const bool goalie,
                        const Vector2D & heard_pos,
-                       const double & heard_body );
+                       const double heard_body );
 
     /*!
       \brief update status related to other objects

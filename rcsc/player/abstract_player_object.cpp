@@ -149,7 +149,7 @@ AbstractPlayerObject::kickRate() const
 
 /*-------------------------------------------------------------------*/
 bool
-AbstractPlayerObject::isKickable( const double & buf ) const
+AbstractPlayerObject::isKickable( const double buf ) const
 {
     if ( ! M_player_type )
     {

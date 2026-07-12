@@ -273,7 +273,7 @@ public:
       \brief get estimated neck angle relative to body angle
       \return const reference to the angle object
     */
-    const AngleDeg & neck() const
+    AngleDeg neck() const
     {
         return M_neck;
     }
@@ -282,7 +282,7 @@ public:
       \brief get estimated error about angle
       \return error value about angle
     */
-    const double & faceError() const
+    double faceError() const
     {
         return M_face_error;
     }
@@ -320,7 +320,7 @@ public:
       \return the direction to the focus point, relative to the body angle
     */
 
-    const AngleDeg & focusDir() const
+    AngleDeg focusDir() const
     {
         return M_focus_dir;
     }
@@ -625,8 +625,8 @@ public:
     */
     void updatePosBySee( const Vector2D & pos,
                          const Vector2D & pos_err,
-                         const double & face,
-                         const double & face_err,
+                         const double face,
+                         const double face_err,
                          const GameTime & current );
 
     /*!
@@ -643,8 +643,8 @@ public:
       \param face_err estimated error of facing angle
       \param current current game time
     */
-    void updateAngleBySee( const double & face,
-                           const double & face_err,
+    void updateAngleBySee( const double face,
+                           const double face_err,
                            const GameTime & current );
 
     /*!
@@ -690,8 +690,8 @@ public:
 
       This method is called just after send command.
     */
-    void setViewMode( const ViewWidth & w,
-                      const ViewQuality & q )
+    void setViewMode( const ViewWidth w,
+                      const ViewQuality q )
     {
         M_view_width = w;
         M_view_quality = q;
@@ -738,7 +738,7 @@ public:
       \param dash_power evaluated dash power
       \return filtered dash power
     */
-    double getSafetyDashPower( const double & dash_power ) const
+    double getSafetyDashPower( const double dash_power ) const
     {
         return staminaModel().getSafetyDashPower( playerType(), dash_power );
     }

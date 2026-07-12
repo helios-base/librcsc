@@ -373,7 +373,7 @@ public:
       \brief get global body angle
       \return const reference to the angle object
     */
-    const AngleDeg & body() const
+    AngleDeg body() const
     {
         return M_body; // global body angle
     }
@@ -391,7 +391,7 @@ public:
       \brief get global neck angle
       \return const reference to the angle object
     */
-    const AngleDeg & face() const
+    AngleDeg face() const
     {
         return M_face; // global neck angle
     }
@@ -409,7 +409,7 @@ public:
       \brief get global pointing angle
       \return const reference to the angle object
     */
-    const AngleDeg & pointtoAngle() const
+    AngleDeg pointtoAngle() const
     {
         return M_pointto_angle; // global pointing angle
     }
@@ -437,7 +437,7 @@ public:
       \brief buf kickable area buffer
       \return true if player can kick the ball
     */
-    bool isKickable( const double & buf ) const;
+    bool isKickable( const double buf ) const;
 
     /*!
       \brief get the last observed movement
@@ -490,7 +490,7 @@ public:
       \brief get angle from ball
       \return absolute angle value from ball
     */
-    const AngleDeg & angleFromBall() const
+    AngleDeg angleFromBall() const
     {
         return M_angle_from_ball;
     }
@@ -508,7 +508,7 @@ public:
       \brief get global angle from self position
       \return angle value from self position
     */
-    const AngleDeg & angleFromSelf() const
+    AngleDeg angleFromSelf() const
     {
         return M_angle_from_self;
     }
