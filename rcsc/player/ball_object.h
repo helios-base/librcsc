@@ -103,7 +103,7 @@ private:
     std::list< Vector2D > M_pos_history;
 
     // not used
-    BallObject( const BallObject & ball ) = delete;
+    // BallObject( const BallObject & ball ) = delete;
 
 public:
     /*!

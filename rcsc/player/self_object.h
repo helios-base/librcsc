@@ -115,7 +115,7 @@ private:
     double M_foul_probability; //!< estimated tackle success probability
 
     //! not used
-    SelfObject( const SelfObject & self ) = delete;
+    // SelfObject( const SelfObject & self ) = delete;
     //! not used
     SelfObject & operator=( const SelfObject & self ) = delete;
 
