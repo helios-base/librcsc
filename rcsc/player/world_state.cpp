@@ -44,36 +44,142 @@
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
-/*!
-
-*/
-WorldState::WorldState()
-    : M_time( -1, 0 ),
-      M_game_mode(),
-      M_ball()
+WorldState::WorldState( const WorldModel & wm )
+    : M_time( wm.time() ),
+      M_game_mode( wm.gameMode() ),
+      M_self( wm.self() ),
+      M_ball( wm.ball() ),
+      M_teammates( wm.teammateObjects().begin(), wm.teammateObjects().end() ),
+      M_opponents( wm.opponentObjects().begin(), wm.opponentObjects().end() ),
+      M_unknown_players( wm.unknownPlayerObjects().begin(), wm.unknownPlayerObjects().end() ),
+      M_kickable_teammate( nullptr ),
+      M_kickable_opponent( nullptr ),
+      M_maybe_kickable_teammate( nullptr ),
+      M_maybe_kickable_opponent( nullptr ),
+      M_offside_line_x( wm.offsideLineX() ),
+      M_our_offense_line_x( wm.ourOffenseLineX() ),
+      M_our_defense_line_x( wm.ourDefenseLineX() ),
+      M_their_offense_line_x( wm.theirOffenseLineX() ),
+      M_their_defense_line_x( wm.theirDefenseLineX() ),
+      M_our_offense_player_line_x( wm.ourOffensePlayerLineX() ),
+      M_our_defense_player_line_x( wm.ourDefensePlayerLineX() ),
+      M_their_offense_player_line_x( wm.theirOffensePlayerLineX() ),
+      M_their_defense_player_line_x( wm.theirDefensePlayerLineX() )
 {
+    M_our_players.reserve( 1 + M_teammates.size() );
+    M_their_players.reserve( M_opponents.size() + M_unknown_players.size() );
 
+    //
+    // set our players
+    //
+    M_our_players.push_back( &M_self );
+    M_our_players_array[self().unum()] = &M_self;
+    for ( const PlayerObject & t : M_teammates )
+    {
+        M_our_players.push_back( &t );
+        if ( t.unum() != Unum_Unknown )
+        {
+            M_our_players_array[t.unum()] = &t;
+        }
+    }
+
+    // if ( self().pos().isValid() )
+    // {
+    //     std::sort( M_our_players.begin(), M_our_players.end(),
+    //                [&]( const AbstractPlayerObject * lhs,
+    //                     const AbstractPlayerObject * rhs )
+    //                {
+    //                    return self().pos().dist2( lhs->pos() ) < self().pos().dist2( rhs->pos() );
+    //                } );
+    // }
+
+    //
+    // set their players
+    //
+    for ( const PlayerObject & o : M_opponents )
+    {
+        M_their_players.push_back( &o );
+        if ( o.unum() != Unum_Unknown )
+        {
+            M_their_players_array[o.unum()] = &o;
+        }
+    }
+
+    for ( const PlayerObject & u : M_unknown_players )
+    {
+        M_their_players.push_back( &u );
+    }
+
+    // if ( self().pos().isValid() )
+    // {
+    //     std::sort( M_our_players.begin(), M_our_players.end(),
+    //                [&]( const AbstractPlayerObject * lhs,
+    //                     const AbstractPlayerObject * rhs )
+    //                {
+    //                    return self().pos().dist2( lhs->pos() ) < self().pos().dist2( rhs->pos() );
+    //                } );
+    // }
+
+    //
+    // update kickable player
+    //
+
+    if ( wm.kickableTeammate() )
+    {
+        std::vector< const AbstractPlayerObject * >::iterator it
+            = std::find_if( M_our_players.begin(), M_our_players.end(),
+                            [&]( const AbstractPlayerObject * p )
+                            {
+                                return p->id() == wm.kickableTeammate()->id();
+                            } );
+        if ( it != M_our_players.end() )
+        {
+            M_kickable_teammate = *it;
+        }
+    }
+
+    if ( wm.maybeKickableTeammate() )
+    {
+         std::vector< const AbstractPlayerObject * >::iterator it
+            = std::find_if( M_our_players.begin(), M_our_players.end(),
+                            [&]( const AbstractPlayerObject * p )
+                            {
+                                return p->id() == wm.maybeKickableTeammate()->id();
+                            } );
+        if ( it != M_our_players.end() )
+        {
+            M_maybe_kickable_teammate = *it;
+        }
+    }
+
+
+    if ( wm.kickableOpponent() )
+    {
+        std::vector< const AbstractPlayerObject * >::iterator it
+            = std::find_if( M_their_players.begin(), M_their_players.end(),
+                            [&]( const AbstractPlayerObject * p )
+                            {
+                                return p->id() == wm.kickableOpponent()->id();
+                            } );
+        if ( it != M_their_players.end() )
+        {
+            M_kickable_opponent = *it;
+        }
+    }
+
+    if ( wm.maybeKickableOpponent() )
+    {
+         std::vector< const AbstractPlayerObject * >::iterator it
+            = std::find_if( M_their_players.begin(), M_their_players.end(),
+                            [&]( const AbstractPlayerObject * p )
+                            {
+                                return p->id() == wm.maybeKickableOpponent()->id();
+                            } );
+        if ( it != M_their_players.end() )
+        {
+            M_maybe_kickable_opponent = *it;
+        }
+    }
 }
 
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
-WorldState::~WorldState()
-{
-
 }
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
-void
-WorldState::update( const WorldModel & wm );
-{
-    M_time = wm.time();
-    M_game_mode = wm.gameMode();
-
-    M_ball.update( wm.ball() );
-}
-b

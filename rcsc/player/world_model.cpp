@@ -76,8 +76,9 @@
 
 namespace rcsc {
 
-
 namespace  {
+
+const std::size_t MAX_STATE_RECORD = 6000; //!< maximum number of state records
 
 /*!
   \brief create specific player reference set
@@ -300,7 +301,6 @@ struct PlayerPtrAccuracySorter {
 
 }
 
-
 /////////////////////////////////////////////////////////////////////
 
 /*-------------------------------------------------------------------*/
@@ -371,9 +371,11 @@ WorldModel::WorldModel()
 
     for ( int i = 0; i < 12; ++i )
     {
-        M_our_player_array[i] = nullptr;
-        M_their_player_array[i] = nullptr;
+        M_our_players_array[i] = nullptr;
+        M_their_players_array[i] = nullptr;
     }
+
+    M_states.reserve( MAX_STATE_RECORD );
 }
 
 /*-------------------------------------------------------------------*/
@@ -807,8 +809,8 @@ WorldModel::update( const ActionEffector & act,
 
     for ( int i = 0; i < 12; ++i )
     {
-        M_our_player_array[i] = nullptr;
-        M_their_player_array[i] = nullptr;
+        M_our_players_array[i] = nullptr;
+        M_their_players_array[i] = nullptr;
     }
 
     if ( this->gameMode().type() == GameMode::BeforeKickOff
@@ -2036,6 +2038,36 @@ WorldModel::updateJustBeforeDecision( const ActionEffector & act,
                                 interceptTable().selfStep(),
                                 interceptTable().teammateStep(),
                                 interceptTable().opponentStep() );
+
+    if ( gameMode().type() == GameMode::BeforeKickOff
+         || gameMode().type() == GameMode::TimeOver )
+    {
+        M_states.clear();
+        M_state_map.clear();
+    }
+    else
+    {
+        WorldState::ConstPtr new_state = std::make_shared< WorldState >( *this );
+
+        M_states.push_back( new_state );
+        auto [it, inserted] = M_state_map.try_emplace( time(), new_state );
+
+        if ( ! inserted )
+        {
+            // already exists
+            M_states.pop_back();
+            std::cerr << teamName() << " : " << self().unum() << " "
+                      << time() << " (updateJustBeforeDecision) already exists in state_map"
+                      << std::endl;
+        }
+
+        if ( M_states.size() > MAX_STATE_RECORD )
+        {
+            M_state_map.erase( M_states.front()->time() );
+            // vector::erase is O(n), but the size is small, so it is acceptable.
+            M_states.erase( M_states.begin() );
+        }
+    }
 }
 
 /*-------------------------------------------------------------------*/
@@ -3865,7 +3897,7 @@ WorldModel::updatePlayerStateCache()
     {
         M_all_players.push_back( &M_self );
         M_our_players.push_back( &M_self );
-        M_our_player_array[self().unum()] = &M_self;
+        M_our_players_array[self().unum()] = &M_self;
 
         for ( PlayerObject & t : M_teammates )
         {
@@ -3874,7 +3906,7 @@ WorldModel::updatePlayerStateCache()
 
             if ( t.unum() != Unum_Unknown )
             {
-                M_our_player_array[t.unum()] = &t;
+                M_our_players_array[t.unum()] = &t;
             }
         }
 
@@ -3885,10 +3917,15 @@ WorldModel::updatePlayerStateCache()
 
             if ( o.unum() != Unum_Unknown )
             {
-                M_their_player_array[o.unum()] = &o;
+                M_their_players_array[o.unum()] = &o;
             }
         }
 
+        for ( PlayerObject & u : M_unknown_players )
+        {
+            M_all_players.push_back( &u );
+            M_their_players.push_back( &u );
+        }
     }
 
     //

@@ -99,9 +99,6 @@ private:
     double M_dist_from_self; //!< estimated distance from self
     AngleDeg M_angle_from_self; //!< estimated global angle from self
 
-
-    std::list< Vector2D > M_pos_history;
-
     // not used
     // BallObject( const BallObject & ball ) = delete;
 

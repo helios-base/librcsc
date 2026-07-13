@@ -39,6 +39,7 @@
 #include <rcsc/player/view_grid_map.h>
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/player/penalty_kick_state.h>
+#include <rcsc/player/world_state.h>
 
 #include <rcsc/time/timer.h>
 #include <rcsc/geom/vector_2d.h>
@@ -48,6 +49,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 namespace rcsc {
 
@@ -114,6 +116,10 @@ private:
     bool M_valid; //!< if this world model is initialized, true.
 
     //////////////////////////////////////////////////
+    WorldState::Cont M_states;
+    WorldState::Map M_state_map;
+
+    //////////////////////////////////////////////////
     // field object instance
     SelfObject M_self; //!< self object
     BallObject M_ball; //!< current ball object
@@ -126,19 +132,19 @@ private:
     // object reference (pointers to each object)
     // these containers are updated just before decision making
     PlayerObject::Cont M_teammates_from_self; //!< teammates sorted by distance from self
-    PlayerObject::Cont M_opponents_from_self; //!< opponents sorted by distance from ball, include unknown players
+    PlayerObject::Cont M_opponents_from_self; //!< opponents sorted by distance from ball (include unknown players)
     PlayerObject::Cont M_teammates_from_ball; //!< teammates sorted by distance from self
-    PlayerObject::Cont M_opponents_from_ball; //!< opponents sorted by distance from ball, include unknown players
+    PlayerObject::Cont M_opponents_from_ball; //!< opponents sorted by distance from ball (include unknown players)
 
     int M_our_goalie_unum; //!< uniform number of teammate goalie
     int M_their_goalie_unum; //!< uniform number of opponent goalie
 
     AbstractPlayerObject::Cont M_all_players; //!< all players pointers includes self
     AbstractPlayerObject::Cont M_our_players; //!< all teammates pointers includes self
-    AbstractPlayerObject::Cont M_their_players; //!< all opponents pointers includes unknown
+    AbstractPlayerObject::Cont M_their_players; //!< all opponents pointers (includes unknown players)
 
-    AbstractPlayerObject * M_our_player_array[12]; //!< unum known teammates (include self)
-    AbstractPlayerObject * M_their_player_array[12]; //!< unum known opponents (exclude unknown player)
+    AbstractPlayerObject * M_our_players_array[12]; //!< unum known teammates (include self)
+    AbstractPlayerObject * M_their_players_array[12]; //!< unum known opponents (exclude unknown player)
 
     double M_our_recovery[11]; //!< recovery value for each player
     double M_our_stamina_capacity[11]; //!< stamina capacity for each player
@@ -759,6 +765,43 @@ public:
      */
     const GameTime & trainingTime() const { return M_training_time; }
 
+    //
+    // state information
+    //
+
+    /*!
+      \brief get state as vector container
+      \return const referenct to the state container
+     */
+    const WorldState::Cont & states() const
+    {
+        return M_states;
+    }
+
+    /*!
+      \brief get state as map container
+      \return const referenct to the state container
+     */
+    const WorldState::Map & stateMap() const
+    {
+        return M_state_map;
+    }
+
+    /*!
+      \brief get state specified by game time
+      \param t game time
+      \return const pointer to the WorldState instance. if not found, returns NULL
+    */
+    WorldState::ConstPtr getState( const GameTime & t ) const
+    {
+        WorldState::Map::const_iterator it = M_state_map.find( t );
+        if ( it != M_state_map.end() )
+        {
+            return it->second;
+        }
+        return WorldState::ConstPtr();
+    }
+
     /*!
       \brief get self info
       \return const reference to the SelfObject
@@ -776,6 +819,24 @@ public:
       \return const reference to the BallObject
     */
     const BallObject & prevBall() const { return M_prev_ball; }
+
+    /*!
+      \brief get teammate objects
+      \return const reference to the PlayerObject instance container
+     */
+    const PlayerObject::List & teammateObjects() const { return M_teammates; }
+
+    /*!
+      \brief get opponent objects
+      \return const reference to the PlayerObject instance container
+     */
+    const PlayerObject::List & opponentObjects() const { return M_opponents; }
+
+    /*!
+      \brief get unknown player objects
+      \return const reference to the PlayerObject instance container
+     */
+    const PlayerObject::List & unknownPlayerObjects() const { return M_unknown_players; }
 
     /*!
       \brief get teammates. the order is undefined.
@@ -854,8 +915,8 @@ public:
     */
     const AbstractPlayerObject * ourPlayer( const int unum ) const
       {
-          if ( unum <= 0 || 11 < unum ) return M_our_player_array[0];
-          return M_our_player_array[unum];
+          if ( unum <= 0 || 11 < unum ) return M_our_players_array[0];
+          return M_our_players_array[unum];
       }
 
     /*!
@@ -865,8 +926,8 @@ public:
     */
     const AbstractPlayerObject * theirPlayer( const int unum ) const
       {
-          if ( unum <= 0 || 11 < unum ) return M_their_player_array[0];
-          return M_their_player_array[unum];
+          if ( unum <= 0 || 11 < unum ) return M_their_players_array[0];
+          return M_their_players_array[unum];
       }
 
     /*!
@@ -892,8 +953,7 @@ public:
 private:
 
     /*!
-      \brief get fist PlayerObject in [first, last] that satisfies confidence
-      count threshold
+      \brief get first player that has accuracy count less than threshold
       \param first first iterator of PlayerObject pointer container
       \param last last iterator of PlayerObject pointer container
       \param count_thr accuracy count threshold
