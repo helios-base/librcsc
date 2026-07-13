@@ -148,30 +148,9 @@ PlayerObject::isTackling() const
 /*!
 
 */
-bool
-PlayerObject::isKickable( const double & buf ) const
-{
-    if ( ! M_player_type )
-    {
-        return distFromBall() < ServerParam::i().defaultKickableArea();
-    }
-
-    return distFromBall() < M_player_type->kickableArea() - buf;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
 void
 PlayerObject::update()
 {
-    M_pos_history.push_front( M_pos );
-    if ( M_pos_history.size() > 100 )
-    {
-        M_pos_history.pop_back();
-    }
-
     if ( velValid() )
     {
         M_pos += M_vel;
@@ -442,7 +421,7 @@ PlayerObject::updateByHear( const SideID heard_side,
                             const int heard_unum,
                             const bool goalie,
                             const Vector2D & heard_pos,
-                            const double & heard_body )
+                            const double heard_body )
 {
     updateByHear( heard_side, heard_unum, goalie, heard_pos );
 

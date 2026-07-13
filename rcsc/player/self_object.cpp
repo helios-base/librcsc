@@ -816,8 +816,8 @@ SelfObject::updateAfterFullstate( const FullstateSensor::PlayerT & my_state,
 void
 SelfObject::updatePosBySee( const Vector2D & pos,
                             const Vector2D & pos_err,
-                            const double & face,
-                            const double & face_err,
+                            const double face,
+                            const double face_err,
                             const GameTime & current )
 {
     // other param is updated in update or update_after_sense
@@ -924,8 +924,8 @@ SelfObject::updateByCollision( const Vector2D & pos,
 
 */
 void
-SelfObject::updateAngleBySee( const double & face,
-                              const double & face_err,
+SelfObject::updateAngleBySee( const double face,
+                              const double face_err,
                               const GameTime & current )
 {
     M_time = current;

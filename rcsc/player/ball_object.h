@@ -99,11 +99,8 @@ private:
     double M_dist_from_self; //!< estimated distance from self
     AngleDeg M_angle_from_self; //!< estimated global angle from self
 
-
-    std::list< Vector2D > M_pos_history;
-
     // not used
-    BallObject( const BallObject & ball ) = delete;
+    // BallObject( const BallObject & ball ) = delete;
 
 public:
     /*!
@@ -284,15 +281,6 @@ public:
       \return const reference to angle object
     */
     const AngleDeg & angleFromSelf() const { return M_angle_from_self; }
-
-    /*!
-      \brief get the history of estimated position.
-      \return position list. the front element is the position at the previous cycle.
-     */
-    const std::list< Vector2D > & posHistory() const
-      {
-          return M_pos_history;
-      }
 
     /*!
       \brief clear all confidence values

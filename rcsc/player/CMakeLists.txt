@@ -27,6 +27,7 @@ add_library(rcsc_player OBJECT
   view_mode.cpp
   visual_sensor.cpp
   world_model.cpp
+  world_state.cpp
   )
 
 target_include_directories(rcsc_player

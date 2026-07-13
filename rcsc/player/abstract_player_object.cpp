@@ -148,6 +148,18 @@ AbstractPlayerObject::kickRate() const
 }
 
 /*-------------------------------------------------------------------*/
+bool
+AbstractPlayerObject::isKickable( const double buf ) const
+{
+    if ( ! M_player_type )
+    {
+        return distFromBall() < ServerParam::i().defaultKickableArea();
+    }
+
+    return distFromBall() < M_player_type->kickableArea() - buf;
+}
+
+/*-------------------------------------------------------------------*/
 /*!
 
 */

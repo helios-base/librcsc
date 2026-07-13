@@ -29,7 +29,8 @@ librcsc_player_la_SOURCES = \
 	view_grid_map.cpp \
 	view_mode.cpp \
 	visual_sensor.cpp \
-	world_model.cpp
+	world_model.cpp \
+	world_state.cpp
 
 librcsc_playerincludedir = $(includedir)/rcsc/player
 
@@ -67,7 +68,8 @@ librcsc_playerinclude_HEADERS = \
 	view_grid_map.h \
 	view_mode.h \
 	visual_sensor.h \
-	world_model.h
+	world_model.h \
+	world_state.h
 
 AM_CPPFLAGS = -I$(top_srcdir)
 AM_CFLAGS = -Wall -W

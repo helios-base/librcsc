@@ -75,8 +75,6 @@ private:
     int M_ghost_count; //!< count that this object is recognized as a ghost object.
     int M_tackle_count; //!< time count since the last tackle observation
 
-    std::list< Vector2D > M_pos_history;
-
 public:
 
     /*!
@@ -96,7 +94,7 @@ public:
       \brief destructor. nothing to do
     */
     ~PlayerObject()
-      { }
+    { }
 
     /*!
       \brief set accuracy count threshold values.
@@ -111,96 +109,86 @@ public:
 
     /*!
       \brief reset player count to 0.
-     */
+    */
     static
     void reset_player_count();
 
-    // ------------------------------------------
+    //
+    // overrided methods
+    //
 
     /*!
       \brief check if this player is ghost object or not
       \return true if this player may be ghost object
-     */
-    bool isGhost() const
-      {
-          return M_ghost_count > 0;
-      }
+    */
+    bool isGhost() const override
+    {
+        return M_ghost_count > 0;
+    }
 
     /*!
       \brief get the count of ghost check
       \return count of ghost check
-     */
-    int ghostCount() const
-      {
-          return M_ghost_count;
-      }
+    */
+    int ghostCount() const override
+    {
+        return M_ghost_count;
+    }
+
+    /*!
+      \brief check if player is tackling
+      \return true if tackle accuracy is less than tackle cycles in ServerParam
+    */
+    bool isTackling() const override;
+
+    //
+    // normal methods
+    //
 
     /*!
       \brief get tackling status accuracy
       \return count from last observation
     */
     int tackleCount() const
-      {
-          return M_tackle_count;
-      }
-
-    /*!
-      \brief check if player is tackling
-      \return true if tackle accuracy is less than tackle cycles in ServerParam
-    */
-    bool isTackling() const;
+    {
+        return M_tackle_count;
+    }
 
     /*!
       \brief velify global position accuracy
       \return true if position has enough accuracy
     */
     bool posValid() const
-      {
-          return M_pos_count < S_pos_count_thr;
-      }
+    {
+        return M_pos_count < S_pos_count_thr;
+    }
 
     /*!
       \brief verify velocity accuracy
       \return true if accuracy  has enough accuracy
     */
     bool velValid() const
-      {
-          return M_vel_count < S_vel_count_thr;
-      }
+    {
+        return M_vel_count < S_vel_count_thr;
+    }
 
     /*!
       \brief verify angle accuracy
       \return true if angle has enoubh accuracy
     */
     bool bodyValid() const
-      {
-          return M_body_count < S_face_count_thr;
-      }
+    {
+        return M_body_count < S_face_count_thr;
+    }
 
     /*!
       \brief verify angle accuracy
       \return true if angle has enoubh accuracy
     */
     bool faceValid() const
-      {
-          return M_face_count < S_face_count_thr;
-      }
-
-    /*!
-      \brief get the history of estimated position.
-      \return position list. the front element is the position at the previous cycle.
-     */
-    const std::list< Vector2D > & posHistory() const
-      {
-          return M_pos_history;
-      }
-
-    /*!
-      \brief check if player can kick the ball or not
-      \brief buf kickable area buffer
-      \return true if player can kick the ball
-     */
-    bool isKickable( const double & buf = 0.05 ) const;
+    {
+        return M_face_count < S_face_count_thr;
+    }
 
     // ------------------------------------------
     /*!
@@ -210,26 +198,26 @@ public:
 
     /*!
       \brief increment ghost count
-     */
+    */
     void setGhost()
-      {
-          ++M_ghost_count;
-      }
+    {
+        ++M_ghost_count;
+    }
 
     /*!
       \brief set player's team info
       \param side player's team side
       \param unum player's uniform number
       \param goalie goalie flag
-     */
+    */
     void setTeam( const SideID side,
                   const int unum,
                   const bool goalie )
-      {
-          M_side = side;
-          M_unum = unum;
-          M_goalie = goalie;
-      }
+    {
+        M_side = side;
+        M_unum = unum;
+        M_goalie = goalie;
+    }
 
     /*!
       \brief update status using localized player info
@@ -244,7 +232,7 @@ public:
       \param p fullstate player info
       \param self_pos global self position
       \param ball_pos global ball position
-     */
+    */
     void updateByFullstate( const FullstateSensor::PlayerT & p,
                             const Vector2D & self_pos,
                             const Vector2D & ball_pos );
@@ -273,7 +261,7 @@ public:
                        const int heard_unum,
                        const bool goalie,
                        const Vector2D & heard_pos,
-                       const double & heard_body );
+                       const double heard_body );
 
     /*!
       \brief update status related to other objects
@@ -287,7 +275,7 @@ public:
 
     /*!
       \brief set collision effect to player's velocity
-     */
+    */
     void setCollisionEffect();
 
     /*!
