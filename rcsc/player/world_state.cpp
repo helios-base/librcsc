@@ -69,6 +69,9 @@ WorldState::WorldState( const WorldModel & wm )
     M_our_players.reserve( 1 + M_teammates.size() );
     M_their_players.reserve( M_opponents.size() + M_unknown_players.size() );
 
+    std::fill( M_our_players_array.begin(), M_our_players_array.end(), nullptr );
+    std::fill( M_their_players_array.begin(), M_their_players_array.end(), nullptr );
+
     //
     // set our players
     //
@@ -82,16 +85,6 @@ WorldState::WorldState( const WorldModel & wm )
             M_our_players_array[t.unum()] = &t;
         }
     }
-
-    // if ( self().pos().isValid() )
-    // {
-    //     std::sort( M_our_players.begin(), M_our_players.end(),
-    //                [&]( const AbstractPlayerObject * lhs,
-    //                     const AbstractPlayerObject * rhs )
-    //                {
-    //                    return self().pos().dist2( lhs->pos() ) < self().pos().dist2( rhs->pos() );
-    //                } );
-    // }
 
     //
     // set their players
@@ -109,16 +102,6 @@ WorldState::WorldState( const WorldModel & wm )
     {
         M_their_players.push_back( &u );
     }
-
-    // if ( self().pos().isValid() )
-    // {
-    //     std::sort( M_our_players.begin(), M_our_players.end(),
-    //                [&]( const AbstractPlayerObject * lhs,
-    //                     const AbstractPlayerObject * rhs )
-    //                {
-    //                    return self().pos().dist2( lhs->pos() ) < self().pos().dist2( rhs->pos() );
-    //                } );
-    // }
 
     //
     // update kickable player
