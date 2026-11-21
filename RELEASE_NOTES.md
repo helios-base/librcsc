@@ -23,5 +23,8 @@ Each item has the date when the change was made.
     which no longer provides `cppunit-config`. pkg-config is now needed to run `./bootstrap`.
   - Fixed the unit tests that could not be compiled (`rcsc/geom/test_rundom_convex_hull.cpp` and `rcsc/clang/test_clang_parser.cpp`).
   - Run the tests with `./configure --enable-unit-test` and `make check` (CppUnit is needed, e.g. `libcppunit-dev` on Ubuntu).
+- (2026-11-21) Fixed the build errors with GCC 15 (e.g. Ubuntu 26.04):
+  - Added `#include <algorithm>` to the files that use the algorithms, which are no longer included through the other standard headers.
+  - Patched the bundled simdjson 3.8.0 with the upstream fix for GCC 15 (the calls of the member functions of the derived class in `base_formatter`).
 - (2026-11-21) Added the CI with GitHub Actions (`.github/workflows/build.yml`).
   It builds and installs librcsc with CMake and Autotools on Ubuntu 24.04 and 26.04, and runs the unit tests with Autotools.

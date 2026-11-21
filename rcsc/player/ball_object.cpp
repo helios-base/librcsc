@@ -43,6 +43,7 @@
 #include <rcsc/common/server_param.h>
 #include <rcsc/game_mode.h>
 
+#include <algorithm>
 #include <iostream>
 
 // #define DEBUG_PRINT

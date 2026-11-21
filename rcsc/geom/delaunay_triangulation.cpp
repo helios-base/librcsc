@@ -35,6 +35,7 @@
 
 #include "delaunay_triangulation.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 

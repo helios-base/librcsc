@@ -37,6 +37,7 @@
 
 #include "util.h"
 
+#include <algorithm>
 #include <iostream>
 #include <cstring>
 #include <cstdio>

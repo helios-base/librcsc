@@ -38,6 +38,8 @@
 #include <rcsc/common/logger.h>
 #include <rcsc/types.h>
 
+#include <algorithm>
+
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/

@@ -38,6 +38,8 @@
 #include <rcsc/common/logger.h>
 #include <rcsc/common/server_param.h>
 
+#include <algorithm>
+
 // #define DEBUG_PRINT
 
 namespace rcsc {

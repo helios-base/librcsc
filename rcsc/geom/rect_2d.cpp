@@ -38,6 +38,7 @@
 #include "segment_2d.h"
 #include "ray_2d.h"
 
+#include <algorithm>
 #include <iostream>
 
 namespace rcsc {

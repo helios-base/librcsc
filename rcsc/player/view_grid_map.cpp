@@ -43,6 +43,7 @@
 #include <rcsc/math_util.h>
 
 
+#include <algorithm>
 #include <vector>
 #include <iostream>
 #include <cstring>

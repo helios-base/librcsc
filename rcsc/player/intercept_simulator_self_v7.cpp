@@ -46,6 +46,8 @@
 #include <rcsc/soccer_math.h>
 #include <rcsc/math_util.h>
 
+#include <algorithm>
+
 // #define DEBUG1
 // #define DEBUG
 

@@ -44,6 +44,7 @@
 #include <rcsc/common/logger.h>
 #include <rcsc/game_mode.h>
 
+#include <algorithm>
 #include <sstream>
 #include <iomanip>
 

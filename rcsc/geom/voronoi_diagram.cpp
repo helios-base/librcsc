@@ -35,6 +35,8 @@
 
 #include "triangle_2d.h"
 
+#include <algorithm>
+
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/

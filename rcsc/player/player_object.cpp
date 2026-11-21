@@ -41,6 +41,8 @@
 #include <rcsc/common/server_param.h>
 #include <rcsc/common/player_type.h>
 
+#include <algorithm>
+
 // #define DEBUG_PRINT
 
 namespace rcsc {

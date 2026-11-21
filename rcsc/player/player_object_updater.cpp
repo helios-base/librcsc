@@ -43,6 +43,8 @@
 #include <rcsc/common/server_param.h>
 #include <rcsc/time/timer.h>
 
+#include <algorithm>
+
 // #define DEBUG_PROFILE
 // #define DEBUG_PRINT
 

@@ -91,6 +91,7 @@ soccerwindow2 の Qt6 対応・CMake のメイン化の作業中に、librcsc �
 | CI の時期（Phase 1 の後に決定） | テスト・CI がないまま CMake を大きく書き換えることを避けるため、Phase 6 を2つに分ける。最小構成の CI（Phase 6a）を Phase 2 の前に行い、テストを整備した後に CI を拡充する（Phase 6b）。CMake のジョブが通るよう、Phase 2 の `netinet/in.h` の修正を Phase 6a に前倒しする |
 | CI の運用（Phase 1 の後に決定） | CI のきっかけは soccerwindow2 と同じ（master・develop への push、PR、手動実行）。作業ブランチの PR を早めに Draft で作り、push のたびに CI を動かす |
 | 対象の Ubuntu（Phase 6a の作業中に決定） | CI と README の対象は Ubuntu 24.04・26.04 にする。22.04 は使われなくなったと思われるため外す（ユーザの決定）。最低バージョン（CMake 3.16、Boost 1.70）は変えない |
+| 同梱の simdjson（Phase 6a の作業中に決定） | GCC 15 でのエラーは、同梱の 3.8.0 に本家と同じ修正（3行）を当てて直す。新しい版（本家の最新は v5.2.0）への更新は、この計画の後に予定している RCG パーサの高速化の計画で行う（ユーザの決定） |
 | リリースノートの日付（Phase 1 の後に決定） | `CLAUDE.md` の決まり（2026-11-21 追加）により、各項目の先頭に変更の日付を `(YYYY-MM-DD)` の形で付ける |
 
 ## 4. 実装計画
@@ -142,7 +143,7 @@ soccerwindow2 の Qt6 対応・CMake のメイン化の作業中に、librcsc �
 
 soccerwindow2 の Phase 1 と同じ方針で整える。
 
-- `cmake_minimum_required(VERSION 3.16)` にし、古い分岐を削除する。`CMAKE_CXX_EXTENSIONS OFF`。
+- `cmake_minimum_required(VERSION 3.16)` にし、古い分岐を削除する。`CMAKE_CXX_EXTENSIONS OFF`。（CI の CMake 3.31・4.5 で、今の `VERSION 3.5` に非推奨の警告が出ることを確認した）
 - 警告オプションは `target_compile_options` で付け、`CMAKE_CXX_FLAGS` の上書きをやめる。
 - インクルードディレクトリと依存ライブラリを、ターゲット単位（`target_include_directories`、`target_link_libraries`）で整理する。
 - 既定のインストール先を `~/local` から `~/.local` に変える（「3. 決定事項」）。設定済みのビルドディレクトリにはキャッシュに `~/local` が残るため、移行の方法（古いインストールの削除、ビルドディレクトリの作り直し、または `-DCMAKE_INSTALL_PREFIX=$HOME/.local`）をリリースノートと README に書く。
@@ -189,6 +190,11 @@ librcsc のこの計画が完了し、develop にマージされた後に行う�
 - librcsc が提供する `librcscConfig.cmake` を使い、soccerwindow2 の `cmake/FindLibrcsc.cmake` を `find_package(librcsc CONFIG)` に置き換えることを検討する。
 - soccerwindow2 の `configure.ac` が `$HOME/local` を `$HOME/.local` より先に探す順序を見直す（librcsc の既定が `~/.local` になり、両方にあると古い方が使われるため）。
 - soccerwindow2 の計画書（またはその後継の計画書）に記録する。
+
+### この計画の後に行う作業（別の計画）
+
+- RCG パーサの高速化（この計画の次に予定）。同梱の simdjson（3.8.0。GCC 15 のための修正を当ててある）の新しい版への更新も、この計画で行う。
+- ソース内の Boost（property_tree・spirit など）の置き換え（「3. 決定事項」）。
 
 ## 5. 検証方法
 
@@ -250,5 +256,28 @@ librcsc のこの計画が完了し、develop にマージされた後に行う�
 - Autotools: `--enable-unit-test` なしの既定の構成も通り、`make check` ではテストがビルドされないことを確かめた。
 - CMake: `-DHAVE_NETINET_IN_H=1` なしで構成（`netinet/in.h - found`）、ビルド、インストールが警告なしで通った。
 - ワークフロー: YAML として読めることと、シェルのコマンド（バージョンの表示、インストールされたファイルの一覧）が手元で動くことを確かめた（`actionlint` は手元にない）。
-- CI の結果: （push 後に追記する）
+CI の結果（1回目、`ec19348`、PR #119）:
+
+| ジョブ | 環境 | 結果 |
+|---|---|---|
+| ubuntu-24.04 / cmake | GCC 13.3.0、CMake 3.31.6、Boost 1.83 | 成功 |
+| ubuntu-24.04 / autotools | 同上、CppUnit 1.15.1 | 成功（単体テスト10個すべて通過） |
+| ubuntu-26.04 / cmake | GCC 15.2.0、CMake 4.5.0、Boost 1.90 | 失敗（ビルド） |
+| ubuntu-26.04 / autotools | 同上、CppUnit 1.15.1 | 失敗（ビルド） |
+
+- Ubuntu 26.04（Boost 1.90）でも、両方のビルドの構成は通った（`checking for boostlib >= 1.70.0 (107000)... yes`）。Boost.System のために構成で止まっていた問題は、Phase 1 で解消した。
+- CMake 3.31.6・4.5.0 とも、CMP0167 の警告は出ていない（Config モードで探しているため）。`cmake_minimum_required(VERSION 3.5)` についての非推奨の警告（`Compatibility with CMake < 3.10 will be removed`）は出ている（Phase 3 で直す）。
+- `actions/checkout@v4` について、Node.js 20 は非推奨で Node.js 24 で動かしたという警告が出た。
+- Ubuntu 26.04 のビルドの失敗は、GCC 15 による次の2つのエラーだった。
+  - `rcsc/geom/delaunay_triangulation.cpp`: `<algorithm>` を読み込まずに `std::sort` を使っている（GCC 15 の標準ライブラリでは、ほかのヘッダ経由で読み込まれなくなった）。
+  - 同梱の simdjson 3.8.0（`rcsc/rcg/simdjson/simdjson.h`）: `base_formatter` が派生クラスのメンバ関数を `this->print_newline()` などで呼んでいる。GCC 15 は、実体化されていないテンプレートの中のこの誤りもエラーにする（`-Wtemplate-body`）。
+
+1回目の CI の後の修正:
+
+- 同梱の simdjson に、本家と同じ修正（`static_cast<formatter *>(this)->print_newline()` など3行）を当てた。本家の最新版は v5.2.0（2026-11-15）だが、メジャーバージョンが2つ上がる大きな変更なので、この計画では更新しない。更新は、この計画の後に予定している RCG パーサの高速化の計画で行う（ユーザの決定。「3. 決定事項」）。simdjson のヘッダはインストールされない（`noinst_HEADERS`）ので、利用側には影響しない。
+- `<algorithm>` の関数（`std::sort`、`std::find_if`、`std::min`・`std::max` など）を使っているのに `<algorithm>` を直接読み込んでいない26個のファイル（公開ヘッダ `rcsc/common/player_type.h` を含む）に、`#include <algorithm>` を加えた。CMake のジョブは最初のエラーで止まり、ほかのファイルがまだコンパイルされていない可能性があるため、エラーが出たファイルだけでなく、まとめて直した。
+- ワークフローの `actions/checkout` と `actions/upload-artifact` を v7（Node.js 24 で動く）にした。v5〜v7 の変更点に、このワークフローの使い方に影響するものはない。
+- 手元（GCC 13）で、両方のビルド（警告0件）と単体テスト（10個すべて通過）を確かめた。GCC 15 での確認は CI で行う。
+
+CI の結果（2回目）: （push 後に追記する）
 
