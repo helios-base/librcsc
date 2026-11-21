@@ -71,5 +71,6 @@ install(FILES
   view_mode.h
   visual_sensor.h
   world_model.h
+  world_state.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/player
   )

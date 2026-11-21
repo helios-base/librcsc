@@ -71,13 +71,14 @@ rcgvalidator_LDADD = -lrcsc
 
 rcgverconv_SOURCES = \
 	rcgverconv.cpp
-rcgversion_CXXFLAGS = -Wall -W
+rcgverconv_CXXFLAGS = -Wall -W
 rcgverconv_LDFLAGS = \
 	-L$(top_builddir)/rcsc
 rcgverconv_LDADD = -lrcsc
 
 rcgversion_SOURCES = \
 	rcgversion.cpp
+rcgversion_CXXFLAGS = -Wall -W
 rcgversion_LDFLAGS = \
 	-L$(top_builddir)/rcsc
 rcgversion_LDADD = -lrcsc

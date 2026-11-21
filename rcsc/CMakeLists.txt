@@ -48,6 +48,10 @@ target_include_directories(rcsc
 #  $<INSTALL_INTERFACE:include>
   )
 
+if(ZLIB_FOUND)
+  target_link_libraries(rcsc PRIVATE ZLIB::ZLIB)
+endif()
+
 set_target_properties(rcsc PROPERTIES
   VERSION ${LIBRCSC_BUILDVERSION}
   SOVERSION ${LIBRCSC_SOVERSION}

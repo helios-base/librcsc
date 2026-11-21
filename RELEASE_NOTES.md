@@ -17,7 +17,20 @@ Each item has the date when the change was made.
     A program that used the headers included through the librcsc headers (e.g. `boost/scoped_ptr.hpp`, `boost/array.hpp`,
     or the standard headers included by them) must include them directly.
   - `librcsc.spec.in`: the devel package no longer requires `boost-devel`.
-- (2026-11-21) CMake build: fixed the build error caused by the missing check of `netinet/in.h`.
+- (2026-11-21) CMake build: the build is fixed, and the same files as the Autotools build are installed.
+  - Fixed the build error caused by the missing check of `netinet/in.h`.
+  - The missing header files `rcsc/player/world_state.h` and `rcsc/time/time_stamp.h` are installed.
+    The programs including `rcsc/player/world_model.h` or `rcsc/time/timer.h` could not be compiled with the librcsc installed by CMake.
+  - `rcgvalidator` is built and installed, and `rcg2csv` is installed.
+  - `rclmtableprinter` is built from `tableprinter.cpp`. It was built from the source of `rcgresultprinter` by mistake.
+  - `librcsc.so` is linked with zlib, so the programs using librcsc do not need to link zlib themselves.
+  - The development tool `object_table_printer` (not installed) is also built, as in the Autotools build.
+- (2026-11-21) Autotools build: `librcsc.so` is linked with the C++ linker, so `libstdc++` is recorded as its dependency.
+- (2026-11-21) The package version of the Autotools build (`AC_INIT`) is now 2026, the same as the CMake build.
+  It is shown by `librcsc-config --version` and pkg-config (`pkg-config --modversion librcsc`).
+- (2026-11-21) `librcsc-config --libs` prints `-lrcsc -lz -lm`, the same as pkg-config.
+  It printed the libraries that no longer exist (e.g. `-lrcsc_agent`).
+- (2026-11-21) Moved `rcsc/action`, which has not been built since 2022, to `obsolete/action`.
 - (2026-11-21) Unit tests (Autotools):
   - CppUnit is now found by pkg-config (`cppunit.pc`), so `./configure --enable-unit-test` works with CppUnit 1.13 or later,
     which no longer provides `cppunit-config`. pkg-config is now needed to run `./bootstrap`.

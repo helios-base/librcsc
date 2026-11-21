@@ -22,6 +22,10 @@ SUBDIRS = \
 lib_LTLIBRARIES = librcsc.la
 
 librcsc_la_SOURCES =
+# librcsc.la is made only of the convenience libraries. This dummy C++ source
+# (not distributed, never built) makes automake link it with the C++ linker,
+# so that libstdc++ is linked to librcsc.so.
+nodist_EXTRA_librcsc_la_SOURCES = dummy.cxx
 
 librcsc_la_LIBADD = \
 	geom/librcsc_geom.la \
@@ -41,22 +45,7 @@ librcsc_la_LIBADD = \
 	coach/librcsc_coach.la \
 	trainer/librcsc_trainer.la
 
-#lib_LTLIBRARIES = librcsc_agent.la
-#
-#librcsc_agent_la_SOURCES =
-#librcsc_agent_la_LIBADD = \
-#	util/librcsc_util.la \
-#	formation/librcsc_formation.la \
-#	color/librcsc_color.la \
-#	common/librcsc_common.la \
-#	monitor/librcsc_monitor.la \
-#	player/librcsc_player.la \
-#	action/librcsc_action.la \
-#	coach/librcsc_coach.la \
-	trainer/librcsc_trainer.la
-
-##	action/librcsc_action_obsolete.la
-
+# NOTE: Update LIBRCSC_SOVERSION in CMakeLists.txt at the same time.
 librcsc_la_LDFLAGS = -version-info 20:0:0
 #libXXXX_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 #    1. Start with version information of `0:0:0' for each libtool library.

@@ -3,7 +3,8 @@
 
 AC_PREREQ(2.65)
 LT_PREREQ(2.2)
-AC_INIT([librcsc],[2024],[akky@users.sourceforge.jp])
+# NOTE: Update the version in CMakeLists.txt (project) at the same time.
+AC_INIT([librcsc],[2026],[akky@users.sourceforge.jp])
 
 #LT_PREREQ(2.2.4)
 

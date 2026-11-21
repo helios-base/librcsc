@@ -1,7 +1,7 @@
 # librcsc Boost 対応の見直し・CMake ビルドの整備 計画書
 
 - 作成日: 2026-11-21
-- ステータス: 実施中（Phase 6a。Phase 0・1 は完了）
+- ステータス: 実施中（Phase 2。Phase 0・1・6a は完了）
 - ベースブランチ: `develop`（librcsc の既定ブランチ。master は年1回程度の更新）
 - 作業ブランチ: `feature/boost-cmake-maintenance`（ユーザが GitHub 上で develop から作る）
 - 関連: soccerwindow2 の計画書 `docs/plan/2026-11-19_qt6-cmake-migration.md`（soccerwindow2 リポジトリ。PR #94 でマージ済み）
@@ -92,6 +92,9 @@ soccerwindow2 の Qt6 対応・CMake のメイン化の作業中に、librcsc �
 | CI の運用（Phase 1 の後に決定） | CI のきっかけは soccerwindow2 と同じ（master・develop への push、PR、手動実行）。作業ブランチの PR を早めに Draft で作り、push のたびに CI を動かす |
 | 対象の Ubuntu（Phase 6a の作業中に決定） | CI と README の対象は Ubuntu 24.04・26.04 にする。22.04 は使われなくなったと思われるため外す（ユーザの決定）。最低バージョン（CMake 3.16、Boost 1.70）は変えない |
 | 同梱の simdjson（Phase 6a の作業中に決定） | GCC 15 でのエラーは、同梱の 3.8.0 に本家と同じ修正（3行）を当てて直す。新しい版（本家の最新は v5.2.0）への更新は、この計画の後に予定している RCG パーサの高速化の計画で行う（ユーザの決定） |
+| `rcsc/action`（Phase 2 の作業中に決定） | 2022年（`374b41e`）から両方のビルドで使われていないので、`obsolete/action` へ移す（`obsolete/` は使わなくなったソースを移す場所。`92c4e99`、#113）。中の `Makefile.am`・`CMakeLists.txt` は、ビルドの設定と誤解されないように削除する |
+| 使われていないファイル（Phase 2 の作業中に決定） | `rcsc/action` のほかにも、どちらのビルドにも入っていないファイルがある（「6. 実装記録」の Phase 2）。この計画では触らず、記録だけする。`rcsc/rcg/parser_json.*` は RCG パーサの高速化の計画で扱う |
+| `object_table_printer`（Phase 2 の作業中に決定） | CMake でもビルドする（インストールはしない。Autotools と同じ） |
 | リリースノートの日付（Phase 1 の後に決定） | `CLAUDE.md` の決まり（2026-11-21 追加）により、各項目の先頭に変更の日付を `(YYYY-MM-DD)` の形で付ける |
 
 ## 4. 実装計画
@@ -135,8 +138,10 @@ soccerwindow2 の Qt6 対応・CMake のメイン化の作業中に、librcsc �
 - （Phase 1 で見つかった問題）CMake の `rcsc` ターゲットが ZLIB にリンクしておらず、CMake でビルドした `librcsc.so` は zlib のシンボルが未解決のまま `libz` を NEEDED に持たない（ツールは自分で ZLIB にリンクしている）。`rcsc` を ZLIB にリンクする。
 - （Phase 1 で見つかった問題）`librcsc-config.in` の `--libs` が、今はない分割ライブラリ（`-lrcsc_agent`、`-lrcsc_clang` など）を出力する。`librcsc.pc.in` と同じ `-lrcsc -lz -lm` にする。
 - （Phase 1 で見つかった問題）`src/Makefile.am` の `rcgverconv` の所に `rcgversion_CXXFLAGS` がある（名前の誤り）。一覧を揃えるときに直す。
-- （Phase 1 で見つかった問題）`rcsc/action` には `Makefile.am` と `CMakeLists.txt` があるが、どちらのビルドからも使われていない（`rcsc/Makefile.am` の `SUBDIRS` にも `rcsc/CMakeLists.txt` の `add_subdirectory` にもない）。扱いをユーザと決める。
+- （Phase 1 で見つかった問題）`rcsc/action` には `Makefile.am` と `CMakeLists.txt` があるが、どちらのビルドからも使われていない（`rcsc/Makefile.am` の `SUBDIRS` にも `rcsc/CMakeLists.txt` の `add_subdirectory` にもない）。`obsolete/action` へ移す（「3. 決定事項」）。
 - （Phase 1 で見つかった問題）Autotools でビルドした `librcsc.so` は `libstdc++` を NEEDED に持たない（develop の時点から。利用側は C++ のプログラムなので実害はない）。原因を調べ、扱いを決める。
+- （Phase 2 の作業中に見つかった問題）CMake の `rclmtableprinter` が、`tableprinter.cpp` ではなく `resultprinter.cpp`（`rcgresultprinter` のソース）からビルドされている。また、librcsc を使わない `rclmscheduler`・`rclmtableprinter` が librcsc にリンクしている（Autotools ではリンクしていない）。
+- （Phase 2 の作業中に決定）開発用のツール `object_table_printer`（Autotools ではビルドだけしてインストールしない）を、CMake でもビルドする（「3. 決定事項」）。
 - 以後このような食い違いが起きないよう、Phase 4 で「インストールされたヘッダがそれぞれ単独でコンパイルできるか」の検査を加える。
 
 ### Phase 3: CMake ビルドの整備（近代化）
@@ -193,7 +198,8 @@ librcsc のこの計画が完了し、develop にマージされた後に行う�
 
 ### この計画の後に行う作業（別の計画）
 
-- RCG パーサの高速化（この計画の次に予定）。同梱の simdjson（3.8.0。GCC 15 のための修正を当ててある）の新しい版への更新も、この計画で行う。
+- RCG パーサの高速化（この計画の次に予定）。同梱の simdjson（3.8.0。GCC 15 のための修正を当ててある）の新しい版への更新も、この計画で行う。GCC 15 で `simdjson.cpp` に出る警告（`-Wtemplate-id-cdtor`、9件）も、更新で解消する見込み。どちらのビルドにも入っていない古い JSON パーサ（`rcsc/rcg/parser_json.*`）の扱いも、この計画で決める。
+- どちらのビルドにも入っていないファイル（「6. 実装記録」の Phase 2）の整理（`obsolete/` へ移すか、削除するか）。
 - ソース内の Boost（property_tree・spirit など）の置き換え（「3. 決定事項」）。
 
 ## 5. 検証方法
@@ -279,5 +285,60 @@ CI の結果（1回目、`ec19348`、PR #119）:
 - ワークフローの `actions/checkout` と `actions/upload-artifact` を v7（Node.js 24 で動く）にした。v5〜v7 の変更点に、このワークフローの使い方に影響するものはない。
 - 手元（GCC 13）で、両方のビルド（警告0件）と単体テスト（10個すべて通過）を確かめた。GCC 15 での確認は CI で行う。
 
-CI の結果（2回目）: （push 後に追記する）
+CI の結果（2回目、`46d0818`）: 4ジョブすべて成功した。
+
+| ジョブ | 結果 |
+|---|---|
+| ubuntu-24.04 / cmake | 成功（コンパイラの警告0件） |
+| ubuntu-24.04 / autotools | 成功（コンパイラの警告0件。単体テスト10個すべて通過） |
+| ubuntu-26.04 / cmake | 成功（警告9件。下記） |
+| ubuntu-26.04 / autotools | 成功（警告9件。単体テスト10個すべて通過） |
+
+- Boost 1.90（Ubuntu 26.04）で、両方のビルドとテストが通ることを確かめた（Phase 1 の目的）。
+- Node.js 20 についての警告は出なくなった。
+- GCC 15 の警告9件は、すべて同梱の simdjson の `simdjson.cpp`（`simd8<bool>()` などのコンストラクタの名前にテンプレート引数がある。`-Wtemplate-id-cdtor`）。librcsc 自身のコードからは出ていない。simdjson の更新（RCG パーサの高速化の計画）で解消する見込みなので、この計画では直さない。
+- CMake の `Compatibility with CMake < 3.10` の警告は残っている（Phase 3 で直す）。
+- インストールされたファイルの数は、CMake が175個、Autotools が180個。`.la` を除いた違いは `bin/rcg2csv`、`bin/rcgvalidator`、`include/rcsc/player/world_state.h`、`include/rcsc/time/time_stamp.h` の4つで、CMake にないもの。「2.2」で調べた違いと同じで、Phase 2 で直す。
+
+Phase 6a は完了した。
+
+### Phase 2（2026-11-21）
+
+一覧の比較: `Makefile.am` と `CMakeLists.txt` のソース・インストールするヘッダの一覧と、Git の管理下のファイルを、スクリプトで全ディレクトリについて比べた。
+
+- `rcsc/` の下のディレクトリの構成（`SUBDIRS` と `add_subdirectory`）と、ライブラリのソースの一覧は一致していた。インストールするヘッダの違いは、既知の `rcsc/time/time_stamp.h` と `rcsc/player/world_state.h` だけだった。
+- ツール（`src/`）では、既知の `rcgvalidator`・`rcg2csv` のほかに、CMake の `rclmtableprinter` のソースの誤りが見つかった（Phase 2 の項目に追加）。
+- どちらのビルドにも入っていないファイル（両方のビルドで同じなので、食い違いではない。「3. 決定事項」により記録だけする。最終更新は 2012〜2024年）:
+  - `rcsc/rcsc.h`
+  - `rcsc/geom/`: `segment_intersection.{h,cpp}`、`test_qhull_delaunay.cpp`、`test_qhull_voronoi.cpp`（qhull を使うテストで、`Makefile.am` ではコメントアウトされている）
+  - `rcsc/rcg/`: `parser_json.{h,cpp}`（simdjson のパーサ（#66）より前の JSON パーサ）
+  - `rcsc/common/`: `soccer_condition.{h,cpp}`
+  - `rcsc/player/`: `action_types.h`、`ball_state.{h,cpp}`、`intercept_simulator_self_v7.{h,cpp}`、`intercept_simulator_self_v13.{h,cpp}`、`player_object_updater.{h,cpp}`、`table_maker.cpp`
+  - `rcsc/coach/`: `clang_manager.{h,cpp}`、`cycle_data.{h,cpp}`、`player_change_state.{h,cpp}`、`soccer_adviser.h`
+  - `src/`: `rcg3to4.in`、`rcg4to3.in`
+  - なお、Phase 6a の GCC 15 への対応（`46d0818`）では、このうち `intercept_simulator_self_v7.cpp`・`intercept_simulator_self_v13.cpp`・`player_object_updater.cpp` にも `#include <algorithm>` を加えた（ビルドされないので不要だったが、害はない）。
+
+実施内容:
+
+- CMake: `rcsc/time/time_stamp.h` と `rcsc/player/world_state.h` をインストールするようにした。
+- CMake（`src/CMakeLists.txt`）: `rcgvalidator` をビルドし、`rcg2csv`・`rcgvalidator` をインストールするようにした。`rclmtableprinter` のソースを `tableprinter.cpp` に直し、`rclmscheduler`・`rclmtableprinter` を librcsc にリンクしないようにした（Autotools と同じ）。`object_table_printer` をビルドするようにした（インストールしない）。ツールの ZLIB へのリンクと `${ZLIB_INCLUDE_DIRS}` を削除した（ツールは `zlib.h` を使わない。公開ヘッダの `zlib.h` はコメントの中だけ）。
+- CMake: `rcsc` ターゲットを ZLIB に PRIVATE でリンクした（ZLIB が見つかったときだけ。ZLIB は Autotools と同じく必須ではない）。
+- Autotools（`rcsc/Makefile.am`）: `nodist_EXTRA_librcsc_la_SOURCES = dummy.cxx` を加え、`librcsc.la` を C++ のリンカでリンクするようにした（便宜ライブラリだけから作るライブラリは、automake が C のリンカ（`gcc`）でリンクするため、`libstdc++` がリンクされていなかった。automake のマニュアルにある方法）。昔の分割ライブラリ（`librcsc_agent`）の、コメントアウトされた記述を削除した（`action` を参照しており、最後の行はコメントの継続（`\`）でコメントになっているだけだった）。
+- `configure.ac` の `AC_INIT` を 2026 にした。`CMakeLists.txt`・`configure.ac`・`rcsc/Makefile.am` に、パッケージのバージョンとライブラリのバージョンを一緒に更新するよう注意書きを加えた。
+- `librcsc-config.in`: `--libs` の出力を `-lrcsc -lz -lm` にした。
+- `src/Makefile.am`: `rcgverconv` の所の `rcgversion_CXXFLAGS` を `rcgverconv_CXXFLAGS` に直し、`rcgversion` にも `rcgversion_CXXFLAGS` を加えた。
+- `rcsc/action` の Git の管理下のファイル（114個）を `obsolete/action` へ移し、`Makefile.am`・`CMakeLists.txt` を削除した。手元の `rcsc/action` には、Git の管理外の古い生成物（`.lo`、`Makefile` など）が残る。
+- `RELEASE_NOTES.md` に、これらの変更を書いた。
+
+検証結果（手元、Ubuntu 24.04、GCC 13.3、CMake 3.28.3。Git の管理下のファイルを一時ディレクトリに写してビルドした）:
+
+- Autotools: `bootstrap`、`configure --enable-unit-test`、`make`（コンパイラの警告0件）、`make check`（単体テスト10個すべて通過）、`make install` が通った。
+- CMake: 構成、ビルド（警告0件）、インストールが通った。`object_table_printer` もビルドされた。
+- インストールされたファイルの一覧は、`.la` を除いて完全に一致した（179個）。
+- `librcsc.so` と各ツールの NEEDED が両方のビルドで一致した（`librcsc.so` は `libz`・`libstdc++`・`libm`・`libgcc_s`・`libc`。`rclmscheduler`・`rclmtableprinter` は librcsc を使わない）。
+- `librcsc-config --version` と `pkg-config --modversion librcsc` は両方とも 2026。`librcsc-config --libs` と `pkg-config --libs librcsc` は両方とも `-L... -lrcsc -lz -lm`。
+- 公開シンボル（弱シンボルを除く）は、両方とも2,243個で完全に一致した。
+- インストールされたヘッダ（両方とも163個）を単独でコンパイルし、161個が通った（失敗は既知の `bpn1.h`・`polygon_2d.h` で、Phase 4 で直す）。
+- CMake でインストールした librcsc を使い、`rcsc/player/world_model.h`・`rcsc/time/time_stamp.h`・`rcsc/version.h` を読み込むプログラムを pkg-config でビルドし、実行できた（「2.2」の問題が解消した）。
+- CI の結果: （push 後に追記する）
 

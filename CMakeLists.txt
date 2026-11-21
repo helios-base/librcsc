@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 
+# NOTE: Update the version in configure.ac (AC_INIT) at the same time.
 project(librcsc VERSION 2026)
 
+# NOTE: Update -version-info in rcsc/Makefile.am at the same time.
 set(LIBRCSC_SOVERSION 20) # protocol version
 set(LIBRCSC_BUILDVERSION ${LIBRCSC_SOVERSION}.0.0)
 
