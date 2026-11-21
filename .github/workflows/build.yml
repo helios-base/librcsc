@@ -1,0 +1,95 @@
+name: build
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+  # Manual run from the Actions page. GitHub shows the button only when this
+  # file exists in the default branch.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.os }} / ${{ matrix.build }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # ubuntu-26.04 has Boost 1.90, in which the Boost.System library was removed.
+        os: [ ubuntu-24.04, ubuntu-26.04 ]
+        build: [ cmake, autotools ]
+
+    steps:
+      - name: Check out librcsc
+        uses: actions/checkout@v4
+
+      - name: Install the packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake autoconf automake libtool pkg-config \
+            libboost-dev zlib1g-dev libcppunit-dev
+
+      - name: Show the versions
+        run: |
+          g++ --version | head -n 1
+          cmake --version | head -n 1
+          grep -m 1 'define BOOST_LIB_VERSION' /usr/include/boost/version.hpp
+          pkg-config --modversion cppunit
+
+      # CMake
+      - name: Configure (CMake)
+        if: matrix.build == 'cmake'
+        run: cmake -S . -B build -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/install"
+
+      - name: Build (CMake)
+        if: matrix.build == 'cmake'
+        run: cmake --build build --parallel "$(nproc)"
+
+      - name: Install (CMake)
+        if: matrix.build == 'cmake'
+        run: cmake --install build
+
+      # Autotools
+      - name: Configure (Autotools)
+        if: matrix.build == 'autotools'
+        run: |
+          ./bootstrap
+          ./configure --prefix="$RUNNER_TEMP/install" --enable-unit-test
+
+      - name: Build (Autotools)
+        if: matrix.build == 'autotools'
+        run: make -j"$(nproc)"
+
+      - name: Test (Autotools)
+        if: matrix.build == 'autotools'
+        run: make check -j"$(nproc)"
+
+      - name: Install (Autotools)
+        if: matrix.build == 'autotools'
+        run: make install
+
+      - name: Show the installed files
+        run: find "$RUNNER_TEMP/install" \( -type f -o -type l \) | sed "s|^$RUNNER_TEMP/install/||" | sort
+
+      - name: Upload the logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ matrix.os }}-${{ matrix.build }}
+          path: |
+            build/CMakeFiles/CMakeOutput.log
+            build/CMakeFiles/CMakeError.log
+            build/CMakeFiles/CMakeConfigureLog.yaml
+            config.log
+            test-suite.log
+            rcsc/*/test-suite.log
+            rcsc/*/*.log
+          if-no-files-found: ignore

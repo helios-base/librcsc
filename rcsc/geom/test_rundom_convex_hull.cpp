@@ -65,18 +65,18 @@ print_elapsed( const timeval & start,
 int
 main()
 {
-    std::random_devince seed_gen;
+    std::random_device seed_gen;
     std::mt19937 engine( seed_gen() );
 
     //const double min_x = -10.0;
     //const double max_x = +10.0;
     //const double min_y = -10.0;
     //const double max_y = +10.0;
-    //std::uniform_real_distribution<> > x_dst( min_x, max_x );
-    //std::uniform_real_distribution<> > y_dst( min_y, max_y );
+    //std::uniform_real_distribution<> x_dst( min_x, max_x );
+    //std::uniform_real_distribution<> y_dst( min_y, max_y );
 
-    std::normal_distribution<> > x_dst( 0.0, 5.0 );
-    std::normal_distribution<> > y_dst( 0.0, 5.0 );
+    std::normal_distribution<> x_dst( 0.0, 5.0 );
+    std::normal_distribution<> y_dst( 0.0, 5.0 );
 
     rcsc::ConvexHull c0;
     rcsc::ConvexHull c1;

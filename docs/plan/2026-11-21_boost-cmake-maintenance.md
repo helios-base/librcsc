@@ -1,7 +1,7 @@
 # librcsc Boost 対応の見直し・CMake ビルドの整備 計画書
 
 - 作成日: 2026-11-21
-- ステータス: 実施中（Phase 1）
+- ステータス: 実施中（Phase 6a。Phase 0・1 は完了）
 - ベースブランチ: `develop`（librcsc の既定ブランチ。master は年1回程度の更新）
 - 作業ブランチ: `feature/boost-cmake-maintenance`（ユーザが GitHub 上で develop から作る）
 - 関連: soccerwindow2 の計画書 `docs/plan/2026-11-19_qt6-cmake-migration.md`（soccerwindow2 リポジトリ。PR #94 でマージ済み）
@@ -19,7 +19,7 @@ soccerwindow2 の Qt6 対応・CMake のメイン化の作業中に、librcsc �
 
 1. Boost 1.89 以降（Ubuntu 26.04 など）で、Autotools と CMake のどちらでもビルドできるようにする。
 2. CMake のビルドを、Autotools のビルドと同じものがインストールされる状態に直し、使える状態で保つ。
-3. librcsc 自身の CI を用意し、Ubuntu 22.04/24.04/26.04 で両方のビルドとテストを確かめ続けられるようにする。
+3. librcsc 自身の CI を用意し、Ubuntu 24.04/26.04 で両方のビルドとテストを確かめ続けられるようにする（当初は 22.04 も対象にしていたが、Phase 6a の作業中に外した。「3. 決定事項」）。
 4. ドキュメントを現状に合わせる。
 5. CMake の既定のインストール先を `~/local` から `~/.local` に変える（ユーザの指示。2026-11-21）。soccerwindow2 も同じ変更をしている。
 
@@ -65,6 +65,9 @@ soccerwindow2 の Qt6 対応・CMake のメイン化の作業中に、librcsc �
 ### 2.3 その他
 
 - librcsc には CI がない。
+- Autotools の単体テスト（`--enable-unit-test`）は、今の Ubuntu では使えない（Phase 6a の作業中に確認）。
+  - `m4/cppunit.m4` の `AM_PATH_CPPUNIT` は `cppunit-config` で CppUnit を探すが、`cppunit-config` は CppUnit 1.13 で廃止された。Ubuntu 24.04 の `libcppunit-dev`（1.15.1）には `cppunit.pc` しかないため、configure が `*** CppUnit not found! ***` で止まる。
+  - テスト自体も、2つがコンパイルできない（`rcsc/geom/test_rundom_convex_hull.cpp` の `std::random_devince` などの打ち間違い、`rcsc/clang/test_clang_parser.cpp` の範囲 for 文の誤り）。どちらも C++11 への書き換え（#18）で入った誤り。ほかのテスト（geom の8個）は通る。
 - `README.md` は Autotools の手順だけで、Ubuntu 20.04 と `libboost-all-dev` を前提にしている。インストール先の例は `~/local`。
 - この環境にはコンテナのツールがないため、Ubuntu 26.04（Boost 1.90）での動作は手元では確かめられない。CI で確かめる。
 - 利用側の librcsc の探し方（既定のインストール先の変更に関係する）:
@@ -82,13 +85,19 @@ soccerwindow2 の Qt6 対応・CMake のメイン化の作業中に、librcsc �
 | ソース内の Boost | property_tree・spirit などはヘッダだけの利用なので残す。置き換えは別の計画とする |
 | パッケージのバージョン | `AC_INIT` を CMake と同じ 2026 に揃える |
 | CMake のパッケージ設定ファイル | `librcscConfig.cmake` を提供し、`find_package(librcsc CONFIG)` とインポートターゲット（`librcsc::rcsc`）で使えるようにする。pkg-config（`librcsc.pc`）と `librcsc-config` も残す |
-| 最低バージョン | CMake 3.16。Boost は 1.41 から 1.70 に上げる（ユーザの決定）。Boost 1.70 以上は自身の CMake 設定ファイル（`BoostConfig.cmake`）を提供するため、CMake では CMake のバージョンによらず Config モードで探せる（FindBoost とポリシー CMP0167 に関わらなくて済む）。Autotools・`librcsc.spec.in`・README も 1.70 に揃える。対象の Ubuntu 22.04 以降は Boost 1.74 以上なので問題ない。なお RHEL 8 系（Boost 1.66）ではビルドできなくなる |
+| 最低バージョン | CMake 3.16。Boost は 1.41 から 1.70 に上げる（ユーザの決定）。Boost 1.70 以上は自身の CMake 設定ファイル（`BoostConfig.cmake`）を提供するため、CMake では CMake のバージョンによらず Config モードで探せる（FindBoost とポリシー CMP0167 に関わらなくて済む）。Autotools・`librcsc.spec.in`・README も 1.70 に揃える。対象の Ubuntu 24.04 以降は Boost 1.83 以上なので問題ない（22.04 の Boost 1.74 も満たす）。なお RHEL 8 系（Boost 1.66）ではビルドできなくなる |
 | `CLAUDE.md` の扱い | soccerwindow2 と同じく `.gitignore` に加え、Git の管理対象外にする |
 | 手元でのテストの手段 | soccerwindow2 と同じように使える `cmake-helper.sh` を用意する（configure、build、test、install、uninstall、clean。実行するコマンドを表示する）。手順は README にも書く |
+| CI の時期（Phase 1 の後に決定） | テスト・CI がないまま CMake を大きく書き換えることを避けるため、Phase 6 を2つに分ける。最小構成の CI（Phase 6a）を Phase 2 の前に行い、テストを整備した後に CI を拡充する（Phase 6b）。CMake のジョブが通るよう、Phase 2 の `netinet/in.h` の修正を Phase 6a に前倒しする |
+| CI の運用（Phase 1 の後に決定） | CI のきっかけは soccerwindow2 と同じ（master・develop への push、PR、手動実行）。作業ブランチの PR を早めに Draft で作り、push のたびに CI を動かす |
+| 対象の Ubuntu（Phase 6a の作業中に決定） | CI と README の対象は Ubuntu 24.04・26.04 にする。22.04 は使われなくなったと思われるため外す（ユーザの決定）。最低バージョン（CMake 3.16、Boost 1.70）は変えない |
+| リリースノートの日付（Phase 1 の後に決定） | `CLAUDE.md` の決まり（2026-11-21 追加）により、各項目の先頭に変更の日付を `(YYYY-MM-DD)` の形で付ける |
 
 ## 4. 実装計画
 
 作業ブランチ（`feature/boost-cmake-maintenance`）はユーザが GitHub 上で develop から作る。各フェーズを1つ以上のコミットにし、段階ごとにユーザが差分を確認してからコミットする。
+
+フェーズの順序: Phase 0 → 1 → 6a → 2 → 3 → 4 → 6b → 7 → 8（Phase 6a を Phase 2 の前に行う。「3. 決定事項」。Phase 5 は Phase 1 に統合した）。
 
 ### Phase 0: 準備
 
@@ -104,11 +113,21 @@ soccerwindow2 の Qt6 対応・CMake のメイン化の作業中に、librcsc �
 - 公開ヘッダ（`rcsc/gz/gzfilterstream.h`、`rcsc/net/abstract_socket.h`、`rcsc/net/udp_socket.h`、`rcsc/ann/rbf.h`）から、使われていない Boost の読み込みを消す（もとの Phase 5）。librcsc の中に、これらの読み込みに頼っているソースがないことをビルドで確かめる。
 - `librcsc.spec.in` の Boost の記述を見直す（`BuildRequires` の最低バージョンを 1.70 にする。公開ヘッダが Boost を読み込まなくなるため、devel パッケージの `Requires` から Boost を外す）。
 - Boost の最低バージョンを 1.70 に上げたことを、リリースノートに書く。
-- これで、Boost 1.89 以降（Ubuntu 26.04）でもビルドできる見込み。確認は Phase 6 の CI で行う（手元の Boost は 1.83）。
+- これで、Boost 1.89 以降（Ubuntu 26.04）でもビルドできる見込み。確認は Phase 6a の CI で行う（手元の Boost は 1.83）。
+
+### Phase 6a: 最小構成の CI（Phase 2 の前に行う）
+
+- `.github/workflows/build.yml` を作る（soccerwindow2 のワークフローを参考にする）。
+- 組み合わせ: Ubuntu 24.04・26.04 × CMake・Autotools（計4ジョブ。22.04 は外した。「3. 決定事項」）。ビルドとインストールを行い、Autotools では単体テスト（`make check`、`--enable-unit-test`）も行う。インストールされたファイルの一覧をログに出す（Phase 6b での比較の準備）。
+- きっかけ: master・develop への push、PR、手動実行（soccerwindow2 と同じ）。
+- CMake のジョブが通るよう、`check_include_file_cxx("netinet/in.h" HAVE_NETINET_IN_H)` を追加する（Phase 2 から前倒し）。
+- Autotools の単体テストを今の Ubuntu で動かせるよう、CppUnit を pkg-config で探すようにする（`PKG_CHECK_MODULES`。`m4/cppunit.m4` を削除）。コンパイルできないテスト2つを直す（「2.3」）。
+- Ubuntu 26.04 で Boost 1.90 でもビルドできることを、ここで確かめる（Phase 1 の確認）。
+- CI を入れた後、ユーザが作業ブランチの PR を Draft で作る（以後 push のたびに CI が動く）。
 
 ### Phase 2: CMake ビルドの不具合の修正
 
-- `check_include_file_cxx("netinet/in.h" HAVE_NETINET_IN_H)` を追加する。
+- `check_include_file_cxx("netinet/in.h" HAVE_NETINET_IN_H)` を追加する（Phase 6a で前倒しして実施）。
 - インストールするヘッダに `rcsc/player/world_state.h` と `rcsc/time/time_stamp.h` を加える。ほかのディレクトリも含め、`Makefile.am` と `CMakeLists.txt` のソース・ヘッダの一覧が揃っていることを確かめる。
 - `rcgvalidator` をビルドし、`rcg2csv` と `rcgvalidator` をインストールするようにする。
 - `configure.ac` の `AC_INIT` のバージョンを、CMake と同じ 2026 に揃える。
@@ -134,36 +153,38 @@ soccerwindow2 の Phase 1 と同じ方針で整える。
 ### Phase 4: テストの整備
 
 - CMake: cppunit の単体テスト（`rcsc/clang`、`rcsc/color`、`rcsc/geom`）を CTest に登録する（`BUILD_TESTING` で切り替える。cppunit は pkg-config で探す）。
-- Autotools: 既存の `make check`（`--enable-unit-test`）を維持する。
+- Autotools: 既存の `make check`（`--enable-unit-test`）を維持する（Phase 6a で今の Ubuntu でも動くようにした）。
 - インストールされたヘッダが、それぞれ単独でコンパイルできるかを検査するテストを加える（Phase 2 で見つかったような、ヘッダのインストール漏れを検出するため）。
 - テストが通らないものがあれば、原因を調べて直すか、扱いをユーザと決める。Phase 1 で試したところ、インストールされる163個のヘッダのうち次の2つが単独でコンパイルできなかった（develop の時点から）。
   - `rcsc/ann/bpn1.h`: `<iterator>` を読み込まずに `std::ostream_iterator` を使っている。
   - `rcsc/geom/polygon_2d.h`: 不完全な型の `Vector2D` を `std::vector` の要素として使っている。
-- 手元には cppunit がない（`libcppunit-dev` が入っていない）。手元で単体テストを動かすにはインストールが必要（ユーザが行う）。
+- 手元には cppunit がない（`libcppunit-dev` が入っていない）。手元で単体テストを動かすにはインストールが必要（ユーザが行う）。Phase 6a では、`apt-get download` で取ったパッケージを一時ディレクトリに展開し、`PKG_CONFIG_PATH`・`PKG_CONFIG_SYSROOT_DIR`・`LD_LIBRARY_PATH` で使って確かめた。
 - ユーザが手元でテストを動かせるよう、`cmake-helper.sh` を用意する（「3. 決定事項」。configure、build、test、install、uninstall、clean。実行するコマンドを表示する。install の既定のインストール先は `~/.local`）。実行方法は README にも書く。
 
 ### Phase 5: 公開ヘッダからの Boost の除去（Phase 1 に統合）
 
 使われていない読み込みを消すだけでよいと分かったため（「2.1」）、Phase 1 で行う。Phase 3 で `librcscConfig.cmake` を作る前に済ませておくと、Config に Boost への依存を書かずに済む。フェーズの番号は、ほかのフェーズからの参照のため残す。
 
-### Phase 6: GitHub Actions による CI
+### Phase 6b: CI の拡充（Phase 4 の後に行う）
 
-- `.github/workflows/build.yml` を作る（soccerwindow2 のワークフローを参考にする）。
-- 組み合わせ: Ubuntu 22.04・24.04・26.04 × CMake・Autotools（計6ジョブ）。ビルド、テスト、インストールを行う。
-- Ubuntu 26.04 で Boost 1.90 でもビルドできることを、ここで確かめる。
+最小構成の CI（Phase 6a）に、Phase 4 で整備したテストを加える。
+
+- CMake のジョブで、CTest の単体テストと、インストールされたヘッダの単独コンパイルの検査を行う（`cmake-helper.sh` を使うかは実装時に決める）。
 - CMake と Autotools でインストールされたファイルの一覧を比べる手順も、CI に入れることを検討する。
+- `make distcheck`（ソースの配布物の検査）を入れるかを検討する。
 
 ### Phase 7: ドキュメントの更新
 
-- `README.md`: 依存要件（Boost 1.70 以上のヘッダのみ、CMake 3.16 以上など）、Ubuntu 22.04/24.04/26.04 向けの apt コマンド（`libboost-all-dev` ではなく必要なものだけ）、CMake と Autotools のビルド手順、テストの実行方法、アンインストールの方法。
+- `README.md`: 依存要件（Boost 1.70 以上のヘッダのみ、CMake 3.16 以上など）、Ubuntu 24.04/26.04 向けの apt コマンド（`libboost-all-dev` ではなく必要なものだけ）、CMake と Autotools のビルド手順、テストの実行方法、アンインストールの方法。
 - `README.md`: インストール先（CMake の既定は `~/.local`、Autotools は `--prefix=$HOME/.local` を案内）、`~/local` からの移行、`LD_LIBRARY_PATH`・`PATH` の例を `~/.local` にする。
+- `README.md`: Git から取ったソースで `./bootstrap` を実行するには pkg-config が必要になったこと（Phase 6a で `PKG_CHECK_MODULES` を使ったため）、単体テストには CppUnit（`libcppunit-dev`）が必要なこと。
 - `RELEASE_NOTES.md` と、本計画書の「実装記録」を更新する。
 
 ### Phase 8: soccerwindow2 への反映（soccerwindow2 リポジトリでの作業）
 
 librcsc のこの計画が完了し、develop にマージされた後に行う。
 
-- soccerwindow2 の CI（`.github/workflows/build.yml`）に、Ubuntu 26.04 の4ジョブを戻す。
+- soccerwindow2 の CI（`.github/workflows/build.yml`）に、Ubuntu 26.04 の4ジョブを戻す。librcsc に合わせて、Ubuntu 22.04 を外すかも検討する。
 - CI の librcsc のビルドを CMake にすることを検討する。
 - librcsc が提供する `librcscConfig.cmake` を使い、soccerwindow2 の `cmake/FindLibrcsc.cmake` を `find_package(librcsc CONFIG)` に置き換えることを検討する。
 - soccerwindow2 の `configure.ac` が `$HOME/local` を `$HOME/.local` より先に探す順序を見直す（librcsc の既定が `~/.local` になり、両方にあると古い方が使われるため）。
@@ -177,7 +198,7 @@ librcsc のこの計画が完了し、develop にマージされた後に行う�
 4. **既定のインストール先:** CMake で `CMAKE_INSTALL_PREFIX` を指定せずに新しく構成したとき、`~/.local` になること。
 5. **Boost 1.89 以降:** Ubuntu 26.04 の CI で、両方のビルドとテストが通ること（手元では確かめられない）。
 6. **利用側:** CMake で `~/.local` にインストールした librcsc を使って、soccerwindow2（`./cmake-helper.sh build`、`test`）と helios-base が、librcsc の場所を指定せずにビルドできること。
-7. **CI:** 6ジョブがすべて成功すること。
+7. **CI:** 4ジョブ（Ubuntu 24.04・26.04 × CMake・Autotools）がすべて成功すること。
 
 ## 6. 実装記録
 
@@ -211,4 +232,23 @@ librcsc のこの計画が完了し、develop にマージされた後に行う�
 - CMake: 構成、ビルド、インストールが警告なしで通った。Boost は `/usr/lib/x86_64-linux-gnu/cmake/Boost-1.83.0` の `BoostConfig.cmake` で見つかった。ビルドに失敗する既知の問題（`HAVE_NETINET_IN_H`、Phase 2 で直す）は、`-DHAVE_NETINET_IN_H=1` を与えて避けた。
 - 両方のビルドとも、ライブラリとツールの NEEDED に Boost のライブラリはない。インストールされたヘッダに `#include <boost` はない。
 - インストールされた163個のヘッダを単独でコンパイルし、161個が通った（失敗した2つは develop の時点からの問題で、Phase 4 で直す）。
-- 単体テストは、手元に cppunit がないため動かしていない。Boost 1.89 以降でのビルドと、CMake 3.30 以降で CMP0167 の警告が出ないことは、Phase 6 の CI で確かめる。
+- 単体テストは、手元に cppunit がないため動かしていない。Boost 1.89 以降でのビルドと、CMake 3.30 以降で CMP0167 の警告が出ないことは、CI（Phase 6a）で確かめる。
+
+### Phase 6a（2026-11-21）
+
+実施内容:
+
+- `.github/workflows/build.yml` を作った。Ubuntu 24.04・26.04 × CMake・Autotools の4ジョブで（当初は 22.04 も含む6ジョブにしたが、コミット前にユーザの決定で 22.04 を外した）、使われているコンパイラ・CMake・Boost・CppUnit のバージョンを表示し、ビルド、インストール（`$RUNNER_TEMP/install`）、インストールされたファイルの一覧の表示を行う。Autotools では `--enable-unit-test` で構成し、`make check` も行う。失敗したときは、`config.log`、テストのログ、CMake のログを artifact として残す。
+- CMake: `check_include_file_cxx("netinet/in.h" HAVE_NETINET_IN_H)` を追加した（Phase 2 から前倒し）。これで `cmake-config.h.in` の `HAVE_*` はすべて設定される。
+- Autotools: CppUnit を `PKG_CHECK_MODULES([CPPUNIT], [cppunit >= 1.12.0])` で探すようにし、`m4/cppunit.m4` を削除した。`PKG_PROG_PKG_CONFIG` は条件の外で呼び、`AM_CONDITIONAL([UNIT_TEST], ...)` も条件の外で1回だけ呼ぶ形に整理した。変数名（`CPPUNIT_CFLAGS`、`CPPUNIT_LIBS`）は変わらないので、`Makefile.am` はそのまま。
+- コンパイルできなかったテスト2つを直した（`rcsc/geom/test_rundom_convex_hull.cpp` の打ち間違い、`rcsc/clang/test_clang_parser.cpp` の範囲 for 文）。
+- `RELEASE_NOTES.md`: 各項目に日付を付け、この作業の変更を書いた。
+
+検証結果（手元、Ubuntu 24.04。Git の管理下のファイルを一時ディレクトリに写してビルドした）:
+
+- Autotools: `--enable-unit-test` で構成し（`checking for cppunit >= 1.12.0... yes`）、`make`、`make check`、`make install` が通った。単体テストは10個すべて通った（geom 9個、clang 1個）。コンパイラの警告は0件。CppUnit は、`apt-get download` で取った `libcppunit-dev`・`libcppunit-1.15-0` を展開して使った。
+- Autotools: `--enable-unit-test` なしの既定の構成も通り、`make check` ではテストがビルドされないことを確かめた。
+- CMake: `-DHAVE_NETINET_IN_H=1` なしで構成（`netinet/in.h - found`）、ビルド、インストールが警告なしで通った。
+- ワークフロー: YAML として読めることと、シェルのコマンド（バージョンの表示、インストールされたファイルの一覧）が手元で動くことを確かめた（`actionlint` は手元にない）。
+- CI の結果: （push 後に追記する）
+

@@ -130,7 +130,7 @@ CLangParserTest::testInfoMessage()
         }
 
         std::cout << "parsed tokens:\n";
-        for ( const rcsc::CLangToken & tok = info->tokens() )
+        for ( const rcsc::CLangToken::ConstPtr & tok : info->tokens() )
         {
             std::cout << "    " << *tok << std::endl;
         }
