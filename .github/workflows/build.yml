@@ -1,0 +1,169 @@
+name: build
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+  # Manual run from the Actions page. GitHub shows the button only when this
+  # file exists in the default branch.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.os }} / ${{ matrix.build }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # ubuntu-26.04 has Boost 1.90, in which the Boost.System library was removed.
+        os: [ ubuntu-24.04, ubuntu-26.04 ]
+        build: [ cmake, autotools ]
+
+    steps:
+      - name: Check out librcsc
+        uses: actions/checkout@v7
+
+      - name: Install the packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake autoconf automake libtool pkg-config \
+            libboost-dev zlib1g-dev libcppunit-dev
+
+      - name: Show the versions
+        run: |
+          g++ --version | head -n 1
+          cmake --version | head -n 1
+          grep -m 1 'define BOOST_LIB_VERSION' /usr/include/boost/version.hpp
+          pkg-config --modversion cppunit
+
+      # CMake: use cmake-helper.sh, which prints the cmake commands
+      - name: Build (CMake)
+        if: matrix.build == 'cmake'
+        env:
+          CMAKE_ARGS: -DCMAKE_INSTALL_PREFIX=${{ runner.temp }}/install
+        run: ./cmake-helper.sh build
+
+      # the unit tests and the tests of the installation (installed_headers, find_package, installed_tools)
+      - name: Test (CMake)
+        if: matrix.build == 'cmake'
+        run: ./cmake-helper.sh test
+
+      # The unit tests are not built without CppUnit. Make sure that they are run.
+      - name: Check that the unit tests are run (CMake)
+        if: matrix.build == 'cmake'
+        run: cd build && ctest -N | grep -q run_test_vector_2d
+
+      - name: Install (CMake)
+        if: matrix.build == 'cmake'
+        run: ./cmake-helper.sh install
+
+      # Autotools
+      - name: Configure (Autotools)
+        if: matrix.build == 'autotools'
+        run: |
+          ./bootstrap
+          ./configure --prefix="$RUNNER_TEMP/install" --enable-unit-test
+
+      - name: Build (Autotools)
+        if: matrix.build == 'autotools'
+        run: make -j"$(nproc)"
+
+      - name: Test (Autotools)
+        if: matrix.build == 'autotools'
+        run: make check -j"$(nproc)"
+
+      - name: Install (Autotools)
+        if: matrix.build == 'autotools'
+        run: make install
+
+      # each installed header file can be compiled alone
+      - name: Check the installed header files (Autotools)
+        if: matrix.build == 'autotools'
+        run: ./cmake-helper.sh check-headers "$RUNNER_TEMP/install"
+
+      # the installed tools run without LD_LIBRARY_PATH (the library path recorded by libtool)
+      - name: Check the installed tools (Autotools)
+        if: matrix.build == 'autotools'
+        run: ./cmake-helper.sh check-tools "$RUNNER_TEMP/install"
+
+      - name: Check the source tarball (Autotools)
+        if: matrix.build == 'autotools'
+        run: make distcheck -j"$(nproc)" DISTCHECK_CONFIGURE_FLAGS="--enable-unit-test"
+
+      # The lists are compared by the "compare" job.
+      - name: Save the list of the installed files
+        run: |
+          (cd "$RUNNER_TEMP/install" && find . \( -type f -o -type l \) | sed 's|^\./||' | sort) > installed-files.txt
+          cat installed-files.txt
+
+      - name: Upload the list of the installed files
+        uses: actions/upload-artifact@v7
+        with:
+          name: installed-files-${{ matrix.os }}-${{ matrix.build }}
+          path: installed-files.txt
+
+      - name: Uninstall (CMake)
+        if: matrix.build == 'cmake'
+        run: |
+          ./cmake-helper.sh uninstall
+          remaining=$(find "$RUNNER_TEMP/install" \( -type f -o -type l \))
+          if [ -n "$remaining" ]; then
+            echo "These files remain after the uninstall:"
+            echo "$remaining"
+            exit 1
+          fi
+
+      - name: Upload the logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: logs-${{ matrix.os }}-${{ matrix.build }}
+          path: |
+            build/CMakeFiles/CMakeOutput.log
+            build/CMakeFiles/CMakeError.log
+            build/CMakeFiles/CMakeConfigureLog.yaml
+            build/Testing/Temporary/
+            config.log
+            test-suite.log
+            rcsc/*/test-suite.log
+            rcsc/*/*.log
+            librcsc-*/_build/sub/config.log
+          if-no-files-found: ignore
+
+  # CMake and Autotools install the same files, except the CMake package
+  # configuration files (lib/cmake/librcsc/, CMake only) and the libtool
+  # library file (.la, Autotools only).
+  compare:
+    name: compare the installed files
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download the lists of the installed files
+        uses: actions/download-artifact@v8
+        with:
+          pattern: installed-files-*
+          path: installed-files
+
+      - name: Compare the installed files of CMake and Autotools
+        run: |
+          status=0
+          for cmake_list in installed-files/installed-files-*-cmake/installed-files.txt; do
+            os=${cmake_list#installed-files/installed-files-}
+            os=${os%-cmake/installed-files.txt}
+            autotools_list=installed-files/installed-files-$os-autotools/installed-files.txt
+            echo "== $os"
+            if diff <(grep -v '^lib/cmake/librcsc/' "$cmake_list") <(grep -v '\.la$' "$autotools_list"); then
+              echo "The same $(grep -c -v '^lib/cmake/librcsc/' "$cmake_list") files are installed."
+            else
+              status=1
+            fi
+          done
+          exit $status

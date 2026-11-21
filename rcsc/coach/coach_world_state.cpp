@@ -39,6 +39,8 @@
 #include <rcsc/time/timer.h>
 #include <rcsc/rcg/types.h>
 
+#include <algorithm>
+
 // #define DEBUG_PRINT
 
 namespace rcsc {

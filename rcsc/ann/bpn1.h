@@ -34,6 +34,7 @@
 
 #include <array>
 #include <algorithm>
+#include <iterator> // ostream_iterator
 #include <numeric> // inner_product
 #include <iostream>
 #include <cmath>

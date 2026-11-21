@@ -14,12 +14,9 @@ add_library(rcsc_formation OBJECT
   role_type.cpp
   )
 
-target_include_directories(rcsc_formation
-  PUBLIC
-  ${Boost_INCLUDE_DIRS}
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
+target_link_libraries(rcsc_formation PRIVATE
+  rcsc_build_settings
+  Boost::headers # header-only
   )
 
 install(FILES
@@ -35,5 +32,5 @@ install(FILES
   formation_dt.h
   formation_static.h
   role_type.h
-  DESTINATION include/rcsc/formation
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/formation
   )

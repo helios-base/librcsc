@@ -7,12 +7,9 @@ add_library(rcsc_param OBJECT
   rcss_param_parser.cpp
   )
 
-target_include_directories(rcsc_param
-  PUBLIC
-  ${Boost_INCLUDE_DIRS}
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
+target_link_libraries(rcsc_param PRIVATE
+  rcsc_build_settings
+  Boost::headers # header-only
   )
 
 install(FILES

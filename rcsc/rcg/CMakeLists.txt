@@ -20,13 +20,7 @@ add_library(rcsc_rcg OBJECT
   util.cpp
   )
 
-target_include_directories(rcsc_rcg
-  PUBLIC
-  ${Boost_INCLUDE_DIRS}
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
-  )
+target_link_libraries(rcsc_rcg PRIVATE rcsc_build_settings)
 
 install(FILES
   handler.h

@@ -46,6 +46,8 @@
 #include <rcsc/common/server_param.h>
 #include <rcsc/common/logger.h>
 
+#include <algorithm>
+
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/

@@ -36,6 +36,7 @@
 #include <rcsc/soccer_math.h>
 #include <rcsc/types.h>
 
+#include <algorithm>
 #include <unordered_map>
 #include <vector>
 #include <iostream>

@@ -44,6 +44,8 @@
 #include <rcsc/common/player_type.h>
 #include <rcsc/soccer_math.h>
 
+#include <algorithm>
+
 // #define DEBUG
 // #define DEBUG2
 

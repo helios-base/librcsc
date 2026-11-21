@@ -35,6 +35,7 @@
 
 #include <rcsc/rcg/types.h>
 
+#include <algorithm>
 #include <unordered_map>
 #include <string>
 #include <sstream>

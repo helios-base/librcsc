@@ -12,7 +12,7 @@ BuildRoot: %{_tmppath}/%{name}-root
 
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
-BuildRequires: boost-devel >= 1.32
+BuildRequires: boost-devel >= 1.70
 
 %description
 librcsc is a base library of the soccer agent and/or the tool
@@ -22,7 +22,6 @@ program for the RoboCup soccer 2D simulation.
 Summary: The RoboCup Soccer Client Library Development Package
 Group: Development/Libraries
 Requires: %{name} = %{version}-%{release}
-Requires: boost-devel >= 1.32
 
 %description devel
 librcsc is a base library to develop a soccer agent and/or a tool

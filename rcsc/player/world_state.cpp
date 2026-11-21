@@ -41,6 +41,8 @@
 #include <rcsc/common/player_param.h>
 #include <rcsc/common/server_param.h>
 
+#include <algorithm>
+
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/

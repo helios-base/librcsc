@@ -50,6 +50,8 @@
 #include <rcsc/math_util.h>
 #include <rcsc/timer.h>
 
+#include <algorithm>
+
 // #define DEBUG_PROFILE
 
 // #define DEBUG_PRINT

@@ -1,0 +1,27 @@
+# librcscConfig.cmake
+# -------------------
+#
+# The CMake package configuration file of librcsc, installed by the CMake
+# build of librcsc (not by the Autotools build).
+#
+# Usage:
+#
+#   find_package(librcsc CONFIG REQUIRED)
+#   target_link_libraries(<target> PRIVATE librcsc::rcsc)
+#
+# If librcsc is not installed in a directory that CMake searches by default,
+# give the installation directory by CMAKE_PREFIX_PATH (e.g.
+# -DCMAKE_PREFIX_PATH=$HOME/.local) or by HINTS of find_package.
+#
+# Imported target:
+#   librcsc::rcsc  the shared library of librcsc. Linking it adds the include
+#                  directory and requires C++17.
+#
+# Result variables:
+#   librcsc_FOUND, librcsc_VERSION
+
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/librcscTargets.cmake")
+
+check_required_components(librcsc)

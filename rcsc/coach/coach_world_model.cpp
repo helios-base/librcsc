@@ -45,6 +45,7 @@
 #include <rcsc/common/audio_memory.h>
 #include <rcsc/geom/rect_2d.h>
 
+#include <algorithm>
 #include <iostream>
 #include <cstdio>
 

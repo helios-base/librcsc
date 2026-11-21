@@ -9,12 +9,9 @@ add_library(rcsc_clang OBJECT
   clang_unum.cpp
   )
 
-target_include_directories(rcsc_clang
-  PUBLIC
-  ${Boost_INCLUDE_DIRS}
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
+target_link_libraries(rcsc_clang PRIVATE
+  rcsc_build_settings
+  Boost::headers # header-only
   )
 
 install(FILES
@@ -30,3 +27,10 @@ install(FILES
   types.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/clang
   )
+
+# unit tests (CppUnit): the same program as "make check" of the Autotools build
+if(LIBRCSC_UNIT_TESTS)
+  add_executable(test_clang_parser test_clang_parser.cpp)
+  target_link_libraries(test_clang_parser PRIVATE rcsc_build_settings rcsc PkgConfig::CPPUNIT)
+  add_test(NAME test_clang_parser COMMAND test_clang_parser)
+endif()

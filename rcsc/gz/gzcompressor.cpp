@@ -39,6 +39,7 @@
 
 #include "gzcompressor.h"
 
+#include <algorithm>
 #include <cstdlib>
 
 namespace rcsc {

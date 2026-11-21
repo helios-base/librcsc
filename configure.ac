@@ -3,7 +3,8 @@
 
 AC_PREREQ(2.65)
 LT_PREREQ(2.2)
-AC_INIT([librcsc],[2024],[akky@users.sourceforge.jp])
+# NOTE: Update the version in CMakeLists.txt (project) at the same time.
+AC_INIT([librcsc],[2026],[akky@users.sourceforge.jp])
 
 #LT_PREREQ(2.2.4)
 
@@ -129,27 +130,25 @@ AX_CXX_COMPILE_STDCXX_17(noext)
 # check boost
 ##################################################
 
-AX_BOOST_BASE([1.41.0])
-AX_BOOST_SYSTEM
+# only the header-only libraries are used
+AX_BOOST_BASE([1.70.0])
 CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"
-LDFLAGS="$LDFLAGS $BOOST_LDFLAGS"
 
 ##################################################
 # enable/disable unit test
 ##################################################
 
+# CppUnit is found by pkg-config (cppunit.pc), because cppunit-config was
+# removed in CppUnit 1.13.
+PKG_PROG_PKG_CONFIG
 AC_ARG_ENABLE(unit-test,
               AS_HELP_STRING([--enable-unit-test],[build unit test code. (default=no)]))
 if test "x$enable_unit_test" = "xyes"; then
   AC_MSG_NOTICE(enabled unit test)
-#  AX_BOOST_UNIT_TEST_FRAMEWORK
-  AM_PATH_CPPUNIT([1.12.0],
-                  [],
-                  [AC_MSG_ERROR([*** CppUnit not found! ***])])
-  AM_CONDITIONAL(UNIT_TEST, [test "1" = "1"])
-else
-  AM_CONDITIONAL(UNIT_TEST, [test "1" = "0"])
+  PKG_CHECK_MODULES([CPPUNIT], [cppunit >= 1.12.0], [],
+                    [AC_MSG_ERROR([*** CppUnit not found! ***])])
 fi
+AM_CONDITIONAL([UNIT_TEST], [test "x$enable_unit_test" = "xyes"])
 
 ##################################################
 # enable/disable debug mode

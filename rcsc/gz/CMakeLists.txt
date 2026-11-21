@@ -5,14 +5,10 @@ add_library(rcsc_gz OBJECT
   gzfilterstream.cpp
   )
 
-target_include_directories(rcsc_gz
-  PUBLIC
-  ${Boost_INCLUDE_DIRS}
-  ${ZLIB_INCLUDE_DIRS}
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
-  )
+target_link_libraries(rcsc_gz PRIVATE rcsc_build_settings)
+if(ZLIB_FOUND)
+  target_link_libraries(rcsc_gz PRIVATE ZLIB::ZLIB)
+endif()
 
 install(FILES
   gzcompressor.h

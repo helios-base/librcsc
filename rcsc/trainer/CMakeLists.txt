@@ -5,13 +5,7 @@ add_library(rcsc_trainer OBJECT
   trainer_config.cpp
   )
 
-target_include_directories(rcsc_trainer
-  PUBLIC
-  ${Boost_INCLUDE_DIRS}
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
-  )
+target_link_libraries(rcsc_trainer PRIVATE rcsc_build_settings)
 
 install(FILES
   trainer_agent.h

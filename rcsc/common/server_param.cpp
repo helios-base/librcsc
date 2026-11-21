@@ -41,6 +41,7 @@
 #include <rcsc/rcg/types.h>
 #include <rcsc/rcg/util.h>
 
+#include <algorithm>
 #include <sstream>
 #include <iostream>
 #include <cmath>

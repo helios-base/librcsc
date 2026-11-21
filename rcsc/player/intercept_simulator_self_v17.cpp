@@ -51,6 +51,7 @@
 #include <rcsc/math_util.h>
 #include <rcsc/timer.h>
 
+#include <algorithm>
 #include <sstream>
 
 // #define DEBUG_PROFILE

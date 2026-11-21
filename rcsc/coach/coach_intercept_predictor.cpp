@@ -43,6 +43,8 @@
 #include <rcsc/common/logger.h>
 #include <rcsc/geom/vector_2d.h>
 
+#include <algorithm>
+
 namespace rcsc {
 
 /*-------------------------------------------------------------------*/
