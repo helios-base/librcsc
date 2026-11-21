@@ -15,11 +15,7 @@ add_library(rcsc_common OBJECT
   team_graphic.cpp
   )
 
-target_include_directories(rcsc_common
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
-  )
+target_link_libraries(rcsc_common PRIVATE rcsc_build_settings)
 
 install(FILES
   abstract_client.h

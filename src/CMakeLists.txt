@@ -3,16 +3,19 @@
 add_executable(rclmscheduler
   scheduler.cpp
   )
+target_link_libraries(rclmscheduler PRIVATE rcsc_build_settings)
 
 add_executable(rclmtableprinter
   tableprinter.cpp
   )
+target_link_libraries(rclmtableprinter PRIVATE rcsc_build_settings)
 
 add_executable(rcg2csv
   rcg2csv.cpp
   )
 target_link_libraries(rcg2csv PRIVATE
   rcsc
+  rcsc_build_settings
   )
 
 add_executable(rcg2txt
@@ -20,6 +23,7 @@ add_executable(rcg2txt
   )
 target_link_libraries(rcg2txt PRIVATE
   rcsc
+  rcsc_build_settings
   )
 
 add_executable(rcgrenameteam
@@ -27,6 +31,7 @@ add_executable(rcgrenameteam
   )
 target_link_libraries(rcgrenameteam PRIVATE
   rcsc
+  rcsc_build_settings
   )
 
 add_executable(rcgresultprinter
@@ -34,6 +39,7 @@ add_executable(rcgresultprinter
   )
 target_link_libraries(rcgresultprinter PRIVATE
   rcsc
+  rcsc_build_settings
   )
 
 add_executable(rcgreverse
@@ -41,6 +47,7 @@ add_executable(rcgreverse
   )
 target_link_libraries(rcgreverse PRIVATE
   rcsc
+  rcsc_build_settings
   )
 
 add_executable(rcgvalidator
@@ -48,6 +55,7 @@ add_executable(rcgvalidator
   )
 target_link_libraries(rcgvalidator PRIVATE
   rcsc
+  rcsc_build_settings
   )
 
 add_executable(rcgverconv
@@ -55,6 +63,7 @@ add_executable(rcgverconv
   )
 target_link_libraries(rcgverconv PRIVATE
   rcsc
+  rcsc_build_settings
   )
 
 add_executable(rcgversion
@@ -62,6 +71,7 @@ add_executable(rcgversion
   )
 target_link_libraries(rcgversion PRIVATE
   rcsc
+  rcsc_build_settings
   )
 
 # a tool for the development (not installed)
@@ -70,11 +80,7 @@ add_executable(object_table_printer
   )
 target_link_libraries(object_table_printer PRIVATE
   rcsc
-  )
-
-include_directories(
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
+  rcsc_build_settings
   )
 
 install(TARGETS

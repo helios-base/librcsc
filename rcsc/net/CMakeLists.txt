@@ -6,11 +6,7 @@ add_library(rcsc_net OBJECT
   tcp_socket.cpp
   )
 
-target_include_directories(rcsc_net
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
-  )
+target_link_libraries(rcsc_net PRIVATE rcsc_build_settings)
 
 install(FILES
   abstract_socket.h

@@ -5,8 +5,4 @@ add_library(rcsc_util OBJECT
   version.cpp
   )
 
-target_include_directories(rcsc_util
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
-  )
+target_link_libraries(rcsc_util PRIVATE rcsc_build_settings)

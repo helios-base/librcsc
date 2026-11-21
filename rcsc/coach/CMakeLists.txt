@@ -14,11 +14,7 @@ add_library(rcsc_coach OBJECT
   player_type_analyzer.cpp
   )
 
-target_include_directories(rcsc_coach
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
-  )
+target_link_libraries(rcsc_coach PRIVATE rcsc_build_settings)
 
 install(FILES
   coach_agent.h

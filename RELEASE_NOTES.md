@@ -25,6 +25,24 @@ Each item has the date when the change was made.
   - `rclmtableprinter` is built from `tableprinter.cpp`. It was built from the source of `rcgresultprinter` by mistake.
   - `librcsc.so` is linked with zlib, so the programs using librcsc do not need to link zlib themselves.
   - The development tool `object_table_printer` (not installed) is also built, as in the Autotools build.
+- (2026-11-21) CMake build: modernized.
+  - The minimum required CMake version is now 3.16.
+  - The default installation directory is changed from `~/local` to `~/.local`.
+    A build directory configured before keeps `~/local` in the cache.
+    To move to `~/.local`, remove the old build directory (or give `-DCMAKE_INSTALL_PREFIX=$HOME/.local`),
+    and remove the files installed in `~/local` if they are no longer needed.
+  - The CMake package configuration files are installed in `PREFIX/lib/cmake/librcsc` (CMake build only, not Autotools).
+    The other CMake projects can use librcsc by `find_package(librcsc CONFIG REQUIRED)` and
+    `target_link_libraries(<target> PRIVATE librcsc::rcsc)`, which adds the include directory and requires C++17.
+    A version can be requested, e.g. `find_package(librcsc 2024 CONFIG)` accepts librcsc 2026 (a newer version is accepted).
+    CMake also searches `PREFIX` when `PREFIX/bin` is in `PATH` (e.g. `~/.local/bin` on Ubuntu);
+    otherwise give the installation directory by `-DCMAKE_PREFIX_PATH=PREFIX`.
+  - The installed programs record the relative path to librcsc (RPATH `$ORIGIN/../lib`),
+    so `LD_LIBRARY_PATH` is not needed to run them, as in the Autotools build.
+  - Added the `uninstall` target (`cmake --build build --target uninstall`), which removes the files listed in `install_manifest.txt`
+    and the directories `PREFIX/include/rcsc` and `PREFIX/lib/cmake/librcsc` if they become empty.
+  - `CMAKE_CXX_FLAGS` given by the user is no longer overwritten. The warning options (`-W -Wall`) are added to the targets of librcsc.
+  - All the installation directories follow `GNUInstallDirs` (e.g. `CMAKE_INSTALL_LIBDIR` for `librcsc.pc`).
 - (2026-11-21) Autotools build: `librcsc.so` is linked with the C++ linker, so `libstdc++` is recorded as its dependency.
 - (2026-11-21) The package version of the Autotools build (`AC_INIT`) is now 2026, the same as the CMake build.
   It is shown by `librcsc-config --version` and pkg-config (`pkg-config --modversion librcsc`).

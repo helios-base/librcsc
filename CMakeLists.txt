@@ -1,31 +1,42 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
 
 # NOTE: Update the version in configure.ac (AC_INIT) at the same time.
-project(librcsc VERSION 2026)
+project(librcsc VERSION 2026 LANGUAGES CXX)
 
 # NOTE: Update -version-info in rcsc/Makefile.am at the same time.
 set(LIBRCSC_SOVERSION 20) # protocol version
 set(LIBRCSC_BUILDVERSION ${LIBRCSC_SOVERSION}.0.0)
 
-if(CMAKE_VERSION VERSION_LESS "3.7.0")
-  set(CMAKE_INCLUDE_CURRENT_DIR ON)
-endif()
-
-# compliler options
+# compiler options
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
 endif()
-set(CMAKE_CXX_FLAGS "-W -Wall")
 
-# install destination
+# install destination: ~/.local by default
+# (~/.local/bin is in PATH on Ubuntu, and the other programs such as
+# soccerwindow2 and helios-base search ~/.local for librcsc).
+# A build directory configured before keeps its value in the cache.
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/local" CACHE PATH "Install destination path" FORCE)
+  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "Install destination path" FORCE)
 endif()
-
 include(GNUInstallDirs)
+
+# Embed the relative path from the installed programs to librcsc (RPATH), so
+# that LD_LIBRARY_PATH is not needed to run them, as in the Autotools build.
+# The relative path also works when the prefix is changed at the installation.
+if(NOT WIN32)
+  file(RELATIVE_PATH _librcsc_bin_to_lib
+    "${CMAKE_INSTALL_FULL_BINDIR}" "${CMAKE_INSTALL_FULL_LIBDIR}")
+  if(APPLE)
+    set(CMAKE_INSTALL_RPATH "@loader_path/${_librcsc_bin_to_lib}")
+  else()
+    set(CMAKE_INSTALL_RPATH "$ORIGIN/${_librcsc_bin_to_lib}")
+  endif()
+endif()
 
 # check header files
 include(CheckIncludeFileCXX)
@@ -54,18 +65,28 @@ check_cxx_symbol_exists(socket sys/socket.h HAVE_SOCKET)
 # regardless of the CMake version (the FindBoost module is not used).
 find_package(Boost 1.70 CONFIG REQUIRED)
 
-# zlib
+# zlib (optional, as in the Autotools build)
 find_package(ZLIB)
 if(ZLIB_FOUND)
-  #add_definitions(-DHAVE_LIBZ)
   set(HAVE_LIBZ TRUE)
 endif()
 
-# generate config.h
-add_definitions(-DHAVE_CONFIG_H)
+# generate config.h (used only to build librcsc, not installed)
 configure_file(
   ${PROJECT_SOURCE_DIR}/cmake-config.h.in
   ${PROJECT_BINARY_DIR}/config.h
+  )
+
+# the settings to build librcsc and its programs (not exported):
+# config.h, the include directories, and the warning options
+add_library(rcsc_build_settings INTERFACE)
+target_compile_definitions(rcsc_build_settings INTERFACE HAVE_CONFIG_H)
+target_include_directories(rcsc_build_settings INTERFACE
+  ${PROJECT_SOURCE_DIR}
+  ${PROJECT_BINARY_DIR}
+  )
+target_compile_options(rcsc_build_settings INTERFACE
+  "$<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-W;-Wall>"
   )
 
 # check the settings
@@ -96,10 +117,50 @@ configure_file(librcsc.pc.in librcsc.pc @ONLY)
 install(PROGRAMS
   ${CMAKE_CURRENT_BINARY_DIR}/librcsc-config
   ${CMAKE_CURRENT_BINARY_DIR}/librcscenv
-  DESTINATION bin
+  DESTINATION ${CMAKE_INSTALL_BINDIR}
   )
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/librcsc.pc
-  DESTINATION lib/pkgconfig
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+  )
+
+# CMake package configuration files (lib/cmake/librcsc), with which the other
+# CMake projects can use librcsc by
+#   find_package(librcsc CONFIG REQUIRED)
+#   target_link_libraries(<target> PRIVATE librcsc::rcsc)
+# They are installed only by the CMake build, not by the Autotools build.
+include(CMakePackageConfigHelpers)
+set(LIBRCSC_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/librcsc)
+install(EXPORT librcscTargets
+  NAMESPACE librcsc::
+  DESTINATION ${LIBRCSC_CONFIG_INSTALL_DIR}
+  )
+configure_package_config_file(
+  ${PROJECT_SOURCE_DIR}/cmake/librcscConfig.cmake.in
+  ${PROJECT_BINARY_DIR}/librcscConfig.cmake
+  INSTALL_DESTINATION ${LIBRCSC_CONFIG_INSTALL_DIR}
+  )
+# The version is a year (e.g. 2026). A newer librcsc satisfies the request of
+# an older version, e.g. find_package(librcsc 2024) finds librcsc 2026.
+write_basic_package_version_file(
+  ${PROJECT_BINARY_DIR}/librcscConfigVersion.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY AnyNewerVersion
+  )
+install(FILES
+  ${PROJECT_BINARY_DIR}/librcscConfig.cmake
+  ${PROJECT_BINARY_DIR}/librcscConfigVersion.cmake
+  DESTINATION ${LIBRCSC_CONFIG_INSTALL_DIR}
+  )
+
+# uninstall: cmake --build build --target uninstall
+# (removes the files listed in install_manifest.txt of the build directory)
+add_custom_target(uninstall
+  COMMAND ${CMAKE_COMMAND}
+          -DMANIFEST=${PROJECT_BINARY_DIR}/install_manifest.txt
+          "-DPACKAGE_DIRS=${CMAKE_INSTALL_INCLUDEDIR}/rcsc$<SEMICOLON>${LIBRCSC_CONFIG_INSTALL_DIR}"
+          -P ${PROJECT_SOURCE_DIR}/cmake/Uninstall.cmake
+  COMMENT "Uninstalling ${PROJECT_NAME}"
+  VERBATIM
   )

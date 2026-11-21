@@ -1,7 +1,7 @@
 # librcsc Boost 対応の見直し・CMake ビルドの整備 計画書
 
 - 作成日: 2026-11-21
-- ステータス: 実施中（Phase 2。Phase 0・1・6a は完了）
+- ステータス: 実施中（Phase 3。Phase 0・1・6a・2 は完了）
 - ベースブランチ: `develop`（librcsc の既定ブランチ。master は年1回程度の更新）
 - 作業ブランチ: `feature/boost-cmake-maintenance`（ユーザが GitHub 上で develop から作る）
 - 関連: soccerwindow2 の計画書 `docs/plan/2026-11-19_qt6-cmake-migration.md`（soccerwindow2 リポジトリ。PR #94 でマージ済み）
@@ -84,7 +84,7 @@ soccerwindow2 の Qt6 対応・CMake のメイン化の作業中に、librcsc �
 | 公開ヘッダの Boost | 使われていない Boost の読み込みを消し、利用側に Boost を要求しないようにする（「2.1」の追加の確認による）。ABI は変わらないため、SOVERSION は 20 のままにする（20 は master にまだ出ていない）。作業は Phase 1 で行う（もとの Phase 5 を統合） |
 | ソース内の Boost | property_tree・spirit などはヘッダだけの利用なので残す。置き換えは別の計画とする |
 | パッケージのバージョン | `AC_INIT` を CMake と同じ 2026 に揃える |
-| CMake のパッケージ設定ファイル | `librcscConfig.cmake` を提供し、`find_package(librcsc CONFIG)` とインポートターゲット（`librcsc::rcsc`）で使えるようにする。pkg-config（`librcsc.pc`）と `librcsc-config` も残す |
+| CMake のパッケージ設定ファイル | `librcscConfig.cmake` を提供し、`find_package(librcsc CONFIG)` とインポートターゲット（`librcsc::rcsc`）で使えるようにする。pkg-config（`librcsc.pc`）と `librcsc-config` も残す。Config は CMake の `install(EXPORT)` で生成し、**CMake のビルドだけがインストールする**（Autotools ではインストールしない。Phase 3 の前にユーザが決定。手書きのテンプレートで両方のビルドからインストールする案は、保守の手間が大きいため採らない）。このため、利用側（soccerwindow2 など）は、Autotools でインストールされた librcsc のために、当面は今の探し方（`FindLibrcsc.cmake` など）を予備として残す。CI でインストールされたファイルを比べるときは、`lib/cmake/librcsc/` を除く。バージョンの互換性は `AnyNewerVersion`（Phase 3 で決定。バージョンが年なので、古い版を求められたときに新しい版も受け入れる） |
 | 最低バージョン | CMake 3.16。Boost は 1.41 から 1.70 に上げる（ユーザの決定）。Boost 1.70 以上は自身の CMake 設定ファイル（`BoostConfig.cmake`）を提供するため、CMake では CMake のバージョンによらず Config モードで探せる（FindBoost とポリシー CMP0167 に関わらなくて済む）。Autotools・`librcsc.spec.in`・README も 1.70 に揃える。対象の Ubuntu 24.04 以降は Boost 1.83 以上なので問題ない（22.04 の Boost 1.74 も満たす）。なお RHEL 8 系（Boost 1.66）ではビルドできなくなる |
 | `CLAUDE.md` の扱い | soccerwindow2 と同じく `.gitignore` に加え、Git の管理対象外にする |
 | 手元でのテストの手段 | soccerwindow2 と同じように使える `cmake-helper.sh` を用意する（configure、build、test、install、uninstall、clean。実行するコマンドを表示する）。手順は README にも書く |
@@ -153,7 +153,9 @@ soccerwindow2 の Phase 1 と同じ方針で整える。
 - インクルードディレクトリと依存ライブラリを、ターゲット単位（`target_include_directories`、`target_link_libraries`）で整理する。
 - 既定のインストール先を `~/local` から `~/.local` に変える（「3. 決定事項」）。設定済みのビルドディレクトリにはキャッシュに `~/local` が残るため、移行の方法（古いインストールの削除、ビルドディレクトリの作り直し、または `-DCMAKE_INSTALL_PREFIX=$HOME/.local`）をリリースノートと README に書く。
 - インストール先はすべて `GNUInstallDirs` を使う（`bin`、`lib/pkgconfig` の固定をやめる）。
-- `install(EXPORT)` で `librcscConfig.cmake` とバージョンファイルを `lib/cmake/librcsc` にインストールし、インポートターゲット `librcsc::rcsc` を使えるようにする（「3. 決定事項」）。パッケージのバージョンが年（2026）なので、バージョンの互換性の指定（`AnyNewerVersion` など）は実装時に決める。
+- `install(EXPORT)` で `librcscConfig.cmake` とバージョンファイルを `lib/cmake/librcsc` にインストールし、インポートターゲット `librcsc::rcsc` を使えるようにする（「3. 決定事項」。CMake のビルドだけがインストールする）。パッケージのバージョンが年（2026）なので、バージョンの互換性は `AnyNewerVersion` にする。
+- （Phase 3 の作業中に見つかった問題）CMake でインストールしたツールには librcsc の場所（RUNPATH）が埋め込まれず、`LD_LIBRARY_PATH` がないと動かない（Autotools では libtool が埋め込む）。`$ORIGIN` からの相対パス（`$ORIGIN/../lib`）を埋め込む。
+- （Phase 3 の作業中に見つかった問題）`rcsc/formation` のヘッダのインストール先が `include/rcsc/formation` と固定されている。`GNUInstallDirs` を使う。
 - `uninstall` ターゲットを用意する（soccerwindow2 と同じく `install_manifest.txt` に載っているファイルを削除する）。
 
 ### Phase 4: テストの整備
@@ -176,7 +178,9 @@ soccerwindow2 の Phase 1 と同じ方針で整える。
 最小構成の CI（Phase 6a）に、Phase 4 で整備したテストを加える。
 
 - CMake のジョブで、CTest の単体テストと、インストールされたヘッダの単独コンパイルの検査を行う（`cmake-helper.sh` を使うかは実装時に決める）。
-- CMake と Autotools でインストールされたファイルの一覧を比べる手順も、CI に入れることを検討する。
+- CMake と Autotools でインストールされたファイルの一覧を比べる手順も、CI に入れることを検討する（CMake だけがインストールする `lib/cmake/librcsc/` と、Autotools だけがインストールする `.la` を除く）。
+- CMake でインストールした librcsc を `find_package(librcsc CONFIG)` で使う小さなプロジェクトのビルドを、CI に入れることを検討する（Phase 3 で手元で行った確認）。
+- Autotools の配布物（`make dist`）には CMake のファイル（`CMakeLists.txt`、`cmake/` など）が入っていない（以前から）。`make distcheck` を入れるかの検討と合わせて扱いを決める。
 - `make distcheck`（ソースの配布物の検査）を入れるかを検討する。
 
 ### Phase 7: ドキュメントの更新
@@ -192,7 +196,7 @@ librcsc のこの計画が完了し、develop にマージされた後に行う�
 
 - soccerwindow2 の CI（`.github/workflows/build.yml`）に、Ubuntu 26.04 の4ジョブを戻す。librcsc に合わせて、Ubuntu 22.04 を外すかも検討する。
 - CI の librcsc のビルドを CMake にすることを検討する。
-- librcsc が提供する `librcscConfig.cmake` を使い、soccerwindow2 の `cmake/FindLibrcsc.cmake` を `find_package(librcsc CONFIG)` に置き換えることを検討する。
+- librcsc が提供する `librcscConfig.cmake` を使い、soccerwindow2 で `find_package(librcsc CONFIG)` を使うことを検討する。Config は CMake でインストールした librcsc にしかないので、見つからないときは今の `cmake/FindLibrcsc.cmake` を使う形にする（「3. 決定事項」）。今の探す場所（`LIBRCSC_INSTALL_DIR`、環境変数 `LIBRCSC_PREFIX`）は `HINTS` で引き継げる。
 - soccerwindow2 の `configure.ac` が `$HOME/local` を `$HOME/.local` より先に探す順序を見直す（librcsc の既定が `~/.local` になり、両方にあると古い方が使われるため）。
 - soccerwindow2 の計画書（またはその後継の計画書）に記録する。
 
@@ -200,6 +204,7 @@ librcsc のこの計画が完了し、develop にマージされた後に行う�
 
 - RCG パーサの高速化（この計画の次に予定）。同梱の simdjson（3.8.0。GCC 15 のための修正を当ててある）の新しい版への更新も、この計画で行う。GCC 15 で `simdjson.cpp` に出る警告（`-Wtemplate-id-cdtor`、9件）も、更新で解消する見込み。どちらのビルドにも入っていない古い JSON パーサ（`rcsc/rcg/parser_json.*`）の扱いも、この計画で決める。
 - どちらのビルドにも入っていないファイル（「6. 実装記録」の Phase 2）の整理（`obsolete/` へ移すか、削除するか）。
+- `example/`（`configure --enable-example` のときだけビルドされるサンプル。既定では無効）は、古いライブラリ名（`-lrcsc_gz`、`-lrcsc_param` など）や、ないヘッダ（`rcsc/rcg/factory.h`）を使っていて、ビルドに失敗する（Phase 3 の作業中に確認。以前から）。CMake ではビルドしていない。直すか、`obsolete/` へ移すかを決める。
 - ソース内の Boost（property_tree・spirit など）の置き換え（「3. 決定事項」）。
 
 ## 5. 検証方法
@@ -340,5 +345,43 @@ Phase 6a は完了した。
 - 公開シンボル（弱シンボルを除く）は、両方とも2,243個で完全に一致した。
 - インストールされたヘッダ（両方とも163個）を単独でコンパイルし、161個が通った（失敗は既知の `bpn1.h`・`polygon_2d.h` で、Phase 4 で直す）。
 - CMake でインストールした librcsc を使い、`rcsc/player/world_model.h`・`rcsc/time/time_stamp.h`・`rcsc/version.h` を読み込むプログラムを pkg-config でビルドし、実行できた（「2.2」の問題が解消した）。
-- CI の結果: （push 後に追記する）
+- CI の結果（`2cd0b91`）: 4ジョブすべて成功した。librcsc 自身のコードからの警告は0件（Ubuntu 26.04 では、同梱の simdjson の既知の警告9件だけ）。Autotools の単体テストは、24.04・26.04 とも10個すべて通った。CI が出力したインストールされたファイルの一覧（`.la` を除いて179個）は、4ジョブとも完全に一致した（24.04・26.04 とも CMake と Autotools で一致）。
 
+Phase 2 は完了した。
+
+
+### Phase 3（2026-11-21）
+
+実施内容:
+
+- `CMakeLists.txt`（トップ）:
+  - `cmake_minimum_required(VERSION 3.16)` にし、`project(... LANGUAGES CXX)` とした。`CMAKE_INCLUDE_CURRENT_DIR` の古い分岐を削除し、`CMAKE_CXX_EXTENSIONS OFF` にした。ビルドの種類の既定（Release）は、複数の構成を持つジェネレータでは設定しないようにした。
+  - 既定のインストール先を `~/.local` にした（`CMAKE_INSTALL_PREFIX` を指定しなかったときだけ）。
+  - インストールしたツールに、`$ORIGIN` からの librcsc への相対パス（`$ORIGIN/../lib`。`CMAKE_INSTALL_BINDIR` と `CMAKE_INSTALL_LIBDIR` から計算する。macOS では `@loader_path`）を RPATH として埋め込むようにした。
+  - `set(CMAKE_CXX_FLAGS "-W -Wall")` と `add_definitions(-DHAVE_CONFIG_H)` をやめ、librcsc のビルドだけで使う設定をまとめた INTERFACE ターゲット `rcsc_build_settings`（`HAVE_CONFIG_H`、ソースとビルドのディレクトリのインクルード、GCC・Clang の `-W -Wall`。エクスポートしない）を作った。
+  - `librcsc-config`・`librcscenv` を `CMAKE_INSTALL_BINDIR` に、`librcsc.pc` を `CMAKE_INSTALL_LIBDIR/pkgconfig` にインストールするようにした。
+  - `install(EXPORT librcscTargets NAMESPACE librcsc::)`、`configure_package_config_file`（`cmake/librcscConfig.cmake.in`）、`write_basic_package_version_file`（`AnyNewerVersion`）で、`librcscConfig.cmake`・`librcscConfigVersion.cmake`・`librcscTargets.cmake`・`librcscTargets-release.cmake` を `CMAKE_INSTALL_LIBDIR/cmake/librcsc` にインストールするようにした。
+  - `uninstall` ターゲットを加えた（`cmake/Uninstall.cmake`）。
+- `rcsc/CMakeLists.txt`: `rcsc` ターゲットのインクルードディレクトリを `$<BUILD_INTERFACE:...>`・`$<INSTALL_INTERFACE:include>` の PUBLIC にし、`target_compile_features(rcsc PUBLIC cxx_std_17)` を加えた。`${ZLIB_INCLUDE_DIRS}` の PUBLIC をやめた（ZLIB は PRIVATE でリンクするだけ）。`install(TARGETS rcsc EXPORT librcscTargets ...)` にし、不要な `PERMISSIONS`・`COMPONENT` とコメントアウトされた古い記述を削除した。ビルドの中で使える別名 `librcsc::rcsc` を加えた。
+- `rcsc/*/CMakeLists.txt`（16個）: `target_include_directories(... ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})` を `target_link_libraries(... PRIVATE rcsc_build_settings)` にした。`rcsc_gz` は ZLIB を PRIVATE でリンクし（ZLIB が見つかったときだけ）、`rcsc_clang`・`rcsc_formation`・`rcsc_param` は Boost::headers と一緒にリンクする。`rcsc/formation` のヘッダのインストール先を `${CMAKE_INSTALL_INCLUDEDIR}/rcsc/formation` にした。
+- `src/CMakeLists.txt`: `include_directories()` をやめ、各ツールを `rcsc_build_settings` にリンクするようにした。
+- `cmake/Uninstall.cmake`（新規）: soccerwindow2 のものをもとに、`install_manifest.txt` のファイルを削除し、パッケージのディレクトリ（`include/rcsc`、`lib/cmake/librcsc`。インストール先からの相対パスで受け取る）とその下のディレクトリが空になったら削除するようにした（深いものから順に）。`DESTDIR` にも対応する。
+- `cmake/librcscConfig.cmake.in`（新規）: `librcscTargets.cmake` を読み込む Config のテンプレート。使い方をコメントに書いた。
+- `RELEASE_NOTES.md` に、これらの変更を書いた。
+
+検証結果（手元、Ubuntu 24.04、GCC 13.3、CMake 3.28.3。Git の管理下のファイルと新しいファイルを一時ディレクトリに写してビルドした。インストールは一時ディレクトリに行い、`~/.local` には行っていない）:
+
+- 構成で CMake の警告が出なくなった（`Compatibility with CMake < 3.10` を含む）。ビルドのコンパイラの警告は0件。
+- `CMAKE_INSTALL_PREFIX` を指定しない構成では `INSTALL_PREFIX=/home/akiyama/.local` になった。指定したときはその値が使われた。
+- コンパイラのオプションは `-O3 -DNDEBUG -std=c++17 -fPIC -W -Wall`、`-DHAVE_CONFIG_H`、ソースとビルドのディレクトリのインクルード（ツールでは `-fPIC` なし）。`-DCMAKE_CXX_FLAGS=...` で与えたフラグは上書きされずに使われた。
+- インストールされたファイルは、Autotools（Phase 2 で確かめた179個。`.la` を除く）と同じものに、`lib/cmake/librcsc/` の4つを加えた183個になった。
+- インストールしたツールの RUNPATH は `$ORIGIN/../lib`。構成時と違うインストール先（`cmake --install --prefix`）でも、`LD_LIBRARY_PATH` なしで librcsc が見つかり、実行できた。
+- `librcscTargets.cmake` は、インストール先からの相対パスで `librcsc::rcsc`（SHARED IMPORTED。soname `librcsc.so.20`）を定義し、`INTERFACE_INCLUDE_DIRECTORIES` は `${_IMPORT_PREFIX}/include`、`INTERFACE_COMPILE_FEATURES` は `cxx_std_17` で、zlib は利用側に伝わらない。
+- `find_package(librcsc CONFIG REQUIRED)` と `librcsc::rcsc` を使う小さなプロジェクトで確かめた。
+  - `-DCMAKE_PREFIX_PATH=<インストール先>` で見つかり、ビルドと実行ができた（`world_model.h` などを読み込む）。
+  - `CMAKE_PREFIX_PATH` なしでも、`PATH` に `<インストール先>/bin` があれば見つかった（CMake は `PATH` の `.../bin` から接頭辞を探す。Ubuntu の `~/.local/bin` と同じ状況）。
+  - `find_package(librcsc 2024 CONFIG)` は 2026 を受け入れ、`find_package(librcsc 2027 CONFIG)` は失敗した。
+  - 利用側が C++14 を指定すると、`-std=gnu++17` に引き上げられた（C++17 の指定が伝わる）。
+- `uninstall` ターゲットで、インストールした183個のファイル（`install_manifest.txt` の183行）がすべて削除され、`include/rcsc` とその下の15個のディレクトリ、`lib/cmake/librcsc` が削除された。`bin`・`include`・`lib`・`lib/cmake`・`lib/pkgconfig` は残る（ほかのパッケージも使うため）。
+- Autotools のビルドは、この Phase では変更していない。
+- CI の結果: （push 後に追記する）

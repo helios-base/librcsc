@@ -6,11 +6,7 @@ add_library(rcsc_color OBJECT
   thermo_color_provider.cpp
   )
 
-target_include_directories(rcsc_color
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
-  )
+target_link_libraries(rcsc_color PRIVATE rcsc_build_settings)
 
 install(FILES
   rgb_color.h

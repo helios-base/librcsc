@@ -9,14 +9,10 @@ add_library(rcsc_clang OBJECT
   clang_unum.cpp
   )
 
-target_include_directories(rcsc_clang
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
+target_link_libraries(rcsc_clang PRIVATE
+  rcsc_build_settings
+  Boost::headers # header-only
   )
-
-# header-only
-target_link_libraries(rcsc_clang PRIVATE Boost::headers)
 
 install(FILES
   clang_action.h

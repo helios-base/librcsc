@@ -6,11 +6,7 @@ add_library(rcsc_ann OBJECT
   sirms_model.cpp
   )
 
-target_include_directories(rcsc_ann
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
-  )
+target_link_libraries(rcsc_ann PRIVATE rcsc_build_settings)
 
 install(FILES
   bpn1.h

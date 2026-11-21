@@ -1,5 +1,5 @@
 
-set(CMAKE_POSITION_INDEPENDENT_CODE ON) # need for linking OBJCET libraries to a shared library
+set(CMAKE_POSITION_INDEPENDENT_CODE ON) # need for linking OBJECT libraries to a shared library
 
 add_subdirectory(util)
 add_subdirectory(geom)
@@ -37,17 +37,15 @@ add_library(rcsc SHARED
   $<TARGET_OBJECTS:rcsc_trainer>
   )
 
-target_include_directories(rcsc
-  PUBLIC
-  ${ZLIB_INCLUDE_DIRS}
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
-#  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-#  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
-#  $<INSTALL_INTERFACE:include>
+# the include directory of the public headers (the top source directory in
+# the build tree, PREFIX/include in the installation), and C++17
+target_include_directories(rcsc PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   )
+target_compile_features(rcsc PUBLIC cxx_std_17)
 
+# zlib is used only inside librcsc (the public headers do not include zlib.h)
 if(ZLIB_FOUND)
   target_link_libraries(rcsc PRIVATE ZLIB::ZLIB)
 endif()
@@ -57,14 +55,16 @@ set_target_properties(rcsc PROPERTIES
   SOVERSION ${LIBRCSC_SOVERSION}
   )
 
-# install the library file
+# the same name as the imported target of librcscConfig.cmake
+add_library(librcsc::rcsc ALIAS rcsc)
+
+# install the library file, and export the target to librcscTargets.cmake
+# (installed by install(EXPORT) in the top CMakeLists.txt)
 install(TARGETS rcsc
-#  EXPORT librcsc-export # for install(EXPORT)
-  LIBRARY
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    COMPONENT Libraries
-    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-#  INCLUDES DESTINATION include # for install(EXPORT)
+  EXPORT librcscTargets
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   )
 
 # install header files
@@ -81,13 +81,5 @@ install(FILES
   soccer_math.h
   timer.h
   version.h
-  #TYPE INCLUDE # available on cmake-3.14 or later
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc
   )
-
-# generated .cmake file
-#install(EXPORT librcsc-export
-#  FILE librcsc-config.cmake
-#  DESTINATION ${CMAKE_INSTALL_PREFIX}/share/cmake/librcsc/
-#  EXPORT_LINK_INTERFACE_LIBRARIES
-#)

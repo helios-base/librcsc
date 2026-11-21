@@ -7,14 +7,10 @@ add_library(rcsc_param OBJECT
   rcss_param_parser.cpp
   )
 
-target_include_directories(rcsc_param
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_BINARY_DIR}
+target_link_libraries(rcsc_param PRIVATE
+  rcsc_build_settings
+  Boost::headers # header-only
   )
-
-# header-only
-target_link_libraries(rcsc_param PRIVATE Boost::headers)
 
 install(FILES
   cmd_line_parser.h
