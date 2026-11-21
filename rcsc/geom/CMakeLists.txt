@@ -45,3 +45,15 @@ install(FILES
   voronoi_diagram.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/geom
   )
+
+# unit tests (CppUnit): the same programs as "make check" of the Autotools build
+if(LIBRCSC_UNIT_TESTS)
+  foreach(name vector_2d matrix_2d segment_2d triangle_2d rect_2d polygon_2d voronoi_diagram convex_hull)
+    add_executable(run_test_${name} test_${name}.cpp)
+    target_link_libraries(run_test_${name} PRIVATE rcsc_build_settings rcsc PkgConfig::CPPUNIT)
+    add_test(NAME run_test_${name} COMMAND run_test_${name})
+  endforeach()
+  add_executable(rundom_convex_hull test_rundom_convex_hull.cpp)
+  target_link_libraries(rundom_convex_hull PRIVATE rcsc_build_settings rcsc)
+  add_test(NAME rundom_convex_hull COMMAND rundom_convex_hull)
+endif()

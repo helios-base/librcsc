@@ -43,6 +43,22 @@ Each item has the date when the change was made.
     and the directories `PREFIX/include/rcsc` and `PREFIX/lib/cmake/librcsc` if they become empty.
   - `CMAKE_CXX_FLAGS` given by the user is no longer overwritten. The warning options (`-W -Wall`) are added to the targets of librcsc.
   - All the installation directories follow `GNUInstallDirs` (e.g. `CMAKE_INSTALL_LIBDIR` for `librcsc.pc`).
+- (2026-11-21) Tests of the CMake build (run them by `./cmake-helper.sh test` or `cd build && ctest --output-on-failure`):
+  - The unit tests (CppUnit) in `rcsc/geom` and `rcsc/clang` are built and run by CTest, the same programs as `make check` of the Autotools build.
+    CppUnit is found by pkg-config. Without CppUnit, the unit tests are not built and the other tests are run.
+    `-DBUILD_TESTING=OFF` disables all the tests.
+  - New tests of the installation: `install` (installs librcsc into `test-install` in the build directory;
+    `install_manifest.txt` of the user's installation is kept), `installed_headers` (each installed header file can be compiled alone,
+    e.g. no header file is missing in the installation), and `find_package` (a CMake project can use the installed librcsc by
+    `find_package(librcsc CONFIG)` and `librcsc::rcsc`).
+- (2026-11-21) Added `cmake-helper.sh`, shortcuts for the frequently used CMake commands
+  (`configure`, `build`, `test`, `install [--prefix DIR]`, `uninstall`, `check-headers PREFIX`, `clean`).
+  The commands are printed before they are run. Run `./cmake-helper.sh help` for the usage.
+  `./cmake-helper.sh check-headers PREFIX` checks the header files installed in `PREFIX`, also for librcsc installed by Autotools.
+- (2026-11-21) Fixed the header files that could not be compiled alone: `rcsc/ann/bpn1.h` (missing `<iterator>`)
+  and `rcsc/geom/polygon_2d.h` (it now includes `rcsc/geom/vector_2d.h`).
+- (2026-11-21) CMake build: `config.h` is searched in the build directory before the source directory,
+  so that the CMake build is not affected by `config.h` of the Autotools build configured in the source directory.
 - (2026-11-21) Autotools build: `librcsc.so` is linked with the C++ linker, so `libstdc++` is recorded as its dependency.
 - (2026-11-21) The package version of the Autotools build (`AC_INIT`) is now 2026, the same as the CMake build.
   It is shown by `librcsc-config --version` and pkg-config (`pkg-config --modversion librcsc`).

@@ -27,3 +27,10 @@ install(FILES
   types.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/clang
   )
+
+# unit tests (CppUnit): the same program as "make check" of the Autotools build
+if(LIBRCSC_UNIT_TESTS)
+  add_executable(test_clang_parser test_clang_parser.cpp)
+  target_link_libraries(test_clang_parser PRIVATE rcsc_build_settings rcsc PkgConfig::CPPUNIT)
+  add_test(NAME test_clang_parser COMMAND test_clang_parser)
+endif()

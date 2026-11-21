@@ -1,7 +1,7 @@
 # librcsc Boost 対応の見直し・CMake ビルドの整備 計画書
 
 - 作成日: 2026-11-21
-- ステータス: 実施中（Phase 3。Phase 0・1・6a・2 は完了）
+- ステータス: 実施中（Phase 4。Phase 0・1・6a・2・3 は完了）
 - ベースブランチ: `develop`（librcsc の既定ブランチ。master は年1回程度の更新）
 - 作業ブランチ: `feature/boost-cmake-maintenance`（ユーザが GitHub 上で develop から作る）
 - 関連: soccerwindow2 の計画書 `docs/plan/2026-11-19_qt6-cmake-migration.md`（soccerwindow2 リポジトリ。PR #94 でマージ済み）
@@ -95,6 +95,7 @@ soccerwindow2 の Qt6 対応・CMake のメイン化の作業中に、librcsc �
 | `rcsc/action`（Phase 2 の作業中に決定） | 2022年（`374b41e`）から両方のビルドで使われていないので、`obsolete/action` へ移す（`obsolete/` は使わなくなったソースを移す場所。`92c4e99`、#113）。中の `Makefile.am`・`CMakeLists.txt` は、ビルドの設定と誤解されないように削除する |
 | 使われていないファイル（Phase 2 の作業中に決定） | `rcsc/action` のほかにも、どちらのビルドにも入っていないファイルがある（「6. 実装記録」の Phase 2）。この計画では触らず、記録だけする。`rcsc/rcg/parser_json.*` は RCG パーサの高速化の計画で扱う |
 | `object_table_printer`（Phase 2 の作業中に決定） | CMake でもビルドする（インストールはしない。Autotools と同じ） |
+| CMake のテスト（Phase 4 で決定） | `BUILD_TESTING`（既定は ON）でテストを作る。CppUnit は pkg-config で探し、なければ単体テストだけを作らない（エラーにしない）。インストールの検査（`install`・`installed_headers`・`find_package`）は CppUnit なしで動く。`color` の `thermo_color_test` は、Autotools と同じくビルドだけしてテストとしては実行しない |
 | リリースノートの日付（Phase 1 の後に決定） | `CLAUDE.md` の決まり（2026-11-21 追加）により、各項目の先頭に変更の日付を `(YYYY-MM-DD)` の形で付ける |
 
 ## 4. 実装計画
@@ -160,14 +161,16 @@ soccerwindow2 の Phase 1 と同じ方針で整える。
 
 ### Phase 4: テストの整備
 
-- CMake: cppunit の単体テスト（`rcsc/clang`、`rcsc/color`、`rcsc/geom`）を CTest に登録する（`BUILD_TESTING` で切り替える。cppunit は pkg-config で探す）。
+- CMake: cppunit の単体テスト（`rcsc/clang`、`rcsc/geom`）を CTest に登録する（`BUILD_TESTING` で切り替える。cppunit は pkg-config で探す）。`rcsc/color` の `thermo_color_test` は、Autotools ではテストとして実行されない（PostScript を出力するデモ）ので、ビルドだけする。
 - Autotools: 既存の `make check`（`--enable-unit-test`）を維持する（Phase 6a で今の Ubuntu でも動くようにした）。
 - インストールされたヘッダが、それぞれ単独でコンパイルできるかを検査するテストを加える（Phase 2 で見つかったような、ヘッダのインストール漏れを検出するため）。
 - テストが通らないものがあれば、原因を調べて直すか、扱いをユーザと決める。Phase 1 で試したところ、インストールされる163個のヘッダのうち次の2つが単独でコンパイルできなかった（develop の時点から）。
   - `rcsc/ann/bpn1.h`: `<iterator>` を読み込まずに `std::ostream_iterator` を使っている。
   - `rcsc/geom/polygon_2d.h`: 不完全な型の `Vector2D` を `std::vector` の要素として使っている。
-- 手元には cppunit がない（`libcppunit-dev` が入っていない）。手元で単体テストを動かすにはインストールが必要（ユーザが行う）。Phase 6a では、`apt-get download` で取ったパッケージを一時ディレクトリに展開し、`PKG_CONFIG_PATH`・`PKG_CONFIG_SYSROOT_DIR`・`LD_LIBRARY_PATH` で使って確かめた。
-- ユーザが手元でテストを動かせるよう、`cmake-helper.sh` を用意する（「3. 決定事項」。configure、build、test、install、uninstall、clean。実行するコマンドを表示する。install の既定のインストール先は `~/.local`）。実行方法は README にも書く。
+- 手元には cppunit がない（`libcppunit-dev` が入っていない）。手元で単体テストを動かすにはインストールが必要（ユーザが行う。Phase 4 の前にユーザがインストールした）。Phase 6a では、`apt-get download` で取ったパッケージを一時ディレクトリに展開し、`PKG_CONFIG_PATH`・`PKG_CONFIG_SYSROOT_DIR`・`LD_LIBRARY_PATH` で使って確かめた。
+- ユーザが手元でテストを動かせるよう、`cmake-helper.sh` を用意する（「3. 決定事項」。configure、build、test、install、uninstall、clean。実行するコマンドを表示する。install の既定のインストール先は `~/.local`）。実行方法は README にも書く（Phase 7）。
+- （Phase 4 の作業中に追加）`cmake-helper.sh check-headers PREFIX` で、任意のインストール先（Autotools でインストールしたものも含む）のヘッダを検査できるようにする（Phase 6b の CI の Autotools のジョブでも使う）。
+- （Phase 4 の作業中に見つかった問題）ソース直下で Autotools を構成すると、ソース直下に Autotools の `config.h` ができ、CMake のビルドがインクルードの順（ソース、ビルドの順）のためにそれを使ってしまう（以前から。手元のリポジトリもこの状態）。ビルドのディレクトリを先に探すようにする。
 
 ### Phase 5: 公開ヘッダからの Boost の除去（Phase 1 に統合）
 
@@ -177,7 +180,8 @@ soccerwindow2 の Phase 1 と同じ方針で整える。
 
 最小構成の CI（Phase 6a）に、Phase 4 で整備したテストを加える。
 
-- CMake のジョブで、CTest の単体テストと、インストールされたヘッダの単独コンパイルの検査を行う（`cmake-helper.sh` を使うかは実装時に決める）。
+- CMake のジョブで、CTest（単体テスト10個とインストールの検査3個）を行う（`cmake-helper.sh` を使うかは実装時に決める）。
+- Autotools のジョブで、インストールしたヘッダの検査（`cmake-helper.sh check-headers $RUNNER_TEMP/install`）を行う。
 - CMake と Autotools でインストールされたファイルの一覧を比べる手順も、CI に入れることを検討する（CMake だけがインストールする `lib/cmake/librcsc/` と、Autotools だけがインストールする `.la` を除く）。
 - CMake でインストールした librcsc を `find_package(librcsc CONFIG)` で使う小さなプロジェクトのビルドを、CI に入れることを検討する（Phase 3 で手元で行った確認）。
 - Autotools の配布物（`make dist`）には CMake のファイル（`CMakeLists.txt`、`cmake/` など）が入っていない（以前から）。`make distcheck` を入れるかの検討と合わせて扱いを決める。
@@ -188,6 +192,7 @@ soccerwindow2 の Phase 1 と同じ方針で整える。
 - `README.md`: 依存要件（Boost 1.70 以上のヘッダのみ、CMake 3.16 以上など）、Ubuntu 24.04/26.04 向けの apt コマンド（`libboost-all-dev` ではなく必要なものだけ）、CMake と Autotools のビルド手順、テストの実行方法、アンインストールの方法。
 - `README.md`: インストール先（CMake の既定は `~/.local`、Autotools は `--prefix=$HOME/.local` を案内）、`~/local` からの移行、`LD_LIBRARY_PATH`・`PATH` の例を `~/.local` にする。
 - `README.md`: Git から取ったソースで `./bootstrap` を実行するには pkg-config が必要になったこと（Phase 6a で `PKG_CHECK_MODULES` を使ったため）、単体テストには CppUnit（`libcppunit-dev`）が必要なこと。
+- `README.md`: `cmake-helper.sh` の使い方（`test`、`install`、`uninstall`、`check-headers` など）、CMake のテスト（単体テストとインストールの検査）。
 - `RELEASE_NOTES.md` と、本計画書の「実装記録」を更新する。
 
 ### Phase 8: soccerwindow2 への反映（soccerwindow2 リポジトリでの作業）
@@ -384,4 +389,32 @@ Phase 2 は完了した。
   - 利用側が C++14 を指定すると、`-std=gnu++17` に引き上げられた（C++17 の指定が伝わる）。
 - `uninstall` ターゲットで、インストールした183個のファイル（`install_manifest.txt` の183行）がすべて削除され、`include/rcsc` とその下の15個のディレクトリ、`lib/cmake/librcsc` が削除された。`bin`・`include`・`lib`・`lib/cmake`・`lib/pkgconfig` は残る（ほかのパッケージも使うため）。
 - Autotools のビルドは、この Phase では変更していない。
+- CI の結果（`c8aaf44`）: 4ジョブすべて成功した。CMake 3.31.6（Ubuntu 24.04）・4.5.0（Ubuntu 26.04）とも、構成時の CMake の警告は0件になった。librcsc 自身のコードからのコンパイラの警告は0件（26.04 では同梱の simdjson の既知の警告9件だけ）。Autotools の単体テストは10個すべて通った。インストールされたファイルは、CMake が183個、Autotools が180個（`.la` を含む）。`lib/cmake/librcsc/` の4つと `.la` を除くと、24.04・26.04 とも CMake と Autotools で完全に一致した。
+
+Phase 3 は完了した。
+
+### Phase 4（2026-11-21）
+
+実施内容:
+
+- 単独でコンパイルできなかった公開ヘッダを直した: `rcsc/ann/bpn1.h` に `<iterator>` を加えた。`rcsc/geom/polygon_2d.h` は `Vector2D` の前方宣言をやめ、`rcsc/geom/vector_2d.h` を読み込むようにした（インライン関数で `std::vector<Vector2D>` を操作するため、完全な型が必要）。
+- CMake（トップの `CMakeLists.txt`）: `option(BUILD_TESTING ... ON)` と `enable_testing()` を加えた。CppUnit を `pkg_check_modules(CPPUNIT IMPORTED_TARGET cppunit>=1.12.0)` で探し、見つかったときだけ単体テストを作る（`LIBRCSC_UNIT_TESTS`。構成の表示に `BUILD_TESTING=ON (unit tests: ON)` のように出す）。`test/` を加えた。
+- CMake の単体テスト: `rcsc/geom`（`run_test_vector_2d` など8個と `rundom_convex_hull`）と `rcsc/clang`（`test_clang_parser`）を、Autotools の `make check` と同じプログラム名で CTest に登録した。`rcsc/color` の `thermo_color_test` はビルドだけする。
+- CMake のインストールの検査（`test/`）:
+  - `install`: `test/InstallForTest.cmake` で、ビルドディレクトリの `test-install` に `cmake --install` する（先に消してから入れる）。`cmake --install` はビルドディレクトリの `install_manifest.txt` を書き換えるので、ユーザのインストールの記録（`uninstall` が使う）を消さないよう、前に退避して後で戻す。ほかの2つのテストの準備（`FIXTURES_SETUP`）。
+  - `installed_headers`: `test/installed_headers/`（CMake のプロジェクト）が、`PREFIX/include/rcsc/**/*.h` のそれぞれを1つだけ読み込むソースを作り、`PREFIX/include` だけをインクルードディレクトリにして C++17（`-W -Wall`）でコンパイルする。このプロジェクトは単独でも使える（Autotools でインストールしたものにも使える）。
+  - `find_package`: `test/find_package/`（CMake のプロジェクト）が `find_package(librcsc CONFIG REQUIRED)` と `librcsc::rcsc` を使うプログラムをビルドして実行する。見つかった Config が `test-install` のものであること（ユーザの `~/.local` などではないこと）と、`rcsc::version()` が `PROJECT_VERSION` と一致することを確かめる。
+  - 2つの検査のプロジェクトは `test/BuildTestProject.cmake` で構成・ビルド（`--parallel`）・実行する。当初は `ctest --build-and-test` を使ったが、並列にビルドされず（`CMAKE_BUILD_PARALLEL_LEVEL`・`MAKEFLAGS` も効かなかった）、ヘッダの検査に約30〜40秒かかったため、スクリプトに変えた（約2秒になった）。
+- `cmake-helper.sh`（新規）: soccerwindow2 のものをもとに、`configure`・`build`・`test`・`install [--prefix DIR]`・`uninstall`・`check-headers PREFIX`・`clean`・`help` を用意した。実行するコマンドを表示してから実行する。環境変数 `BUILD_DIR`（既定は `build`）・`CMAKE_ARGS`・`JOBS` を使える。`install` は、`--prefix` がないときにキャッシュのインストール先を表示する（古いビルドディレクトリの `~/local` に気づけるように）。
+- CMake: `rcsc_build_settings` のインクルードディレクトリを、ビルド、ソースの順にした。ツールと単体テストは `rcsc_build_settings` を `rcsc` より前にリンクする（インクルードの順を保つため）。
+- `RELEASE_NOTES.md` に、これらの変更を書いた。
+
+検証結果（手元、Ubuntu 24.04、GCC 13.3、CMake 3.28.3、CppUnit 1.15.1（システムにインストールしたもの）。Git の管理下のファイルと新しいファイルを一時ディレクトリに写してビルドした。`~/.local` にはインストールしていない）:
+
+- `./cmake-helper.sh test`: 構成（`BUILD_TESTING=ON (unit tests: ON)`）、ビルド（警告0件）、CTest の13個（単体テスト10個、`install`・`installed_headers`・`find_package`）がすべて通った。ccache を無効にしても、テスト全体は約3秒。
+- テストの前に `cmake --install build --prefix <別の場所>` したときの `install_manifest.txt` は、テストの後も同じ内容（md5 が一致）で、`./cmake-helper.sh uninstall` はその場所のファイルだけをすべて消した（`test-install` は残る）。
+- 検査が問題を見つけることを確かめた: `rcsc/time/CMakeLists.txt` から `time_stamp.h` のインストールを外すと、`installed_headers` が `timer.h` の `rcsc/time/time_stamp.h: No such file or directory` で失敗した（Phase 2 で直した問題の再現）。Phase 2 の Autotools のインストール（修正前のヘッダ）に `./cmake-helper.sh check-headers` を使うと、`bpn1.h` で失敗した。
+- CppUnit なし（`-DCMAKE_DISABLE_FIND_PACKAGE_PkgConfig=ON`）: 構成で「CppUnit is not found」と表示され、単体テストは作られず、インストールの検査3個が通った。`-DBUILD_TESTING=OFF`: テストもテスト用のプログラムも作られない。
+- Autotools（ソース直下で構成）: `configure --enable-unit-test`、`make`（警告0件）、`make check`（単体テスト10個すべて通過）、`make install` が通った。そのインストール先に `./cmake-helper.sh check-headers` を使い、163個のヘッダがすべて単独でコンパイルできた。
+- ソース直下に Autotools の `config.h` がある状態で CMake でビルドしても、インクルードの順はビルド、ソースの順（`-I<build> -I<source>`）になり、CTest の13個がすべて通った。CMake の `test-install` と Autotools のインストールは、`lib/cmake/librcsc/` と `.la` を除いて一致した。
 - CI の結果: （push 後に追記する）

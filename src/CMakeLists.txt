@@ -14,64 +14,64 @@ add_executable(rcg2csv
   rcg2csv.cpp
   )
 target_link_libraries(rcg2csv PRIVATE
-  rcsc
   rcsc_build_settings
+  rcsc
   )
 
 add_executable(rcg2txt
   rcg2txt.cpp
   )
 target_link_libraries(rcg2txt PRIVATE
-  rcsc
   rcsc_build_settings
+  rcsc
   )
 
 add_executable(rcgrenameteam
   rcgrenameteam.cpp
   )
 target_link_libraries(rcgrenameteam PRIVATE
-  rcsc
   rcsc_build_settings
+  rcsc
   )
 
 add_executable(rcgresultprinter
   resultprinter.cpp
   )
 target_link_libraries(rcgresultprinter PRIVATE
-  rcsc
   rcsc_build_settings
+  rcsc
   )
 
 add_executable(rcgreverse
   rcgreverse.cpp
   )
 target_link_libraries(rcgreverse PRIVATE
-  rcsc
   rcsc_build_settings
+  rcsc
   )
 
 add_executable(rcgvalidator
   rcgvalidator.cpp
   )
 target_link_libraries(rcgvalidator PRIVATE
-  rcsc
   rcsc_build_settings
+  rcsc
   )
 
 add_executable(rcgverconv
   rcgverconv.cpp
   )
 target_link_libraries(rcgverconv PRIVATE
-  rcsc
   rcsc_build_settings
+  rcsc
   )
 
 add_executable(rcgversion
   rcgversion.cpp
   )
 target_link_libraries(rcgversion PRIVATE
-  rcsc
   rcsc_build_settings
+  rcsc
   )
 
 # a tool for the development (not installed)
@@ -79,8 +79,8 @@ add_executable(object_table_printer
   object_table_printer.cpp
   )
 target_link_libraries(object_table_printer PRIVATE
-  rcsc
   rcsc_build_settings
+  rcsc
   )
 
 install(TARGETS

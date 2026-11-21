@@ -31,12 +31,12 @@
 #define RCSC_GEOM_POLYGON2D_H
 
 #include <rcsc/geom/region_2d.h>
+#include <rcsc/geom/vector_2d.h>
 
 #include <vector>
 
 namespace rcsc {
 
-class Vector2D;
 class Rect2D;
 
 /*!
