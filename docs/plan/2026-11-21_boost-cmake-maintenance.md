@@ -1,7 +1,7 @@
 # librcsc Boost 対応の見直し・CMake ビルドの整備 計画書
 
 - 作成日: 2026-11-21
-- ステータス: 実施中（Phase 7。Phase 0・1・6a・2・3・4・6b は完了）
+- ステータス: librcsc での作業は完了（Phase 0〜4・6a・6b・7）。PR #119 のマージ待ち。Phase 8 は soccerwindow2 で行う
 - ベースブランチ: `develop`（librcsc の既定ブランチ。master は年1回程度の更新）
 - 作業ブランチ: `feature/boost-cmake-maintenance`（ユーザが GitHub 上で develop から作る）
 - 関連: soccerwindow2 の計画書 `docs/plan/2026-11-19_qt6-cmake-migration.md`（soccerwindow2 リポジトリ。PR #94 でマージ済み）
@@ -491,7 +491,7 @@ Phase 6b は完了した。
 - インストールしたツールを引数なし・`LD_LIBRARY_PATH` なしで実行すると、すべて0.01秒以内に使い方を表示して終わった（終了コード 0 か 1）。`rclmscheduler`・`rclmtableprinter` は librcsc にリンクしていない。
 - 検査のスクリプトは、CMake のインストール（`test-install`）と Autotools のインストールのどちらでも通った（10個のプログラム）。インストール先の外に写したツールでは、`librcsc.so.20: cannot open shared object file`（終了コード 127）で失敗した。
 - `./cmake-helper.sh test` で CTest の14個がすべて通った。手元のシェルの `LD_LIBRARY_PATH` には `~/local/lib` が入っているが、検査はそれを外して行われ、`test-install` の librcsc に解決された。
-- CI の結果: （push 後に追記する）
+- CI の結果（`d19d18a`）: 5ジョブすべて成功した。CMake のジョブでは CTest の14個（`installed_tools` を含む）がすべて通り、Autotools のジョブでは `check-tools` が「All the 10 programs ... run without LD_LIBRARY_PATH.」で通った（24.04・26.04 とも）。
 
 ## 7. まとめ（librcsc での作業）
 
