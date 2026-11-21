@@ -1,7 +1,7 @@
 # librcsc Boost 対応の見直し・CMake ビルドの整備 計画書
 
 - 作成日: 2026-11-21
-- ステータス: 実施中（Phase 4。Phase 0・1・6a・2・3 は完了）
+- ステータス: 実施中（Phase 6b。Phase 0・1・6a・2・3・4 は完了）
 - ベースブランチ: `develop`（librcsc の既定ブランチ。master は年1回程度の更新）
 - 作業ブランチ: `feature/boost-cmake-maintenance`（ユーザが GitHub 上で develop から作る）
 - 関連: soccerwindow2 の計画書 `docs/plan/2026-11-19_qt6-cmake-migration.md`（soccerwindow2 リポジトリ。PR #94 でマージ済み）
@@ -96,6 +96,7 @@ soccerwindow2 の Qt6 対応・CMake のメイン化の作業中に、librcsc �
 | 使われていないファイル（Phase 2 の作業中に決定） | `rcsc/action` のほかにも、どちらのビルドにも入っていないファイルがある（「6. 実装記録」の Phase 2）。この計画では触らず、記録だけする。`rcsc/rcg/parser_json.*` は RCG パーサの高速化の計画で扱う |
 | `object_table_printer`（Phase 2 の作業中に決定） | CMake でもビルドする（インストールはしない。Autotools と同じ） |
 | CMake のテスト（Phase 4 で決定） | `BUILD_TESTING`（既定は ON）でテストを作る。CppUnit は pkg-config で探し、なければ単体テストだけを作らない（エラーにしない）。インストールの検査（`install`・`installed_headers`・`find_package`）は CppUnit なしで動く。`color` の `thermo_color_test` は、Autotools と同じくビルドだけしてテストとしては実行しない |
+| Autotools の配布物（Phase 6b で決定） | `make dist` の配布物に CMake のファイル（`CMakeLists.txt`、`cmake/`、`test/`、`cmake-helper.sh` など）を含めない（以前と同じ）。公開している配布物がなく、CMake を使う人は Git から取るため（ユーザの決定）。`make distcheck` は CI の Autotools のジョブで行う |
 | リリースノートの日付（Phase 1 の後に決定） | `CLAUDE.md` の決まり（2026-11-21 追加）により、各項目の先頭に変更の日付を `(YYYY-MM-DD)` の形で付ける |
 
 ## 4. 実装計画
@@ -180,11 +181,12 @@ soccerwindow2 の Phase 1 と同じ方針で整える。
 
 最小構成の CI（Phase 6a）に、Phase 4 で整備したテストを加える。
 
-- CMake のジョブで、CTest（単体テスト10個とインストールの検査3個）を行う（`cmake-helper.sh` を使うかは実装時に決める）。
+- CMake のジョブで、CTest（単体テスト10個とインストールの検査3個）を行う（`cmake-helper.sh` を使う。soccerwindow2 と同じく、スクリプト自体の確認にもなる）。単体テストが作られている（CppUnit が見つかった）ことも確かめる。
 - Autotools のジョブで、インストールしたヘッダの検査（`cmake-helper.sh check-headers $RUNNER_TEMP/install`）を行う。
-- CMake と Autotools でインストールされたファイルの一覧を比べる手順も、CI に入れることを検討する（CMake だけがインストールする `lib/cmake/librcsc/` と、Autotools だけがインストールする `.la` を除く）。
-- CMake でインストールした librcsc を `find_package(librcsc CONFIG)` で使う小さなプロジェクトのビルドを、CI に入れることを検討する（Phase 3 で手元で行った確認）。
-- Autotools の配布物（`make dist`）には CMake のファイル（`CMakeLists.txt`、`cmake/` など）が入っていない（以前から）。`make distcheck` を入れるかの検討と合わせて扱いを決める。
+- CMake と Autotools でインストールされたファイルの一覧を比べる（CMake だけがインストールする `lib/cmake/librcsc/` と、Autotools だけがインストールする `.la` を除く）。各ジョブが一覧を artifact として残し、それらを比べるジョブ（`compare`）を加える。
+- （Phase 6b で追加）CMake のジョブで、`uninstall` がインストールしたファイルをすべて消すことを確かめる。
+- CMake でインストールした librcsc を `find_package(librcsc CONFIG)` で使う小さなプロジェクトのビルドを、CI に入れる（Phase 4 で CTest の `find_package` にしたので、CTest を実行すれば行われる）。
+- Autotools の配布物（`make dist`）には CMake のファイル（`CMakeLists.txt`、`cmake/` など）が入っていない（以前から）。`make distcheck` を入れるかの検討と合わせて扱いを決める。`make distcheck`（単体テストを含む）は手元で通ったので、Autotools のジョブに入れる。CMake のファイルは配布物に含めない（ユーザの決定。「3. 決定事項」）。
 - `make distcheck`（ソースの配布物の検査）を入れるかを検討する。
 
 ### Phase 7: ドキュメントの更新
@@ -417,4 +419,25 @@ Phase 3 は完了した。
 - CppUnit なし（`-DCMAKE_DISABLE_FIND_PACKAGE_PkgConfig=ON`）: 構成で「CppUnit is not found」と表示され、単体テストは作られず、インストールの検査3個が通った。`-DBUILD_TESTING=OFF`: テストもテスト用のプログラムも作られない。
 - Autotools（ソース直下で構成）: `configure --enable-unit-test`、`make`（警告0件）、`make check`（単体テスト10個すべて通過）、`make install` が通った。そのインストール先に `./cmake-helper.sh check-headers` を使い、163個のヘッダがすべて単独でコンパイルできた。
 - ソース直下に Autotools の `config.h` がある状態で CMake でビルドしても、インクルードの順はビルド、ソースの順（`-I<build> -I<source>`）になり、CTest の13個がすべて通った。CMake の `test-install` と Autotools のインストールは、`lib/cmake/librcsc/` と `.la` を除いて一致した。
+- CI の結果（`514197a`）: 4ジョブすべて成功した。CMake のジョブでは CppUnit が見つかり（`unit tests: ON`）、単体テストとテストのプログラムも含めて、librcsc 自身のコードからの警告は0件（GCC 13・15）。CTest はまだ CI で実行していない（Phase 6b で加える）。Autotools の単体テストは10個すべて通った。
+
+Phase 4 は完了した。
+
+### Phase 6b（2026-11-21）
+
+実施内容（`.github/workflows/build.yml`）:
+
+- CMake のジョブ: `cmake-helper.sh` を使うようにした（`CMAKE_ARGS=-DCMAKE_INSTALL_PREFIX=$RUNNER_TEMP/install ./cmake-helper.sh build`、`./cmake-helper.sh test`、`./cmake-helper.sh install`）。CTest の後に、単体テストが登録されていること（`ctest -N` に `run_test_vector_2d` がある）を確かめる。最後に `./cmake-helper.sh uninstall` を実行し、インストール先にファイルが残っていないことを確かめる。
+- Autotools のジョブ: `make install` の後に、`./cmake-helper.sh check-headers "$RUNNER_TEMP/install"` でインストールしたヘッダを検査し、`make distcheck`（`DISTCHECK_CONFIGURE_FLAGS="--enable-unit-test"`）で配布物を検査する。
+- 両方のジョブ: インストールされたファイルの一覧（`installed-files.txt`）を表示し、artifact（`installed-files-<os>-<build>`）として残す。
+- `compare` ジョブ（新規。`needs: build`）: `actions/download-artifact@v8` で一覧を集め、OS ごとに CMake と Autotools の一覧を比べる（CMake の `lib/cmake/librcsc/` と Autotools の `.la` を除く）。違いがあれば失敗する。
+- 失敗したときに残すログに、CTest のログ（`build/Testing/Temporary/`）と `make distcheck` の `config.log` を加えた。
+- `RELEASE_NOTES.md` に、これらの変更を書いた。
+
+検証結果（手元）:
+
+- ワークフローが YAML として読めること（ジョブは `build` と `compare`）を確かめた（`actionlint` は手元にない）。
+- CMake のジョブの手順を、`RUNNER_TEMP` を一時ディレクトリにして手元でそのとおりに実行した。`cmake-helper.sh build`（`CMAKE_ARGS` でインストール先を指定）、`test`（13個すべて通過）、単体テストの登録の確認、`install`（`Installing into <RUNNER_TEMP>/install` と表示）、一覧の保存（183個）、`uninstall`（ファイルが残らない）がすべて通った。
+- `make distcheck`（`--enable-unit-test`）が手元で通った（`librcsc-2026 archives ready for distribution`）。`cmake-helper.sh check-headers` は Phase 4 で Autotools のインストールに対して確かめた。
+- `compare` ジョブのスクリプトを、手元の CMake と Autotools のインストールの一覧で試した。同じなら「The same 179 files are installed.」で成功し、CMake の一覧から `include/rcsc/time/time_stamp.h` を消すと、その違いを表示して失敗した。
 - CI の結果: （push 後に追記する）

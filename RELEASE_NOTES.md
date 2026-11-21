@@ -75,3 +75,9 @@ Each item has the date when the change was made.
   - Patched the bundled simdjson 3.8.0 with the upstream fix for GCC 15 (the calls of the member functions of the derived class in `base_formatter`).
 - (2026-11-21) Added the CI with GitHub Actions (`.github/workflows/build.yml`).
   It builds and installs librcsc with CMake and Autotools on Ubuntu 24.04 and 26.04, and runs the unit tests with Autotools.
+- (2026-11-21) CI: more checks.
+  - The CMake jobs run the tests by `cmake-helper.sh` (the unit tests and the tests of the installation),
+    and check that the uninstall removes all the installed files.
+  - The Autotools jobs check that each installed header file can be compiled alone (`cmake-helper.sh check-headers`),
+    and check the source tarball (`make distcheck`, with the unit tests).
+  - A job compares the files installed by CMake and Autotools (except `lib/cmake/librcsc/` of CMake and `.la` of Autotools).
