@@ -1,7 +1,7 @@
 # librcsc Boost 対応の見直し・CMake ビルドの整備 計画書
 
 - 作成日: 2026-11-21
-- ステータス: 実施中（Phase 6b。Phase 0・1・6a・2・3・4 は完了）
+- ステータス: 実施中（Phase 7。Phase 0・1・6a・2・3・4・6b は完了）
 - ベースブランチ: `develop`（librcsc の既定ブランチ。master は年1回程度の更新）
 - 作業ブランチ: `feature/boost-cmake-maintenance`（ユーザが GitHub 上で develop から作る）
 - 関連: soccerwindow2 の計画書 `docs/plan/2026-11-19_qt6-cmake-migration.md`（soccerwindow2 リポジトリ。PR #94 でマージ済み）
@@ -97,6 +97,7 @@ soccerwindow2 の Qt6 対応・CMake のメイン化の作業中に、librcsc �
 | `object_table_printer`（Phase 2 の作業中に決定） | CMake でもビルドする（インストールはしない。Autotools と同じ） |
 | CMake のテスト（Phase 4 で決定） | `BUILD_TESTING`（既定は ON）でテストを作る。CppUnit は pkg-config で探し、なければ単体テストだけを作らない（エラーにしない）。インストールの検査（`install`・`installed_headers`・`find_package`）は CppUnit なしで動く。`color` の `thermo_color_test` は、Autotools と同じくビルドだけしてテストとしては実行しない |
 | Autotools の配布物（Phase 6b で決定） | `make dist` の配布物に CMake のファイル（`CMakeLists.txt`、`cmake/`、`test/`、`cmake-helper.sh` など）を含めない（以前と同じ）。公開している配布物がなく、CMake を使う人は Git から取るため（ユーザの決定）。`make distcheck` は CI の Autotools のジョブで行う |
+| 文書の構成（Phase 7 の前に決定） | `README.md` に CMake と Autotools の両方の手順があると読み手が混乱するため、soccerwindow2 と同じく、`README.md` では主な手順として `cmake-helper.sh` だけを説明し、詳しい内容（cmake を直接使う方法、Autotools、テスト、インストールとアンインストール、ほかのプログラムからの使い方、API の文書など）は `docs/build.md`（新規）に移す（ユーザの決定）。soccerwindow2 と同じく英語で書く |
 | リリースノートの日付（Phase 1 の後に決定） | `CLAUDE.md` の決まり（2026-11-21 追加）により、各項目の先頭に変更の日付を `(YYYY-MM-DD)` の形で付ける |
 
 ## 4. 実装計画
@@ -191,10 +192,10 @@ soccerwindow2 の Phase 1 と同じ方針で整える。
 
 ### Phase 7: ドキュメントの更新
 
-- `README.md`: 依存要件（Boost 1.70 以上のヘッダのみ、CMake 3.16 以上など）、Ubuntu 24.04/26.04 向けの apt コマンド（`libboost-all-dev` ではなく必要なものだけ）、CMake と Autotools のビルド手順、テストの実行方法、アンインストールの方法。
-- `README.md`: インストール先（CMake の既定は `~/.local`、Autotools は `--prefix=$HOME/.local` を案内）、`~/local` からの移行、`LD_LIBRARY_PATH`・`PATH` の例を `~/.local` にする。
-- `README.md`: Git から取ったソースで `./bootstrap` を実行するには pkg-config が必要になったこと（Phase 6a で `PKG_CHECK_MODULES` を使ったため）、単体テストには CppUnit（`libcppunit-dev`）が必要なこと。
-- `README.md`: `cmake-helper.sh` の使い方（`test`、`install`、`uninstall`、`check-headers` など）、CMake のテスト（単体テストとインストールの検査）。
+「3. 決定事項」（文書の構成）により、`README.md` には `cmake-helper.sh` の手順だけを書き、詳しい内容は `docs/build.md` に書く。
+
+- `README.md`: 依存要件（C++17、CMake 3.16 以上、Boost 1.70 以上のヘッダのみ、zlib・CppUnit は任意）、Ubuntu 24.04/26.04 向けの apt コマンド（`libboost-all-dev` ではなく必要なものだけ）、`cmake-helper.sh` での build・install・test・uninstall、既定のインストール先 `~/.local` と `~/local` からの移行の要点、ほかのプログラムからの使い方の要点（`PATH`、`find_package(librcsc CONFIG)`）。
+- `docs/build.md`（新規）: 依存要件の詳細、Ubuntu での準備、`cmake-helper.sh` の全コマンドと環境変数、cmake を直接使う方法と構成のオプション、インストールされるファイルとアンインストール、`~/local` からの移行（`LD_LIBRARY_PATH` の注意を含む）、テスト（CTest の各テスト、`check-headers`、Autotools の `make check`）、Autotools のビルド（`./bootstrap` に pkg-config が必要なこと、CMake との違い、configure のオプション）、ほかのプログラムからの使い方（CMake、pkg-config、`librcsc-config`、`LD_LIBRARY_PATH`・`librcscenv`）、API の文書（Doxygen）。
 - `RELEASE_NOTES.md` と、本計画書の「実装記録」を更新する。
 
 ### Phase 8: soccerwindow2 への反映（soccerwindow2 リポジトリでの作業）
@@ -440,4 +441,42 @@ Phase 4 は完了した。
 - CMake のジョブの手順を、`RUNNER_TEMP` を一時ディレクトリにして手元でそのとおりに実行した。`cmake-helper.sh build`（`CMAKE_ARGS` でインストール先を指定）、`test`（13個すべて通過）、単体テストの登録の確認、`install`（`Installing into <RUNNER_TEMP>/install` と表示）、一覧の保存（183個）、`uninstall`（ファイルが残らない）がすべて通った。
 - `make distcheck`（`--enable-unit-test`）が手元で通った（`librcsc-2026 archives ready for distribution`）。`cmake-helper.sh check-headers` は Phase 4 で Autotools のインストールに対して確かめた。
 - `compare` ジョブのスクリプトを、手元の CMake と Autotools のインストールの一覧で試した。同じなら「The same 179 files are installed.」で成功し、CMake の一覧から `include/rcsc/time/time_stamp.h` を消すと、その違いを表示して失敗した。
+
+CI の結果（`f5ab60d`）: 5ジョブすべて成功した。
+
+| ジョブ | 時間 | 結果 |
+|---|---|---|
+| ubuntu-24.04 / cmake | 約1分50秒 | `unit tests: ON`。CTest の13個すべて通過（`installed_headers` は約17秒）。uninstall 後にファイルは残らない |
+| ubuntu-26.04 / cmake | 約1分40秒 | 同上（`installed_headers` は約20秒） |
+| ubuntu-24.04 / autotools | 約3分50秒 | `make check` の単体テスト10個すべて通過。インストールしたヘッダはすべて単独でコンパイルできた。`make distcheck` が通った（その中の単体テストも10個すべて通過） |
+| ubuntu-26.04 / autotools | 約4分30秒 | 同上 |
+| compare the installed files | 約5秒 | 24.04・26.04 とも「The same 179 files are installed.」 |
+
+- librcsc 自身のコードからのコンパイラの警告は0件（26.04 では同梱の simdjson の既知の警告だけ）。Autotools のジョブには、`make distcheck` の中の libtool のメッセージ（`librcsc.la has not been installed`、`remember to run libtool --finish`。合わせて9件）が出るが、distcheck では普通に出るもので、コンパイラの警告ではない。
+
+Phase 6b は完了した。
+
+### Phase 7（2026-11-21）
+
+実施内容:
+
+- `README.md` を書き直した: 依存要件、Ubuntu 24.04/26.04 向けの apt コマンド（`build-essential cmake pkg-config libboost-dev zlib1g-dev libcppunit-dev`）、`cmake-helper.sh build`・`install`（と同じ意味の cmake のコマンド）、既定のインストール先 `~/.local`、`test`・`uninstall`・`help`、`~/local` からの移行の要点、`PATH` と `find_package(librcsc CONFIG)` の要点。Autotools の手順、`~/local` を前提にした `LD_LIBRARY_PATH`・`PATH` の設定の説明、Ubuntu 20.04 と `libboost-all-dev` の記述を削除した（Autotools の手順は `docs/build.md` へ移した）。
+- `docs/build.md` を新しく作った（英語。soccerwindow2 の `docs/build.md` と同じ構成）。「Phase 7」の項目に挙げた内容を書いた。`~/local` からの移行では、`LD_LIBRARY_PATH` は記録されたライブラリの場所（RUNPATH）より先に探されるため、`~/local/lib` を `LD_LIBRARY_PATH` から外すよう書いた（手元の環境の `LD_LIBRARY_PATH` に `~/local/lib` が `~/.local/lib` より前に入っていることから気づいた）。
+- CMake: 生成する `Doxyfile` の `HAVE_DOT` を、Autotools と同じく `dot` が見つかれば `YES`、なければ `NO` にした（以前は空で、図が作られなかった）。
+- `RELEASE_NOTES.md` に、文書の変更と `HAVE_DOT` を書き、`~/.local` への移行の項目に `LD_LIBRARY_PATH` の注意を加えた。
+
+検証結果:
+
+- 文書に書いた出力を手元で確かめた: `pkg-config --cflags --libs librcsc` と `librcsc-config --cflags --libs` は `-I<PREFIX>/include -L<PREFIX>/lib -lrcsc -lz -lm`、`librcsc-config --version` は `2026`、`librcscenv` は `LD_LIBRARY_PATH` の先頭に `<PREFIX>/lib` を加えてプログラムを実行する。
+- `README.md`・`docs/build.md` の中のリンク（ファイルと見出しのアンカー）が、すべて存在することをスクリプトで確かめた。
+- `Doxyfile` の `HAVE_DOT` が、`dot` がないときは `NO`、`-DDOT_EXECUTABLE=` で `dot` を与えたときは `YES` になることを確かめた。CMake の `Doxyfile` の `OUTPUT_DIRECTORY`・`INPUT` は絶対パス（`<build>/doc`、`<source>/rcsc`）なので `doxygen build/Doxyfile` で文書ができる。Doxygen は手元にないため、文書の生成そのものは確かめていない。
 - CI の結果: （push 後に追記する）
+
+## 7. まとめ（librcsc での作業）
+
+- Boost 1.89 以降（Ubuntu 26.04、Boost 1.90）で、CMake と Autotools のどちらでもビルドとテストができるようになった（Boost.System への依存を除き、最低バージョンを 1.70 にした。公開ヘッダから Boost の読み込みを除いた）。GCC 15 でのビルドエラーも直した。
+- CMake のビルドを直し、Autotools と同じファイルがインストールされるようにした（`lib/cmake/librcsc/` と `.la` を除いて一致することを CI で確かめている）。CMake 3.16 以上の書き方に整え、既定のインストール先を `~/.local` にし、`librcscConfig.cmake`（`find_package(librcsc CONFIG)`、`librcsc::rcsc`）、RPATH、`uninstall` ターゲットを加えた。
+- テスト（CppUnit の単体テストの CTest への登録と、Autotools の `make check` の修正、インストールの検査）と、`cmake-helper.sh` を加えた。
+- GitHub Actions の CI（Ubuntu 24.04・26.04 × CMake・Autotools と、インストールされたファイルの比較）を加えた。
+- 文書（`README.md`、`docs/build.md`、`RELEASE_NOTES.md`）を現状に合わせた。
+- 残りの作業: PR #119 のマージ（ユーザが GitHub 上で行う）、Phase 8（soccerwindow2 での作業）、「この計画の後に行う作業」。

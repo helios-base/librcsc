@@ -31,6 +31,7 @@ Each item has the date when the change was made.
     A build directory configured before keeps `~/local` in the cache.
     To move to `~/.local`, remove the old build directory (or give `-DCMAKE_INSTALL_PREFIX=$HOME/.local`),
     and remove the files installed in `~/local` if they are no longer needed.
+    Remove `~/local/lib` from `LD_LIBRARY_PATH` if it is set, because `LD_LIBRARY_PATH` is searched before the library path recorded in the programs.
   - The CMake package configuration files are installed in `PREFIX/lib/cmake/librcsc` (CMake build only, not Autotools).
     The other CMake projects can use librcsc by `find_package(librcsc CONFIG REQUIRED)` and
     `target_link_libraries(<target> PRIVATE librcsc::rcsc)`, which adds the include directory and requires C++17.
@@ -81,3 +82,9 @@ Each item has the date when the change was made.
   - The Autotools jobs check that each installed header file can be compiled alone (`cmake-helper.sh check-headers`),
     and check the source tarball (`make distcheck`, with the unit tests).
   - A job compares the files installed by CMake and Autotools (except `lib/cmake/librcsc/` of CMake and `.la` of Autotools).
+- (2026-11-21) Documents: `README.md` describes the quick start with `cmake-helper.sh` on Ubuntu 24.04 and 26.04
+  (the default installation directory is `~/.local`). The details are moved to `docs/build.md`:
+  the commands of `cmake-helper.sh`, the options of CMake, the installed files and the uninstall,
+  the migration from `~/local`, the tests, the Autotools build, using librcsc from other programs
+  (CMake, pkg-config, `librcsc-config`, `LD_LIBRARY_PATH`), and the API documents.
+- (2026-11-21) CMake build: the generated `Doxyfile` enables the graphs (`HAVE_DOT`) if Graphviz (`dot`) is found, as in the Autotools build.

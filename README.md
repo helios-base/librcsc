@@ -1,4 +1,3 @@
-
 # Librcsc
 
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL_v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
@@ -9,87 +8,67 @@ All programs can work with rcssserver-18.
 - The RoboCup Soccer Simulator: https://rcsoccersim.github.io/
 - RoboCup Official Homepage: https://www.robocup.org/
 
+## Requirements
+
+- A C++17 compiler (GCC or Clang)
+- CMake 3.16 or later
+- Boost 1.70 or later (only the headers are used) https://www.boost.org/
+- zlib (optional, needed to read and write the gzipped files)
+- CppUnit (optional, needed only for the unit tests)
+
 ## Quick Start
 
-The latest librcsc depends on the following libraries:
- - C++17
- - Boost 1.41 or later https://www.boost.org/
- - (optional) Doxygen
- - (optional) Graphviz
+The following commands are for Ubuntu 24.04 and 26.04.
+See [docs/build.md](docs/build.md) for the details (the other options, Autotools, tests, documents, etc.).
 
-In the case of Ubuntu 20.04 or later, execute the following commands for installing a basic development environment:
+Install the packages:
+
 ```
 sudo apt update
-sudo apt install build-essential libboost-all-dev autoconf automake libtool
+sudo apt install build-essential cmake pkg-config libboost-dev zlib1g-dev libcppunit-dev
 ```
 
-To build the library, execute commands from the root of source directory:
-```
-./bootstrap
-./configure --disable-unit-test
-make
-```
+Build and install librcsc with `cmake-helper.sh`:
 
-Once successfully built, you can install the library file and header files to the default installation directory (``/usr/local``):
 ```
-sudo make install
-```
-It is recommended to change the installation directory to the under of your home directory.
-See the next section in detail.
-
-You can generate documetation files using Doxygen and Graphviz.
-```
-sudo apt install doxygen graphviz
-make doc
+./cmake-helper.sh build
+./cmake-helper.sh install
 ```
 
+`cmake-helper.sh` prints the cmake commands that it runs. The commands above are equivalent to:
 
-## Configuring
-
-If you do not have an administration privilege, you may need to install the library under your home directory and configure some environment variables.
-You can change the installation directory by passing ``--prefix`` option to the configure script:
 ```
-./configure --prefix=/path/to/installation
-```
-For example, if you'd like to install under the ``~/local``, type the following:
-```
-./configure --prefix=$HOME/local
+cmake -S . -B build
+cmake --build build --parallel
+cmake --install build
 ```
 
-See `./configure --help` for other options.
+librcsc is installed into `~/.local` by default: the library in `~/.local/lib`, the header files in `~/.local/include/rcsc`,
+and the tools (e.g. `rcg2txt`) in `~/.local/bin`.
+soccerwindow2 and helios-base find librcsc in `~/.local` without any setting.
 
+To run the tests, run `./cmake-helper.sh test`.
+To uninstall librcsc, run `./cmake-helper.sh uninstall`.
+Run `./cmake-helper.sh help` for the other commands.
 
-### Configuring Environment Variables
+The default installation directory was `~/local` before.
+If you have a build directory configured before, it keeps `~/local`.
+Run `./cmake-helper.sh uninstall` (to remove the files in `~/local`) and `./cmake-helper.sh clean` first
+(see [docs/build.md](docs/build.md#installing-and-uninstalling)).
 
-``~/local`` is supported by the configure script of helios-base, soccerwindow2, fedit2 by default.
-However, if you change the installation directory, you need to modify the followng two environment variables:
+## Using librcsc
 
-- ``LD_LIBRARY_PATH`` (in ``~/.bashrc``)
-- ``PATH`` (in ``~/.profile``)
+On Ubuntu, `~/.local/bin` is added to `PATH` at the login if it exists, so log in again after the first installation to use the tools.
+The tools record the location of librcsc, so `LD_LIBRARY_PATH` is not needed to run them.
 
-The following instructions assume that librcsc was installed under ``~/local``.
+A CMake project can use librcsc as follows:
 
-Add the following lines at the end of ``~/.bashrc``:
 ```
-LD_LIBRARY_PATH=$HOME/local/lib:$LD_LIBRARY_PATH
-export EDITOR RCSSMONITOR LD_LIBRARY_PATH
-```
-This setting is enabled by opening a new terminal or executing ``source ~/.bashrc``.
-
-You can find the existing ``PATH`` variable at the end of ``~/.profile``.
-Add the following at the end of the file, then log out and log in again.
-```
-PATH="$HOME/local/bin:$PATH"
+find_package(librcsc CONFIG REQUIRED)
+target_link_libraries(your_program PRIVATE librcsc::rcsc)
 ```
 
-## Uninstall
-
-librcsc can also be easily removed by entering the distribution directory and running:
-```
-make uninstall
-```
-This will remove all the files that where installed, but not any directories that were created during the installation process.
-
+See [docs/build.md](docs/build.md#using-librcsc-in-other-programs) for pkg-config, `librcsc-config`, and `LD_LIBRARY_PATH`.
 
 ## References
 
