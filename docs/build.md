@@ -69,6 +69,7 @@ All the commands:
 | `install [--prefix DIR]` | build and install | `cmake --install build [--prefix DIR]` |
 | `uninstall` | remove the files installed from the build directory | `cmake --build build --target uninstall` |
 | `check-headers PREFIX` | check that each header file installed in `PREFIX` can be compiled alone (also for librcsc installed by Autotools) | `cmake -S test/installed_headers -B build/check-headers -DLIBRCSC_PREFIX=PREFIX` and `cmake --build build/check-headers` |
+| `check-tools PREFIX` | check that the tools installed in `PREFIX` run without `LD_LIBRARY_PATH` (also for librcsc installed by Autotools) | `cmake -DPREFIX=PREFIX -P test/CheckInstalledTools.cmake` |
 | `clean` | remove the build directory | `rm -rf build` |
 | `help` | show the usage | |
 
@@ -131,6 +132,9 @@ The flags given by `CMAKE_CXX_FLAGS` are used in addition to the warning options
 The installed tools record the relative path to the library (RPATH `$ORIGIN/../lib`),
 so `LD_LIBRARY_PATH` is not needed to run them, even if the prefix is changed by `--prefix` at the installation.
 
+If `PREFIX` is a system directory (e.g. `/usr/local`), run `sudo ldconfig` after the first installation,
+so that the other programs find librcsc without `LD_LIBRARY_PATH` (the tools of librcsc do not need it).
+
 The default installation directory was `~/local` before. A build directory configured before keeps it in the cache.
 To move to `~/.local`, uninstall the files with that build directory, and create the build directory again:
 
@@ -174,16 +178,18 @@ The tests of the CMake build are:
 | `install` | installs librcsc into `test-install` in the build directory, for the following tests |
 | `installed_headers` | each installed header file can be compiled alone (e.g. no header file that it includes is missing in the installation) |
 | `find_package` | a CMake project can use the installed librcsc by `find_package(librcsc CONFIG)` and `librcsc::rcsc` |
+| `installed_tools` | the installed tools run without `LD_LIBRARY_PATH` and use librcsc in the same installation (the recorded library path) |
 
 - The unit tests need CppUnit, which is found by pkg-config.
   Without CppUnit, they are not built (the configure output shows `unit tests: OFF`), and the other tests are run.
 - The `install` test does not change `install_manifest.txt` of your installation, so the `uninstall` target still works for it.
 - `-DBUILD_TESTING=OFF` disables all the tests.
 
-To check the header files of librcsc installed anywhere (e.g. by Autotools), run:
+To check librcsc installed anywhere (e.g. by Autotools), run:
 
 ```
-./cmake-helper.sh check-headers ~/.local
+./cmake-helper.sh check-headers ~/.local    # each header file can be compiled alone
+./cmake-helper.sh check-tools ~/.local      # the tools run without LD_LIBRARY_PATH
 ```
 
 The Autotools build runs the same unit tests by `make check`, if it is configured with `--enable-unit-test`
@@ -205,6 +211,10 @@ make install
   are not installed and the libtool library file (`PREFIX/lib/librcsc.la`) is installed.
   Therefore, a CMake project cannot find librcsc installed by Autotools with `find_package(librcsc CONFIG)`.
 - The default compiler options are `-g -O2` (the CMake build uses `-O3 -DNDEBUG` in the `Release` build type).
+- libtool records the absolute path of the library directory (`PREFIX/lib`) in the installed tools (RPATH),
+  so `LD_LIBRARY_PATH` is not needed to run them (unlike the relative path of the CMake build, the tools do not work if the installation is moved).
+  However, libtool does not record it for a system directory (e.g. `/usr/local/lib` and `/usr/lib`).
+  After installing librcsc into such a directory (e.g. `sudo make install` with the default prefix), run `sudo ldconfig`.
 
 Configure options:
 

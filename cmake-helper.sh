@@ -22,6 +22,8 @@ Commands:
   check-headers PREFIX          check that each header file of librcsc installed
                                 in PREFIX can be compiled alone (also for librcsc
                                 installed by Autotools)
+  check-tools PREFIX            check that the tools installed in PREFIX run
+                                without LD_LIBRARY_PATH (also for Autotools)
   clean                         remove the build directory
   help                          show this help
 
@@ -40,6 +42,7 @@ The main commands that are run:
   uninstall      cmake --build build --target uninstall
   check-headers  cmake -S test/installed_headers -B build/check-headers -DLIBRCSC_PREFIX=PREFIX
                  cmake --build build/check-headers --parallel JOBS
+  check-tools    cmake -DPREFIX=PREFIX -P test/CheckInstalledTools.cmake
   clean          rm -rf build
 
 The unit tests need CppUnit (e.g. libcppunit-dev on Ubuntu). Without it, they
@@ -78,7 +81,7 @@ case "$command" in
         usage
         exit 0
         ;;
-    configure|build|test|install|uninstall|check-headers|clean)
+    configure|build|test|install|uninstall|check-headers|check-tools|clean)
         ;;
     *)
         usage >&2
@@ -157,6 +160,10 @@ case "$command" in
         run_cmd cmake -S test/installed_headers -B "$check_dir" -DLIBRCSC_PREFIX="$prefix"
         run_cmd cmake --build "$check_dir" --parallel "$JOBS"
         echo "All the header files in $prefix/include/rcsc can be compiled alone."
+        ;;
+    check-tools)
+        [ $# -ge 1 ] || die "check-tools requires the installation directory (PREFIX)"
+        run_cmd cmake -DPREFIX="$1" -P test/CheckInstalledTools.cmake
         ;;
     clean)
         if [ ! -e "$build_dir" ]; then

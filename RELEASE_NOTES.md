@@ -88,3 +88,6 @@ Each item has the date when the change was made.
   the migration from `~/local`, the tests, the Autotools build, using librcsc from other programs
   (CMake, pkg-config, `librcsc-config`, `LD_LIBRARY_PATH`), and the API documents.
 - (2026-11-21) CMake build: the generated `Doxyfile` enables the graphs (`HAVE_DOT`) if Graphviz (`dot`) is found, as in the Autotools build.
+- (2026-11-21) Added the check of the installed tools: the `installed_tools` test of CMake, `./cmake-helper.sh check-tools PREFIX`,
+  and the CI of Autotools check that the installed tools run without `LD_LIBRARY_PATH` and use librcsc in the same installation.
+  `docs/build.md` describes that `sudo ldconfig` is needed after installing librcsc into a system directory such as `/usr/local`.

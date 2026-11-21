@@ -51,7 +51,7 @@ jobs:
           CMAKE_ARGS: -DCMAKE_INSTALL_PREFIX=${{ runner.temp }}/install
         run: ./cmake-helper.sh build
 
-      # the unit tests and the tests of the installation (installed_headers, find_package)
+      # the unit tests and the tests of the installation (installed_headers, find_package, installed_tools)
       - name: Test (CMake)
         if: matrix.build == 'cmake'
         run: ./cmake-helper.sh test
@@ -88,6 +88,11 @@ jobs:
       - name: Check the installed header files (Autotools)
         if: matrix.build == 'autotools'
         run: ./cmake-helper.sh check-headers "$RUNNER_TEMP/install"
+
+      # the installed tools run without LD_LIBRARY_PATH (the library path recorded by libtool)
+      - name: Check the installed tools (Autotools)
+        if: matrix.build == 'autotools'
+        run: ./cmake-helper.sh check-tools "$RUNNER_TEMP/install"
 
       - name: Check the source tarball (Autotools)
         if: matrix.build == 'autotools'

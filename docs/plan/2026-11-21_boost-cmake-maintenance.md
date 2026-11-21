@@ -98,6 +98,7 @@ soccerwindow2 の Qt6 対応・CMake のメイン化の作業中に、librcsc �
 | CMake のテスト（Phase 4 で決定） | `BUILD_TESTING`（既定は ON）でテストを作る。CppUnit は pkg-config で探し、なければ単体テストだけを作らない（エラーにしない）。インストールの検査（`install`・`installed_headers`・`find_package`）は CppUnit なしで動く。`color` の `thermo_color_test` は、Autotools と同じくビルドだけしてテストとしては実行しない |
 | Autotools の配布物（Phase 6b で決定） | `make dist` の配布物に CMake のファイル（`CMakeLists.txt`、`cmake/`、`test/`、`cmake-helper.sh` など）を含めない（以前と同じ）。公開している配布物がなく、CMake を使う人は Git から取るため（ユーザの決定）。`make distcheck` は CI の Autotools のジョブで行う |
 | 文書の構成（Phase 7 の前に決定） | `README.md` に CMake と Autotools の両方の手順があると読み手が混乱するため、soccerwindow2 と同じく、`README.md` では主な手順として `cmake-helper.sh` だけを説明し、詳しい内容（cmake を直接使う方法、Autotools、テスト、インストールとアンインストール、ほかのプログラムからの使い方、API の文書など）は `docs/build.md`（新規）に移す（ユーザの決定）。soccerwindow2 と同じく英語で書く |
+| インストールしたツールの検査（Phase 7 の後に決定） | インストールしたツールが `LD_LIBRARY_PATH` なしで動く（Phase 3 で CMake に RPATH を加え、Autotools は libtool が記録する）ことを、自動で確かめる検査を加える。あわせて、システムの場所（`/usr/local` など）にインストールしたときは `sudo ldconfig` が必要なことを `docs/build.md` に書く（ユーザの決定） |
 | リリースノートの日付（Phase 1 の後に決定） | `CLAUDE.md` の決まり（2026-11-21 追加）により、各項目の先頭に変更の日付を `(YYYY-MM-DD)` の形で付ける |
 
 ## 4. 実装計画
@@ -470,13 +471,33 @@ Phase 6b は完了した。
 - 文書に書いた出力を手元で確かめた: `pkg-config --cflags --libs librcsc` と `librcsc-config --cflags --libs` は `-I<PREFIX>/include -L<PREFIX>/lib -lrcsc -lz -lm`、`librcsc-config --version` は `2026`、`librcscenv` は `LD_LIBRARY_PATH` の先頭に `<PREFIX>/lib` を加えてプログラムを実行する。
 - `README.md`・`docs/build.md` の中のリンク（ファイルと見出しのアンカー）が、すべて存在することをスクリプトで確かめた。
 - `Doxyfile` の `HAVE_DOT` が、`dot` がないときは `NO`、`-DDOT_EXECUTABLE=` で `dot` を与えたときは `YES` になることを確かめた。CMake の `Doxyfile` の `OUTPUT_DIRECTORY`・`INPUT` は絶対パス（`<build>/doc`、`<source>/rcsc`）なので `doxygen build/Doxyfile` で文書ができる。Doxygen は手元にないため、文書の生成そのものは確かめていない。
+- CI の結果（`7478588`）: 5ジョブ（ビルドの4ジョブと `compare`）すべて成功した。
+
+### 追加: インストールしたツールの検査（2026-11-21、Phase 7 の後）
+
+ユーザから、ツールが `LD_LIBRARY_PATH` なしで動くようにしたいという相談があった。CMake は Phase 3 で RPATH（`$ORIGIN/../lib`）を加えてあり、Autotools は libtool が絶対パス（`PREFIX/lib`）を記録していること（今の `~/local` のインストールも含む）を手元で確かめた。ただし、これを自動で確かめる検査がなかったので加えた。また、libtool はシステムの場所（`/usr/local/lib` など。libtool の `sys_lib_dlsearch_path_spec` にある）には記録しないため、その場合は `sudo ldconfig` が必要なことを文書に書いた。
+
+実施内容:
+
+- `test/CheckInstalledTools.cmake`（新規）: `PREFIX/bin` の各プログラム（スクリプトは除く）を、`LD_LIBRARY_PATH`（と `DYLD_LIBRARY_PATH`）を外し、引数なし・入力なしで実行する。ライブラリを読み込めないこと（終了コード 127、`error while loading shared libraries` など）を失敗とし、使い方の表示の終了コード（1 など）は受け入れる。`ldd` があれば、librcsc が `PREFIX` の中のファイルに解決されることを確かめ、librcsc にリンクしたプログラムが1つ以上あることも確かめる。
+- CTest に `installed_tools` を加えた（`test-install` に対して実行。CTest は14個になった）。
+- `cmake-helper.sh check-tools PREFIX` を加えた（Autotools でインストールしたものにも使える）。
+- CI の Autotools のジョブに、`./cmake-helper.sh check-tools "$RUNNER_TEMP/install"` を加えた（CMake のジョブは CTest の `installed_tools` で確かめる）。
+- `docs/build.md`: `check-tools` と `installed_tools` を書き、CMake のインストールの節と Autotools の節に、システムの場所にインストールしたときの `sudo ldconfig` と、libtool が記録する場所（絶対パスなので、インストール先を移すと動かない）を書いた。
+- `RELEASE_NOTES.md` に、これらの変更を書いた。
+
+検証結果（手元）:
+
+- インストールしたツールを引数なし・`LD_LIBRARY_PATH` なしで実行すると、すべて0.01秒以内に使い方を表示して終わった（終了コード 0 か 1）。`rclmscheduler`・`rclmtableprinter` は librcsc にリンクしていない。
+- 検査のスクリプトは、CMake のインストール（`test-install`）と Autotools のインストールのどちらでも通った（10個のプログラム）。インストール先の外に写したツールでは、`librcsc.so.20: cannot open shared object file`（終了コード 127）で失敗した。
+- `./cmake-helper.sh test` で CTest の14個がすべて通った。手元のシェルの `LD_LIBRARY_PATH` には `~/local/lib` が入っているが、検査はそれを外して行われ、`test-install` の librcsc に解決された。
 - CI の結果: （push 後に追記する）
 
 ## 7. まとめ（librcsc での作業）
 
 - Boost 1.89 以降（Ubuntu 26.04、Boost 1.90）で、CMake と Autotools のどちらでもビルドとテストができるようになった（Boost.System への依存を除き、最低バージョンを 1.70 にした。公開ヘッダから Boost の読み込みを除いた）。GCC 15 でのビルドエラーも直した。
 - CMake のビルドを直し、Autotools と同じファイルがインストールされるようにした（`lib/cmake/librcsc/` と `.la` を除いて一致することを CI で確かめている）。CMake 3.16 以上の書き方に整え、既定のインストール先を `~/.local` にし、`librcscConfig.cmake`（`find_package(librcsc CONFIG)`、`librcsc::rcsc`）、RPATH、`uninstall` ターゲットを加えた。
-- テスト（CppUnit の単体テストの CTest への登録と、Autotools の `make check` の修正、インストールの検査）と、`cmake-helper.sh` を加えた。
+- テスト（CppUnit の単体テストの CTest への登録と、Autotools の `make check` の修正、インストールの検査（ヘッダの単独コンパイル、`find_package`、ツールが `LD_LIBRARY_PATH` なしで動くこと））と、`cmake-helper.sh` を加えた。
 - GitHub Actions の CI（Ubuntu 24.04・26.04 × CMake・Autotools と、インストールされたファイルの比較）を加えた。
 - 文書（`README.md`、`docs/build.md`、`RELEASE_NOTES.md`）を現状に合わせた。
 - 残りの作業: PR #119 のマージ（ユーザが GitHub 上で行う）、Phase 8（soccerwindow2 での作業）、「この計画の後に行う作業」。

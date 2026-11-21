@@ -6,6 +6,8 @@
 #                      (e.g. no header file is missing in the installation)
 #   find_package       a CMake project can use the installed librcsc by
 #                      find_package(librcsc CONFIG) and librcsc::rcsc
+#   installed_tools    the installed tools run without LD_LIBRARY_PATH and use
+#                      librcsc in the same installation (the recorded RPATH)
 #
 # The projects used by the tests (installed_headers/ and find_package/) are
 # configured and built in this directory of the build tree by
@@ -58,3 +60,10 @@ add_test(NAME find_package
           -DEXPECTED_VERSION=${PROJECT_VERSION}
   )
 set_tests_properties(find_package PROPERTIES FIXTURES_REQUIRED librcsc_installed)
+
+add_test(NAME installed_tools
+  COMMAND ${CMAKE_COMMAND}
+          -DPREFIX=${LIBRCSC_TEST_PREFIX}
+          -P ${CMAKE_CURRENT_SOURCE_DIR}/CheckInstalledTools.cmake
+  )
+set_tests_properties(installed_tools PROPERTIES FIXTURES_REQUIRED librcsc_installed)
