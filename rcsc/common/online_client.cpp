@@ -41,6 +41,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <cassert>
 
 #include <unistd.h> // select()
 #include <sys/select.h> // select()

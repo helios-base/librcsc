@@ -46,11 +46,10 @@ check_cxx_symbol_exists(gettimeofday sys/time.h HAVE_GETTIMEOFDAY)
 check_cxx_symbol_exists(select sys/select.h HAVE_SELECT)
 check_cxx_symbol_exists(socket sys/socket.h HAVE_SOCKET)
 
-# boost
-find_package(Boost 1.41.0 COMPONENTS system REQUIRED)
-if(NOT Boost_FOUND)
-  message(FATAL_ERROR "Boost not found!")
-endif()
+# boost (header-only)
+# Boost 1.70 or later provides BoostConfig.cmake, so the config mode is used
+# regardless of the CMake version (the FindBoost module is not used).
+find_package(Boost 1.70 CONFIG REQUIRED)
 
 # zlib
 find_package(ZLIB)

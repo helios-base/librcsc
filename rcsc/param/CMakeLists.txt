@@ -8,12 +8,13 @@ add_library(rcsc_param OBJECT
   )
 
 target_include_directories(rcsc_param
-  PUBLIC
-  ${Boost_INCLUDE_DIRS}
   PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
   )
+
+# header-only
+target_link_libraries(rcsc_param PRIVATE Boost::headers)
 
 install(FILES
   cmd_line_parser.h

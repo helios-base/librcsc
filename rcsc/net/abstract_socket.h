@@ -34,8 +34,6 @@
 
 #include <rcsc/net/host_address.h>
 
-#include <boost/scoped_ptr.hpp>
-
 #include <string>
 #include <cstddef>
 

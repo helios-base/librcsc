@@ -4,7 +4,6 @@ add_executable(rclmscheduler
   )
 target_link_libraries(rclmscheduler PRIVATE
   rcsc
-  Boost::system
   )
 
 add_executable(rclmtableprinter
@@ -12,7 +11,6 @@ add_executable(rclmtableprinter
   )
 target_link_libraries(rclmtableprinter PRIVATE
   rcsc
-  Boost::system
   ZLIB::ZLIB
   )
 
@@ -21,7 +19,6 @@ add_executable(rcg2csv
   )
 target_link_libraries(rcg2csv PRIVATE
   rcsc
-  Boost::system
   ZLIB::ZLIB
   )
 
@@ -30,7 +27,6 @@ add_executable(rcg2txt
   )
 target_link_libraries(rcg2txt PRIVATE
   rcsc
-  Boost::system
   ZLIB::ZLIB
   )
 
@@ -39,7 +35,6 @@ add_executable(rcgrenameteam
   )
 target_link_libraries(rcgrenameteam PRIVATE
   rcsc
-  Boost::system
   ZLIB::ZLIB
   )
 
@@ -48,7 +43,6 @@ add_executable(rcgresultprinter
   )
 target_link_libraries(rcgresultprinter PRIVATE
   rcsc
-  Boost::system
   ZLIB::ZLIB
   )
 
@@ -57,7 +51,6 @@ add_executable(rcgreverse
   )
 target_link_libraries(rcgreverse PRIVATE
   rcsc
-  Boost::system
   ZLIB::ZLIB
   )
 
@@ -66,7 +59,6 @@ add_executable(rcgverconv
   )
 target_link_libraries(rcgverconv PRIVATE
   rcsc
-  Boost::system
   ZLIB::ZLIB
   )
 
@@ -75,12 +67,10 @@ add_executable(rcgversion
   )
 target_link_libraries(rcgversion PRIVATE
   rcsc
-  Boost::system
   ZLIB::ZLIB
   )
 
 include_directories(
-  ${Boost_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}

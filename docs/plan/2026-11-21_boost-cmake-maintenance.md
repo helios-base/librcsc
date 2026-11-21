@@ -1,7 +1,7 @@
 # librcsc Boost 対応の見直し・CMake ビルドの整備 計画書
 
 - 作成日: 2026-11-21
-- ステータス: 実施中（Phase 0）
+- ステータス: 実施中（Phase 1）
 - ベースブランチ: `develop`（librcsc の既定ブランチ。master は年1回程度の更新）
 - 作業ブランチ: `feature/boost-cmake-maintenance`（ユーザが GitHub 上で develop から作る）
 - 関連: soccerwindow2 の計画書 `docs/plan/2026-11-19_qt6-cmake-migration.md`（soccerwindow2 リポジトリ。PR #94 でマージ済み）
@@ -112,6 +112,11 @@ soccerwindow2 の Qt6 対応・CMake のメイン化の作業中に、librcsc �
 - インストールするヘッダに `rcsc/player/world_state.h` と `rcsc/time/time_stamp.h` を加える。ほかのディレクトリも含め、`Makefile.am` と `CMakeLists.txt` のソース・ヘッダの一覧が揃っていることを確かめる。
 - `rcgvalidator` をビルドし、`rcg2csv` と `rcgvalidator` をインストールするようにする。
 - `configure.ac` の `AC_INIT` のバージョンを、CMake と同じ 2026 に揃える。
+- （Phase 1 で見つかった問題）CMake の `rcsc` ターゲットが ZLIB にリンクしておらず、CMake でビルドした `librcsc.so` は zlib のシンボルが未解決のまま `libz` を NEEDED に持たない（ツールは自分で ZLIB にリンクしている）。`rcsc` を ZLIB にリンクする。
+- （Phase 1 で見つかった問題）`librcsc-config.in` の `--libs` が、今はない分割ライブラリ（`-lrcsc_agent`、`-lrcsc_clang` など）を出力する。`librcsc.pc.in` と同じ `-lrcsc -lz -lm` にする。
+- （Phase 1 で見つかった問題）`src/Makefile.am` の `rcgverconv` の所に `rcgversion_CXXFLAGS` がある（名前の誤り）。一覧を揃えるときに直す。
+- （Phase 1 で見つかった問題）`rcsc/action` には `Makefile.am` と `CMakeLists.txt` があるが、どちらのビルドからも使われていない（`rcsc/Makefile.am` の `SUBDIRS` にも `rcsc/CMakeLists.txt` の `add_subdirectory` にもない）。扱いをユーザと決める。
+- （Phase 1 で見つかった問題）Autotools でビルドした `librcsc.so` は `libstdc++` を NEEDED に持たない（develop の時点から。利用側は C++ のプログラムなので実害はない）。原因を調べ、扱いを決める。
 - 以後このような食い違いが起きないよう、Phase 4 で「インストールされたヘッダがそれぞれ単独でコンパイルできるか」の検査を加える。
 
 ### Phase 3: CMake ビルドの整備（近代化）
@@ -131,7 +136,10 @@ soccerwindow2 の Phase 1 と同じ方針で整える。
 - CMake: cppunit の単体テスト（`rcsc/clang`、`rcsc/color`、`rcsc/geom`）を CTest に登録する（`BUILD_TESTING` で切り替える。cppunit は pkg-config で探す）。
 - Autotools: 既存の `make check`（`--enable-unit-test`）を維持する。
 - インストールされたヘッダが、それぞれ単独でコンパイルできるかを検査するテストを加える（Phase 2 で見つかったような、ヘッダのインストール漏れを検出するため）。
-- テストが通らないものがあれば、原因を調べて直すか、扱いをユーザと決める。
+- テストが通らないものがあれば、原因を調べて直すか、扱いをユーザと決める。Phase 1 で試したところ、インストールされる163個のヘッダのうち次の2つが単独でコンパイルできなかった（develop の時点から）。
+  - `rcsc/ann/bpn1.h`: `<iterator>` を読み込まずに `std::ostream_iterator` を使っている。
+  - `rcsc/geom/polygon_2d.h`: 不完全な型の `Vector2D` を `std::vector` の要素として使っている。
+- 手元には cppunit がない（`libcppunit-dev` が入っていない）。手元で単体テストを動かすにはインストールが必要（ユーザが行う）。
 - ユーザが手元でテストを動かせるよう、`cmake-helper.sh` を用意する（「3. 決定事項」。configure、build、test、install、uninstall、clean。実行するコマンドを表示する。install の既定のインストール先は `~/.local`）。実行方法は README にも書く。
 
 ### Phase 5: 公開ヘッダからの Boost の除去（Phase 1 に統合）
@@ -181,3 +189,26 @@ librcsc のこの計画が完了し、develop にマージされた後に行う�
 - ユーザの決定により、Boost の最低バージョンを 1.41 から 1.70 に上げることにした。これに合わせ、CMake では `find_package(Boost 1.70 CONFIG REQUIRED)` で探すことにした（Phase 1）。
 - `RELEASE_NOTES.md` を作った。
 - `CLAUDE.md` を `.gitignore` に加えた。
+
+### Phase 1（2026-11-21）
+
+実施内容:
+
+- Autotools: `configure.ac` から `AX_BOOST_SYSTEM` と `BOOST_LDFLAGS` を削除し、`AX_BOOST_BASE` を 1.70.0 にした。`src/Makefile.am` の9個の `$(BOOST_SYSTEM_LIB)` と、`m4/ax_boost_system.m4` を削除した。
+- CMake: `find_package(Boost 1.70 CONFIG REQUIRED)` にした。Boost を使う3つのオブジェクトライブラリ（`rcsc_clang`、`rcsc_formation`、`rcsc_param`）だけを `Boost::headers` に PRIVATE でリンクし、ほかのディレクトリ（ビルドされない `rcsc/action` も含む）、`rcsc` ターゲット（PUBLIC）、`src/` の `${Boost_INCLUDE_DIRS}` と、`src/` の `Boost::system` へのリンクを削除した。変数 `Boost_INCLUDE_DIRS` を使わないのは、Boost の古い版の `BoostConfig.cmake` が設定するかを確かめていないため。
+- 公開ヘッダ4つから Boost の読み込みを削除した。
+- `librcsc.spec.in`: `BuildRequires` を `boost-devel >= 1.70` にし、devel パッケージの `Requires` から Boost を外した。
+- `RELEASE_NOTES.md` に Boost の変更を書いた。
+
+計画からの変更点・追加:
+
+- Boost のヘッダ経由で読み込まれていた標準ヘッダに頼っている所が3つあったため、それぞれに読み込みを加えた: `rcsc/gz/gzfilterstream.h`（`std::unique_ptr` のための `<memory>`）、`rcsc/ann/rbf.cpp`（`std::ostream_iterator` のための `<iterator>`）、`rcsc/common/online_client.cpp`（`assert` のための `<cassert>`）。
+- 以降のフェーズで扱う問題が見つかったため、Phase 2・Phase 4 に加えた（CMake の `librcsc.so` が zlib にリンクしていない、`librcsc-config` の `--libs` が古い、`src/Makefile.am` の名前の誤り、Autotools の `librcsc.so` に `libstdc++` の NEEDED がない、ビルドされない `rcsc/action`、単独でコンパイルできない公開ヘッダ2つ）。
+
+検証結果（Ubuntu 24.04、GCC 13.3、CMake 3.28.3、Boost 1.83。Git の管理下のファイルを一時ディレクトリに写してビルドした）:
+
+- Autotools: `bootstrap`、`configure`（`checking for boostlib >= 1.70.0 (107000)... yes`）、`make`、`make install` が通った。コンパイラの警告は0件（libtool の convenience library についての警告だけ）。リンクのコマンドに `-lboost` はない。
+- CMake: 構成、ビルド、インストールが警告なしで通った。Boost は `/usr/lib/x86_64-linux-gnu/cmake/Boost-1.83.0` の `BoostConfig.cmake` で見つかった。ビルドに失敗する既知の問題（`HAVE_NETINET_IN_H`、Phase 2 で直す）は、`-DHAVE_NETINET_IN_H=1` を与えて避けた。
+- 両方のビルドとも、ライブラリとツールの NEEDED に Boost のライブラリはない。インストールされたヘッダに `#include <boost` はない。
+- インストールされた163個のヘッダを単独でコンパイルし、161個が通った（失敗した2つは develop の時点からの問題で、Phase 4 で直す）。
+- 単体テストは、手元に cppunit がないため動かしていない。Boost 1.89 以降でのビルドと、CMake 3.30 以降で CMP0167 の警告が出ないことは、Phase 6 の CI で確かめる。

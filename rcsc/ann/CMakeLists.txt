@@ -7,8 +7,6 @@ add_library(rcsc_ann OBJECT
   )
 
 target_include_directories(rcsc_ann
-  PUBLIC
-  ${Boost_INCLUDE_DIRS}
   PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}

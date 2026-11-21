@@ -129,10 +129,9 @@ AX_CXX_COMPILE_STDCXX_17(noext)
 # check boost
 ##################################################
 
-AX_BOOST_BASE([1.41.0])
-AX_BOOST_SYSTEM
+# only the header-only libraries are used
+AX_BOOST_BASE([1.70.0])
 CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"
-LDFLAGS="$LDFLAGS $BOOST_LDFLAGS"
 
 ##################################################
 # enable/disable unit test

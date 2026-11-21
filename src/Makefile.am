@@ -32,61 +32,61 @@ rcgresultprinter_SOURCES = \
 rcgresultprinter_CXXFLAGS = -Wall -W
 rcgresultprinter_LDFLAGS = \
 	-L$(top_builddir)/rcsc
-rcgresultprinter_LDADD = -lrcsc  $(BOOST_SYSTEM_LIB)
+rcgresultprinter_LDADD = -lrcsc
 
 rcg2csv_SOURCES = \
 	rcg2csv.cpp
 rcg2csv_CXXFLAGS = -Wall -W
 rcg2csv_LDFLAGS = \
 	-L$(top_builddir)/rcsc
-rcg2csv_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
+rcg2csv_LDADD = -lrcsc
 
 rcg2txt_SOURCES = \
 	rcg2txt.cpp
 rcg2txt_CXXFLAGS = -Wall -W
 rcg2txt_LDFLAGS = \
 	-L$(top_builddir)/rcsc
-rcg2txt_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
+rcg2txt_LDADD = -lrcsc
 
 rcgrenameteam_SOURCES = \
 	rcgrenameteam.cpp
 rcgrenameteam_CXXFLAGS = -Wall -W
 rcgrenameteam_LDFLAGS = \
 	-L$(top_builddir)/rcsc
-rcgrenameteam_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
+rcgrenameteam_LDADD = -lrcsc
 
 rcgreverse_SOURCES = \
 	rcgreverse.cpp
 rcgreverse_CXXFLAGS = -Wall -W
 rcgreverse_LDFLAGS = \
 	-L$(top_builddir)/rcsc
-rcgreverse_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
+rcgreverse_LDADD = -lrcsc
 
 rcgvalidator_SOURCES = \
 	rcgvalidator.cpp
 rcgvalidator_CXXFLAGS = -Wall -W
 rcgvalidator_LDFLAGS = \
 	-L$(top_builddir)/rcsc
-rcgvalidator_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
+rcgvalidator_LDADD = -lrcsc
 
 rcgverconv_SOURCES = \
 	rcgverconv.cpp
 rcgversion_CXXFLAGS = -Wall -W
 rcgverconv_LDFLAGS = \
 	-L$(top_builddir)/rcsc
-rcgverconv_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
+rcgverconv_LDADD = -lrcsc
 
 rcgversion_SOURCES = \
 	rcgversion.cpp
 rcgversion_LDFLAGS = \
 	-L$(top_builddir)/rcsc
-rcgversion_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
+rcgversion_LDADD = -lrcsc
 
 object_table_printer_SOURCES = \
 	object_table_printer.cpp
 object_table_printer_LDFLAGS = \
 	-L$(top_builddir)/rcsc
-object_table_printer_LDADD = -lrcsc $(BOOST_SYSTEM_LIB)
+object_table_printer_LDADD = -lrcsc
 
 AM_CPPFLAGS = -I$(top_srcdir)
 AM_CXXFLAGS = -Wall -W

@@ -39,7 +39,6 @@ add_library(rcsc SHARED
 
 target_include_directories(rcsc
   PUBLIC
-  ${Boost_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
   PRIVATE
   ${PROJECT_SOURCE_DIR}

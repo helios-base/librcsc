@@ -32,8 +32,6 @@
 #ifndef RCSC_ANN_RBF_H
 #define RCSC_ANN_RBF_H
 
-#include <boost/array.hpp>
-
 #include <vector>
 #include <iostream>
 #include <cmath>

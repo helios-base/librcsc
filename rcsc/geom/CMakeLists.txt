@@ -22,8 +22,6 @@ add_library(rcsc_geom OBJECT
 #set_property(TARGET rcsc_geom PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(rcsc_geom
-  PUBLIC
-  ${Boost_INCLUDE_DIRS}
   PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}

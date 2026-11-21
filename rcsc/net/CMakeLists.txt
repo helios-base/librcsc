@@ -7,8 +7,6 @@ add_library(rcsc_net OBJECT
   )
 
 target_include_directories(rcsc_net
-  PUBLIC
-  ${Boost_INCLUDE_DIRS}
   PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}

@@ -7,7 +7,6 @@ add_library(rcsc_gz OBJECT
 
 target_include_directories(rcsc_gz
   PUBLIC
-  ${Boost_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
   PRIVATE
   ${PROJECT_SOURCE_DIR}

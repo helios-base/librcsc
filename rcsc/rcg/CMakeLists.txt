@@ -21,8 +21,6 @@ add_library(rcsc_rcg OBJECT
   )
 
 target_include_directories(rcsc_rcg
-  PUBLIC
-  ${Boost_INCLUDE_DIRS}
   PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}

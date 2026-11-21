@@ -34,8 +34,6 @@
 
 #include <rcsc/net/abstract_socket.h>
 
-#include <boost/scoped_ptr.hpp>
-
 #include <cstddef>
 
 namespace rcsc {

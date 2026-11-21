@@ -15,8 +15,6 @@ add_library(rcsc_coach OBJECT
   )
 
 target_include_directories(rcsc_coach
-  PUBLIC
-  ${Boost_INCLUDE_DIRS}
   PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}

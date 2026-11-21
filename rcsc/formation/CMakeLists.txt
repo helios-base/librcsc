@@ -15,12 +15,13 @@ add_library(rcsc_formation OBJECT
   )
 
 target_include_directories(rcsc_formation
-  PUBLIC
-  ${Boost_INCLUDE_DIRS}
   PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
   )
+
+# header-only
+target_link_libraries(rcsc_formation PRIVATE Boost::headers)
 
 install(FILES
   formation.h

@@ -4,8 +4,6 @@ add_library(rcsc_time OBJECT
   )
 
 target_include_directories(rcsc_time
-  PUBLIC
-  ${Boost_INCLUDE_DIRS}
   PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}

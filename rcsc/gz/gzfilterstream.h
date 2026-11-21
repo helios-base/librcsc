@@ -32,8 +32,8 @@
 #ifndef RCSC_GZ_GZFILTERSTREAM_H
 #define RCSC_GZ_GZFILTERSTREAM_H
 
-#include <boost/scoped_ptr.hpp>
 #include <iostream>
+#include <memory>
 
 namespace rcsc {
 

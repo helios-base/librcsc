@@ -16,8 +16,6 @@ add_library(rcsc_common OBJECT
   )
 
 target_include_directories(rcsc_common
-  PUBLIC
-  ${Boost_INCLUDE_DIRS}
   PRIVATE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_BINARY_DIR}
