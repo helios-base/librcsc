@@ -81,4 +81,15 @@ EXTRA_DIST = \
 
 CLEANFILES = *~
 
+if UNIT_TEST
+TESTS = \
+	run_test_rcg_types
+endif
+
+check_PROGRAMS = $(TESTS)
+
+run_test_rcg_types_SOURCES = test_types.cpp
+run_test_rcg_types_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W
+run_test_rcg_types_LDADD = librcsc_rcg.la $(CPPUNIT_LIBS)
+
 #EXTRA_DIST =

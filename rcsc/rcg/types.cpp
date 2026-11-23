@@ -1580,9 +1580,9 @@ PlayerTypeT::toServerString( std::ostream & os ) const
     to_sexp( os, "flag_max_observation_length", quantize( flag_max_observation_length_, 0.000001 ) );
     // 19.0
     to_sexp( os, "dist_noise_rate", dist_noise_rate_ );
-    to_sexp( os, "focus_dist_noise_rate", dist_noise_rate_ );
-    to_sexp( os, "land_dist_noise_rate", dist_noise_rate_ );
-    to_sexp( os, "land_focus_dist_noise_rate", dist_noise_rate_ );
+    to_sexp( os, "focus_dist_noise_rate", focus_dist_noise_rate_ );
+    to_sexp( os, "land_dist_noise_rate", land_dist_noise_rate_ );
+    to_sexp( os, "land_focus_dist_noise_rate", land_focus_dist_noise_rate_ );
 
     os << ')';
 
@@ -1627,9 +1627,9 @@ PlayerTypeT::toJSON( std::ostream & os ) const
     os << ',' << std::quoted( "flag_max_observation_length" ) << ':' << quantize( flag_max_observation_length_, 0.000001 );
     // 19.0
     os << ',' << std::quoted( "dist_noise_rate" ) << ':' << quantize( dist_noise_rate_, 0.000001 );
-    os << ',' << std::quoted( "focus_dist_noise_rate" ) << ':' << quantize( dist_noise_rate_, 0.000001 );
-    os << ',' << std::quoted( "land_dist_noise_rate" ) << ':' << quantize( dist_noise_rate_, 0.000001 );
-    os << ',' << std::quoted( "land_focus_dist_noise_rate" ) << ':' << quantize( dist_noise_rate_, 0.000001 );
+    os << ',' << std::quoted( "focus_dist_noise_rate" ) << ':' << quantize( focus_dist_noise_rate_, 0.000001 );
+    os << ',' << std::quoted( "land_dist_noise_rate" ) << ':' << quantize( land_dist_noise_rate_, 0.000001 );
+    os << ',' << std::quoted( "land_focus_dist_noise_rate" ) << ':' << quantize( land_focus_dist_noise_rate_, 0.000001 );
 
     os << '}' << '}';
     return os;

@@ -175,6 +175,7 @@ The tests of the CMake build are:
 |---|---|
 | `run_test_vector_2d`, `run_test_matrix_2d`, `run_test_segment_2d`, `run_test_triangle_2d`, `run_test_rect_2d`, `run_test_polygon_2d`, `run_test_voronoi_diagram`, `run_test_convex_hull`, `rundom_convex_hull` | the unit tests of `rcsc/geom` (CppUnit) |
 | `test_clang_parser` | the unit test of `rcsc/clang` (CppUnit) |
+| `run_test_rcg_types` | the unit test of the data types of `rcsc/rcg` (e.g. the output of `rcsc::rcg::PlayerTypeT`) (CppUnit) |
 | `run_test_server_param` | the unit test of `rcsc::ServerParam` and `rcsc::rcg::ServerParamT` in `rcsc/common` (CppUnit) |
 | `install` | installs librcsc into `test-install` in the build directory, for the following tests |
 | `installed_headers` | each installed header file can be compiled alone (e.g. no header file that it includes is missing in the installation) |

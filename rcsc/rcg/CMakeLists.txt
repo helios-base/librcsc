@@ -42,3 +42,11 @@ install(FILES
   util.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/rcg
   )
+
+# unit tests (CppUnit): the same program as "make check" of the Autotools build
+if(LIBRCSC_UNIT_TESTS)
+  add_executable(run_test_rcg_types test_types.cpp)
+  target_link_libraries(run_test_rcg_types PRIVATE rcsc_build_settings rcsc PkgConfig::CPPUNIT)
+  add_test(NAME run_test_rcg_types COMMAND run_test_rcg_types)
+  librcsc_set_unit_test_environment(run_test_rcg_types)
+endif()
