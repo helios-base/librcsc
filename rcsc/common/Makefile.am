@@ -45,3 +45,20 @@ AM_CXXFLAGS = -Wall -W
 AM_LDFLAGS =
 
 CLEANFILES = *~
+
+if UNIT_TEST
+TESTS = \
+	run_test_server_param
+endif
+
+check_PROGRAMS = $(TESTS)
+
+# librcsc.la is built after this directory. Link the convenience libraries used by ServerParam.
+run_test_server_param_SOURCES = test_server_param.cpp
+run_test_server_param_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W
+run_test_server_param_LDADD = \
+	librcsc_common.la \
+	$(top_builddir)/rcsc/rcg/librcsc_rcg.la \
+	$(top_builddir)/rcsc/param/librcsc_param.la \
+	$(top_builddir)/rcsc/geom/librcsc_geom.la \
+	$(CPPUNIT_LIBS)

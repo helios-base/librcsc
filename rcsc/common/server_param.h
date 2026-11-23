@@ -648,6 +648,15 @@ private:
     double M_land_dist_noise_rate;
     double M_land_focus_dist_noise_rate;
 
+    // 20.0
+    // rcssserver does not send these parameters to players and coaches,
+    // but writes them to the game log and sends them to monitors.
+    int M_tcp_player_port; //!< TCP port for players and monitors. 0: disabled, -1: same as M_player_port
+    int M_tcp_trainer_port; //!< TCP port for trainers (offline coaches). 0: disabled, -1: same as M_trainer_port
+    int M_tcp_online_coach_port; //!< TCP port for online coaches. 0: disabled, -1: same as M_online_coach_port
+    int M_ws_port; //!< WebSocket port for all services. 0: disabled
+    std::string M_ws_allowed_origins; //!< comma separated Origin values accepted by WebSocket. empty: all
+
     // xxx
     int M_random_seed;
     double M_long_kick_power_factor;
@@ -1137,6 +1146,41 @@ public:
     double focusDistNoiseRate() const { return M_focus_dist_noise_rate; }
     double landDistNoiseRate() const { return M_land_dist_noise_rate; }
     double landFocusDistNoiseRate() const { return M_land_focus_dist_noise_rate; }
+
+    // v20
+
+    /*!
+      \brief get the TCP port number for players and monitors (server::tcp_port)
+      \return port number. 0 means that TCP is disabled.
+      A negative parameter value (-1) returns the UDP port number (server::port).
+     */
+    int tcpPlayerPort() const { return M_tcp_player_port < 0 ? playerPort() : M_tcp_player_port; }
+
+    /*!
+      \brief get the TCP port number for trainers (server::tcp_coach_port)
+      \return port number. 0 means that TCP is disabled.
+      A negative parameter value (-1) returns the UDP port number (server::coach_port).
+     */
+    int tcpTrainerPort() const { return M_tcp_trainer_port < 0 ? trainerPort() : M_tcp_trainer_port; }
+
+    /*!
+      \brief get the TCP port number for online coaches (server::tcp_olcoach_port)
+      \return port number. 0 means that TCP is disabled.
+      A negative parameter value (-1) returns the UDP port number (server::olcoach_port).
+     */
+    int tcpOnlineCoachPort() const { return M_tcp_online_coach_port < 0 ? onlineCoachPort() : M_tcp_online_coach_port; }
+
+    /*!
+      \brief get the WebSocket port number (server::ws_port)
+      \return port number. 0 means that WebSocket is disabled.
+     */
+    int wsPort() const { return M_ws_port; }
+
+    /*!
+      \brief get the Origin values accepted by WebSocket (server::ws_allowed_origins)
+      \return comma separated values. An empty string means that all origins are accepted.
+     */
+    const std::string & wsAllowedOrigins() const { return M_ws_allowed_origins; }
 
     // XXX
     int randomSeed() const { return M_random_seed; }
