@@ -108,3 +108,11 @@ Each item has the date when the change was made.
 - (2026-11-24) Tests: added the unit test `run_test_server_param` (`rcsc/common`, CMake and Autotools).
   The unit tests of the CMake build are run with `LD_LIBRARY_PATH` set to the library directory in the build tree,
   so they test the built librcsc even if `LD_LIBRARY_PATH` contains an installed librcsc.
+- (2026-11-24) Fixed the values of the noise rate parameters of the player types written by librcsc
+  (`rcsc::rcg::PlayerTypeT::toServerString()` and `toJSON()`).
+  `focus_dist_noise_rate`, `land_dist_noise_rate` and `land_focus_dist_noise_rate` were written with the value of `dist_noise_rate`.
+  The rcg files written by librcsc (e.g. by `rcgrenameteam`, `rcgreverse`, `rcgverconv` and soccerwindow2) had the wrong values;
+  with the default values of rcssserver, `land_dist_noise_rate` and `land_focus_dist_noise_rate` became 0.0125 instead of 0.00125.
+  The rcg files written by rcssserver are not affected.
+- (2026-11-24) Tests: added the unit test `run_test_rcg_types` (`rcsc/rcg`, CMake and Autotools).
+  It checks that each parameter of `PlayerTypeT` is written with its own value.
