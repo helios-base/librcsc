@@ -1,10 +1,10 @@
 # librcsc Boost 対応の見直し・CMake ビルドの整備 計画書
 
 - 作成日: 2026-11-21
-- ステータス: librcsc での作業は完了（Phase 0〜4・6a・6b・7）。PR #119 のマージ待ち。Phase 8 は soccerwindow2 で行う
+- ステータス: 完了（2026-11-23）。Phase 0〜4・6a・6b・7 は librcsc の PR #119（2026-11-21 に develop にマージ。`897bc90`）で、Phase 8 は soccerwindow2 の PR #98（2026-11-23 に develop にマージ。`6c9d09c`）で行った
 - ベースブランチ: `develop`（librcsc の既定ブランチ。master は年1回程度の更新）
 - 作業ブランチ: `feature/boost-cmake-maintenance`（ユーザが GitHub 上で develop から作る）
-- 関連: soccerwindow2 の計画書 `docs/plan/2026-11-19_qt6-cmake-migration.md`（soccerwindow2 リポジトリ。PR #94 でマージ済み）
+- 関連: soccerwindow2 の計画書 `docs/plan/2026-11-19_qt6-cmake-migration.md`（soccerwindow2 リポジトリ。PR #94 でマージ済み）と、Phase 8 を行った `docs/plan/2026-11-23-00_ubuntu2604-librcsc.md`（soccerwindow2 リポジトリ。PR #98 でマージ済み）
 
 ## 1. 背景と目的
 
@@ -208,6 +208,8 @@ librcsc のこの計画が完了し、develop にマージされた後に行う�
 - librcsc が提供する `librcscConfig.cmake` を使い、soccerwindow2 で `find_package(librcsc CONFIG)` を使うことを検討する。Config は CMake でインストールした librcsc にしかないので、見つからないときは今の `cmake/FindLibrcsc.cmake` を使う形にする（「3. 決定事項」）。今の探す場所（`LIBRCSC_INSTALL_DIR`、環境変数 `LIBRCSC_PREFIX`）は `HINTS` で引き継げる。
 - soccerwindow2 の `configure.ac` が `$HOME/local` を `$HOME/.local` より先に探す順序を見直す（librcsc の既定が `~/.local` になり、両方にあると古い方が使われるため）。
 - soccerwindow2 の計画書（またはその後継の計画書）に記録する。
+
+→ soccerwindow2 の計画書 `docs/plan/2026-11-23-00_ubuntu2604-librcsc.md` で行った（「6. 実装記録」の Phase 8）。
 
 ### この計画の後に行う作業（別の計画）
 
@@ -493,6 +495,21 @@ Phase 6b は完了した。
 - `./cmake-helper.sh test` で CTest の14個がすべて通った。手元のシェルの `LD_LIBRARY_PATH` には `~/local/lib` が入っているが、検査はそれを外して行われ、`test-install` の librcsc に解決された。
 - CI の結果（`d19d18a`）: 5ジョブすべて成功した。CMake のジョブでは CTest の14個（`installed_tools` を含む）がすべて通り、Autotools のジョブでは `check-tools` が「All the 10 programs ... run without LD_LIBRARY_PATH.」で通った（24.04・26.04 とも）。
 
+### Phase 8（2026-11-23、soccerwindow2 で実施）
+
+soccerwindow2 の計画書 `docs/plan/2026-11-23-00_ubuntu2604-librcsc.md` で行い、soccerwindow2 の PR #98（`Support Ubuntu 26.04 and the new build of librcsc`）で develop にマージされた（`6c9d09c`）。詳しい経緯と検証の結果は、その計画書に記録してある。
+
+この計画の Phase 8 の項目の結果:
+
+- Ubuntu 26.04: soccerwindow2 の CI に Ubuntu 26.04 の4ジョブを戻し、librcsc に合わせて Ubuntu 22.04 を外した（Ubuntu 24.04・26.04 × Qt5・Qt6 × CMake・Autotools の8ジョブ）。soccerwindow2 にも、GCC 15 での `<algorithm>` の読み込み漏れ（5ファイル）と、Qt 6.6 以降で非推奨の `QColor::setNamedColor()` があり、直した。8ジョブすべて成功し、警告は0件。
+- CI の librcsc のビルド: CMake のジョブでは librcsc を CMake でビルドする（この計画の `cmake-helper.sh install`、`-DBUILD_TESTING=OFF`、インストール先は `~/local`）。Autotools のジョブは今までどおり Autotools でビルドする。キャッシュのキーにビルドシステムを加えた。
+- `librcscConfig.cmake`: soccerwindow2 の CMake のビルドは、まず `find_package(librcsc CONFIG)` で探し、見つからなければ（Autotools でインストールした librcsc）今までの `cmake/FindLibrcsc.cmake` で探す。`FindLibrcsc.cmake` のインポートターゲットの名前を `librcsc::rcsc` に揃えた。CI の CMake のジョブで、Config で見つかることと、`-DCMAKE_DISABLE_FIND_PACKAGE_librcsc=ON` で `FindLibrcsc.cmake` に切り替えてもビルドとテストが通ることを確かめている。
+  - 分かったこと（librcsc を使うほかのプログラムにも関係する）: `find_package` の `HINTS` は `ENV` に対応していない（`$ENV{LIBRCSC_PREFIX}` と書く必要がある）。また、ヒントの場所に Config がないと、`PATH` の `~/.local/bin` から推測した `~/.local` やシステムの場所の Config も見つかる。soccerwindow2 では、`LIBRCSC_INSTALL_DIR` で指定した Autotools 版の librcsc より、ほかの場所の Config が優先されないよう、Config を探す場所をヒントと明示した場所（`librcsc_DIR`、`librcsc_ROOT`、`CMAKE_PREFIX_PATH`）に限った。
+- `configure.ac`: librcsc を探す順序を `~/.local`、`~/local`、`/opt/local`、`/usr/local`、`/usr` にし、見つけた場所を表示するようにした。
+- （追加）librcsc の公開ヘッダが Boost を読み込まなくなったため、soccerwindow2 の Boost への依存をなくした（使っていたのは1か所だけだった）。
+
+Phase 8 は完了した。これでこの計画は完了した。
+
 ## 7. まとめ（librcsc での作業）
 
 - Boost 1.89 以降（Ubuntu 26.04、Boost 1.90）で、CMake と Autotools のどちらでもビルドとテストができるようになった（Boost.System への依存を除き、最低バージョンを 1.70 にした。公開ヘッダから Boost の読み込みを除いた）。GCC 15 でのビルドエラーも直した。
@@ -500,4 +517,5 @@ Phase 6b は完了した。
 - テスト（CppUnit の単体テストの CTest への登録と、Autotools の `make check` の修正、インストールの検査（ヘッダの単独コンパイル、`find_package`、ツールが `LD_LIBRARY_PATH` なしで動くこと））と、`cmake-helper.sh` を加えた。
 - GitHub Actions の CI（Ubuntu 24.04・26.04 × CMake・Autotools と、インストールされたファイルの比較）を加えた。
 - 文書（`README.md`、`docs/build.md`、`RELEASE_NOTES.md`）を現状に合わせた。
-- 残りの作業: PR #119 のマージ（ユーザが GitHub 上で行う）、Phase 8（soccerwindow2 での作業）、「この計画の後に行う作業」。
+- PR #119 は 2026-11-21 に develop にマージされた。Phase 8（soccerwindow2 での作業）は soccerwindow2 の PR #98 で行い、2026-11-23 にマージされた。
+- 残りの作業: 「この計画の後に行う作業」（別の計画）。
