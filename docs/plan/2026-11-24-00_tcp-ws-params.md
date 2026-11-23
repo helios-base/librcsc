@@ -1,7 +1,7 @@
 # rcssserver 20 の TCP・WebSocket 用パラメータへの対応 計画書
 
 - 作成日: 2026-11-24
-- ステータス: 実装・手元での確認が完了。コミット待ち
+- ステータス: 完了。PR #121（`Support the TCP and WebSocket parameters of rcssserver 20`）で develop に取り込む（Squash Merge）
 - ベースブランチ: `develop`
 - 作業ブランチ: `feature/tcp-ws-params`（ユーザが作成済み。`897bc90` から分岐）
 - 関連: rcssserver の `develop`（`8f1097c`、PR #155・#156 で TCP・WebSocket に対応。NEWS の `[20.0.0]`）
@@ -131,3 +131,10 @@ rcssserver の `src/serverparam.cpp`・`src/serverparam.h`・`NEWS` で確認し
 - CMake（`build/`、Debug）: 全15個のテストが通った（警告なし）。
 - Autotools（作業ツリーのコピーで `./bootstrap`、`./configure --enable-unit-test`、`make`、`make check`、`make distcheck DISTCHECK_CONFIGURE_FLAGS="--enable-unit-test"`）: すべて通った。`run_test_server_param` は配布物でも実行された。
 - rcssserver が rcg に書く文字列のパラメータの形式（テキスト形式は `(name "value")`、JSON 形式は `"name":"value"`）を rcssserver のソースで確かめ、テストの入力をそれに合わせた。
+
+### 7.4 PR と CI の結果（2026-11-24）
+
+- 実装を `045d721` でコミットし、PR #121（develop ← `feature/tcp-ws-params`）を作成した。
+- CI（`045d721`）: 5つのジョブ（ubuntu-24.04・26.04 × CMake・Autotools、インストールされるファイルの比較）がすべて成功した。
+  4つのビルドのジョブのログで、`run_test_server_param` が実行され成功したことを確かめた（CMake は `ctest`、Autotools は `make check` と `make distcheck`）。
+- 取り込みの方法: 機能としてまとまった変更のため、Squash Merge とする。この記録は、取り込みの前に PR のブランチにコミットする。
