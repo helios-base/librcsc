@@ -1,7 +1,7 @@
 # PlayerTypeT が出力する v19 の noise rate の値の修正 計画書
 
 - 作成日: 2026-11-24
-- ステータス: 実装・手元での確認が完了。コミット待ち
+- ステータス: 完了。PR #122（`Fix the noise rate parameters written by PlayerTypeT`）で develop に取り込む（Squash Merge）
 - ベースブランチ: `develop`
 - 作業ブランチ: `fix/player-type-json-noise-rate`（ユーザが作成済み。`4a344df` から分岐）
 - 関連: `docs/plan/2026-11-24-00_tcp-ws-params.md`（PR #121。その作業中にこの不具合を見つけ、別の PR で直すことにした）
@@ -86,3 +86,10 @@
 - 修正だけを一時的に戻すと、`run_test_rcg_types` が失敗した（`testPlayerTypeNoiseRate` は `Expected: 0.0225`・`Actual: 0.0125`、`testPlayerTypeAllParams` も失敗）。修正を戻し直して通ることを確かめた。
 - CMake（`build/`、Debug）: 全16個のテストが通った（警告なし）。
 - Autotools（作業ツリーのコピーで `./bootstrap`、`./configure --enable-unit-test`、`make`、`make check`、`make distcheck DISTCHECK_CONFIGURE_FLAGS="--enable-unit-test"`）: すべて通った（`make check` の単体テストは12個）。`run_test_rcg_types` は配布物でも実行された。
+
+### 6.3 PR と CI の結果（2026-11-24）
+
+- 実装を `e8f1a5f` でコミットし、PR #122（develop ← `fix/player-type-json-noise-rate`）を作成した。PR のタイトルは、テキスト形式も直したため JSON に限らないものにした。
+- CI（`e8f1a5f`）: 5つのジョブ（ubuntu-24.04・26.04 × CMake・Autotools、インストールされるファイルの比較）がすべて成功した。
+  4つのビルドのジョブのログで、`run_test_rcg_types` が実行され成功したことを確かめた（CMake は `ctest`、Autotools は `make check` と `make distcheck`）。
+- 取り込みの方法: 1つの不具合の修正のため、Squash Merge とする。この記録は、取り込みの前に PR のブランチにコミットする。
