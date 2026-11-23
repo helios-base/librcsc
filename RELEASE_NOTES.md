@@ -91,3 +91,20 @@ Each item has the date when the change was made.
 - (2026-11-21) Added the check of the installed tools: the `installed_tools` test of CMake, `./cmake-helper.sh check-tools PREFIX`,
   and the CI of Autotools check that the installed tools run without `LD_LIBRARY_PATH` and use librcsc in the same installation.
   `docs/build.md` describes that `sudo ldconfig` is needed after installing librcsc into a system directory such as `/usr/local`.
+- (2026-11-24) Support the new server parameters of rcssserver 20 for the TCP and WebSocket connections:
+  `tcp_port`, `tcp_coach_port`, `tcp_olcoach_port`, `ws_port` and `ws_allowed_origins`.
+  librcsc only reads them; the clients of librcsc still connect with UDP.
+  - rcssserver does not send these parameters to players and coaches,
+    but writes them to the game log (rcg) and sends them to monitors.
+  - `rcsc::ServerParam`: new accessors `tcpPlayerPort()`, `tcpTrainerPort()`, `tcpOnlineCoachPort()`, `wsPort()` and `wsAllowedOrigins()`.
+    0 means that TCP or WebSocket is disabled.
+    If a TCP port parameter is -1, the accessor returns the matching UDP port number (`playerPort()`, `trainerPort()` or `onlineCoachPort()`), as rcssserver does.
+    `ServerParam::toServerString()` also prints these parameters.
+  - `rcsc::rcg::ServerParamT`: new members `tcp_port_`, `tcp_coach_port_`, `tcp_olcoach_port_`, `ws_port_` and `ws_allowed_origins_`,
+    which are converted by `ServerParam::convertFrom()` and `convertTo()`.
+    The rcg files of rcssserver 20 are read without the warnings `Unsupported parameter.` for these parameters.
+  - The sizes of `rcsc::ServerParam` and `rcsc::rcg::ServerParamT` are changed.
+    Rebuild the programs built with librcsc of the develop branch before this change (the library version 20 is not released yet).
+- (2026-11-24) Tests: added the unit test `run_test_server_param` (`rcsc/common`, CMake and Autotools).
+  The unit tests of the CMake build are run with `LD_LIBRARY_PATH` set to the library directory in the build tree,
+  so they test the built librcsc even if `LD_LIBRARY_PATH` contains an installed librcsc.

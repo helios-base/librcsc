@@ -38,3 +38,11 @@ install(FILES
   team_graphic.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/common
   )
+
+# unit tests (CppUnit): the same program as "make check" of the Autotools build
+if(LIBRCSC_UNIT_TESTS)
+  add_executable(run_test_server_param test_server_param.cpp)
+  target_link_libraries(run_test_server_param PRIVATE rcsc_build_settings rcsc PkgConfig::CPPUNIT)
+  add_test(NAME run_test_server_param COMMAND run_test_server_param)
+  librcsc_set_unit_test_environment(run_test_server_param)
+endif()

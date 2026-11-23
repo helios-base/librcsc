@@ -175,6 +175,7 @@ The tests of the CMake build are:
 |---|---|
 | `run_test_vector_2d`, `run_test_matrix_2d`, `run_test_segment_2d`, `run_test_triangle_2d`, `run_test_rect_2d`, `run_test_polygon_2d`, `run_test_voronoi_diagram`, `run_test_convex_hull`, `rundom_convex_hull` | the unit tests of `rcsc/geom` (CppUnit) |
 | `test_clang_parser` | the unit test of `rcsc/clang` (CppUnit) |
+| `run_test_server_param` | the unit test of `rcsc::ServerParam` and `rcsc::rcg::ServerParamT` in `rcsc/common` (CppUnit) |
 | `install` | installs librcsc into `test-install` in the build directory, for the following tests |
 | `installed_headers` | each installed header file can be compiled alone (e.g. no header file that it includes is missing in the installation) |
 | `find_package` | a CMake project can use the installed librcsc by `find_package(librcsc CONFIG)` and `librcsc::rcsc` |
@@ -182,6 +183,8 @@ The tests of the CMake build are:
 
 - The unit tests need CppUnit, which is found by pkg-config.
   Without CppUnit, they are not built (the configure output shows `unit tests: OFF`), and the other tests are run.
+- The unit tests are run with `LD_LIBRARY_PATH` set to the library directory in the build tree,
+  so they test the built librcsc even if `LD_LIBRARY_PATH` contains an installed librcsc (e.g. `~/.local/lib`).
 - The `install` test does not change `install_manifest.txt` of your installation, so the `uninstall` target still works for it.
 - `-DBUILD_TESTING=OFF` disables all the tests.
 

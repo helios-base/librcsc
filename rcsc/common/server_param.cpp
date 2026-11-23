@@ -545,6 +545,12 @@ ServerParam::setDefaultParam()
     M_trainer_port = DEFAULT_TRAINER_PORT;
     M_online_coach_port = DEFAULT_ONLINE_COACH_PORT;
 
+    M_tcp_player_port = 0;
+    M_tcp_trainer_port = 0;
+    M_tcp_online_coach_port = 0;
+    M_ws_port = 0;
+    M_ws_allowed_origins = "";
+
     M_verbose_mode = DEFAULT_VERBOSE_MODE;
 
     M_online_coach_look_step = DEFAULT_ONLINE_COACH_LOOK_STEP;
@@ -999,6 +1005,13 @@ ServerParam::createMap()
         ( "focus_dist_noise_rate", "", &M_focus_dist_noise_rate )
         ( "land_dist_noise_rate", "", &M_land_dist_noise_rate )
         ( "land_focus_dist_noise_rate", "", &M_land_focus_dist_noise_rate )
+        // 20.0
+        ( "tcp_port", "", &M_tcp_player_port )
+        ( "tcp_coach_port", "", &M_tcp_trainer_port )
+        ( "tcp_olcoach_port", "", &M_tcp_online_coach_port )
+        ( "ws_port", "", &M_ws_port )
+        ( "ws_allowed_origins", "", &M_ws_allowed_origins )
+
         // XXX
         //( "random_seed", "", &M_random_seed )
         ;
@@ -1617,6 +1630,12 @@ ServerParam::convertFrom( const rcg::ServerParamT & from )
     M_focus_dist_noise_rate = from.focus_dist_noise_rate_;
     M_land_dist_noise_rate = from.land_dist_noise_rate_;
     M_land_focus_dist_noise_rate = from.land_focus_dist_noise_rate_;
+    // v20
+    M_tcp_player_port = from.tcp_port_;
+    M_tcp_trainer_port = from.tcp_coach_port_;
+    M_tcp_online_coach_port = from.tcp_olcoach_port_;
+    M_ws_port = from.ws_port_;
+    M_ws_allowed_origins = from.ws_allowed_origins_;
 
     //
     setAdditionalParam();
@@ -1998,6 +2017,12 @@ ServerParam::convertTo( rcg::ServerParamT & to ) const
     to.focus_dist_noise_rate_ = M_focus_dist_noise_rate;
     to.land_dist_noise_rate_ = M_land_dist_noise_rate;
     to.land_focus_dist_noise_rate_ = M_land_focus_dist_noise_rate;
+    // v20
+    to.tcp_port_ = M_tcp_player_port;
+    to.tcp_coach_port_ = M_tcp_trainer_port;
+    to.tcp_olcoach_port_ = M_tcp_online_coach_port;
+    to.ws_port_ = M_ws_port;
+    to.ws_allowed_origins_ = M_ws_allowed_origins;
 }
 
 /*-------------------------------------------------------------------*/

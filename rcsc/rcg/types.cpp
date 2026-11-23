@@ -748,6 +748,11 @@ ServerParamT::ServerParamT()
       focus_dist_noise_rate_( 0.0125 ),
       land_dist_noise_rate_( 0.00125 ),
       land_focus_dist_noise_rate_( 0.00125 ),
+      tcp_port_( 0 ),
+      tcp_coach_port_( 0 ),
+      tcp_olcoach_port_( 0 ),
+      ws_port_( 0 ),
+      ws_allowed_origins_( "" ),
       impl_( new Impl( this ) )
 {
 
@@ -977,6 +982,12 @@ ServerParamT::Impl::Impl( ServerParamT * p )
     param_map_.insert( ParamMap::value_type( "focus_dist_noise_rate", &(p->focus_dist_noise_rate_ ) ) );
     param_map_.insert( ParamMap::value_type( "land_dist_noise_rate", &(p->land_dist_noise_rate_ ) ) );
     param_map_.insert( ParamMap::value_type( "land_focus_dist_noise_rate", &(p->land_focus_dist_noise_rate_ ) ) );
+    // 20.0
+    param_map_.insert( ParamMap::value_type( "tcp_port", &(p->tcp_port_ ) ) );
+    param_map_.insert( ParamMap::value_type( "tcp_coach_port", &(p->tcp_coach_port_ ) ) );
+    param_map_.insert( ParamMap::value_type( "tcp_olcoach_port", &(p->tcp_olcoach_port_ ) ) );
+    param_map_.insert( ParamMap::value_type( "ws_port", &(p->ws_port_ ) ) );
+    param_map_.insert( ParamMap::value_type( "ws_allowed_origins", &(p->ws_allowed_origins_ ) ) );
 }
 
 void

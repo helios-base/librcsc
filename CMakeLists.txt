@@ -113,6 +113,15 @@ if(BUILD_TESTING)
   endif()
 endif()
 
+# Run the unit tests with librcsc in the build tree. LD_LIBRARY_PATH is
+# searched before the library path recorded in the test programs (RUNPATH), so
+# an installed librcsc in LD_LIBRARY_PATH (e.g. ~/.local/lib) would be tested
+# instead, and the test programs could crash if its ABI is different.
+function(librcsc_set_unit_test_environment)
+  set_tests_properties(${ARGN} PROPERTIES
+    ENVIRONMENT "LD_LIBRARY_PATH=$<TARGET_FILE_DIR:rcsc>")
+endfunction()
+
 # check the settings
 message(STATUS "Build settings:")
 message(STATUS "  BUILD_TYPE=${CMAKE_BUILD_TYPE}")

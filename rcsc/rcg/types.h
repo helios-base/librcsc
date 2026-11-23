@@ -1456,6 +1456,12 @@ struct ServerParamT {
     double focus_dist_noise_rate_;
     double land_dist_noise_rate_;
     double land_focus_dist_noise_rate_;
+    // v20
+    int tcp_port_;
+    int tcp_coach_port_;
+    int tcp_olcoach_port_;
+    int ws_port_;
+    std::string ws_allowed_origins_;
 
     ServerParamT();
 
