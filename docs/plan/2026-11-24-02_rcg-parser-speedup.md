@@ -6,7 +6,7 @@
 | 最終更新日 | 2026-11-24 |
 | 対象 | `develop` (`212f5e7`)。同梱の simdjson 3.8.0 |
 | ブランチ | `feature/rcg-parser-speedup`。`develop` の `212f5e7` から、ユーザが GitHub で作った |
-| 状態 | 段階 1 が完了した (CI 通過)。段階 2 を実装した (コミット前)。PR #123 (下書き)。詳しくは「進み具合」を参照 |
+| 状態 | 段階 1・2 が完了した (CI 通過)。段階 3 の前で作業を中断している。PR #123 (下書き)。詳しくは「進み具合」を参照 |
 | 関連 | `docs/plan/2026-11-21_boost-cmake-maintenance.md` (simdjson の更新と `parser_json` の扱いをこの計画に回した)。参照実装: rcssmonitor の PR #65 (`docs/plan/2026-11-11_3d-view.md` の Phase 2)。利用側: soccerwindow2 (`src/model/main_data.cpp`) |
 
 ## 進み具合
@@ -14,8 +14,8 @@
 | 段階 | 内容 | 状態 | ユーザの確認 | CI | コミット | プッシュ |
 |---|---|---|---|---|---|---|
 | 1 | 計測と回帰テストの土台 (§4.1、S11) | 完了 | 済み | 通過 | `b4d1b5c` | 済み |
-| 2 | simdjson 5.1.1 への更新、`parser_json` の移動 (§4.2、D2、D3、D6、S8、S9、S14) | 完了 | 未 | 未 | — | 未 |
-| 3 | メモリからの解析、ファイルの一括読み込み (§4.3、S2、S3、S12) | 未着手 | 未 | 未 | — | 未 |
+| 2 | simdjson 5.1.1 への更新、`parser_json` の移動 (§4.2、D2、D3、D6、S8、S9、S14) | 完了 | 済み | 通過 | `e778865` | 済み |
+| 3 | メモリからの解析、ファイルの一括読み込み (§4.3、D7、S2、S3、S12) | 未着手 | 未 | 未 | — | 未 |
 | 4 | 行の並列解析 (§4.4、D5、S1、S10、S13) | 未着手 | 未 | 未 | — | 未 |
 | 5 | libdeflate による展開 (§4.5、D4) | 未着手 | 未 | 未 | — | 未 |
 | 6 | 読み込みの堅牢化 (§4.6、S5) | 未着手 | 未 | 未 | — | 未 |
@@ -138,6 +138,7 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
 | D4 | gzip の展開に libdeflate を使う。任意の依存とし、見つかれば使い、なければ zlib で展開する | 2026-11-24 | 計画の作成時 |
 | D5 | 並列に解析するスレッドの数の上限を、API で設定できるようにする (例: `Parser::setMaxThreads( n )`。0 は既定、1 は並列にしない) | 2026-11-24 | 計画の作成時 |
 | D6 | `nlohmann/json.hpp` は `obsolete/` にも移さず、削除する (D3 を変えた)。`parser_json.{h,cpp}` は D3 のとおり `obsolete/rcg/` に移す | 2026-11-24 | 段階 2 の初め |
+| D7 | ファイルを (gzip なら展開して) メモリに読む関数 (S3) は `rcsc/gz/` に置く (§3.3) | 2026-11-24 | 段階 3 の初め |
 
 ### 3.2 設計上の判断 (Claude)
 
@@ -161,7 +162,7 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
 ### 3.3 段階の初めに決めること
 
 - 段階 2: fallback の測定の結果を見て、On-Demand の対象の CPU を選ぶ手段 (CMake・configure のオプションなど) を設けるか。→ 設けない (S14)。
-- 段階 3: ファイルを読む関数の名前と置き場所 (案: gzip を扱う `rcsc/gz/` に置くか、rcg 専用として `rcsc/rcg/` に置くか)。
+- 段階 3: ファイルを読む関数の名前と置き場所 (案: gzip を扱う `rcsc/gz/` に置くか、rcg 専用として `rcsc/rcg/` に置くか)。→ `rcsc/gz/` に置く (D7)。名前は実装の時に決める。
 - 段階 5: CI のどのジョブに `libdeflate-dev` を入れるか (rcssmonitor は、Autotools のジョブに入れず、両方の経路をビルドしている)。
 - 段階 6: ボールの高さ (`z`、`vz`) を `BallT` に加えるか (rcssmonitor の B-5)。加えるなら、書き出し (`serializer_json` など) も直すか。
 
@@ -236,7 +237,7 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
   - CMake (Release、GCC 13.3): ビルドの警告 0。`ctest` で 17 個すべて通った。
   - Autotools: コンパイラの警告 0。`make check` で 13 個すべて通り、`make distcheck` (`--enable-unit-test`) も通った。配布物に simdjson の 3 つのファイルが入り、nlohmann と `parser_json` は入らないことを確かめた。
   - 全体の比較 (S11): 変更前 (`212f5e7`) のインストールと比べて、6 つの変換がすべて同じだった。JSON のログにはチームのグラフィックが 256 個ある。
-  - GCC 15 の警告が消えたかは、CI (Ubuntu 26.04) で確かめる。
+  - CI (`e778865`): Ubuntu 26.04 (GCC 15.2) の CMake と Autotools のジョブで、コンパイラの警告が 0 になった (段階 1 までは simdjson の 9 件)。
 - 大きさとコンパイルの時間 (`-O3`、1 ファイルずつ `/usr/bin/g++` で。手元の CMake のビルドは ccache を通るため、全体のビルドの時間は比べられない):
 
 | 項目 | 3.8.0 | 5.1.1 |
@@ -274,7 +275,7 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
   - そうでなければ (1 行の文書など)、今のとおり文書全体を解析する。
   - `parse(istream)` での写しを 1 回に減らす。
   - `handleLogVersion()` が false なら、読み込みをやめる (S12)。
-- ファイルを読む関数 (S3。名前と置き場所は §3.3):
+- ファイルを読む関数 (S3。`rcsc/gz/` に置く。D7。名前は実装の時に決める):
   - gzip でなければ、そのまま読む。
   - zlib があれば、`gzread` で 1 MB ずつ読む (`gzbuffer`。gzip の ISIZE で大きさを見積もる)。途中で切れた gzip は、切れた所まで読む。
   - 基底の `parse(filepath)` と `ParserSimdJSON::parse(filepath)` を、この関数で読むようにする。
@@ -394,7 +395,7 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
 ## 7. 変更するファイル (見込み)
 
 - `rcsc/rcg/`: `parser.{h,cpp}`、`parser_v1.h`〜`parser_v3.h` (`using`)、`parser_v4.{h,cpp}`、`parser_simdjson.{h,cpp}`、`handler.h`、`line_parser.{h,cpp}` (新規)、`simdjson/*`、`test_parser.cpp`・`test_line_parser.cpp` (新規)、`test_data/` (新規)、`CMakeLists.txt`、`Makefile.am`
-- ファイルを読む関数 (`rcsc/gz/` または `rcsc/rcg/`。§3.3)
+- ファイルを読む関数 (`rcsc/gz/`。D7)。`rcsc/gz/Makefile.am`・`rcsc/gz/CMakeLists.txt`・`rcsc/gz.h`
 - `obsolete/rcg/` (移動先)
 - `src/`: rcg を読むツール、`rcg_parser_bench.cpp` (新規)、`CMakeLists.txt`、`Makefile.am`
 - `CMakeLists.txt`、`configure.ac`、`cmake-config.h.in`、`librcsc.pc.in`、`librcsc.spec.in`、CMake のパッケージ構成ファイル (必要なら)
@@ -443,4 +444,18 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
 - CMake の `ctest` 17 個、Autotools の `make check` 13 個と `make distcheck` が通った。全体の比較で、変更前と出力が同じだった。
 - JSON は 205.9 → 201.1 ms (`stream`) になった。`simdjson.cpp` のコンパイルは 2.95 → 8.61 秒になった。
 - On-Demand を haswell 向けにしても速さは変わらなかったため、対象の CPU を選ぶ手段は設けないことにした (S14)。
-- この後: ユーザの確認の後、段階 2 をコミットしてプッシュし、CI (特に Ubuntu 26.04 の GCC 15 の警告) を確かめる。その後、段階 3 に着手する。
+- ユーザの確認の後、`e778865` としてコミットし、プッシュした。
+- CI の結果 (`e778865`): 5 ジョブすべて成功した。4 つのビルドのジョブで `run_test_rcg_parser` が通った (CMake は 17 個すべて、Autotools は `make check` と `make distcheck`)。Ubuntu 26.04 (GCC 15.2) でも、コンパイラの警告は 0 になった。GCC 15 の警告 9 件は解消した。Autotools のジョブの `warning:` は、libtool の既知のメッセージだけ。
+- この後: 段階 3 (メモリからの解析、ファイルの一括読み込み) に着手する。初めに、ファイルを読む関数の名前と置き場所を決める (§3.3)。
+
+### 2026-11-24: 段階 3 の置き場所を決め、作業を中断した
+
+- ユーザの決定 D7: ファイルを (gzip なら展開して) メモリに読む関数は `rcsc/gz/` に置く。
+- ユーザが作業の場所を移すため、段階 3 の前で作業を中断した。計画書だけをコミットしてプッシュした。
+- 再開するときの手順 (手元の環境に依るもの):
+  - 計測に使うログ (§2.7) は Git で追跡していない。新しい場所にも写す。
+  - 全体の比較 (S11) の「変更前」には、`212f5e7` (`develop`) をビルドしてインストールしたものを使う。例: `git worktree add <dir> 212f5e7` の後、`cmake -S <dir> -B <build> -DCMAKE_BUILD_TYPE=Release` と `cmake --install <build> --prefix <base>` で作り、`test/compare_rcg_output.sh <base>/bin <新しいビルド>/src <ログ>...` で比べる。
+  - ベンチマークと比較のスクリプトは、`LD_LIBRARY_PATH` を外して動かす (§4.1.2)。インストールした librcsc (Debug など) を測ってしまうため。
+  - 単体テストには CppUnit (Ubuntu では `libcppunit-dev`) が要る。
+  - 速さは、ビルドの種類 (CMake の Release) と計算機によって変わる。新しい場所では、段階 2 の状態 (`e778865`) で測り直してから比べる。
+- この後: 段階 3 に着手する。
