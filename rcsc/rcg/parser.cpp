@@ -115,7 +115,6 @@ Parser::create( std::istream & is )
     else if ( version == REC_VERSION_3 ) ptr = Parser::Ptr( new ParserV3() );
     else if ( version == REC_VERSION_2 ) ptr = Parser::Ptr( new ParserV2() );
     else if ( version == REC_OLD_VERSION ) ptr = Parser::Ptr( new ParserV1() );
-    //else if ( version == REC_VERSION_JSON ) ptr = Parser::Ptr( new ParserJSON() );
     else if ( version == REC_VERSION_JSON ) ptr = Parser::Ptr( new ParserSimdJSON() );
 
     return ptr;

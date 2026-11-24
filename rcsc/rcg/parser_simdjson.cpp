@@ -1,7 +1,7 @@
 // -*-c++-*-
 
 /*!
-  \file parser_json.cpp
+  \file parser_simdjson.cpp
   \brief rcg v6 (json) parser Source File.
 */
 
@@ -278,9 +278,8 @@ ParserSimdJSON::Impl::parseTeamGraphic( simdjson::ondemand::value & val,
         std::vector< std::string > xpm_data;
         for ( simdjson::ondemand::value s : val["xpm"].get_array() )
         {
-            std::string str;
-            s.get_string( str );
-            xpm_data.push_back( str );
+            // throws on an error, as the other values here
+            xpm_data.emplace_back( std::string_view( s.get_string() ) );
         }
 
         result = handler.handleTeamGraphic( side[0], x, y, xpm_data );

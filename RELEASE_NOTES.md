@@ -116,3 +116,15 @@ Each item has the date when the change was made.
   The rcg files written by rcssserver are not affected.
 - (2026-11-24) Tests: added the unit test `run_test_rcg_types` (`rcsc/rcg`, CMake and Autotools).
   It checks that each parameter of `PlayerTypeT` is written with its own value.
+- (2026-11-24) Tests and tools for the development of the rcg parser (see `docs/build.md`):
+  - The unit test `run_test_rcg_parser` (`rcsc/rcg`, CMake and Autotools) reads the first records of real game logs
+    (text v5 and v6, and JSON) in `rcsc/rcg/test_data`.
+  - `rcg_parser_bench` (built in `src/`, not installed) measures the time to load game logs.
+  - `test/compare_rcg_output.sh` checks that two builds of librcsc read the same data from game logs, by the outputs of `rcgverconv`.
+- (2026-11-24) The bundled simdjson, used by the JSON rcg parser, is updated from 3.8.0 to 5.1.1.
+  The 9 warnings of GCC 15 in `simdjson.cpp` (`-Wtemplate-id-cdtor`) are gone,
+  and the fix for GCC 15 applied to 3.8.0 is included in 5.1.1.
+  The header files of simdjson are not installed, so the programs using librcsc are not affected.
+  Compiling `simdjson.cpp` takes longer (about 9 seconds instead of 3 with `-O3`).
+- (2026-11-24) Moved the old JSON rcg parser `rcsc/rcg/parser_json.{h,cpp}`, which has never been built, to `obsolete/rcg`.
+  Deleted the bundled nlohmann/json (`rcsc/rcg/nlohmann/json.hpp`), which only this parser used.

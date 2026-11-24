@@ -510,6 +510,7 @@ class RcgParserTest
     CPPUNIT_TEST( testJsonFilePath );
     CPPUNIT_TEST( testTextLiveLine );
     CPPUNIT_TEST( testJsonLiveData );
+    CPPUNIT_TEST( testJsonTeamGraphic );
     CPPUNIT_TEST( testTextHandlerFalseDoesNotStop );
     CPPUNIT_TEST( testCreateWithoutHeader );
     CPPUNIT_TEST_SUITE_END();
@@ -526,6 +527,7 @@ protected:
     void testJsonFilePath();
     void testTextLiveLine();
     void testJsonLiveData();
+    void testJsonTeamGraphic();
     void testTextHandlerFalseDoesNotStop();
     void testCreateWithoutHeader();
 };
@@ -628,6 +630,30 @@ RcgParserTest::testJsonLiveData()
     assert_events( { "show 5" }, handler.events_ );
     CPPUNIT_ASSERT_DOUBLES_EQUAL( -1.6867, handler.shows_.front().ball_.x_, EPS );
     CPPUNIT_ASSERT_DOUBLES_EQUAL( 39.3019, handler.shows_.front().player_[11].x_, EPS );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief a team_graphic record of JSON (the 27th line of the JSON game log of head_json.rcg)
+*/
+void
+RcgParserTest::testJsonTeamGraphic()
+{
+    const std::string record = "{\"team_graphic\":{\"side\":\"l\",\"x\":31,\"y\":4,"
+        "\"xpm\":[\"8 8 3 1\",\"  c None\",\"~ c #4A8132\",\"z c #FEFFFC\","
+        "\"~zz     \",\"zzz     \",\"zz      \",\"zz      \",\"z       \",\"z       \",\"        \",\"        \"]}}";
+
+    ParserSimdJSON parser;
+    RecordHandler handler;
+    CPPUNIT_ASSERT( parser.parseData( record, handler ) );
+
+    assert_events( { "team_graphic l 31 4 12" }, handler.events_ );
+    const std::vector< std::string > & xpm = handler.team_graphics_.front();
+    CPPUNIT_ASSERT_EQUAL( std::string( "8 8 3 1" ), xpm[0] );
+    CPPUNIT_ASSERT_EQUAL( std::string( "  c None" ), xpm[1] );
+    CPPUNIT_ASSERT_EQUAL( std::string( "z c #FEFFFC" ), xpm[3] );
+    CPPUNIT_ASSERT_EQUAL( std::string( "~zz     " ), xpm[4] );
+    CPPUNIT_ASSERT_EQUAL( std::string( "        " ), xpm[11] );
 }
 
 /*-------------------------------------------------------------------*/

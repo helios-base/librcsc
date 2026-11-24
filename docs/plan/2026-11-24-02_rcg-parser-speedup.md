@@ -6,21 +6,21 @@
 | 最終更新日 | 2026-11-24 |
 | 対象 | `develop` (`212f5e7`)。同梱の simdjson 3.8.0 |
 | ブランチ | `feature/rcg-parser-speedup`。`develop` の `212f5e7` から、ユーザが GitHub で作った |
-| 状態 | 段階 1 を実装した (コミット前)。詳しくは「進み具合」を参照 |
+| 状態 | 段階 1 が完了した (CI 通過)。段階 2 を実装した (コミット前)。PR #123 (下書き)。詳しくは「進み具合」を参照 |
 | 関連 | `docs/plan/2026-11-21_boost-cmake-maintenance.md` (simdjson の更新と `parser_json` の扱いをこの計画に回した)。参照実装: rcssmonitor の PR #65 (`docs/plan/2026-11-11_3d-view.md` の Phase 2)。利用側: soccerwindow2 (`src/model/main_data.cpp`) |
 
 ## 進み具合
 
 | 段階 | 内容 | 状態 | ユーザの確認 | CI | コミット | プッシュ |
 |---|---|---|---|---|---|---|
-| 1 | 計測と回帰テストの土台 (§4.1、S11) | 完了 | 未 | 未 | — | 未 |
-| 2 | simdjson 5.1.1 への更新、`parser_json` の移動 (§4.2、D2、D3、S8、S9) | 未着手 | 未 | 未 | — | 未 |
+| 1 | 計測と回帰テストの土台 (§4.1、S11) | 完了 | 済み | 通過 | `b4d1b5c` | 済み |
+| 2 | simdjson 5.1.1 への更新、`parser_json` の移動 (§4.2、D2、D3、D6、S8、S9、S14) | 完了 | 未 | 未 | — | 未 |
 | 3 | メモリからの解析、ファイルの一括読み込み (§4.3、S2、S3、S12) | 未着手 | 未 | 未 | — | 未 |
 | 4 | 行の並列解析 (§4.4、D5、S1、S10、S13) | 未着手 | 未 | 未 | — | 未 |
 | 5 | libdeflate による展開 (§4.5、D4) | 未着手 | 未 | 未 | — | 未 |
 | 6 | 読み込みの堅牢化 (§4.6、S5) | 未着手 | 未 | 未 | — | 未 |
 | 7 | 仕上げ: 最終の計測、全体の比較、soccerwindow2 での確認、文書 (§4.7) | 未着手 | 未 | 未 | — | 未 |
-| — | develop への取り込み (PR 番号は未定、Squash Merge) | 未着手 | 未 | 未 | — | — |
+| — | develop への取り込み (PR #123。下書き。Squash Merge の予定) | 未着手 | 未 | 未 | — | — |
 
 ## 1. 目的と方針
 
@@ -134,9 +134,10 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
 |---|---|---|---|
 | D1 | 実装は rcssmonitor の方式 (PR #65) に倣う | 2026-11-24 | 計画の作成時 (依頼) |
 | D2 | 同梱の simdjson を 5.1.1 にする。rcssmonitor と同じ版にする (最新は 5.3.0) | 2026-11-24 | 計画の作成時 |
-| D3 | `parser_json.{h,cpp}` と `nlohmann/json.hpp` を `obsolete/rcg/` に移す。ビルドには入れない | 2026-11-24 | 計画の作成時 |
+| D3 | `parser_json.{h,cpp}` と `nlohmann/json.hpp` を `obsolete/rcg/` に移す。ビルドには入れない。(2026-11-24、段階 2 の初めに、`nlohmann/json.hpp` は移さずに削除することにした。D6) | 2026-11-24 | 計画の作成時 |
 | D4 | gzip の展開に libdeflate を使う。任意の依存とし、見つかれば使い、なければ zlib で展開する | 2026-11-24 | 計画の作成時 |
 | D5 | 並列に解析するスレッドの数の上限を、API で設定できるようにする (例: `Parser::setMaxThreads( n )`。0 は既定、1 は並列にしない) | 2026-11-24 | 計画の作成時 |
+| D6 | `nlohmann/json.hpp` は `obsolete/` にも移さず、削除する (D3 を変えた)。`parser_json.{h,cpp}` は D3 のとおり `obsolete/rcg/` に移す | 2026-11-24 | 段階 2 の初め |
 
 ### 3.2 設計上の判断 (Claude)
 
@@ -155,10 +156,11 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
 | S11 | 全体のログでの比較は、2 つのビルドの `rcgverconv` の出力を比べるスクリプト `test/compare_rcg_output.sh` で行う。CTest では動かさない (段階 1 で決めた) | `rcgverconv` は、ハンドラに渡ったものをすべて書き出す。実際のログが要るため、テストには入れられない |
 | S12 | JSON のパーサも、`handleLogVersion()` が false なら読み込みをやめる (段階 3。段階 1 で決めた) | テキストのパーサと同じにする。`rcgverconv` は同じ版への変換をこれで断っているが、JSON では今は効いていない |
 | S13 | ハンドラが false を返しても、読み込みは止めない (段階 4 から。JSON も)。JSON の動作が変わることをリリースノートに書く (段階 1 で決めた) | 並列の経路では、ハンドラは解析が終わった後に呼ばれるため、戻り値で止められない。テキストは今も止まらない |
+| S14 | On-Demand の対象の CPU を選ぶ手段 (CMake・configure のオプションなど) は設けない (段階 2 で測って決めた。§3.3) | ライブラリ全体を haswell 向けにしても、JSON の解析の時間は変わらなかった (§4.2.2) |
 
 ### 3.3 段階の初めに決めること
 
-- 段階 2: fallback の測定の結果を見て、On-Demand の対象の CPU を選ぶ手段 (CMake・configure のオプションなど) を設けるか。
+- 段階 2: fallback の測定の結果を見て、On-Demand の対象の CPU を選ぶ手段 (CMake・configure のオプションなど) を設けるか。→ 設けない (S14)。
 - 段階 3: ファイルを読む関数の名前と置き場所 (案: gzip を扱う `rcsc/gz/` に置くか、rcg 専用として `rcsc/rcg/` に置くか)。
 - 段階 5: CI のどのジョブに `libdeflate-dev` を入れるか (rcssmonitor は、Autotools のジョブに入れず、両方の経路をビルドしている)。
 - 段階 6: ボールの高さ (`z`、`vz`) を `BallT` に加えるか (rcssmonitor の B-5)。加えるなら、書き出し (`serializer_json` など) も直すか。
@@ -218,14 +220,43 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
 
 - `rcsc/rcg/simdjson/` の `simdjson.h`・`simdjson.cpp`・`LICENSE` を 5.1.1 のものに置き換える (D2、S8)。GCC 15 の修正は本家に入っているため、当てない。
 - API の違い: rcssmonitor で直したのは、`get_string( std::string & )` の結果を使っていない所 (チームのグラフィック) だけだった。librcsc の同じ所も直す。
-- `parser_json.{h,cpp}` と `nlohmann/json.hpp` を `git mv` で `obsolete/rcg/` に移す (D3)。`parser.cpp` の、コメントアウトされた参照を消す。
+- `parser_json.{h,cpp}` を `git mv` で `obsolete/rcg/` に移し、`nlohmann/json.hpp` は削除する (D3、D6)。`parser.cpp` の、コメントアウトされた参照を消す。
 - GCC 15 の警告 9 件が消えたことを、CI (Ubuntu 26.04) で確かめる。
 - `simdjson.cpp` のコンパイルの時間と、`librcsc.so` の大きさを記録する。
 - On-Demand の実装 (§2.2、S9): `parser_simdjson.cpp` を仮に haswell 向けのフラグでコンパイルし、ベンチマークで差を測る (コミットしない)。結果を記録し、§3.3 の判断に使う。
 
-#### 4.2.2 実装
+#### 4.2.2 実装 (2026-11-24)
 
-未着手。
+- simdjson: 本家のタグ v5.1.1 (`578a900`) の `singleheader/simdjson.h`・`singleheader/simdjson.cpp` と `LICENSE` に置き換えた。rcssmonitor の `ab78451` のものと同じであることを、SHA-256 で確かめた (S8)。3.8.0 に当てていた GCC 15 の修正 (3 行) は、5.1.1 に入っている。
+- `parser_simdjson.cpp`: チームのグラフィックの文字列を `xpm_data.emplace_back( std::string_view( s.get_string() ) )` で読むようにした (rcssmonitor と同じ)。5.x では、`get_string( std::string & )` の結果を使わないと警告になるため。誤りのある値は例外になり、ほかの値と同じく catch される。ファイルの説明のコメント (`\file parser_json.cpp`) の誤りも直した。
+- `parser_json.{h,cpp}` を `git mv` で `obsolete/rcg/` に移し、`nlohmann/json.hpp` を削除した (D6)。そのため、`obsolete/rcg/parser_json.cpp` はそのままではコンパイルできない。`parser.cpp` のコメントアウトされた参照を消した。
+- テスト: `run_test_rcg_parser` に `testJsonTeamGraphic` を足した (10 項目)。変えた所 (JSON のチームのグラフィック) が `head_json.rcg` にないため。実際のログの記録を使う。変更前のライブラリでも通ることを確かめた。
+- `RELEASE_NOTES.md`: 段階 1 のテストとツール、simdjson の更新、`parser_json` の移動と nlohmann の削除を書いた。
+- 確かめたこと:
+  - CMake (Release、GCC 13.3): ビルドの警告 0。`ctest` で 17 個すべて通った。
+  - Autotools: コンパイラの警告 0。`make check` で 13 個すべて通り、`make distcheck` (`--enable-unit-test`) も通った。配布物に simdjson の 3 つのファイルが入り、nlohmann と `parser_json` は入らないことを確かめた。
+  - 全体の比較 (S11): 変更前 (`212f5e7`) のインストールと比べて、6 つの変換がすべて同じだった。JSON のログにはチームのグラフィックが 256 個ある。
+  - GCC 15 の警告が消えたかは、CI (Ubuntu 26.04) で確かめる。
+- 大きさとコンパイルの時間 (`-O3`、1 ファイルずつ `/usr/bin/g++` で。手元の CMake のビルドは ccache を通るため、全体のビルドの時間は比べられない):
+
+| 項目 | 3.8.0 | 5.1.1 |
+|---|---|---|
+| `simdjson.h` | 3,840,917 バイト | 10,071,593 バイト |
+| `simdjson.cpp` | 1,828,872 バイト | 3,382,592 バイト |
+| `simdjson.cpp` のコンパイル | 2.95 秒 | 8.61 秒 |
+| `parser_simdjson.cpp` のコンパイル | 5.19 秒 | 6.22 秒 |
+| `librcsc.so` (CMake、Release) | 3,730,656 バイト | 4,066,064 バイト |
+
+- 速さ (CMake の Release、5 回の最良、ms)。「haswell」は、ライブラリ全体を `-march=haswell` でビルドした別のビルド (コミットしない):
+
+| ログ | stream (段階 1) | stream | parse (段階 1) | parse | parse (haswell) |
+|---|---|---|---|---|---|
+| JSON | 205.9 | 201.1 | 152.0 | 149.3 | 150.0 |
+| ULG5 | 123.6 | 124.0 | 79.3 | 79.3 | 79.8 |
+| ULG6 | 90.5 | 90.6 | 57.3 | 57.6 | 57.4 |
+
+- simdjson の更新で、JSON は少し速くなった (rcssmonitor の A2 でも 235 → 222 ms だった)。テキストは変わらない (simdjson を使わない)。
+- On-Demand の実装 (§2.2、§3.3、S9): haswell のビルドでは、On-Demand の解析部が `simdjson::haswell::ondemand` になった。それでも JSON の `parse` は 150.0 ms で、fallback (149.3 ms) と差がなかった。今の JSON の解析では、SIMD が効く部分 (文字列の処理など) 以外が時間の大半を占めているとみられる。対象の CPU を選ぶ手段は設けない (S14)。
 
 ### 4.3 段階 3: メモリからの解析、ファイルの一括読み込み
 
@@ -376,7 +407,7 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
 - soccerwindow2 の変更 (メモリの経路への切り替え)。別の計画で行う。今の API のままでも解析は速くなるが、`gzifstream` での展開は遅いまま残る。
 - ライブ受信 (`parseData()`、`parseLine()`) の速さ。1 パケットずつの解析で、問題にならない。
 - simdjson のシンボルを `librcsc.so` から隠すこと。利用側が別の版の simdjson を使うと、ぶつかるおそれがある。記録だけする。
-- On-Demand の、コンパイル時に選ばれる実装の既定を変えること (S9)。手段を設けるかは §3.3 で決める。
+- On-Demand の、コンパイル時に選ばれる実装の既定を変えること、選ぶ手段を設けること (S9、S14。段階 2 で測って差がなかった)。
 - パラメータの既定値の見直し (rcssmonitor の B-9)。
 - `rcsc::gzifstream` 自体の速さ (バッファの大きさなど)。
 - v1〜v3 (バイナリ) のパーサの速さ。
@@ -399,4 +430,17 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
 - 初めは、`LD_LIBRARY_PATH` の Debug の librcsc を測っていた (JSON が 7.4 秒)。ベンチマークが読み込んだライブラリを出すようにした。
 - 見つけたこと: `rcgversion` が v6 を判別できない (B12)。`ParserV4` などで `parse(filepath)` が隠れている (§2.1。段階 3 の `using Parser::parse;` で直る)。JSON のパーサはハンドラの戻り値で止まり、`handleLogVersion()` の戻り値は無視する (§2.1)。これらから S11〜S13 を決めた。
 - CMake の `ctest` 17 個、Autotools の `make check` 13 個と `make distcheck` が通った。
-- この後: ユーザの確認の後、段階 1 をコミットしてプッシュし、CI を確かめる。その後、段階 2 に着手する。
+- ユーザの確認の後、`b4d1b5c` としてコミットし、プッシュした。CI は、PR のない機能ブランチへのプッシュでは動かない (ワークフローの起動は `master`・`develop` へのプッシュ、PR、手動の実行)。
+- ユーザが下書きの PR #123 (`Speed up the rcg parser and update the bundled simdjson to 5.1.1`) を作り、CI が動いた。
+- CI の結果 (`b4d1b5c`): 5 ジョブすべて成功した。4 つのビルドのジョブで `run_test_rcg_parser` が通った (CMake は 17 個すべて、Autotools は `make check` と `make distcheck` で 13 個ずつ)。コンパイラの警告は、Ubuntu 26.04 の同梱の simdjson の既知の 9 件 (`-Wtemplate-id-cdtor`。Autotools では `distcheck` でもう一度ビルドするため 18 件) だけ。
+- この後: 段階 2 (simdjson 5.1.1、`parser_json` の移動) に着手する。
+
+### 2026-11-24: 段階 2 を実装した
+
+- ユーザの決定 D6: `nlohmann/json.hpp` は `obsolete/` にも移さずに削除する (D3 を変えた)。
+- 同梱の simdjson を 5.1.1 にし、`parser_json.{h,cpp}` を `obsolete/rcg/` に移し、`nlohmann/json.hpp` を削除した (§4.2.2)。API の違いで直したのは、rcssmonitor と同じ 1 か所 (チームのグラフィック) だけだった。
+- `run_test_rcg_parser` に JSON のチームのグラフィックのテストを足した (10 項目)。
+- CMake の `ctest` 17 個、Autotools の `make check` 13 個と `make distcheck` が通った。全体の比較で、変更前と出力が同じだった。
+- JSON は 205.9 → 201.1 ms (`stream`) になった。`simdjson.cpp` のコンパイルは 2.95 → 8.61 秒になった。
+- On-Demand を haswell 向けにしても速さは変わらなかったため、対象の CPU を選ぶ手段は設けないことにした (S14)。
+- この後: ユーザの確認の後、段階 2 をコミットしてプッシュし、CI (特に Ubuntu 26.04 の GCC 15 の警告) を確かめる。その後、段階 3 に着手する。
