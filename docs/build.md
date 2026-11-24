@@ -176,6 +176,7 @@ The tests of the CMake build are:
 | `run_test_vector_2d`, `run_test_matrix_2d`, `run_test_segment_2d`, `run_test_triangle_2d`, `run_test_rect_2d`, `run_test_polygon_2d`, `run_test_voronoi_diagram`, `run_test_convex_hull`, `rundom_convex_hull` | the unit tests of `rcsc/geom` (CppUnit) |
 | `test_clang_parser` | the unit test of `rcsc/clang` (CppUnit) |
 | `run_test_rcg_types` | the unit test of the data types of `rcsc/rcg` (e.g. the output of `rcsc::rcg::PlayerTypeT`) (CppUnit) |
+| `run_test_rcg_parser` | the unit test of the rcg parsers of `rcsc/rcg`, on the first records of real game logs in `rcsc/rcg/test_data` (CppUnit) |
 | `run_test_server_param` | the unit test of `rcsc::ServerParam` and `rcsc::rcg::ServerParamT` in `rcsc/common` (CppUnit) |
 | `install` | installs librcsc into `test-install` in the build directory, for the following tests |
 | `installed_headers` | each installed header file can be compiled alone (e.g. no header file that it includes is missing in the installation) |
@@ -198,6 +199,29 @@ To check librcsc installed anywhere (e.g. by Autotools), run:
 
 The Autotools build runs the same unit tests by `make check`, if it is configured with `--enable-unit-test`
 (see [Building with Autotools](#building-with-autotools)).
+
+### Measuring and comparing the rcg parser
+
+The following tools are for the development of the rcg parser.
+They need real game logs, so they are not run by the tests, and they are not installed.
+
+- `rcg_parser_bench` (built in `src/` by both builds) measures the time to load game logs:
+
+  ```
+  env -u LD_LIBRARY_PATH build/src/rcg_parser_bench -n 5 game1.rcg.gz game2.rcg 2>/dev/null
+  ```
+
+  It prints the path of the loaded librcsc first.
+  If `LD_LIBRARY_PATH` contains an installed librcsc (e.g. a debug build), it is measured instead of the built one,
+  so run the program with `env -u LD_LIBRARY_PATH` as above.
+- `test/compare_rcg_output.sh` checks that two builds of librcsc read the same data from game logs.
+  `rcgverconv` of each build converts each game log into two other formats, and the outputs are compared:
+
+  ```
+  test/compare_rcg_output.sh ~/librcsc-old/bin build/src game1.rcg.gz game2.rcg
+  ```
+
+  The arguments are the directories that have `rcgverconv` (the bin directory of an installation, or `src/` of a CMake build tree).
 
 ## Building with Autotools
 

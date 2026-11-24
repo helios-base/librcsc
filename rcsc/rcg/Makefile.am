@@ -77,13 +77,17 @@ AM_CXXFLAGS = -Wall -W
 AM_LDFLAGS =
 
 EXTRA_DIST = \
-	simdjson/LICENSE
+	simdjson/LICENSE \
+	test_data/head_json.rcg \
+	test_data/head_v5.rcg \
+	test_data/head_v6.rcg
 
 CLEANFILES = *~
 
 if UNIT_TEST
 TESTS = \
-	run_test_rcg_types
+	run_test_rcg_types \
+	run_test_rcg_parser
 endif
 
 check_PROGRAMS = $(TESTS)
@@ -91,5 +95,11 @@ check_PROGRAMS = $(TESTS)
 run_test_rcg_types_SOURCES = test_types.cpp
 run_test_rcg_types_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W
 run_test_rcg_types_LDADD = librcsc_rcg.la $(CPPUNIT_LIBS)
+
+# the test data are the first records of real game logs (test_data/)
+run_test_rcg_parser_SOURCES = test_parser.cpp
+run_test_rcg_parser_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_DATA_DIR=\"$(abs_srcdir)/test_data\"
+run_test_rcg_parser_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W
+run_test_rcg_parser_LDADD = librcsc_rcg.la $(CPPUNIT_LIBS)
 
 #EXTRA_DIST =

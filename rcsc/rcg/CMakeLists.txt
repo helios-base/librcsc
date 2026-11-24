@@ -49,4 +49,12 @@ if(LIBRCSC_UNIT_TESTS)
   target_link_libraries(run_test_rcg_types PRIVATE rcsc_build_settings rcsc PkgConfig::CPPUNIT)
   add_test(NAME run_test_rcg_types COMMAND run_test_rcg_types)
   librcsc_set_unit_test_environment(run_test_rcg_types)
+
+  # the test data are the first records of real game logs (test_data/)
+  add_executable(run_test_rcg_parser test_parser.cpp)
+  target_link_libraries(run_test_rcg_parser PRIVATE rcsc_build_settings rcsc PkgConfig::CPPUNIT)
+  target_compile_definitions(run_test_rcg_parser PRIVATE
+    TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test_data")
+  add_test(NAME run_test_rcg_parser COMMAND run_test_rcg_parser)
+  librcsc_set_unit_test_environment(run_test_rcg_parser)
 endif()

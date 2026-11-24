@@ -1,0 +1,402 @@
+# RCG パーサの高速化 計画
+
+| 項目 | 内容 |
+|---|---|
+| 作成日 | 2026-11-24 |
+| 最終更新日 | 2026-11-24 |
+| 対象 | `develop` (`212f5e7`)。同梱の simdjson 3.8.0 |
+| ブランチ | `feature/rcg-parser-speedup`。`develop` の `212f5e7` から、ユーザが GitHub で作った |
+| 状態 | 段階 1 を実装した (コミット前)。詳しくは「進み具合」を参照 |
+| 関連 | `docs/plan/2026-11-21_boost-cmake-maintenance.md` (simdjson の更新と `parser_json` の扱いをこの計画に回した)。参照実装: rcssmonitor の PR #65 (`docs/plan/2026-11-11_3d-view.md` の Phase 2)。利用側: soccerwindow2 (`src/model/main_data.cpp`) |
+
+## 進み具合
+
+| 段階 | 内容 | 状態 | ユーザの確認 | CI | コミット | プッシュ |
+|---|---|---|---|---|---|---|
+| 1 | 計測と回帰テストの土台 (§4.1、S11) | 完了 | 未 | 未 | — | 未 |
+| 2 | simdjson 5.1.1 への更新、`parser_json` の移動 (§4.2、D2、D3、S8、S9) | 未着手 | 未 | 未 | — | 未 |
+| 3 | メモリからの解析、ファイルの一括読み込み (§4.3、S2、S3、S12) | 未着手 | 未 | 未 | — | 未 |
+| 4 | 行の並列解析 (§4.4、D5、S1、S10、S13) | 未着手 | 未 | 未 | — | 未 |
+| 5 | libdeflate による展開 (§4.5、D4) | 未着手 | 未 | 未 | — | 未 |
+| 6 | 読み込みの堅牢化 (§4.6、S5) | 未着手 | 未 | 未 | — | 未 |
+| 7 | 仕上げ: 最終の計測、全体の比較、soccerwindow2 での確認、文書 (§4.7) | 未着手 | 未 | 未 | — | 未 |
+| — | develop への取り込み (PR 番号は未定、Squash Merge) | 未着手 | 未 | 未 | — | — |
+
+## 1. 目的と方針
+
+- rcg の読み込みを速くする。対象は librcsc のツール (`rcg2csv` など) と、librcsc を使う soccerwindow2。
+- rcssmonitor の PR #65 の方式に倣う。rcssmonitor の RCG パーサはもともと librcsc のものを移植したもので、構成が同じため、素直に持ち込める。
+  1. ファイル全体をメモリに読む (gzip は一度に展開する)。
+  2. メモリの上で行に分けて解析する (`std::getline` を使わない)。
+  3. JSON は 1 レコード 1 行として、バッファの上でそのまま解析する。
+  4. 行を複数のスレッドで並列に解析し、ハンドラへは呼び出したスレッドで元の順に渡す。
+- 同梱の simdjson を 5.1.1 に更新し、GCC 15 の警告 9 件を解消する。
+- 古い JSON パーサ (`parser_json.*`) と、それだけが使う nlohmann/json を `obsolete/rcg/` に移す。
+- 今の API は残す。利用側 (soccerwindow2 など) は直さずにビルドでき、今の呼び出し方でも解析は速くなるようにする。
+- 移植のついでに、rcssmonitor で直した読み込みの不具合 (rcssmonitor の block B) も直す。
+
+## 2. 現状 (`212f5e7`、2026-11-24 に調べた)
+
+### 2.1 librcsc の RCG パーサ
+
+- 形式の判定: `Parser::create( std::istream & )` が先頭の 4 バイトを読む。`[` なら JSON、`ULG` と文字なら版、それ以外は v1 (`rcsc/rcg/parser.cpp`)。
+- 入口は `parse( std::istream &, Handler & )` と `parse( const std::string & filepath, Handler & )`。基底の `parse(filepath)` は `std::ifstream` で開くため、gzip を読めない。
+- テキスト (v4〜v6、`parser_v4.cpp`): `std::getline` で 1 行ずつ読み、`sscanf`・`strtol`・`strtof` で解析する。空行や解釈できない行があると、そこで読み込みをやめて false を返す。
+- JSON (`parser_simdjson.cpp`、simdjson の On-Demand):
+  - `parse(istream)` は、ストリームを `std::string` に写し、さらに `padded_string` に写してから、ファイル全体を 1 つの文書として解析する。
+  - `parse(filepath)` は `padded_string::load` で読むため、gzip を読めない。
+  - 知らないキーがあると、読み込み全体が失敗する。
+- ハンドラ (`handler.h`): `handleServerVersion()` は仮想だが、`handleTimestamp()` は仮想でない。どのパーサも、この 2 つを呼んでいない。
+- ハンドラの戻り値 (段階 1 で確かめた):
+  - テキスト: `handleShow()` などが false を返しても、最後まで読む (`parse()` は true)。`handleLogVersion()` が false なら、そこで読み込みをやめる (`rcgverconv` は、同じ版への変換をこれで断っている)。
+  - JSON: `handleShow()` などが false を返すと、そこで読み込みをやめる (`parse()` は false)。`handleLogVersion()` の戻り値は無視している。
+- `ParserV4` などは `parse( std::istream &, ... )` だけを上書きしているため、基底の `parse( const std::string & filepath, ... )` が隠れ、派生クラスの型からは呼べない (段階 1 で確かめた。`Parser &` を通せば呼べる)。
+- 実際のログで `Parser` を動かすテストはない (rcg のテストは `run_test_rcg_types` だけ)。
+
+### 2.2 同梱の simdjson
+
+- 3.8.0 (`rcsc/rcg/simdjson/`)。GCC 15 のエラーを直すため、`base_formatter` の 3 行に本家と同じ修正を当ててある (`897bc90`、#119)。
+- GCC 15 (CI の Ubuntu 26.04) で、`simdjson.cpp` に `-Wtemplate-id-cdtor` の警告が 9 件出る。
+- ヘッダはインストールしないが、simdjson のシンボルは `librcsc.so` から公開されている。
+- On-Demand の解析部 (stage 2) は、コンパイル時に選ばれる実装で動く。librcsc は CPU を指定せずにコンパイルするため、SIMD を使わない `fallback` になっている (手元の CMake と Autotools のビルドで、`simdjson::fallback::ondemand` のシンボルを確かめた)。構造の索引付け (stage 1) は、実行時に CPU を見て実装を選ぶため、SIMD を使う。
+- 本家の最新は 5.3.0 (2026-11-22)。rcssmonitor は 5.1.1 を同梱している。
+
+### 2.3 古い JSON パーサ
+
+- `rcsc/rcg/parser_json.{h,cpp}` は nlohmann/json を使うパーサで、simdjson のパーサ (#66、`05b8e43`) より前のもの。
+- どちらのビルドにも入ったことがなく、インストールもされない。`parser.cpp` に、コメントアウトされた参照があるだけ。
+- 同梱の `rcsc/rcg/nlohmann/json.hpp` を使うのは `parser_json.cpp` だけ。
+
+### 2.4 利用側
+
+- ツール (`src/`): `rcg2csv`、`rcg2txt`、`rcgrenameteam`、`rcgreverse`、`rcgvalidator`、`rcgverconv` は、`rcsc::gzifstream` で開き、`Parser::create( fin )` と `parse( fin, handler )` を呼ぶ。
+- `rcgresultprinter`: `parse(filepath)` が gzip を読めないため、`.gz` を一時ファイル (`temp_directory_path()/"temp.rcg"`) に展開してから読む。名前が決まっているため、2 つ同時に動かすとぶつかる。
+- soccerwindow2 (`src/model/main_data.cpp`):
+  - ファイル: `gzifstream`、`Parser::create( fin )`、`parse( fin, ... )`。
+  - ライブ受信: 1 パケットごとに `ParserSimdJSON::parseData()`、`ParserV4::parseLine( 0, ... )`。
+  - これらの API は残す。
+
+### 2.5 rcssmonitor の高速化 (PR #65、参照実装)
+
+- 測ったログ: JSON (rcssserver 18.1.3、展開後 53.6 MB、6,209 フレーム)、テキスト ULG5 (28.7 MB、8,406 フレーム)。
+- 手順ごとの時間 (`bench_load`、5 回の最良、JSON / テキスト):
+
+| 手順 | 変えたこと | JSON | テキスト |
+|---|---|---|---|
+| A1 | ベンチマークを追加 | 235 ms | 130 ms |
+| A2 | simdjson 5.1.1 | 222 ms | 130 ms |
+| A3 | `gzread` で一度に読み、メモリから解析 | 179 ms | 121 ms |
+| A4 | JSON を 1 レコード 1 行として、その場で解析 | 151 ms | — |
+| A5 | テキストをメモリから 1 行ずつ解析 | — | 122 ms |
+| A6 | 行の並列解析 (最大 8 スレッド、1 スレッドあたり 1,024 行以上) | 84 ms | 60 ms |
+| — | libdeflate で展開 | 53〜74 ms | 33〜42 ms |
+
+- 残る時間の多くは展開で、並列にできない。展開だけなら zlib 69 / 48 ms、libdeflate 34 / 22 ms。
+- simdjson 5.1.1 の `simdjson.h` は 10 MB (3.8.0 は 3.8 MB)。`simdjson.cpp` のコンパイルは 3.5 秒から 9.6 秒になった。GCC 15 の警告 9 件は消えた。
+- 3.8.0 から 5.1.1 で直す必要があった所は、`get_string( std::string & )` の結果を使っていない 1 か所だけだった。
+
+### 2.6 見つかっている不具合
+
+B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツールの不具合。
+
+| # | 場所 | 内容 |
+|---|---|---|
+| B1 | `parser_v4.cpp:121-123` | 記録の名前を `%s` で `char name[32]` に読むため、長い名前でスタックをはみ出す |
+| B2 | `parser_v4.cpp:499`、`:512` | `unum == 0` を受け付け、`player_[-1]` に書く |
+| B3 | `parser_v4.cpp:390` | `strtol` の失敗を `LONG_MIN`・`LONG_MAX` で調べていて、失敗を検出できない |
+| B4 | `parser_v4.cpp:79` | ヘッダの版を `std::stoi` で読むため、壊れたヘッダで例外が出る |
+| B5 | `parser_v4.cpp` の `parseLine()` | 各記録の解析の結果を無視している。空行や知らない記録で、読み込み全体をやめる |
+| B6 | `parser_v4.cpp:696-697` | チームのグラフィックの文字列を 15 文字までしか読めない |
+| B7 | `parser_v4.cpp` の `parseTeam()` | チーム名 `null` を空にしていない (show の中では空にしている) |
+| B8 | `parser_simdjson.cpp:169-183` | `version`・`timestamp` を読み捨てる。そのため `rcgverconv` などで書き直した JSON の rcg は `"version":"unknown"` になり、タイムスタンプが消える |
+| B9 | `parser_simdjson.cpp:478` | `vq` を `'h'`・`'l'` ではなく真偽値 (1・0) で `char view_quality_` に入れている |
+| B10 | `parser_simdjson.cpp` の `parseShow()` | プレイヤーを出てきた順に並べている (side と unum の位置に置いていない)。省かれうるフィールドがないと失敗する。失敗しても途中までのデータで `handleShow()` を呼ぶ |
+| B11 | `parser_simdjson.cpp:151-157` | 知らないキーがあると、読み込み全体が失敗する |
+| B12 | `src/rcgversion.cpp` の `get_version()` | v6 を判別できず、知らない版を `-1` として `json` と表示する (ULG6 のログが `version=json` になる)。段階 1 で見つけた |
+
+### 2.7 計測に使うログ
+
+作業ツリーの直下にある、Git で追跡していないファイルを使う (リポジトリには入れない)。JSON と ULG5 は、rcssmonitor で測ったものと同じファイル (MD5 で確かめた)。
+
+| ログ | 形式 | 展開後の大きさ | show の数 | ほかの記録の数 |
+|---|---|---|---|---|
+| `1-json.rcg.gz` | JSON、rcssserver 18.1.3 | 53,644,753 バイト | 6,209 | 319 |
+| `202207160432-HELIOS2022_1-vs-CYRUS_0.rcg.gz` | ULG5 | 28,729,173 バイト | 8,406 | 600 |
+| `202607050404-HELIOS2026_0-vs-YuShan2026_1.rcg.gz` | ULG6 | 22,305,464 バイト | 6,469 | 489 |
+
+- 手元の環境: Ubuntu 24.04、GCC 13.3、32 コア
+
+## 3. 決定事項
+
+### 3.1 ユーザの決定
+
+| # | 決定 | 決めた日 | いつ |
+|---|---|---|---|
+| D1 | 実装は rcssmonitor の方式 (PR #65) に倣う | 2026-11-24 | 計画の作成時 (依頼) |
+| D2 | 同梱の simdjson を 5.1.1 にする。rcssmonitor と同じ版にする (最新は 5.3.0) | 2026-11-24 | 計画の作成時 |
+| D3 | `parser_json.{h,cpp}` と `nlohmann/json.hpp` を `obsolete/rcg/` に移す。ビルドには入れない | 2026-11-24 | 計画の作成時 |
+| D4 | gzip の展開に libdeflate を使う。任意の依存とし、見つかれば使い、なければ zlib で展開する | 2026-11-24 | 計画の作成時 |
+| D5 | 並列に解析するスレッドの数の上限を、API で設定できるようにする (例: `Parser::setMaxThreads( n )`。0 は既定、1 は並列にしない) | 2026-11-24 | 計画の作成時 |
+
+### 3.2 設計上の判断 (Claude)
+
+| # | 判断 | 理由 |
+|---|---|---|
+| S1 | 並列化は rcssmonitor と同じ方式にする。`std::thread` で行を連続したブロックに分け、各スレッドは記録用のハンドラ (`RecordingHandler`) に解析する。すべて終わった後、呼び出したスレッドで、ブロックの順に本当のハンドラへ再生する | 利用側のハンドラはスレッド安全でなくてよく、今のハンドラをそのまま使える。rcssmonitor で順序と結果を確かめてある |
+| S2 | 今の API (`create(istream)`、`parse(istream)`、`parse(filepath)`、`parseLine()`、`parseData()`) は残す。`parse(istream)` は内部でメモリに写して、速い経路を通る | soccerwindow2 などを直さずに使え、直さなくても解析は速くなる |
+| S3 | ファイルを (gzip なら展開して) メモリに読む関数を公開する。基底の `parse(filepath)` と `ParserSimdJSON::parse(filepath)` をこの関数で読むようにし、gzip を読めるようにする | ツールと利用側が同じ経路を使える。`rcgresultprinter` の一時ファイルをなくせる |
+| S4 | SOVERSION は 20 のままにする。`Parser` と `Handler` の仮想関数が増えて ABI は変わるため、librcsc を使うプログラムの再ビルドが要ることをリリースノートに書く | SOVERSION はプロトコルの版に合わせて変えてきた (`8440779`) |
+| S5 | 空行は無視する。解釈できない行は飛ばして続け、最後に飛ばした行の番号をまとめて出す。飛ばした行があっても `parse()` は true を返す | rcssmonitor の B-8 と同じ。サーバが途中で止まったログなども読める |
+| S6 | テストは CppUnit で、`rcsc/rcg/` に置く。テストのデータは `rcsc/rcg/test_data/` に置き、配布物 (`EXTRA_DIST`) に入れる | 既存の `run_test_rcg_types` と同じ。`make distcheck` でも動く |
+| S7 | ベンチマークは `src/` の開発用のプログラム (インストールしない) として、両方のビルドで作る | `object_table_printer` と同じ扱い |
+| S8 | simdjson は本家のタグ v5.1.1 の amalgamated のファイル (`singleheader/`) から取り、rcssmonitor のもの (`ab78451`) と同じことを確かめる | 出所をはっきりさせる |
+| S9 | On-Demand の、コンパイル時に選ばれる実装の既定は変えない (CPU を指定するフラグを既定では加えない) | 配布されたバイナリが動く CPU を狭めない。効果は段階 2 で測って記録する |
+| S10 | スレッドの数の既定と閾値は rcssmonitor と同じにする (`hardware_concurrency()` と 8 の小さい方。1 スレッドあたり 1,024 行以上) | rcssmonitor で測った値がある |
+| S11 | 全体のログでの比較は、2 つのビルドの `rcgverconv` の出力を比べるスクリプト `test/compare_rcg_output.sh` で行う。CTest では動かさない (段階 1 で決めた) | `rcgverconv` は、ハンドラに渡ったものをすべて書き出す。実際のログが要るため、テストには入れられない |
+| S12 | JSON のパーサも、`handleLogVersion()` が false なら読み込みをやめる (段階 3。段階 1 で決めた) | テキストのパーサと同じにする。`rcgverconv` は同じ版への変換をこれで断っているが、JSON では今は効いていない |
+| S13 | ハンドラが false を返しても、読み込みは止めない (段階 4 から。JSON も)。JSON の動作が変わることをリリースノートに書く (段階 1 で決めた) | 並列の経路では、ハンドラは解析が終わった後に呼ばれるため、戻り値で止められない。テキストは今も止まらない |
+
+### 3.3 段階の初めに決めること
+
+- 段階 2: fallback の測定の結果を見て、On-Demand の対象の CPU を選ぶ手段 (CMake・configure のオプションなど) を設けるか。
+- 段階 3: ファイルを読む関数の名前と置き場所 (案: gzip を扱う `rcsc/gz/` に置くか、rcg 専用として `rcsc/rcg/` に置くか)。
+- 段階 5: CI のどのジョブに `libdeflate-dev` を入れるか (rcssmonitor は、Autotools のジョブに入れず、両方の経路をビルドしている)。
+- 段階 6: ボールの高さ (`z`、`vz`) を `BallT` に加えるか (rcssmonitor の B-5)。加えるなら、書き出し (`serializer_json` など) も直すか。
+
+## 4. 設計
+
+### 4.1 段階 1: 計測と回帰テストの土台
+
+#### 4.1.1 設計
+
+- ベンチマーク `src/rcg_parser_bench.cpp` (S7)。
+  - 使い方: `rcg_parser_bench [-n 回数 (既定 5)] <ログ>...`。
+  - 読み込み (展開を含む) と解析を分けて計り、それぞれの最良の値とフレームの数を出す。ハンドラは show を `std::vector` にためる (soccerwindow2 の使い方に近づける)。
+  - 段階 1 では今の経路 (`gzifstream` + `Parser::create( istream )`) を計る。段階 3 以降で、メモリの経路を加える。
+- 回帰テスト `rcsc/rcg/test_parser.cpp` (`run_test_rcg_parser`、S6)。
+  - テストのデータ: rcssmonitor の `test/data/head_json.rcg`・`head_v5.rcg` と、§2.7 の ULG6 のログの先頭から作る `head_v6.rcg`。
+  - ハンドラに渡されたものを記録するテスト用のハンドラで、記録の数・順序・主な値を確かめる。
+  - 段階 1 では、今の動作で通るものだけを入れる。後の段階で足していく。
+- 全体のログでの比較 (CI では動かさない手順): 変更前と変更後の librcsc でビルドした `rcgverconv` (または `rcg2txt`) で §2.7 のログを書き直し、出力を比べる。手順をこの段階で決めて記録する。
+- 今の librcsc で §2.7 のログの速さ、展開後の大きさ、フレームの数を記録する。
+
+#### 4.1.2 実装 (2026-11-24)
+
+- ベンチマーク `src/rcg_parser_bench.cpp` (S7): CMake (`src/CMakeLists.txt`) と Autotools (`src/Makefile.am` の `noinst_PROGRAMS`) でビルドする。インストールしない。
+  - 3 つの時間を計る。`stream` (`gzifstream` + `parse(istream)`。ツールと soccerwindow2 の経路)、`read` (`gzifstream` でメモリに読むだけ。展開の時間)、`parse` (メモリの上のデータ (`std::istringstream`) に `create()`・`parse(istream)`)。それぞれの最良と中央の値を出す。
+  - 初めに、読み込んだ `librcsc.so` の場所を出す (Linux だけ。`dl_iterate_phdr()`)。
+- 計測で見つけた落とし穴: 手元の `LD_LIBRARY_PATH` に `~/local/lib` (Debug でビルドしてインストールした librcsc) が入っていて、初めはそれを測っていた (JSON が 7.4 秒になった)。`LD_LIBRARY_PATH` は RUNPATH より先に探されるため。`env -u LD_LIBRARY_PATH` で動かすことにし、ライブラリの場所を出すようにした。`docs/build.md` にも書いた。
+- 回帰テスト `rcsc/rcg/test_parser.cpp` (`run_test_rcg_parser`、9 項目):
+  - テストのデータ (`rcsc/rcg/test_data/`): `head_v5.rcg` (27 行)・`head_json.rcg` (30 行) は rcssmonitor の `test/data/` と同じもの。`head_v6.rcg` (32 行) は、ULG6 のログ (§2.7) の 1〜23 行目 (ヘッダ、パラメータ、チームのグラフィック 2 つ)、422〜429 行目 (playmode、team、show 1〜5)、結果の msg の行から作った。
+  - テスト用のハンドラが、渡されたものを順に文字列で記録する (例: `show 4`、`team 1 HELIOS2022 CYRUS 0 0`)。記録の列全体と、最後の show の主な値 (ボール、4 人のプレイヤー)、パラメータの値を確かめる。
+  - 項目: v5・v6・JSON のストリーム、テキストと JSON の `parse(filepath)`、ライブ受信の `ParserV4::parseLine()`・`ParserSimdJSON::parseData()`、`handleShow()` が false でもテキストは最後まで読むこと、ヘッダのない入力。
+  - JSON の `vq` は確かめない (B9。段階 6 で足す)。スタミナなどの大きい値は `float` に入るため、許す誤差を 0.01 にした。
+  - CMake は `TEST_DATA_DIR` にソースの `test_data` を、Autotools は `$(abs_srcdir)/test_data` を渡す。Autotools では `EXTRA_DIST` にテストのデータを加えた。
+- 全体の比較のスクリプト `test/compare_rcg_output.sh` (S11): 2 つの bin ディレクトリの `rcgverconv` で、各ログをほかの 2 つの形式 (テキスト v4・v5 → JSON と v6、v6 → JSON と v5、JSON → v6 と v5) に変換し、`cmp` で比べる。`LD_LIBRARY_PATH` を外して動かす。版はヘッダを直接読んで判定する (`rcgversion` は v6 を判別できない。B12)。
+- `docs/build.md`: テストの一覧に `run_test_rcg_parser` を加え、ベンチマークと比較のスクリプトの使い方を書いた。
+- 確かめたこと:
+  - CMake (Release): ビルドの警告 0。`ctest` で 17 個すべて通った。
+  - Autotools (ソースを写した所で、ビルドディレクトリを分けて): コンパイラの警告 0 (libtool の既知のメッセージだけ)。`make check` で 13 個すべて通った。`make distcheck` (`--enable-unit-test`) も通り、テストのデータとソースが配布物に入っていることを確かめた。
+  - 比較のスクリプト: 変更前のインストールとビルドの木で、6 つの変換がすべて同じだった (ライブラリは変えていない)。1 バイト変える偽の `rcgverconv` で、違いを検出することも確かめた。
+  - ハンドラの戻り値の扱い (§2.1) を、小さなプログラムで確かめた。
+- 今の librcsc の速さ (5 回の最良、ms):
+
+| ログ | ビルド | stream | read | parse |
+|---|---|---|---|---|
+| JSON | CMake (-O3) | 205.9 | 77.1 | 152.0 |
+| ULG5 | CMake (-O3) | 123.6 | 54.9 | 79.3 |
+| ULG6 | CMake (-O3) | 90.5 | 41.3 | 57.3 |
+| JSON | Autotools (-O2) | 217.5 | 82.0 | 161.8 |
+| ULG5 | Autotools (-O2) | 130.8 | 59.0 | 84.0 |
+| ULG6 | Autotools (-O2) | 95.6 | 43.1 | 61.1 |
+
+- rcssmonitor の変更前 (§2.5 の A1。DispHolder に入れるまで) の JSON 235 ms・ULG5 130 ms と、同じくらいである。
+
+### 4.2 段階 2: simdjson 5.1.1 への更新、`parser_json` の移動
+
+#### 4.2.1 設計
+
+- `rcsc/rcg/simdjson/` の `simdjson.h`・`simdjson.cpp`・`LICENSE` を 5.1.1 のものに置き換える (D2、S8)。GCC 15 の修正は本家に入っているため、当てない。
+- API の違い: rcssmonitor で直したのは、`get_string( std::string & )` の結果を使っていない所 (チームのグラフィック) だけだった。librcsc の同じ所も直す。
+- `parser_json.{h,cpp}` と `nlohmann/json.hpp` を `git mv` で `obsolete/rcg/` に移す (D3)。`parser.cpp` の、コメントアウトされた参照を消す。
+- GCC 15 の警告 9 件が消えたことを、CI (Ubuntu 26.04) で確かめる。
+- `simdjson.cpp` のコンパイルの時間と、`librcsc.so` の大きさを記録する。
+- On-Demand の実装 (§2.2、S9): `parser_simdjson.cpp` を仮に haswell 向けのフラグでコンパイルし、ベンチマークで差を測る (コミットしない)。結果を記録し、§3.3 の判断に使う。
+
+#### 4.2.2 実装
+
+未着手。
+
+### 4.3 段階 3: メモリからの解析、ファイルの一括読み込み
+
+#### 4.3.1 設計
+
+- `Parser` に、次の 2 つを加える。
+  - `static Ptr create( const char * data, const std::size_t size )`
+  - `virtual bool parse( const char * data, const std::size_t size, Handler & handler ) const`
+- 基底の実装は、バッファを写さない `std::streambuf` (rcssmonitor の `MemoryBuf`。`seekoff`・`seekpos` を持つ) で包み、今の `create(istream)`・`parse(istream)` を呼ぶ。v1〜v3 のパーサは変えずにこの経路を使える。派生クラスには `using Parser::parse;` を加える。
+- `ParserV4`:
+  - `parse(data,size)` は、`std::getline` を使わずにメモリの上で行に分けて解析する。
+  - `parse(istream)` は、`seekg(0)` の後にストリームを `std::string` に写して、メモリの経路を呼ぶ。
+- `ParserSimdJSON`:
+  - 1 レコード 1 行 (rcssserver の書き方) なら、行ごとにバッファの上で解析する (`padded_string_view`)。後ろに `SIMDJSON_PADDING` バイトの余裕がない、最後の数レコードだけを写す。
+  - そうでなければ (1 行の文書など)、今のとおり文書全体を解析する。
+  - `parse(istream)` での写しを 1 回に減らす。
+  - `handleLogVersion()` が false なら、読み込みをやめる (S12)。
+- ファイルを読む関数 (S3。名前と置き場所は §3.3):
+  - gzip でなければ、そのまま読む。
+  - zlib があれば、`gzread` で 1 MB ずつ読む (`gzbuffer`。gzip の ISIZE で大きさを見積もる)。途中で切れた gzip は、切れた所まで読む。
+  - 基底の `parse(filepath)` と `ParserSimdJSON::parse(filepath)` を、この関数で読むようにする。
+- ツール (`src/`): 読む関数、`create(data,size)`、`parse(data,size,h)` に替える。`rcgresultprinter` の一時ファイルをやめる。
+
+#### 4.3.2 実装
+
+未着手。
+
+### 4.4 段階 4: 行の並列解析
+
+#### 4.4.1 設計
+
+- rcssmonitor の `line_parser.{h,cpp}` を `rcsc/rcg/` に移す (インストールしない内部のヘッダ)。
+  - `split_lines()`: `memchr` で行に分ける。写さずに、バッファの中を指す。
+  - `parse_lines()`: スレッドの数を決めて、行を連続したブロックに分け、ブロックごとに `std::thread` で解析する。`join` の後、ブロックの順に本当のハンドラへ再生する (S1)。
+  - `RecordingHandler`: librcsc の `Handler` の仮想関数 (v4 と JSON のパーサが呼ぶもの) を、すべて記録する。`ServerParamT`・`PlayerParamT` は `copyFrom()` で写す。
+  - `report_skipped()`: 飛ばした行の番号を、初めの 10 個と合計の数で出す。
+- `Handler::handleTimestamp()` を仮想にする (記録できるようにするため。S4)。
+- スレッドの数 (D5、S10):
+  - `min( 上限, 行の数 / 1024 )`。上限の既定は `min( hardware_concurrency(), 8 )`。
+  - `static void Parser::setMaxThreads( const int n )` と `static int Parser::maxThreads()` を加える。0 は既定、1 は並列にしない。値は `std::atomic<int>` で持つ。
+- ハンドラは、呼び出したスレッドだけから、元の行の順に呼ばれる。ハンドラの戻り値で読み込みは止まらない (S13)。今の `ParserV4` も止まらないが、今の JSON のパーサは止まる (§2.1)。
+- スレッドごとの状態: `ParserV4` は行のバッファ、`ParserSimdJSON` は `ondemand::parser`。解析の関数は const で、状態を持たない。
+- ビルド:
+  - CMake: `find_package(Threads REQUIRED)`、`target_link_libraries(rcsc PRIVATE Threads::Threads)`。
+  - Autotools: `-pthread`。
+  - パッケージの構成ファイルと `librcsc.pc` に影響がないかを、`test/` のインストールのテストで確かめる。
+
+#### 4.4.2 実装
+
+未着手。
+
+### 4.5 段階 5: libdeflate による展開
+
+#### 4.5.1 設計
+
+- 任意の依存とする (D4)。
+  - CMake: `option(ENABLE_LIBDEFLATE ... ON)`、`find_path`・`find_library` で探す (古いディストリビューションには構成ファイルがないため。rcssmonitor と同じ)。
+  - Autotools: `--with-libdeflate` (既定は `check`。明示して見つからなければエラー)。
+  - どちらも `HAVE_LIBDEFLATE` を定義する。
+- ファイルを読む関数で、gzip なら libdeflate で展開する。
+  - 連結された複数のメンバと、後ろのゴミに対応する。出力のバッファが足りなければ倍にする。
+  - 失敗した (途中で切れたファイルなど) ときは、zlib で読み直す。
+- `librcsc.so` に PRIVATE でリンクする。`librcsc.pc` (`Libs.private`)、`librcsc.spec.in`、CMake のパッケージ構成ファイルを、必要に応じて直す。
+- CI: 一部のジョブに `libdeflate-dev` を入れ、残りには入れず、両方の経路をビルドする (§3.3)。
+- `README.md`・`docs/build.md` に依存を書く。
+
+#### 4.5.2 実装
+
+未着手。
+
+### 4.6 段階 6: 読み込みの堅牢化
+
+#### 4.6.1 設計
+
+- `rcgversion` (B12): v6 を判別し、知らない版は `json` ではなく、知らないと表示する。
+- テキスト (§2.6 の B1〜B7):
+  - 記録の名前を `%31[^ ()]` で読む。`unum < 1` を拒む。`strtol`・`strtof` の失敗を、読み進んだかで調べる。ヘッダの版を `std::atoi` で読む。
+  - `parseLine()` は各記録の解析の結果を返し、空行は true とする。読み込みは止めずに、飛ばした行をまとめて報告する (S5)。
+  - チームのグラフィックの文字列を、長さによらず読む。`parseTeam()` でもチーム名 `null` を空にする。
+- JSON (B8〜B11):
+  - 知らない記録とキーは飛ばし、1 つのプロセスで 1 度だけ報告する (`std::mutex` で守る)。
+  - `version`・`timestamp` をハンドラに渡す。
+  - `vq` を `'h'`・`'l'` で入れる。
+  - プレイヤーを side と unum の位置に置き、正しくない side・unum は飛ばす。省かれうるフィールドは既定の値のままにする。
+- ボールの高さは §3.3 で決める。rcssmonitor の B-9 (パラメータの既定値) は対象外とする。
+
+#### 4.6.2 実装
+
+未着手。
+
+### 4.7 段階 7: 仕上げ
+
+#### 4.7.1 設計
+
+- 最終の計測: zlib だけ・libdeflate、CMake・Autotools の組み合わせ。
+- 全体のログで、変更前と変更後の出力を比べる (§4.1)。違いが、段階 6 の修正による想定どおりのものだけであることを確かめる。
+- soccerwindow2 を新しい librcsc でビルドし、ログを開いて、速さと表示を確かめる (ユーザの確認)。soccerwindow2 側の変更は別の計画で行う。
+- `RELEASE_NOTES.md`、`docs/build.md` (テストの一覧、依存、ベンチマークの使い方) を書く。
+
+#### 4.7.2 実装
+
+未着手。
+
+## 5. 段階
+
+| # | 作業 | 完了条件 |
+|---|---|---|
+| 1 | ベンチマーク、`run_test_rcg_parser` (今の動作)、全体の比較の手順 | 今の librcsc の速さを記録した。テストが両方のビルドで通る |
+| 2 | simdjson 5.1.1、`parser_json` の移動 | GCC 15 の警告が 0 件 (CI)。テストが通る。速さとコンパイルの時間を記録した |
+| 3 | メモリからの解析、ファイルを読む関数、ツールの切り替え | メモリの経路とストリームの経路で、ハンドラに渡るものが同じ。`parse(filepath)` が gzip を読める。速さを記録した |
+| 4 | 行の並列解析、`setMaxThreads()` | 多くの行のテストで順序が保たれる。`setMaxThreads( 1 )` で並列にならない。速さを記録した |
+| 5 | libdeflate | libdeflate あり・なしの両方でビルドとテストが通る (CI)。速さを記録した |
+| 6 | 読み込みの堅牢化 | B1〜B12 のテストが通り、修正を戻すと失敗する |
+| 7 | 仕上げ | 全体の比較で想定外の違いがない。soccerwindow2 で確かめた (ユーザ)。リリースノートを書いた |
+
+## 6. テスト
+
+- `run_test_rcg_parser` (`rcsc/rcg/test_parser.cpp`、段階 1 から足していく)
+  - テキスト (v5・v6) と JSON の、ストリームとメモリの両方の経路。
+  - JSON: 最後の `]` がないログ、末尾の `,`、壊れた行、1 行の文書 (文書全体の経路)、CRLF、知らないキー。
+  - 多くの行 (5,000 個の show) で、並列の経路を通しても順序が保たれること。飛ばした行が報告されること。
+  - 堅牢化 (B1〜B11) の各項目。
+- `run_test_rcg_line_parser` (`rcsc/rcg/test_line_parser.cpp`、段階 4)
+  - `split_lines()` (`\r` を残す、最後の `\n` で空の行を作らない、空の入力)。
+  - 20,000 行の順序。失敗した行・例外を出した行の報告。`setMaxThreads( 1 )`。
+- ファイルを読む関数のテスト (段階 3・5。zlib があるときだけ)
+  - 普通のファイル、1 MB を超える gzip、連結された複数のメンバ、途中で切れた gzip、後ろのゴミ、ないファイル。
+- 各段階のテストは、その段階の修正を戻すと失敗することを確かめる。
+- 手元での動かし方:
+  - CMake: `./cmake-helper.sh test` (または `cd build && ctest --output-on-failure -R rcg`)。
+  - Autotools: `./configure --enable-unit-test` の後に `make check`。
+  - ベンチマーク: `env -u LD_LIBRARY_PATH build/src/rcg_parser_bench -n 5 <ログ>... 2>/dev/null`。初めに、読み込んだ `librcsc.so` の場所を出す。
+  - 全体の比較: `test/compare_rcg_output.sh <古い bin> <新しい bin> <ログ>...`。
+
+## 7. 変更するファイル (見込み)
+
+- `rcsc/rcg/`: `parser.{h,cpp}`、`parser_v1.h`〜`parser_v3.h` (`using`)、`parser_v4.{h,cpp}`、`parser_simdjson.{h,cpp}`、`handler.h`、`line_parser.{h,cpp}` (新規)、`simdjson/*`、`test_parser.cpp`・`test_line_parser.cpp` (新規)、`test_data/` (新規)、`CMakeLists.txt`、`Makefile.am`
+- ファイルを読む関数 (`rcsc/gz/` または `rcsc/rcg/`。§3.3)
+- `obsolete/rcg/` (移動先)
+- `src/`: rcg を読むツール、`rcg_parser_bench.cpp` (新規)、`CMakeLists.txt`、`Makefile.am`
+- `CMakeLists.txt`、`configure.ac`、`cmake-config.h.in`、`librcsc.pc.in`、`librcsc.spec.in`、CMake のパッケージ構成ファイル (必要なら)
+- `test/compare_rcg_output.sh` (新規)
+- `.github/workflows/build.yml`
+- `RELEASE_NOTES.md`、`docs/build.md`、`README.md`
+
+## 8. 対象外
+
+- soccerwindow2 の変更 (メモリの経路への切り替え)。別の計画で行う。今の API のままでも解析は速くなるが、`gzifstream` での展開は遅いまま残る。
+- ライブ受信 (`parseData()`、`parseLine()`) の速さ。1 パケットずつの解析で、問題にならない。
+- simdjson のシンボルを `librcsc.so` から隠すこと。利用側が別の版の simdjson を使うと、ぶつかるおそれがある。記録だけする。
+- On-Demand の、コンパイル時に選ばれる実装の既定を変えること (S9)。手段を設けるかは §3.3 で決める。
+- パラメータの既定値の見直し (rcssmonitor の B-9)。
+- `rcsc::gzifstream` 自体の速さ (バッファの大きさなど)。
+- v1〜v3 (バイナリ) のパーサの速さ。
+- `example/` の修正。
+
+## 9. 記録
+
+### 2026-11-24: 計画を作成した
+
+- librcsc の RCG パーサ (§2.1〜§2.4)、rcssmonitor の PR #65 (§2.5)、見つかっている不具合 (§2.6) を調べた。
+- simdjson の On-Demand の解析部が `fallback` で動いていることを、手元のビルドのシンボルで確かめた (§2.2)。
+- ユーザの決定 D1〜D5 を記録した。D2 は、本家の最新 (5.3.0、2026-11-22) ではなく、rcssmonitor と同じ 5.1.1 とした。
+- この後: ユーザが GitHub でブランチを作った後、段階 1 に着手する。計画書は段階 1 の実装と一緒にコミットする。
+
+### 2026-11-24: 段階 1 を実装した
+
+- ユーザが `feature/rcg-parser-speedup` を作った (`212f5e7` から)。
+- ベンチマーク `rcg_parser_bench`、回帰テスト `run_test_rcg_parser` (9 項目)、全体の比較のスクリプト `test/compare_rcg_output.sh` を作った (§4.1.2)。
+- 今の librcsc の速さを記録した (§4.1.2)。CMake の Release で、JSON 205.9 ms、ULG5 123.6 ms、ULG6 90.5 ms (`stream`)。
+- 初めは、`LD_LIBRARY_PATH` の Debug の librcsc を測っていた (JSON が 7.4 秒)。ベンチマークが読み込んだライブラリを出すようにした。
+- 見つけたこと: `rcgversion` が v6 を判別できない (B12)。`ParserV4` などで `parse(filepath)` が隠れている (§2.1。段階 3 の `using Parser::parse;` で直る)。JSON のパーサはハンドラの戻り値で止まり、`handleLogVersion()` の戻り値は無視する (§2.1)。これらから S11〜S13 を決めた。
+- CMake の `ctest` 17 個、Autotools の `make check` 13 個と `make distcheck` が通った。
+- この後: ユーザの確認の後、段階 1 をコミットしてプッシュし、CI を確かめる。その後、段階 2 に着手する。
