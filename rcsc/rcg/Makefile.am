@@ -75,8 +75,9 @@ librcsc_rcg_la_LDFLAGS = -version-info 6:0:0
 
 AM_CPPFLAGS = -I$(top_srcdir)
 AM_CFLAGS = -Wall -W
-AM_CXXFLAGS = -Wall -W
-AM_LDFLAGS =
+# the parsers use std::thread (line_parser.cpp)
+AM_CXXFLAGS = -Wall -W -pthread
+AM_LDFLAGS = -pthread
 
 EXTRA_DIST = \
 	simdjson/LICENSE \
@@ -89,19 +90,25 @@ CLEANFILES = *~
 if UNIT_TEST
 TESTS = \
 	run_test_rcg_types \
-	run_test_rcg_parser
+	run_test_rcg_parser \
+	run_test_rcg_line_parser
 endif
 
 check_PROGRAMS = $(TESTS)
 
 run_test_rcg_types_SOURCES = test_types.cpp
-run_test_rcg_types_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W
+run_test_rcg_types_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W -pthread
 run_test_rcg_types_LDADD = librcsc_rcg.la ../gz/librcsc_gz.la $(CPPUNIT_LIBS)
 
 # the test data are the first records of real game logs (test_data/)
 run_test_rcg_parser_SOURCES = test_parser.cpp
 run_test_rcg_parser_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_DATA_DIR=\"$(abs_srcdir)/test_data\"
-run_test_rcg_parser_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W
+run_test_rcg_parser_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W -pthread
 run_test_rcg_parser_LDADD = librcsc_rcg.la ../gz/librcsc_gz.la $(CPPUNIT_LIBS)
+
+# the internal functions in line_parser.h
+run_test_rcg_line_parser_SOURCES = test_line_parser.cpp
+run_test_rcg_line_parser_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W -pthread
+run_test_rcg_line_parser_LDADD = librcsc_rcg.la ../gz/librcsc_gz.la $(CPPUNIT_LIBS)
 
 #EXTRA_DIST =

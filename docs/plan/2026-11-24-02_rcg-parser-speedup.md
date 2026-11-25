@@ -6,7 +6,7 @@
 | 最終更新日 | 2026-11-25 |
 | 対象 | `develop` (`212f5e7`)。同梱の simdjson 3.8.0 |
 | ブランチ | `feature/rcg-parser-speedup`。`develop` の `212f5e7` から、ユーザが GitHub で作った |
-| 状態 | 段階 1〜3 が完了した (CI 通過)。GCC 15 の警告の修正をコミットする前。PR #123 (下書き)。詳しくは「進み具合」を参照 |
+| 状態 | 段階 1〜3 が完了した (CI 通過)。段階 4 を実装した (コミット前)。PR #123 (下書き)。詳しくは「進み具合」を参照 |
 | 関連 | `docs/plan/2026-11-21_boost-cmake-maintenance.md` (simdjson の更新と `parser_json` の扱いをこの計画に回した)。参照実装: rcssmonitor の PR #65 (`docs/plan/2026-11-11_3d-view.md` の Phase 2)。利用側: soccerwindow2 (`src/model/main_data.cpp`) |
 
 ## 進み具合
@@ -16,8 +16,8 @@
 | 1 | 計測と回帰テストの土台 (§4.1、S11) | 完了 | 済み | 通過 | `b4d1b5c` | 済み |
 | 2 | simdjson 5.1.1 への更新、`parser_json` の移動 (§4.2、D2、D3、D6、S8、S9、S14) | 完了 | 済み | 通過 | `e778865` | 済み |
 | 3 | メモリからの解析、ファイルの一括読み込み (§4.3、D7、S2、S3、S12、S15、S16、S17) | 完了 | 済み | 通過 | `20f8b9d` | 済み |
-| — | GCC 15 の警告 (`-Wdangling-reference`、段階 3 のテスト) の修正、`docs/todo.md` への記録 (§4.3.2、§8) | 完了 | 未 | 未 | — | 未 |
-| 4 | 行の並列解析 (§4.4、D5、S1、S10、S13) | 未着手 | 未 | 未 | — | 未 |
+| — | GCC 15 の警告 (`-Wdangling-reference`、段階 3 のテスト) の修正、`docs/todo.md` への記録 (§4.3.2、§8) | 完了 | 済み | 通過 | `a0adabe` | 済み |
+| 4 | 行の並列解析 (§4.4、D5、S1、S10、S13、S18、S19) | 完了 | 未 | 未 | — | 未 |
 | 5 | libdeflate による展開 (§4.5、D4) | 未着手 | 未 | 未 | — | 未 |
 | 6 | 読み込みの堅牢化 (§4.6、S5) | 未着手 | 未 | 未 | — | 未 |
 | 7 | 仕上げ: 最終の計測、全体の比較、soccerwindow2 での確認、文書 (§4.7) | 未着手 | 未 | 未 | — | 未 |
@@ -151,7 +151,7 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 | S2 | 今の API (`create(istream)`、`parse(istream)`、`parse(filepath)`、`parseLine()`、`parseData()`) は残す。`parse(istream)` は内部でメモリに写して、速い経路を通る | soccerwindow2 などを直さずに使え、直さなくても解析は速くなる |
 | S3 | ファイルを (gzip なら展開して) メモリに読む関数を公開する。基底の `parse(filepath)` と `ParserSimdJSON::parse(filepath)` をこの関数で読むようにし、gzip を読めるようにする | ツールと利用側が同じ経路を使える。`rcgresultprinter` の一時ファイルをなくせる |
 | S4 | SOVERSION は 20 のままにする。`Parser` と `Handler` の仮想関数が増えて ABI は変わるため、librcsc を使うプログラムの再ビルドが要ることをリリースノートに書く | SOVERSION はプロトコルの版に合わせて変えてきた (`8440779`) |
-| S5 | 空行は無視する。解釈できない行は飛ばして続け、最後に飛ばした行の番号をまとめて出す。飛ばした行があっても `parse()` は true を返す | rcssmonitor の B-8 と同じ。サーバが途中で止まったログなども読める |
+| S5 | 空行は無視する。解釈できない行は飛ばして続け、最後に飛ばした行の番号をまとめて出す。飛ばした行があっても `parse()` は true を返す。(2026-11-25、段階 4 で、飛ばして続けることと報告を先に入れた。S18) | rcssmonitor の B-8 と同じ。サーバが途中で止まったログなども読める |
 | S6 | テストは CppUnit で、`rcsc/rcg/` に置く。テストのデータは `rcsc/rcg/test_data/` に置き、配布物 (`EXTRA_DIST`) に入れる | 既存の `run_test_rcg_types` と同じ。`make distcheck` でも動く |
 | S7 | ベンチマークは `src/` の開発用のプログラム (インストールしない) として、両方のビルドで作る | `object_table_printer` と同じ扱い |
 | S8 | simdjson は本家のタグ v5.1.1 の amalgamated のファイル (`singleheader/`) から取り、rcssmonitor のもの (`ab78451`) と同じことを確かめる | 出所をはっきりさせる |
@@ -164,6 +164,8 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 | S15 | JSON を 1 行ずつ解析するかの判定では、最初のレコードがその行で閉じていること (`}` か `},` で終わること) も確かめる。rcssmonitor は `{` で始まることだけを見ている (段階 3 で決めた) | 整形された JSON (`{` だけの行が続く) を 1 行ずつ解析すると、すべての行が失敗する。そのようなログは、文書全体として解析する |
 | S16 | ファイルを読む関数は `bool rcsc::gzread_file( const std::string & path, std::string * data )` (`rcsc/gz/gzread_file.h`) とする。gzip でないファイルは zlib を通さずにそのまま読む。zlib のないビルドでは、gzip のファイルは読めない (false) (段階 3 で決めた) | 名前は、gzip も普通のファイルも読める zlib の `gzread()` に倣った。gzip の末尾の大きさ (ISIZE) は、確保の見積もりだけに使い、deflate の最大の圧縮率 (約 1032 倍) で抑える (壊れたファイルで大きな値になりうるため) |
 | S17 | 段階 3 では、解析できない行や、ハンドラが false を返したときの扱いを変えない (そこで読み込みをやめる)。変えるのは段階 4 (S13) と段階 6 (S5) (段階 3 で決めた) | 段階ごとに、全体の比較で出力が変わらないことを確かめるため |
+| S18 | 段階 4 から、パーサが解析できなかった行 (`parseLine()`・`parseRecord()` が false を返すか、例外を出した行) は飛ばして続け、`report_skipped()` で報告する。`parse()` は true を返す (S5 の一部を先に入れる)。空行を無視すること、知らない記録などを失敗として扱うこと (B3、B5) は段階 6 で行う (段階 4 で決めた) | rcssmonitor の `parse_lines()` は、失敗した行を飛ばす作りで、並列のときに「最初の失敗でやめる」を保つには、記録の再生を途中で止める処理が要る。それは段階 6 で消すことになるため、作らない |
+| S19 | 1 スレッドのときも、行ごとに記録用のハンドラに解析してから、すぐに本当のハンドラへ再生する。rcssmonitor は 1 スレッドのとき本当のハンドラを直接渡す (段階 4 で決めた) | スレッドの数によらず、ハンドラの扱いを同じにするため。直接渡すと、ハンドラの false を「解析できなかった行」と数え、ハンドラの例外を握りつぶす。並列のときは、戻り値は使われず、例外は `parse()` の外に出る。余計にかかる時間は 1 ms ほど (§4.4.2) |
 
 ### 3.3 段階の初めに決めること
 
@@ -351,9 +353,40 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
   - Autotools: `-pthread`。
   - パッケージの構成ファイルと `librcsc.pc` に影響がないかを、`test/` のインストールのテストで確かめる。
 
-#### 4.4.2 実装
+#### 4.4.2 実装 (2026-11-25)
 
-未着手。
+- `Handler::handleTimestamp()` を仮想にした (S4)。
+- `Parser::setMaxThreads( int n )`・`Parser::maxThreads()` (D5、S10): 値は `std::atomic< int >` で持つ。0 以下は既定 (`hardware_concurrency()` と 8 の小さい方)。明示した値は 8 より大きくてもそのまま使う。
+- `rcsc/rcg/line_parser.{h,cpp}` に、rcssmonitor の残りを足した。
+  - `count_threads( n_lines )`: `max( 1, min( Parser::maxThreads(), n_lines / 1024 ) )`。テストのために公開した。
+  - `parse_lines()`: 行を連続したブロックに分け、ブロックごとに `std::thread` で記録用のハンドラに解析し、`join` の後、ブロックの順に本当のハンドラへ再生する (S1)。スレッドを作れなかった (`std::system_error`) ブロックは、呼び出したスレッドで解析する。1 スレッドのときも、行ごとに記録してから再生する (S19)。失敗した行の番号を返す。
+  - `RecordingHandler`: rcssmonitor と同じく、仮想関数ごとに引数を写したラムダを記録する (`ServerParamT`・`PlayerParamT` は `copyFrom()`)。作る時に、本当のハンドラの `logVersion()`・`serverVersion()`・`timestamp()` を写す (パーサが参照するときのため)。
+  - `report_skipped()`: 飛ばした行の番号を、初めの 10 個と合計で出す。
+- `ParserV4::parse( data, size, ... )`: ヘッダの後の行を `parse_lines()` で解析する。スレッドごとに行のバッファ (`std::string`) を持つ。
+- `ParserSimdJSON::Impl::parseLines()`: レコードの行を集めてから `parse_lines()` で解析する。スレッドごとに `simdjson::ondemand::parser` を持つ。`Impl` の関数は `Impl` を変えないので、スレッドで共有する。
+- 解析の関数がスレッドで共有して安全なことを確かめた: `parser_v4.cpp`・`parser_simdjson.cpp`・`types.cpp`・`util.cpp` に、変わる静的な状態はない (読み出し専用の `to_playmode_enum()` の表だけ)。パーサはハンドラの状態 (`logVersion()` など) を参照していない。
+- ビルド: CMake は `find_package(Threads REQUIRED)` を加え、`rcsc_rcg` と `rcsc` に `Threads::Threads` を PRIVATE でリンクする。Autotools は `rcsc/rcg/Makefile.am` に `-pthread` を、`librcsc.la` のリンクに `-pthread` を加えた。
+- ベンチマーク: `-t <Threads>` (スレッドの数の上限) を加え、初めにその値を出す。
+- テスト:
+  - `run_test_rcg_line_parser` (新規、8 項目): `split_lines()`、`setMaxThreads()`・`maxThreads()`・`count_threads()`、20,000 行を 4 スレッドで解析して順序が保たれ、ハンドラが呼び出したスレッドだけから呼ばれること、1 スレッドのとき呼び出したスレッドだけで解析すること、失敗した行と例外を出した行を飛ばすこと、ハンドラの戻り値を使わないことと、ハンドラの例外が外に出ること (1 スレッドと 4 スレッドの両方)、`handleServerVersion()`・`handleTimestamp()` が渡り、スレッドの中で `logVersion()` を参照できること。
+  - S19 を一時的に rcssmonitor と同じ (1 スレッドのとき本当のハンドラを直接渡す) にすると、ハンドラの戻り値と例外の 2 項目が失敗することを確かめた。
+  - `run_test_rcg_parser` (25 項目): 5,000 個の show の大きなテキストと JSON のログを、4 スレッドと 1 スレッドで解析し、同じものが同じ順に渡ること、解析できない行を飛ばして続けること (テキストは今の `parseLine()` が失敗とする、括弧で始まらない行と空行。B3・B5 の例は段階 6 で足す)、JSON でもハンドラの false で止まらないこと (S13) を足した。
+- 確かめたこと:
+  - CMake (Release): ビルドの警告 0。`ctest` で 19 個すべて通った。
+  - Autotools: コンパイラの警告 0。`make check` で 15 個すべて通り、`make distcheck` (`--enable-unit-test`) も通った。`librcsc.so` のリンクに `-pthread` が渡ることを確かめた。
+  - ThreadSanitizer (`-fsanitize=thread -O1`。GCC 13 は `-O2` で `parser_simdjson.cpp` の内部エラーになった。カーネルの ASLR の設定のため `setarch -R` で動かした): `run_test_rcg_line_parser`・`run_test_rcg_parser` と、ベンチマークでの実際のログ 2 つの読み込みで、データ競合の報告はなかった。
+  - 全体の比較 (S11): 変更前 (`212f5e7`) と比べて、4 つのログの 8 つの変換がすべて同じだった。
+- 速さ (CMake の Release、5 回の最良、ms)。「1 スレッド」は `-t 1`:
+
+| ログ | total (段階 3) | total | total (1 スレッド) | memory (段階 3) | memory | stream (段階 3) | stream |
+|---|---|---|---|---|---|---|---|
+| JSON | 137.9 | 73.6 | 138.6 | 85.1 | 21.0 | 156.2 | 91.7 |
+| ULG5 | 119.6 | 59.8 | 120.6 | 78.9 | 19.1 | 128.4 | 70.0 |
+| ULG6 | 84.8 | 43.8 | 85.8 | 53.3 | 12.7 | 93.9 | 53.1 |
+
+- 手元の 32 コアの計算機では、既定の上限は 8 スレッド。解析 (`memory`) は 4 分の 1 ほどになり、ツールの経路 (`total`) は半分ほどになった。残りの大部分は展開 (`file`: JSON 51.5 ms、ULG5 43.5 ms、ULG6 29.1 ms) で、並列にできない (段階 5 の libdeflate で速くする)。rcssmonitor の A6 (JSON 84 ms、テキスト 60 ms) と同じ水準である。
+- 1 スレッドのときは段階 3 とほぼ同じ (行ごとに記録して再生する分は 1 ms ほど。S19)。
+- soccerwindow2 の経路 (`stream`) も、テキストで段階 2 より速くなった (ULG5 124.0 → 70.0 ms)。
 
 ### 4.5 段階 5: libdeflate による展開
 
@@ -524,4 +557,14 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 - CI の結果 (`20f8b9d`): 5 ジョブすべて成功した。4 つのビルドのジョブで `run_test_rcg_parser` と `run_test_gzread_file` が通った (CMake は 18 個すべて、Autotools は `make check` と `make distcheck`)。
 - ただし、Ubuntu 26.04 (GCC 15.2) で、`test_parser.cpp` の `testGzipFilePath` に `-Wdangling-reference` の警告が 2 件出た (Autotools では `distcheck` でもう一度ビルドするため 4 件)。範囲 for 文で `{ std::make_pair( ... ), ... }` を回していた所で、実際には問題のない誤検出。手元の GCC 13.3 では、`-Wdangling-reference` を付けても出ない。gzip のファイルを作る関数 `write_gzip()` を 2 回呼ぶ形に書き換えた。
 - CLAUDE.md に、対象外にしたり見送ったりした作業を `docs/todo.md` に記録するという指示が加わった。§8 の項目と S14 (On-Demand の CPU を選ぶ手段を設けない) を `docs/todo.md` に記録した。
-- この後: ユーザの確認の後、修正と `docs/todo.md` をコミットしてプッシュし、CI で GCC 15 の警告が 0 になったことを確かめる。その後、段階 4 (行の並列解析) に着手する。
+- ユーザの確認の後、`a0adabe` としてコミットし、プッシュした。
+- CI の結果 (`a0adabe`): 5 ジョブすべて成功した。Ubuntu 26.04 (GCC 15.2) を含む 4 つのビルドのジョブで、コンパイラの警告は 0 になった。
+- この後: 段階 4 (行の並列解析) に着手する。
+
+### 2026-11-25: 段階 4 を実装した
+
+- 行の並列解析 (`parse_lines()`、`RecordingHandler`)、`Parser::setMaxThreads()`・`maxThreads()`、`Handler::handleTimestamp()` の仮想化を実装した (§4.4.2)。
+- 決めたこと: S18 (段階 4 から、解析できない行は飛ばして続ける)、S19 (1 スレッドのときも記録してから渡す)。
+- テスト: `run_test_rcg_line_parser` (8 項目) を足し、`run_test_rcg_parser` を 25 項目に増やした。CMake の `ctest` 19 個、Autotools の `make check` 15 個と `make distcheck` が通った。ThreadSanitizer でデータ競合の報告はなかった。
+- 全体の比較で、変更前と出力が同じだった。ツールの経路は、JSON で 137.9 → 73.6 ms、ULG5 で 119.6 → 59.8 ms、ULG6 で 84.8 → 43.8 ms になった。
+- この後: ユーザの確認の後、段階 4 をコミットしてプッシュし、CI を確かめる。その後、段階 5 (libdeflate) に着手する。初めに、CI のどのジョブに `libdeflate-dev` を入れるかを決める (§3.3)。

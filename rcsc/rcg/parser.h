@@ -84,6 +84,27 @@ public:
     Ptr create( const char * data,
                 const std::size_t size );
 
+    /*!
+      \brief set the upper limit of the number of the threads that parse the lines of a game log in parallel.
+      \param n the upper limit. 1 means no parallel parsing.
+      0 or less means the default: the smaller of the number of the hardware threads and 8.
+
+      The setting is shared by all the parsers in the process.
+      Fewer threads are used for a small game log (at least 1024 lines for a thread).
+      The handler is always called in the thread that calls parse(), in the order of the lines,
+      whatever the number of the threads.
+      For example, a program that processes many game logs in parallel processes may call setMaxThreads( 1 ).
+     */
+    static
+    void setMaxThreads( const int n );
+
+    /*!
+      \brief get the upper limit of the number of the threads that parse the lines of a game log in parallel.
+      \return the value given by setMaxThreads(), or the default value if it is 0 or less.
+     */
+    static
+    int maxThreads();
+
 protected:
 
     /*!

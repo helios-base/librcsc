@@ -45,13 +45,22 @@
 
 #include <rcsc/gz/gzread_file.h>
 
+#include <algorithm>
+#include <atomic>
 #include <iostream>
 #include <streambuf>
+#include <thread>
 
 namespace rcsc {
 namespace rcg {
 
 namespace {
+
+//! the default upper limit of the number of the threads that parse a game log
+const unsigned int DEFAULT_MAX_THREADS = 8;
+
+//! the value given by Parser::setMaxThreads(). 0 means the default.
+std::atomic< int > s_max_threads( 0 );
 
 /*!
   \class MemoryBuf
@@ -187,6 +196,33 @@ Parser::create( const char * data,
     MemoryBuf buf( data, size );
     std::istream is( &buf );
     return create( is );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  See docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.4 (D5, S10).
+*/
+void
+Parser::setMaxThreads( const int n )
+{
+    s_max_threads = std::max( 0, n );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+int
+Parser::maxThreads()
+{
+    const int n = s_max_threads;
+    if ( n > 0 )
+    {
+        return n;
+    }
+
+    const unsigned int hardware = std::max( 1u, std::thread::hardware_concurrency() );
+    return static_cast< int >( std::min( hardware, DEFAULT_MAX_THREADS ) );
 }
 
 /*-------------------------------------------------------------------*/

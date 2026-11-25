@@ -584,6 +584,109 @@ check_json_values( const RecordHandler & handler )
 
 }
 
+namespace {
+
+//! the number of the shows of the large game logs: more than 1024 lines for each of 4 threads
+const int MANY_SHOWS = 5000;
+
+/*!
+  \brief a large text game log: the header, the parameters, the playmode and the team of head_v5.rcg,
+  and MANY_SHOWS shows made from its last show, with the times 1, 2, ...
+  \param broken the lines inserted after the show of the time (the key), which cannot be parsed
+*/
+std::string
+many_text_lines( const std::map< int, std::string > & broken = std::map< int, std::string >() )
+{
+    std::istringstream is( read_file( data_path( "head_v5.rcg" ) ) );
+    std::string data;
+    std::string show; // the rest of the line after "(show 4 "
+    std::string line;
+    while ( std::getline( is, line ) )
+    {
+        if ( ! line.compare( 0, 8, "(show 4 " ) )
+        {
+            show = line.substr( 8 );
+        }
+        else if ( line.rfind( "(show ", 0 ) != 0
+                  && line.rfind( "(playmode 4 ", 0 ) != 0 ) // the play mode at the time 4
+        {
+            data += line + '\n';
+        }
+    }
+    CPPUNIT_ASSERT( ! show.empty() );
+
+    for ( int t = 1; t <= MANY_SHOWS; ++t )
+    {
+        data += "(show " + std::to_string( t ) + ' ' + show + '\n';
+        std::map< int, std::string >::const_iterator it = broken.find( t );
+        if ( it != broken.end() )
+        {
+            data += it->second + '\n';
+        }
+    }
+    return data;
+}
+
+/*!
+  \brief a large JSON game log: the records of head_json.rcg except the shows,
+  and MANY_SHOWS shows made from its last show, with the times 1, 2, ...
+  \param broken the lines inserted after the show of the time (the key), which cannot be parsed
+*/
+std::string
+many_json_lines( const std::map< int, std::string > & broken = std::map< int, std::string >() )
+{
+    const std::vector< std::string > records = json_records();
+    const std::string prefix = "{\"show\":{\"time\":5,";
+    std::string show; // the rest of the record after the time
+    std::string data = "[\n";
+    for ( const std::string & record : records )
+    {
+        if ( ! record.compare( 0, prefix.length(), prefix ) )
+        {
+            show = record.substr( prefix.length() );
+        }
+        else if ( record.compare( 0, 8, "{\"show\":" ) != 0
+                  && record.find( "\"time\":5," ) == std::string::npos )
+        {
+            data += record + ",\n";
+        }
+    }
+    CPPUNIT_ASSERT( ! show.empty() );
+
+    for ( int t = 1; t <= MANY_SHOWS; ++t )
+    {
+        data += "{\"show\":{\"time\":" + std::to_string( t ) + ',' + show;
+        data += ( t < MANY_SHOWS ? ",\n" : "\n" );
+        std::map< int, std::string >::const_iterator it = broken.find( t );
+        if ( it != broken.end() )
+        {
+            data += it->second + ",\n";
+        }
+    }
+    data += "]\n";
+    return data;
+}
+
+/*!
+  \brief the events of many_text_lines() or many_json_lines()
+*/
+std::vector< std::string >
+many_events( const int log_version,
+             const std::string & team )
+{
+    std::vector< std::string > events = header_events( log_version );
+    events.push_back( playmode_event( 1, PM_KickOff_Left ) );
+    events.push_back( team );
+    for ( int t = 1; t <= MANY_SHOWS; ++t )
+    {
+        events.push_back( "show " + std::to_string( t ) );
+    }
+    events.push_back( "eof" );
+    return events;
+}
+
+}
+
 /*-------------------------------------------------------------------*/
 /*!
   \brief the regression tests of the rcg parsers on the first records of real game logs
@@ -614,11 +717,23 @@ class RcgParserTest
     CPPUNIT_TEST( testJsonTeamGraphic );
     CPPUNIT_TEST( testTextHandlerFalseDoesNotStop );
     CPPUNIT_TEST( testCreateWithoutHeader );
+    CPPUNIT_TEST( testTextManyLines );
+    CPPUNIT_TEST( testJsonManyLines );
+    CPPUNIT_TEST( testTextBrokenLinesSkipped );
+    CPPUNIT_TEST( testJsonBrokenLinesSkipped );
+    CPPUNIT_TEST( testJsonHandlerFalseDoesNotStop );
     CPPUNIT_TEST_SUITE_END();
 
 public:
-    void setUp() override { }
-    void tearDown() override { }
+    void setUp() override
+      {
+          Parser::setMaxThreads( 0 );
+      }
+
+    void tearDown() override
+      {
+          Parser::setMaxThreads( 0 );
+      }
 
 protected:
     void testTextV5Stream();
@@ -643,6 +758,11 @@ protected:
     void testJsonTeamGraphic();
     void testTextHandlerFalseDoesNotStop();
     void testCreateWithoutHeader();
+    void testTextManyLines();
+    void testJsonManyLines();
+    void testTextBrokenLinesSkipped();
+    void testJsonBrokenLinesSkipped();
+    void testJsonHandlerFalseDoesNotStop();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION( RcgParserTest );
@@ -998,6 +1118,109 @@ RcgParserTest::testTextHandlerFalseDoesNotStop()
     CPPUNIT_ASSERT( parse_stream( data_path( "head_v5.rcg" ), REC_VERSION_4, handler ) );
 
     assert_events( v5_events(), handler.events_ );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief a large text game log is parsed in parallel (4 threads) and in one thread,
+  and the same data are passed to the handler in the same order
+  (docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.4)
+*/
+void
+RcgParserTest::testTextManyLines()
+{
+    const std::string data = many_text_lines();
+    const std::vector< std::string > expected = many_events( REC_VERSION_5, "team 1 HELIOS2022 CYRUS 0 0" );
+
+    for ( const int max_threads : { 4, 1 } )
+    {
+        Parser::setMaxThreads( max_threads );
+        RecordHandler handler;
+        CPPUNIT_ASSERT( parse_memory( data, REC_VERSION_4, handler ) );
+        assert_events( expected, handler.events_ );
+        CPPUNIT_ASSERT_DOUBLES_EQUAL( 38.1613, handler.shows_.back().player_[11].x_, EPS );
+    }
+}
+
+/*-------------------------------------------------------------------*/
+void
+RcgParserTest::testJsonManyLines()
+{
+    const std::string data = many_json_lines();
+    const std::vector< std::string > expected = many_events( REC_VERSION_JSON, "team 1 HELIOS2023 CYRUS 0 0" );
+
+    for ( const int max_threads : { 4, 1 } )
+    {
+        Parser::setMaxThreads( max_threads );
+        RecordHandler handler;
+        CPPUNIT_ASSERT( parse_memory( data, REC_VERSION_JSON, handler ) );
+        assert_events( expected, handler.events_ );
+        CPPUNIT_ASSERT_DOUBLES_EQUAL( 39.3019, handler.shows_.back().player_[11].x_, EPS );
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief the lines that cannot be parsed are skipped, and the parsing goes on
+  (docs/plan/2026-11-24-02_rcg-parser-speedup.md S18)
+
+  The lines that ParserV4 fails to parse now: a line not beginning with "(", and an empty line.
+  (An unknown record and a broken show are not detected yet: B3 and B5 in 2.6 of the plan.)
+*/
+void
+RcgParserTest::testTextBrokenLinesSkipped()
+{
+    const std::string data = many_text_lines( { { 100, "not a record" },
+                                                { 3000, "" } } );
+    const std::vector< std::string > expected = many_events( REC_VERSION_5, "team 1 HELIOS2022 CYRUS 0 0" );
+
+    for ( const int max_threads : { 4, 1 } )
+    {
+        Parser::setMaxThreads( max_threads );
+        RecordHandler handler;
+        CPPUNIT_ASSERT( parse_memory( data, REC_VERSION_4, handler ) );
+        assert_events( expected, handler.events_ );
+    }
+}
+
+/*-------------------------------------------------------------------*/
+void
+RcgParserTest::testJsonBrokenLinesSkipped()
+{
+    const std::string data = many_json_lines( { { 100, "{\"show\":{\"time\":" },
+                                                { 3000, "not json" } } );
+    const std::vector< std::string > expected = many_events( REC_VERSION_JSON, "team 1 HELIOS2023 CYRUS 0 0" );
+
+    for ( const int max_threads : { 4, 1 } )
+    {
+        Parser::setMaxThreads( max_threads );
+        RecordHandler handler;
+        CPPUNIT_ASSERT( parse_memory( data, REC_VERSION_JSON, handler ) );
+        assert_events( expected, handler.events_ );
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief the JSON parser does not stop even if the handler returns false, as the text parser
+  (docs/plan/2026-11-24-02_rcg-parser-speedup.md S13)
+*/
+void
+RcgParserTest::testJsonHandlerFalseDoesNotStop()
+{
+    {
+        RecordHandler handler;
+        handler.show_result_ = false;
+        CPPUNIT_ASSERT( parse_memory( read_file( data_path( "head_json.rcg" ) ), REC_VERSION_JSON, handler ) );
+        assert_events( json_events(), handler.events_ );
+    }
+    {
+        Parser::setMaxThreads( 4 );
+        RecordHandler handler;
+        handler.show_result_ = false;
+        CPPUNIT_ASSERT( parse_memory( many_json_lines(), REC_VERSION_JSON, handler ) );
+        assert_events( many_events( REC_VERSION_JSON, "team 1 HELIOS2023 CYRUS 0 0" ), handler.events_ );
+    }
 }
 
 /*-------------------------------------------------------------------*/

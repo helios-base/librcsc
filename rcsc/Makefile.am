@@ -46,7 +46,8 @@ librcsc_la_LIBADD = \
 	trainer/librcsc_trainer.la
 
 # NOTE: Update LIBRCSC_SOVERSION in CMakeLists.txt at the same time.
-librcsc_la_LDFLAGS = -version-info 20:0:0
+# -pthread: the rcg parser uses std::thread
+librcsc_la_LDFLAGS = -version-info 20:0:0 -pthread
 #libXXXX_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 #    1. Start with version information of `0:0:0' for each libtool library.
 #

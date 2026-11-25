@@ -73,6 +73,9 @@ if(ZLIB_FOUND)
   set(HAVE_LIBZ TRUE)
 endif()
 
+# threads: the rcg parser parses the lines of a game log in parallel (std::thread)
+find_package(Threads REQUIRED)
+
 # generate config.h (used only to build librcsc, not installed)
 configure_file(
   ${PROJECT_SOURCE_DIR}/cmake-config.h.in

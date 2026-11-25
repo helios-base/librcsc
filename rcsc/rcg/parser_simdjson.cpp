@@ -46,6 +46,7 @@
 #include <unordered_map>
 #include <string_view>
 #include <functional>
+#include <memory>
 #include <vector>
 
 namespace rcsc {
@@ -234,7 +235,8 @@ ParserSimdJSON::Impl::parseLog( simdjson::padded_string & json,
 /*!
   parse a log of one record per line. The "[" and "]" lines are skipped,
   so a log whose last "]" is missing (rcssserver stopped abnormally) is read too.
-  See docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.3.
+  The records are parsed in parallel by parse_lines(). A record that cannot be parsed is skipped.
+  See docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.3 and 4.4.
  */
 bool
 ParserSimdJSON::Impl::parseLines( const char * data,
@@ -243,7 +245,7 @@ ParserSimdJSON::Impl::parseLines( const char * data,
 {
     const char * const end = data + size;
 
-    simdjson::ondemand::parser parser;
+    std::vector< LineRef > records;
     for ( const LineRef & line : split_lines( data, size ) )
     {
         const char * first = line.begin_;
@@ -263,12 +265,24 @@ ParserSimdJSON::Impl::parseLines( const char * data,
             continue;
         }
 
-        if ( ! parseRecord( parser, first, static_cast< std::size_t >( last - first ), end, handler ) )
-        {
-            std::cerr << "(ParserSimdJSON::parse) failed to parse the line " << line.number_ << std::endl;
-            return false;
-        }
+        records.push_back( LineRef{ first, static_cast< std::size_t >( last - first ), line.number_ } );
     }
+
+    // each thread has its own simdjson parser.
+    // The functions of Impl do not change Impl, so the threads share it.
+    const std::vector< int > skipped
+        = parse_lines( records,
+                       [this, end]() -> LineParser
+                       {
+                           std::shared_ptr< simdjson::ondemand::parser > parser
+                               = std::make_shared< simdjson::ondemand::parser >();
+                           return [this, end, parser]( const LineRef & record, Handler & h ) -> bool
+                               {
+                                   return parseRecord( *parser, record.begin_, record.length_, end, h );
+                               };
+                       },
+                       handler );
+    report_skipped( "rcsc::rcg::ParserSimdJSON::parse", "line", skipped );
 
     handler.handleEOF();
     return true;

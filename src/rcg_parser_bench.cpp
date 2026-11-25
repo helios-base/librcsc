@@ -28,7 +28,7 @@
  */
 
 /*
-  Usage: rcg_parser_bench [-n <Repeat>] <RcgFile>[.gz]...
+  Usage: rcg_parser_bench [-n <Repeat>] [-t <Threads>] <RcgFile>[.gz]...
 
   For each game log, the following times are measured <Repeat> times (default 5),
   and the best and the median are printed in milliseconds.
@@ -40,6 +40,9 @@
     file   : read the whole file into memory by rcsc::gzread_file() (decompression only).
     memory : call Parser::create(data,size) and parse(data,size,handler) on the data in memory.
     total  : file + memory. This is the way of the tools of librcsc.
+
+  -t <Threads> gives the upper limit of the number of the threads that parse the lines
+  (rcsc::rcg::Parser::setMaxThreads()). 1 means no parallel parsing. The default is automatic.
 
   The handler stores all the shows in a std::vector, as a viewer does.
   The messages of Parser::create() are printed to stderr; redirect them by "2>/dev/null".
@@ -404,9 +407,10 @@ print_librcsc_path()
 void
 usage( const char * prog )
 {
-    std::cerr << "Usage: " << prog << " [-n <Repeat>] <RcgFile>[.gz]...\n"
+    std::cerr << "Usage: " << prog << " [-n <Repeat>] [-t <Threads>] <RcgFile>[.gz]...\n"
               << "  measure the time to load game logs by the rcg parser.\n"
-              << "  -n <Repeat> : the number of the measurements (default: 5)\n";
+              << "  -n <Repeat> : the number of the measurements (default: 5)\n"
+              << "  -t <Threads> : the upper limit of the number of the threads (default: automatic)\n";
 }
 
 }
@@ -435,6 +439,18 @@ main( int argc, char ** argv )
             }
             ++i;
         }
+        else if ( ! std::strcmp( argv[i], "-t" ) )
+        {
+            int threads = 0;
+            if ( i + 1 >= argc
+                 || ( threads = std::atoi( argv[i + 1] ) ) <= 0 )
+            {
+                usage( argv[0] );
+                return 1;
+            }
+            rcsc::rcg::Parser::setMaxThreads( threads );
+            ++i;
+        }
         else
         {
             files.push_back( argv[i] );
@@ -448,6 +464,7 @@ main( int argc, char ** argv )
     }
 
     print_librcsc_path();
+    std::cout << "threads: at most " << rcsc::rcg::Parser::maxThreads() << '\n';
 
     for ( const std::string & path : files )
     {

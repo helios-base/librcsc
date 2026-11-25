@@ -155,3 +155,18 @@ Each item has the date when the change was made.
   - Fixed the dates printed by `rcgresultprinter`, which could be one hour off,
     because `tm_isdst` was not initialized before `mktime()`.
 - (2026-11-25) Tests: added the unit test `run_test_gzread_file` (`rcsc/gz`, CMake and Autotools).
+- (2026-11-25) The rcg parser parses the lines of a game log in parallel, which makes loading a game log about twice as fast:
+  - The text game logs (v4 to v6) and the JSON game logs of one record per line are parsed by several threads,
+    if they have many lines (at least 1024 lines for a thread).
+  - The handler is always called in the thread that calls `parse()`, in the order of the lines,
+    so the handlers do not need to be thread-safe.
+  - New functions `rcsc::rcg::Parser::setMaxThreads( int n )` and `Parser::maxThreads()`:
+    the upper limit of the number of the threads. The default is the smaller of the number of the hardware threads and 8.
+    `setMaxThreads( 1 )` disables the parallel parsing, e.g. for a program that processes many game logs in parallel processes.
+  - The return values of the handler's functions no longer stop the parsing (the JSON parser stopped before).
+    An exception thrown by the handler goes out of `parse()`.
+  - A line that cannot be parsed is skipped with a message, and the parsing goes on.
+    Before, the parsing stopped there and `parse()` returned false.
+  - `rcsc::rcg::Handler::handleTimestamp()` is now virtual. Rebuild the programs built with librcsc of the develop branch before this change.
+  - librcsc is linked with the thread library (`Threads::Threads` of CMake, `-pthread` of Autotools).
+- (2026-11-25) Tests: added the unit test `run_test_rcg_line_parser` (`rcsc/rcg`, CMake and Autotools).

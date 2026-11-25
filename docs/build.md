@@ -177,6 +177,7 @@ The tests of the CMake build are:
 | `test_clang_parser` | the unit test of `rcsc/clang` (CppUnit) |
 | `run_test_rcg_types` | the unit test of the data types of `rcsc/rcg` (e.g. the output of `rcsc::rcg::PlayerTypeT`) (CppUnit) |
 | `run_test_rcg_parser` | the unit test of the rcg parsers of `rcsc/rcg`, on the first records of real game logs in `rcsc/rcg/test_data` (CppUnit) |
+| `run_test_rcg_line_parser` | the unit test of parsing the lines of a game log in parallel in `rcsc/rcg` (CppUnit) |
 | `run_test_gzread_file` | the unit test of `rcsc::gzread_file()` in `rcsc/gz` (e.g. gzip files of more than one member, and truncated gzip files) (CppUnit) |
 | `run_test_server_param` | the unit test of `rcsc::ServerParam` and `rcsc::rcg::ServerParamT` in `rcsc/common` (CppUnit) |
 | `install` | installs librcsc into `test-install` in the build directory, for the following tests |
@@ -213,6 +214,8 @@ They need real game logs, so they are not run by the tests, and they are not ins
   ```
 
   It prints the path of the loaded librcsc first.
+  `-t <Threads>` gives the upper limit of the number of the threads that parse the lines (`rcsc::rcg::Parser::setMaxThreads()`);
+  `-t 1` measures the parsing without threads.
   If `LD_LIBRARY_PATH` contains an installed librcsc (e.g. a debug build), it is measured instead of the built one,
   so run the program with `env -u LD_LIBRARY_PATH` as above.
 - `test/compare_rcg_output.sh` checks that two builds of librcsc read the same data from game logs.

@@ -37,12 +37,15 @@
 #define RCSC_RCG_LINE_PARSER_H
 
 #include <cstddef>
+#include <functional>
 #include <istream>
 #include <string>
 #include <vector>
 
 namespace rcsc {
 namespace rcg {
+
+class Handler;
 
 /*!
   \struct LineRef
@@ -64,6 +67,58 @@ struct LineRef {
 */
 std::vector< LineRef > split_lines( const char * data,
                                     const std::size_t size );
+
+/*!
+  \brief a function that parses a line and passes its data to a handler.
+  It returns false if the line cannot be parsed.
+*/
+using LineParser = std::function< bool ( const LineRef & line,
+                                         Handler & handler ) >;
+
+/*!
+  \brief a function that makes a LineParser for a thread, with the state
+  that the thread uses alone (a parser object, a buffer, ...).
+*/
+using LineParserFactory = std::function< LineParser () >;
+
+/*!
+  \brief get the number of the threads that parse_lines() uses for lines
+  \param n_lines the number of the lines
+  \return the smaller of Parser::maxThreads() and n_lines / 1024, and at least 1
+*/
+int count_threads( const std::size_t n_lines );
+
+/*!
+  \brief parse lines and pass their data to a handler in the order of the lines.
+  \param lines the lines
+  \param make_parser makes the line parser of each thread
+  \param handler the handler
+  \return the numbers of the lines that failed, in order
+
+  With many lines (see count_threads()), consecutive blocks of them are parsed in parallel,
+  each into a recording handler, and the records are passed to the handler in order afterwards.
+  With one thread, each line is also parsed into a recording handler and passed to the handler
+  at once, so that the handler is used in the same way whatever the number of the threads:
+  - The handler is called only in the calling thread.
+  - The return values of the handler's functions are not used (they do not stop the parsing).
+  - An exception thrown by the handler goes out of this function.
+  A line that fails (the line parser returns false or throws) is skipped.
+  The data of the line passed before the failure are passed to the handler.
+*/
+std::vector< int > parse_lines( const std::vector< LineRef > & lines,
+                                const LineParserFactory & make_parser,
+                                Handler & handler );
+
+/*!
+  \brief print the numbers of the lines that were skipped to std::cerr:
+  the first ones one by one, and then the number of them.
+  \param who the name of the parser, at the head of each message
+  \param what "line" or "record"
+  \param numbers the numbers of the lines (or records) that were skipped
+*/
+void report_skipped( const std::string & who,
+                     const std::string & what,
+                     const std::vector< int > & numbers );
 
 /*!
   \brief read the rest of the stream into memory

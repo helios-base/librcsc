@@ -40,6 +40,7 @@
 #include "types.h"
 
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 #include <cstdlib>
@@ -80,7 +81,8 @@ ParserV4::parse( std::istream & is,
 
 /*-------------------------------------------------------------------*/
 /*!
-  See docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.3.
+  The lines are parsed in parallel by parse_lines(). A line that cannot be parsed is skipped.
+  See docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.3 and 4.4.
  */
 bool
 ParserV4::parse( const char * data,
@@ -90,7 +92,6 @@ ParserV4::parse( const char * data,
     const std::vector< LineRef > lines = split_lines( data, size );
 
     std::string line;
-    line.reserve( 8192 );
 
     // skip header line
     if ( ! lines.empty() )
@@ -121,14 +122,24 @@ ParserV4::parse( const char * data,
         return false;
     }
 
-    for ( std::size_t i = 1; i < lines.size(); ++i )
-    {
-        line.assign( lines[i].begin_, lines[i].length_ );
-        if ( ! parseLine( lines[i].number_, line, handler ) )
-        {
-            return false;
-        }
-    }
+    // the lines after the header
+    const std::vector< LineRef > body( lines.begin() + 1, lines.end() );
+
+    // each thread has its own buffer of a line
+    const std::vector< int > skipped
+        = parse_lines( body,
+                       [this]() -> LineParser
+                       {
+                           std::shared_ptr< std::string > buf = std::make_shared< std::string >();
+                           buf->reserve( 8192 );
+                           return [this, buf]( const LineRef & l, Handler & h ) -> bool
+                               {
+                                   buf->assign( l.begin_, l.length_ );
+                                   return parseLine( l.number_, *buf, h );
+                               };
+                       },
+                       handler );
+    report_skipped( "rcsc::rcg::ParserV4::parse", "line", skipped );
 
     return handler.handleEOF();
 }

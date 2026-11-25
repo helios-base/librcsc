@@ -50,6 +50,9 @@ if(ZLIB_FOUND)
   target_link_libraries(rcsc PRIVATE ZLIB::ZLIB)
 endif()
 
+# the rcg parser uses std::thread (only inside librcsc)
+target_link_libraries(rcsc PRIVATE Threads::Threads)
+
 set_target_properties(rcsc PROPERTIES
   VERSION ${LIBRCSC_BUILDVERSION}
   SOVERSION ${LIBRCSC_SOVERSION}
