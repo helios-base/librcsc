@@ -6,7 +6,7 @@
 | 最終更新日 | 2026-11-25 |
 | 対象 | `develop` (`212f5e7`)。同梱の simdjson 3.8.0 |
 | ブランチ | `feature/rcg-parser-speedup`。`develop` の `212f5e7` から、ユーザが GitHub で作った |
-| 状態 | 段階 1・2 が完了した (CI 通過)。段階 3 を実装した (コミット前)。PR #123 (下書き)。詳しくは「進み具合」を参照 |
+| 状態 | 段階 1〜3 が完了した (CI 通過)。GCC 15 の警告の修正をコミットする前。PR #123 (下書き)。詳しくは「進み具合」を参照 |
 | 関連 | `docs/plan/2026-11-21_boost-cmake-maintenance.md` (simdjson の更新と `parser_json` の扱いをこの計画に回した)。参照実装: rcssmonitor の PR #65 (`docs/plan/2026-11-11_3d-view.md` の Phase 2)。利用側: soccerwindow2 (`src/model/main_data.cpp`) |
 
 ## 進み具合
@@ -15,7 +15,8 @@
 |---|---|---|---|---|---|---|
 | 1 | 計測と回帰テストの土台 (§4.1、S11) | 完了 | 済み | 通過 | `b4d1b5c` | 済み |
 | 2 | simdjson 5.1.1 への更新、`parser_json` の移動 (§4.2、D2、D3、D6、S8、S9、S14) | 完了 | 済み | 通過 | `e778865` | 済み |
-| 3 | メモリからの解析、ファイルの一括読み込み (§4.3、D7、S2、S3、S12、S15、S16、S17) | 完了 | 未 | 未 | — | 未 |
+| 3 | メモリからの解析、ファイルの一括読み込み (§4.3、D7、S2、S3、S12、S15、S16、S17) | 完了 | 済み | 通過 | `20f8b9d` | 済み |
+| — | GCC 15 の警告 (`-Wdangling-reference`、段階 3 のテスト) の修正、`docs/todo.md` への記録 (§4.3.2、§8) | 完了 | 未 | 未 | — | 未 |
 | 4 | 行の並列解析 (§4.4、D5、S1、S10、S13) | 未着手 | 未 | 未 | — | 未 |
 | 5 | libdeflate による展開 (§4.5、D4) | 未着手 | 未 | 未 | — | 未 |
 | 6 | 読み込みの堅牢化 (§4.6、S5) | 未着手 | 未 | 未 | — | 未 |
@@ -450,6 +451,8 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 
 ## 8. 対象外
 
+この章の項目は、`docs/todo.md` にも記録した (2026-11-25)。
+
 - soccerwindow2 の変更 (メモリの経路への切り替え)。別の計画で行う。今の API のままでも解析は速くなるが、`gzifstream` での展開は遅いまま残る。
 - ライブ受信 (`parseData()`、`parseLine()`) の速さ。1 パケットずつの解析で、問題にならない。
 - simdjson のシンボルを `librcsc.so` から隠すこと。利用側が別の版の simdjson を使うと、ぶつかるおそれがある。記録だけする。
@@ -514,3 +517,11 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 - テスト: `run_test_rcg_parser` を 20 項目に増やし、`run_test_gzread_file` (7 項目) を足した。CMake の `ctest` 18 個、Autotools の `make check` 14 個と `make distcheck` が通った。zlib のないビルドも確かめた。
 - 全体の比較で、変更前と出力が同じだった。ツールの経路は、JSON で 201.1 → 137.9 ms、ULG5 で 124.0 → 119.6 ms、ULG6 で 90.6 → 84.8 ms になった。
 - この後: ユーザの確認の後、段階 3 をコミットしてプッシュし、CI を確かめる。その後、段階 4 (行の並列解析) に着手する。
+
+### 2026-11-25: 段階 3 の CI の結果と、GCC 15 の警告の修正
+
+- ユーザの確認の後、段階 3 を `20f8b9d` としてコミットし、プッシュした。
+- CI の結果 (`20f8b9d`): 5 ジョブすべて成功した。4 つのビルドのジョブで `run_test_rcg_parser` と `run_test_gzread_file` が通った (CMake は 18 個すべて、Autotools は `make check` と `make distcheck`)。
+- ただし、Ubuntu 26.04 (GCC 15.2) で、`test_parser.cpp` の `testGzipFilePath` に `-Wdangling-reference` の警告が 2 件出た (Autotools では `distcheck` でもう一度ビルドするため 4 件)。範囲 for 文で `{ std::make_pair( ... ), ... }` を回していた所で、実際には問題のない誤検出。手元の GCC 13.3 では、`-Wdangling-reference` を付けても出ない。gzip のファイルを作る関数 `write_gzip()` を 2 回呼ぶ形に書き換えた。
+- CLAUDE.md に、対象外にしたり見送ったりした作業を `docs/todo.md` に記録するという指示が加わった。§8 の項目と S14 (On-Demand の CPU を選ぶ手段を設けない) を `docs/todo.md` に記録した。
+- この後: ユーザの確認の後、修正と `docs/todo.md` をコミットしてプッシュし、CI で GCC 15 の警告が 0 になったことを確かめる。その後、段階 4 (行の並列解析) に着手する。

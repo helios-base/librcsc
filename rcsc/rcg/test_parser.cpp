@@ -763,6 +763,22 @@ RcgParserTest::testJsonFilePath()
 
 #ifdef HAVE_LIBZ
 /*-------------------------------------------------------------------*/
+namespace {
+/*!
+  \brief write a test data file compressed by gzip
+*/
+void
+write_gzip( const std::string & path,
+            const std::string & data_name )
+{
+    const std::string text = read_file( data_path( data_name ) );
+    rcsc::gzofstream fout( path.c_str() );
+    fout.write( text.data(), text.size() );
+    fout.close();
+}
+}
+
+/*-------------------------------------------------------------------*/
 /*!
   \brief Parser::parse( const std::string & filepath, ... ) reads a gzip file
 */
@@ -771,14 +787,8 @@ RcgParserTest::testGzipFilePath()
 {
     TempFile v6_file( "head_v6.rcg.gz" );
     TempFile json_file( "head_json.rcg.gz" );
-    for ( const auto & f : { std::make_pair( &v6_file, "head_v6.rcg" ),
-                             std::make_pair( &json_file, "head_json.rcg" ) } )
-    {
-        const std::string text = read_file( data_path( f.second ) );
-        rcsc::gzofstream fout( f.first->path().c_str() );
-        fout.write( text.data(), text.size() );
-        fout.close();
-    }
+    write_gzip( v6_file.path(), "head_v6.rcg" );
+    write_gzip( json_file.path(), "head_json.rcg" );
 
     {
         ParserV4 parser;
