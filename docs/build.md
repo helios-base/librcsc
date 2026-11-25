@@ -21,6 +21,7 @@ For a quick start, see [README.md](../README.md).
 | Autoconf / Automake / Libtool | | for the Autotools build |
 | Boost | 1.70 or later | only the headers are used (the Boost.System library is not needed) |
 | zlib | | optional; needed to read and write the gzipped files (e.g. `.rcg.gz`) |
+| libdeflate | | optional; decompresses the gzipped files (e.g. `.rcg.gz`) read by `rcsc::gzread_file()` a few times faster than zlib. zlib is still used for writing them, for the streams (`rcsc::gzifstream`), and for a broken file |
 | pkg-config | | to find CppUnit; also needed to run `./bootstrap` of the Autotools build |
 | CppUnit | 1.12 or later | optional; for the unit tests |
 | Doxygen / Graphviz | | optional; for the API documents |
@@ -38,6 +39,7 @@ The following commands are for Ubuntu 24.04 and 26.04.
 ```
 sudo apt update
 sudo apt install build-essential cmake pkg-config libboost-dev zlib1g-dev
+sudo apt install libdeflate-dev                 # optional: decompresses gzip files faster
 sudo apt install libcppunit-dev                 # for the unit tests
 sudo apt install autoconf automake libtool      # for the Autotools build
 sudo apt install doxygen graphviz               # for the API documents
@@ -104,6 +106,7 @@ Configure options (`cmake -S . -B build -D<option>=<value>`):
 | `CMAKE_BUILD_TYPE` | `Release` | the build type (`Release`, `Debug`, `RelWithDebInfo`, ...) |
 | `BUILD_TESTING` | `ON` | build the tests (see [Running the tests](#running-the-tests)) |
 | `CMAKE_PREFIX_PATH` | | the directories where the dependencies (e.g. Boost) are searched, if they are not in the standard locations |
+| `ENABLE_LIBDEFLATE` | `ON` | use libdeflate to decompress gzip files, if it is found. `OFF` uses only zlib |
 
 The configure output shows the main settings:
 
@@ -112,6 +115,7 @@ The configure output shows the main settings:
 --   BUILD_TYPE=Release
 --   INSTALL_PREFIX=/home/user/.local
 --   BUILD_TESTING=ON (unit tests: ON)
+--   libdeflate: /usr/lib/x86_64-linux-gnu/libdeflate.so (gzip files are decompressed with libdeflate)
 ```
 
 The flags given by `CMAKE_CXX_FLAGS` are used in addition to the warning options (`-W -Wall`).
@@ -176,6 +180,9 @@ The tests of the CMake build are:
 | `run_test_vector_2d`, `run_test_matrix_2d`, `run_test_segment_2d`, `run_test_triangle_2d`, `run_test_rect_2d`, `run_test_polygon_2d`, `run_test_voronoi_diagram`, `run_test_convex_hull`, `rundom_convex_hull` | the unit tests of `rcsc/geom` (CppUnit) |
 | `test_clang_parser` | the unit test of `rcsc/clang` (CppUnit) |
 | `run_test_rcg_types` | the unit test of the data types of `rcsc/rcg` (e.g. the output of `rcsc::rcg::PlayerTypeT`) (CppUnit) |
+| `run_test_rcg_parser` | the unit test of the rcg parsers of `rcsc/rcg`, on the first records of real game logs in `rcsc/rcg/test_data` (CppUnit) |
+| `run_test_rcg_line_parser` | the unit test of parsing the lines of a game log in parallel in `rcsc/rcg` (CppUnit) |
+| `run_test_gzread_file` | the unit test of `rcsc::gzread_file()` in `rcsc/gz` (e.g. gzip files of more than one member, and truncated gzip files) (CppUnit) |
 | `run_test_server_param` | the unit test of `rcsc::ServerParam` and `rcsc::rcg::ServerParamT` in `rcsc/common` (CppUnit) |
 | `install` | installs librcsc into `test-install` in the build directory, for the following tests |
 | `installed_headers` | each installed header file can be compiled alone (e.g. no header file that it includes is missing in the installation) |
@@ -198,6 +205,31 @@ To check librcsc installed anywhere (e.g. by Autotools), run:
 
 The Autotools build runs the same unit tests by `make check`, if it is configured with `--enable-unit-test`
 (see [Building with Autotools](#building-with-autotools)).
+
+### Measuring and comparing the rcg parser
+
+The following tools are for the development of the rcg parser.
+They need real game logs, so they are not run by the tests, and they are not installed.
+
+- `rcg_parser_bench` (built in `src/` by both builds) measures the time to load game logs:
+
+  ```
+  env -u LD_LIBRARY_PATH build/src/rcg_parser_bench -n 5 game1.rcg.gz game2.rcg 2>/dev/null
+  ```
+
+  It prints the path of the loaded librcsc first.
+  `-t <Threads>` gives the upper limit of the number of the threads that parse the lines (`rcsc::rcg::Parser::setMaxThreads()`);
+  `-t 1` measures the parsing without threads.
+  If `LD_LIBRARY_PATH` contains an installed librcsc (e.g. a debug build), it is measured instead of the built one,
+  so run the program with `env -u LD_LIBRARY_PATH` as above.
+- `test/compare_rcg_output.sh` checks that two builds of librcsc read the same data from game logs.
+  `rcgverconv` of each build converts each game log into two other formats, and the outputs are compared:
+
+  ```
+  test/compare_rcg_output.sh ~/librcsc-old/bin build/src game1.rcg.gz game2.rcg
+  ```
+
+  The arguments are the directories that have `rcgverconv` (the bin directory of an installation, or `src/` of a CMake build tree).
 
 ## Building with Autotools
 
@@ -226,6 +258,7 @@ Configure options:
 |---|---|
 | `--prefix=DIR` | the installation directory (default: `/usr/local`) |
 | `--enable-unit-test` | build the unit tests for `make check` (CppUnit is needed) |
+| `--without-libdeflate` | do not use libdeflate to decompress gzip files (default: use it if it is found). `--with-libdeflate` makes it an error if libdeflate is not found |
 | `--enable-debug` | define `DEBUG` in the preprocessor |
 | `--enable-example` | build the example programs in `example/` (they cannot be built at the moment) |
 

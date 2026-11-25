@@ -12,7 +12,8 @@ bin_PROGRAMS = \
 	rcgversion
 
 noinst_PROGRAMS = \
-	object_table_printer
+	object_table_printer \
+	rcg_parser_bench
 
 rclmscheduler_SOURCES = \
 	scheduler.cpp
@@ -88,6 +89,12 @@ object_table_printer_SOURCES = \
 object_table_printer_LDFLAGS = \
 	-L$(top_builddir)/rcsc
 object_table_printer_LDADD = -lrcsc
+
+rcg_parser_bench_SOURCES = \
+	rcg_parser_bench.cpp
+rcg_parser_bench_LDFLAGS = \
+	-L$(top_builddir)/rcsc
+rcg_parser_bench_LDADD = -lrcsc
 
 AM_CPPFLAGS = -I$(top_srcdir)
 AM_CXXFLAGS = -Wall -W

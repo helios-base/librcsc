@@ -83,6 +83,15 @@ target_link_libraries(object_table_printer PRIVATE
   rcsc
   )
 
+# a benchmark of the rcg parser for the development (not installed)
+add_executable(rcg_parser_bench
+  rcg_parser_bench.cpp
+  )
+target_link_libraries(rcg_parser_bench PRIVATE
+  rcsc_build_settings
+  rcsc
+  )
+
 install(TARGETS
   rclmscheduler
   rclmtableprinter

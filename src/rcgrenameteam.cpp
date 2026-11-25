@@ -52,6 +52,10 @@ private:
     std::ostream & M_os;
 
     rcsc::rcg::Serializer::Ptr M_serializer;
+    //! true after the beginning of the output is written (see begin())
+    bool M_begun = false;
+
+    bool begin();
 
     std::string M_left_team_name;
     std::string M_right_team_name;
@@ -121,7 +125,31 @@ TeamNameRenamer::handleLogVersion( const int ver )
         return false;
     }
 
-    M_serializer->serializeBegin( M_os, serverVersion(), timestamp() );
+    // the beginning of the output is written by begin() before the first record,
+    // after the server version and the timestamp of a JSON game log are passed
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  write the beginning of the output once, before the first record. A JSON game log
+  passes its server version and timestamp after handleLogVersion(), so the beginning
+  is not written in handleLogVersion().
+  (B8 in docs/plan/2026-11-24-02_rcg-parser-speedup.md 2.6)
+*/
+bool
+TeamNameRenamer::begin()
+{
+    if ( ! M_serializer )
+    {
+        return false;
+    }
+
+    if ( ! M_begun )
+    {
+        M_serializer->serializeBegin( M_os, serverVersion(), timestamp() );
+        M_begun = true;
+    }
     return true;
 }
 
@@ -132,7 +160,7 @@ TeamNameRenamer::handleLogVersion( const int ver )
 bool
 TeamNameRenamer::handleEOF()
 {
-    if ( M_serializer )
+    if ( begin() )
     {
         M_serializer->serializeEnd( M_os );
     }
@@ -149,7 +177,7 @@ TeamNameRenamer::handleEOF()
 bool
 TeamNameRenamer::handleShow( const rcsc::rcg::ShowInfoT & show )
 {
-    if ( ! M_serializer )
+    if ( ! begin() )
     {
         return false;
     }
@@ -167,7 +195,7 @@ TeamNameRenamer::handleMsg( const int,
                             const int board,
                             const std::string & msg )
 {
-    if ( ! M_serializer )
+    if ( ! begin() )
     {
         return false;
     }
@@ -185,7 +213,7 @@ bool
 TeamNameRenamer::handleDraw( const int,
                              const rcsc::rcg::drawinfo_t & draw )
 {
-    if ( ! M_serializer )
+    if ( ! begin() )
     {
         return false;
     }
@@ -202,7 +230,7 @@ bool
 TeamNameRenamer::handlePlayMode( const int,
                                  const rcsc::PlayMode pm )
 {
-    if ( ! M_serializer )
+    if ( ! begin() )
     {
         return false;
     }
@@ -220,7 +248,7 @@ TeamNameRenamer::handleTeam( const int,
                              const rcsc::rcg::TeamT & team_l,
                              const rcsc::rcg::TeamT & team_r )
 {
-    if ( ! M_serializer )
+    if ( ! begin() )
     {
         return false;
     }
@@ -248,7 +276,7 @@ TeamNameRenamer::handleTeam( const int,
 bool
 TeamNameRenamer::handleServerParam( const rcsc::rcg::ServerParamT & param )
 {
-    if ( ! M_serializer )
+    if ( ! begin() )
     {
         return false;
     }
@@ -261,7 +289,7 @@ TeamNameRenamer::handleServerParam( const rcsc::rcg::ServerParamT & param )
 bool
 TeamNameRenamer::handlePlayerParam( const rcsc::rcg::PlayerParamT & param )
 {
-    if ( ! M_serializer )
+    if ( ! begin() )
     {
         return false;
     }
@@ -274,7 +302,7 @@ TeamNameRenamer::handlePlayerParam( const rcsc::rcg::PlayerParamT & param )
 bool
 TeamNameRenamer::handlePlayerType( const rcsc::rcg::PlayerTypeT & param )
 {
-    if ( ! M_serializer )
+    if ( ! begin() )
     {
         return false;
     }
@@ -290,7 +318,7 @@ TeamNameRenamer::handleTeamGraphic( const char side,
                                     const int y,
                                     const std::vector< std::string > & xpm )
 {
-    if ( ! M_serializer )
+    if ( ! begin() )
     {
         return false;
     }
@@ -413,9 +441,8 @@ main( int argc, char** argv )
         return 1;
     }
 
-    rcsc::gzifstream fin( input_file.c_str() );
-
-    if ( ! fin.is_open() )
+    std::string data;
+    if ( ! rcsc::gzread_file( input_file, &data ) )
     {
         std::cerr << "Failed to open file : " << input_file << std::endl;
         return 1;
@@ -441,7 +468,7 @@ main( int argc, char** argv )
         return 1;
     }
 
-    rcsc::rcg::Parser::Ptr parser = rcsc::rcg::Parser::create( fin );
+    rcsc::rcg::Parser::Ptr parser = rcsc::rcg::Parser::create( data.data(), data.size() );
 
     if ( ! parser )
     {
@@ -454,7 +481,7 @@ main( int argc, char** argv )
                              left_team_name,
                              right_team_name );
 
-    parser->parse( fin, renamer );
+    parser->parse( data.data(), data.size(), renamer );
 
     return 0;
 }

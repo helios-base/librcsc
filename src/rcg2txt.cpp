@@ -600,15 +600,14 @@ main( int argc, char** argv )
         return 0;
     }
 
-    rcsc::gzifstream fin( argv[1] );
-
-    if ( ! fin.is_open() )
+    std::string data;
+    if ( ! rcsc::gzread_file( argv[1], &data ) )
     {
         std::cerr << "Failed to open file : " << argv[1] << std::endl;
         return 1;
     }
 
-    rcsc::rcg::Parser::Ptr parser = rcsc::rcg::Parser::create( fin );
+    rcsc::rcg::Parser::Ptr parser = rcsc::rcg::Parser::create( data.data(), data.size() );
 
     if ( ! parser )
     {
@@ -619,7 +618,7 @@ main( int argc, char** argv )
     // create rcg handler instance
     TextPrinter printer( std::cout );
 
-    parser->parse( fin, printer );
+    parser->parse( data.data(), data.size(), printer );
 
     return 0;
 }

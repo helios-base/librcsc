@@ -6,7 +6,8 @@ noinst_LTLIBRARIES = librcsc_gz.la
 librcsc_gz_la_SOURCES = \
 	gzcompressor.cpp \
 	gzfstream.cpp \
-	gzfilterstream.cpp
+	gzfilterstream.cpp \
+	gzread_file.cpp
 
 librcsc_gzincludedir = $(includedir)/rcsc/gz
 
@@ -14,7 +15,8 @@ librcsc_gzincludedir = $(includedir)/rcsc/gz
 librcsc_gzinclude_HEADERS = \
 	gzcompressor.h \
 	gzfstream.h \
-	gzfilterstream.h
+	gzfilterstream.h \
+	gzread_file.h
 
 librcsc_gz_la_LDFLAGS = -version-info 0:2:0
 ##libXXXX_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
@@ -43,5 +45,16 @@ AM_CXXFLAGS = -Wall -W
 AM_LDFLAGS =
 
 CLEANFILES = *~
+
+if UNIT_TEST
+TESTS = \
+	run_test_gzread_file
+endif
+
+check_PROGRAMS = $(TESTS)
+
+run_test_gzread_file_SOURCES = test_gzread_file.cpp
+run_test_gzread_file_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W
+run_test_gzread_file_LDADD = librcsc_gz.la $(LIBDEFLATE_LIBS) $(CPPUNIT_LIBS)
 
 #EXTRA_DIST =

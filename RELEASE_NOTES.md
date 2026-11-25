@@ -116,3 +116,83 @@ Each item has the date when the change was made.
   The rcg files written by rcssserver are not affected.
 - (2026-11-24) Tests: added the unit test `run_test_rcg_types` (`rcsc/rcg`, CMake and Autotools).
   It checks that each parameter of `PlayerTypeT` is written with its own value.
+- (2026-11-24) Tests and tools for the development of the rcg parser (see `docs/build.md`):
+  - The unit test `run_test_rcg_parser` (`rcsc/rcg`, CMake and Autotools) reads the first records of real game logs
+    (text v5 and v6, and JSON) in `rcsc/rcg/test_data`.
+  - `rcg_parser_bench` (built in `src/`, not installed) measures the time to load game logs.
+  - `test/compare_rcg_output.sh` checks that two builds of librcsc read the same data from game logs, by the outputs of `rcgverconv`.
+- (2026-11-24) The bundled simdjson, used by the JSON rcg parser, is updated from 3.8.0 to 5.1.1.
+  The 9 warnings of GCC 15 in `simdjson.cpp` (`-Wtemplate-id-cdtor`) are gone,
+  and the fix for GCC 15 applied to 3.8.0 is included in 5.1.1.
+  The header files of simdjson are not installed, so the programs using librcsc are not affected.
+  Compiling `simdjson.cpp` takes longer (about 9 seconds instead of 3 with `-O3`).
+- (2026-11-24) Moved the old JSON rcg parser `rcsc/rcg/parser_json.{h,cpp}`, which has never been built, to `obsolete/rcg`.
+  Deleted the bundled nlohmann/json (`rcsc/rcg/nlohmann/json.hpp`), which only this parser used.
+- (2026-11-25) New function `rcsc::gzread_file()` (`rcsc/gz/gzread_file.h`, also included by `rcsc/gz.h`)
+  reads a whole file into memory: a gzip file is decompressed with zlib, and any other file is read as it is.
+  It is faster than reading the file through `rcsc::gzifstream`.
+  A gzip file that ends in the middle is read up to there, with a warning.
+- (2026-11-25) The rcg parser parses the game log in memory, which is faster:
+  - New functions `rcsc::rcg::Parser::create( const char * data, std::size_t size )` and
+    `Parser::parse( const char * data, std::size_t size, Handler & handler )` for the whole game log in memory
+    (e.g. read by `rcsc::gzread_file()`).
+  - `Parser::parse( const std::string & filepath, Handler & )` reads the file by `rcsc::gzread_file()`, so it can read a gzip file.
+    It can be called on the derived classes (e.g. `ParserV4`), which hid it before.
+  - `ParserV4::parse( std::istream &, Handler & )` and `ParserSimdJSON::parse( std::istream &, Handler & )`
+    read the stream into memory and parse it there, so the programs using them (e.g. soccerwindow2) also get faster.
+  - A JSON game log of one record per line, as rcssserver writes it, is parsed line by line.
+    A JSON game log whose last `]` is missing (rcssserver stopped abnormally) can be read.
+    The other JSON game logs (e.g. in one line, or pretty-printed) are parsed as one JSON document as before.
+  - The JSON parser stops if `Handler::handleLogVersion()` returns false, as the text parser does.
+    A handler that returns false for the version -1 (JSON) no longer reads JSON game logs.
+  - The virtual functions of `Parser` are changed. Rebuild the programs built with librcsc of the develop branch before this change.
+- (2026-11-25) The tools (`rcg2csv`, `rcg2txt`, `rcgrenameteam`, `rcgresultprinter`, `rcgreverse`, `rcgvalidator` and `rcgverconv`)
+  read the game log by `rcsc::gzread_file()` and parse it in memory.
+  - `rcgresultprinter` no longer writes the decompressed gzip file to the temporary file `temp.rcg`.
+  - `rcg2csv` and `rcgvalidator` accept JSON game logs explicitly.
+    They returned false from `handleLogVersion()` for JSON (`rcgvalidator` printed `Unsupported RCG version -1`),
+    and read JSON game logs only because the JSON parser ignored it.
+  - Fixed the dates printed by `rcgresultprinter`, which could be one hour off,
+    because `tm_isdst` was not initialized before `mktime()`.
+- (2026-11-25) Tests: added the unit test `run_test_gzread_file` (`rcsc/gz`, CMake and Autotools).
+- (2026-11-25) The rcg parser parses the lines of a game log in parallel, which makes loading a game log about twice as fast:
+  - The text game logs (v4 to v6) and the JSON game logs of one record per line are parsed by several threads,
+    if they have many lines (at least 1024 lines for a thread).
+  - The handler is always called in the thread that calls `parse()`, in the order of the lines,
+    so the handlers do not need to be thread-safe.
+  - New functions `rcsc::rcg::Parser::setMaxThreads( int n )` and `Parser::maxThreads()`:
+    the upper limit of the number of the threads. The default is the smaller of the number of the hardware threads and 8.
+    `setMaxThreads( 1 )` disables the parallel parsing, e.g. for a program that processes many game logs in parallel processes.
+  - The return values of the handler's functions no longer stop the parsing (the JSON parser stopped before).
+    An exception thrown by the handler goes out of `parse()`.
+  - A line that cannot be parsed is skipped with a message, and the parsing goes on.
+    Before, the parsing stopped there and `parse()` returned false.
+  - `rcsc::rcg::Handler::handleTimestamp()` is now virtual. Rebuild the programs built with librcsc of the develop branch before this change.
+  - librcsc is linked with the thread library (`Threads::Threads` of CMake, `-pthread` of Autotools).
+- (2026-11-25) Tests: added the unit test `run_test_rcg_line_parser` (`rcsc/rcg`, CMake and Autotools).
+- (2026-11-25) libdeflate (optional): if it is found, `rcsc::gzread_file()` decompresses gzip files with libdeflate,
+  which is about twice as fast as zlib (e.g. loading a game log by the tools takes about 35% less time).
+  - It is used if it is found. `-DENABLE_LIBDEFLATE=OFF` (CMake) or `--without-libdeflate` (Autotools) disables it,
+    and `--with-libdeflate` makes it an error of `configure` if it is not found. Install it by `sudo apt install libdeflate-dev` on Ubuntu.
+  - zlib is still used to read a broken gzip file (e.g. one that ends in the middle) up to where it is broken,
+    to write gzip files, and for the gzip streams (`rcsc::gzifstream`, `rcsc::gzofstream`).
+  - `librcsc.so` is linked with libdeflate if it is used. The programs using librcsc do not need it themselves.
+  - CI: the CMake jobs build librcsc with libdeflate, and the Autotools jobs without it.
+- (2026-11-25) Fixed the problems of the rcg parsers in reading broken or new game logs:
+  - Text (v4 to v6): a record name longer than 31 characters overflowed a buffer.
+    The player number 0 in a show wrote outside the array of the players.
+    A show with a broken time or ball was not rejected. A broken header (e.g. `ULGx`) threw an exception.
+    An empty line was an error. An unknown record now is skipped and reported once in a process.
+    The strings of a team graphic were read only up to 15 characters. The team name `null` in a team line is now empty, as in a show line.
+  - JSON: the server version and the timestamp are passed to the handler (`handleServerVersion()`, `handleTimestamp()`).
+    The view quality of a player was stored as 1 or 0 instead of `'h'` or `'l'`,
+    so a JSON game log rewritten by the tools (e.g. `rcgverconv`) had `"vq":"l"` for all the players,
+    and a text game log converted from JSON had a control character there.
+    The players of a show are placed by their side and number, not by the order in the array;
+    the fields that the server may omit keep their default values, and illegal players are skipped.
+    An unknown record or key is skipped and reported once in a process (it stopped the whole parsing before).
+    `ParserSimdJSON::parseData()` (for a live connection) returns false for a broken message instead of throwing an exception.
+- (2026-11-25) `rcgreverse`, `rcgrenameteam` and `rcgverconv` write the server version and the timestamp of a JSON game log
+  to the output, instead of `"version":"unknown"`: the beginning of the output is written before the first record,
+  after the version and the timestamp are read.
+- (2026-11-25) `rcgversion` prints the version 6 (it printed `json`), and `unknown` for an unknown version.

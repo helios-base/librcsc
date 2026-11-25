@@ -48,6 +48,9 @@ class ParserV4
     : public Parser {
 public:
 
+    // parse( const std::string & filepath, ... ) of Parser
+    using Parser::parse;
+
     /*!
       \brief get supported rcg version
       \return version number
@@ -67,6 +70,18 @@ public:
     */
     virtual
     bool parse( std::istream & is,
+                Handler & handler ) const override;
+
+    /*!
+      \brief parse the game log data in memory, line by line
+      \param data the whole game log in memory, including the header line
+      \param size the size of data
+      \param handler reference to the rcg data handler.
+      \retval true, if successfuly parsed.
+      \retval false, if incorrect format is detected.
+    */
+    bool parse( const char * data,
+                const std::size_t size,
                 Handler & handler ) const override;
 
     /*!

@@ -46,6 +46,9 @@ class ParserV2
     : public Parser {
 public:
 
+    // parse( const std::string & filepath, ... ) and parse( const char * data, ... ) of Parser
+    using Parser::parse;
+
     /*!
       \brief get supported rcg version
       \return version number

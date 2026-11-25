@@ -34,8 +34,10 @@
 
 #include <rcsc/factory.h>
 
+#include <cstddef>
 #include <memory>
 #include <istream>
+#include <string>
 
 namespace rcsc {
 namespace rcg {
@@ -72,6 +74,37 @@ public:
     static
     Ptr create( std::istream & is );
 
+    /*!
+      \brief create a suitable version parser instance depending on the data in memory.
+      \param data the whole game log in memory (e.g. read by rcsc::gzread_file())
+      \param size the size of data
+      \return smart pointer to the rcg parser instance
+     */
+    static
+    Ptr create( const char * data,
+                const std::size_t size );
+
+    /*!
+      \brief set the upper limit of the number of the threads that parse the lines of a game log in parallel.
+      \param n the upper limit. 1 means no parallel parsing.
+      0 or less means the default: the smaller of the number of the hardware threads and 8.
+
+      The setting is shared by all the parsers in the process.
+      Fewer threads are used for a small game log (at least 1024 lines for a thread).
+      The handler is always called in the thread that calls parse(), in the order of the lines,
+      whatever the number of the threads.
+      For example, a program that processes many game logs in parallel processes may call setMaxThreads( 1 ).
+     */
+    static
+    void setMaxThreads( const int n );
+
+    /*!
+      \brief get the upper limit of the number of the threads that parse the lines of a game log in parallel.
+      \return the value given by setMaxThreads(), or the default value if it is 0 or less.
+     */
+    static
+    int maxThreads();
+
 protected:
 
     /*!
@@ -106,8 +139,30 @@ public:
     bool parse( std::istream & is,
                 Handler & handler ) const = 0;
 
+    /*!
+      \brief analyze the game log file. The file is read into memory by rcsc::gzread_file(),
+      so a gzip file can be read, and parsed by parse( const char *, std::size_t, Handler & ).
+      \param filepath the path of the game log file
+      \param handler reference to the rcg data handler.
+      \retval true, if successfuly parsed.
+      \retval false, if the file cannot be read or incorrect format is detected.
+     */
     virtual
     bool parse( const std::string & filepath,
+                Handler & handler ) const;
+
+    /*!
+      \brief analyze the game log data in memory. This is faster than parse( std::istream &, Handler & ).
+      The default implementation calls parse( std::istream &, Handler & ) with a stream over the data.
+      \param data the whole game log in memory, including the header (e.g. read by rcsc::gzread_file())
+      \param size the size of data
+      \param handler reference to the rcg data handler.
+      \retval true, if successfuly parsed.
+      \retval false, if incorrect format is detected.
+     */
+    virtual
+    bool parse( const char * data,
+                const std::size_t size,
                 Handler & handler ) const;
 };
 

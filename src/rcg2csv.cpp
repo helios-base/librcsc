@@ -193,7 +193,9 @@ CSVPrinter::handleLogVersion( const int ver )
 {
     rcsc::rcg::Handler::handleLogVersion( ver );
 
-    if ( ver < 4 )
+    // JSON (-1) and the text formats (4 or later) are supported
+    if ( ver != rcsc::rcg::REC_VERSION_JSON
+         && ver < rcsc::rcg::REC_VERSION_4 )
     {
         std::cerr << "Unsupported RCG version " << ver << std::endl;
         return false;
@@ -612,9 +614,8 @@ main( int argc, char** argv )
     }
 
     const std::string infile = cmd_parser.positionalOptions().front();
-    rcsc::gzifstream fin( infile.c_str() );
-
-    if ( ! fin.is_open() )
+    std::string data;
+    if ( ! rcsc::gzread_file( infile, &data ) )
     {
         std::cerr << "Failed to open file : " << infile << std::endl;
         return 1;
@@ -642,7 +643,7 @@ main( int argc, char** argv )
     std::cerr << " tracking:     " << tracking_csv << '\n';
     std::cerr << " player_types: " << player_types_csv << std::endl;
 
-    rcsc::rcg::Parser::Ptr parser = rcsc::rcg::Parser::create( fin );
+    rcsc::rcg::Parser::Ptr parser = rcsc::rcg::Parser::create( data.data(), data.size() );
 
     if ( ! parser )
     {
@@ -652,7 +653,7 @@ main( int argc, char** argv )
 
     CSVPrinter printer( tracking_out, player_types_out );
 
-    parser->parse( fin, printer );
+    parser->parse( data.data(), data.size(), printer );
 
     return 0;
 }

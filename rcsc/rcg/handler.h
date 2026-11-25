@@ -127,7 +127,11 @@ public:
       \brief update the time stamp information
       \param timestamp string
       \return result status
+
+      This method is virtual (since 2026-11-25), so that the parser can record it
+      to pass it later (docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.4).
      */
+    virtual
     bool handleTimestamp( const std::string & timestamp )
       {
           M_timestamp = timestamp;

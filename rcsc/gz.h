@@ -35,5 +35,6 @@
 #include <rcsc/gz/gzcompressor.h>
 #include <rcsc/gz/gzfilterstream.h>
 #include <rcsc/gz/gzfstream.h>
+#include <rcsc/gz/gzread_file.h>
 
 #endif

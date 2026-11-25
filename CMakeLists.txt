@@ -73,6 +73,22 @@ if(ZLIB_FOUND)
   set(HAVE_LIBZ TRUE)
 endif()
 
+# threads: the rcg parser parses the lines of a game log in parallel (std::thread)
+find_package(Threads REQUIRED)
+
+# libdeflate (optional): decompresses gzip files faster than zlib (rcsc::gzread_file()).
+# find_path/find_library are used, because older distributions (e.g. Ubuntu 22.04)
+# do not provide the CMake package of libdeflate.
+option(ENABLE_LIBDEFLATE "Use libdeflate to decompress gzip files, if it is found" ON)
+set(HAVE_LIBDEFLATE FALSE)
+if(ENABLE_LIBDEFLATE)
+  find_path(LIBDEFLATE_INCLUDE_DIR libdeflate.h)
+  find_library(LIBDEFLATE_LIBRARY NAMES deflate libdeflate)
+  if(LIBDEFLATE_INCLUDE_DIR AND LIBDEFLATE_LIBRARY)
+    set(HAVE_LIBDEFLATE TRUE)
+  endif()
+endif()
+
 # generate config.h (used only to build librcsc, not installed)
 configure_file(
   ${PROJECT_SOURCE_DIR}/cmake-config.h.in
@@ -127,6 +143,13 @@ message(STATUS "Build settings:")
 message(STATUS "  BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 message(STATUS "  INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}")
 message(STATUS "  BUILD_TESTING=${BUILD_TESTING} (unit tests: ${LIBRCSC_UNIT_TESTS})")
+if(HAVE_LIBDEFLATE)
+  message(STATUS "  libdeflate: ${LIBDEFLATE_LIBRARY} (gzip files are decompressed with libdeflate)")
+elseif(ENABLE_LIBDEFLATE)
+  message(STATUS "  libdeflate: not found (gzip files are decompressed with zlib)")
+else()
+  message(STATUS "  libdeflate: disabled by ENABLE_LIBDEFLATE=OFF (gzip files are decompressed with zlib)")
+endif()
 
 # sub directories
 add_subdirectory(rcsc)

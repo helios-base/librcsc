@@ -27,7 +27,8 @@ librcsc_la_SOURCES =
 # so that libstdc++ is linked to librcsc.so.
 nodist_EXTRA_librcsc_la_SOURCES = dummy.cxx
 
-librcsc_la_LIBADD = \
+# $(LIBDEFLATE_LIBS): libdeflate (optional) for rcsc::gzread_file()
+librcsc_la_LIBADD = $(LIBDEFLATE_LIBS) \
 	geom/librcsc_geom.la \
 	gz/librcsc_gz.la \
 	net/librcsc_net.la \
@@ -46,7 +47,8 @@ librcsc_la_LIBADD = \
 	trainer/librcsc_trainer.la
 
 # NOTE: Update LIBRCSC_SOVERSION in CMakeLists.txt at the same time.
-librcsc_la_LDFLAGS = -version-info 20:0:0
+# -pthread: the rcg parser uses std::thread
+librcsc_la_LDFLAGS = -version-info 20:0:0 -pthread
 #libXXXX_la_LDFLAGS = -version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE)
 #    1. Start with version information of `0:0:0' for each libtool library.
 #

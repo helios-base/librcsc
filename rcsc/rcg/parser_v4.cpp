@@ -36,9 +36,15 @@
 #include "parser_v4.h"
 
 #include "handler.h"
+#include "line_parser.h"
 #include "types.h"
 
 #include <iostream>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <string>
+#include <vector>
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
@@ -47,6 +53,28 @@
 
 namespace rcsc {
 namespace rcg {
+
+namespace {
+
+/*!
+  \brief report a record that the parser does not know, once in a process for each name,
+  as the JSON parser reports an unknown key: a newer server may add records.
+  (B5 in docs/plan/2026-11-24-02_rcg-parser-speedup.md 2.6, S21)
+*/
+void
+report_unknown_record( const std::string & name )
+{
+    static std::mutex s_mutex;
+    static std::set< std::string > s_reported;
+
+    std::lock_guard< std::mutex > lock( s_mutex );
+    if ( s_reported.insert( name ).second )
+    {
+        std::cerr << "(rcsc::rcg::ParserV4) skipped the unknown record (" << name << " ...)" << std::endl;
+    }
+}
+
+}
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -64,11 +92,38 @@ ParserV4::parse( std::istream & is,
         return false;
     }
 
+    // read the whole stream, and parse it in memory
+    std::string data;
+    if ( ! read_stream( is, &data ) )
+    {
+        std::cerr << "(ParserV4::parse) failed to read the stream." << std::endl;
+        return false;
+    }
+
+    return parse( data.data(), data.size(), handler );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  The lines are parsed in parallel by parse_lines(). A line that cannot be parsed is skipped.
+  See docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.3 and 4.4.
+ */
+bool
+ParserV4::parse( const char * data,
+                 const std::size_t size,
+                 Handler & handler ) const
+{
+    const std::vector< LineRef > lines = split_lines( data, size );
+
     std::string line;
-    line.reserve( 8192 );
 
     // skip header line
-    if ( ! std::getline( is, line )
+    if ( ! lines.empty() )
+    {
+        line.assign( lines.front().begin_, lines.front().length_ );
+    }
+
+    if ( lines.empty()
          || line.length() < 4
          || line.compare( 0, 3, "ULG" ) != 0 )
     {
@@ -76,7 +131,8 @@ ParserV4::parse( std::istream & is,
         return false;
     }
 
-    const int version = std::stoi( line.substr( 3 ) );
+    // std::atoi does not throw for a broken header (B4)
+    const int version = std::atoi( line.c_str() + 3 );
     if ( version != REC_VERSION_4
          && version != REC_VERSION_5
          && version != REC_VERSION_6 )
@@ -91,22 +147,26 @@ ParserV4::parse( std::istream & is,
         return false;
     }
 
-    int n_line = 1;
-    while ( std::getline( is, line ) )
-    {
-        ++n_line;
-        if ( ! parseLine( n_line, line, handler ) )
-        {
-            return false;
-        }
-    }
+    // the lines after the header
+    const std::vector< LineRef > body( lines.begin() + 1, lines.end() );
 
-    if ( is.eof() )
-    {
-        return handler.handleEOF();
-    }
+    // each thread has its own buffer of a line
+    const std::vector< int > skipped
+        = parse_lines( body,
+                       [this]() -> LineParser
+                       {
+                           std::shared_ptr< std::string > buf = std::make_shared< std::string >();
+                           buf->reserve( 8192 );
+                           return [this, buf]( const LineRef & l, Handler & h ) -> bool
+                               {
+                                   buf->assign( l.begin_, l.length_ );
+                                   return parseLine( l.number_, *buf, h );
+                               };
+                       },
+                       handler );
+    report_skipped( "rcsc::rcg::ParserV4::parse", "line", skipped );
 
-    return false;
+    return handler.handleEOF();
 }
 
 /*-------------------------------------------------------------------*/
@@ -118,50 +178,52 @@ ParserV4::parseLine( const int n_line,
                      const std::string & line,
                      Handler & handler ) const
 {
-    char name[32];
-
-    if ( std::sscanf( line.c_str(), " ( %s ", name ) != 1 )
+    // an empty line (B5)
+    if ( line.find_first_not_of( " \t\r" ) == std::string::npos )
     {
-        std::cerr << n_line << ": Illegal line: [" << line << ']'
-                  << std::endl;;
+        return true;
+    }
+
+    // the name of the record, at most 31 characters (B1)
+    char name[32];
+    if ( std::sscanf( line.c_str(), " ( %31[^ ()] ", name ) != 1 )
+    {
+        // not "(name ...": reported by the caller
         return false;
     }
 
+    // the result of each record is returned (B5)
     if ( ! std::strcmp( name, "show" ) )
     {
-        parseShow( n_line, line, handler );
+        return parseShow( n_line, line, handler );
     }
     else if ( ! std::strcmp( name, "playmode" ) )
     {
-        parsePlayMode( n_line, line, handler );
+        return parsePlayMode( n_line, line, handler );
     }
     else if ( ! std::strcmp( name, "team" ) )
     {
-        parseTeam( n_line, line, handler );
+        return parseTeam( n_line, line, handler );
     }
     else if ( ! std::strcmp( name, "msg" ) )
     {
-        parseMsg( n_line, line, handler );
+        return parseMsg( n_line, line, handler );
     }
     else if ( ! std::strcmp( name, "player_type" ) )
     {
-        parsePlayerType( n_line, line, handler );
+        return parsePlayerType( n_line, line, handler );
     }
     else if ( ! std::strcmp( name, "player_param" ) )
     {
-        parsePlayerParam( n_line, line, handler );
+        return parsePlayerParam( n_line, line, handler );
     }
     else if ( ! std::strcmp( name, "server_param" ) )
     {
-        parseServerParam( n_line, line, handler );
-    }
-    else
-    {
-        std::cerr << n_line << ": error:"
-                  << " Unknown mode [" << line << ']'
-                  << std::endl;;
+        return parseServerParam( n_line, line, handler );
     }
 
+    // a newer server may add records: skip the line (S21)
+    report_unknown_record( name );
     return true;
 }
 
@@ -385,9 +447,12 @@ ParserV4::parseShow( const int n_line,
         //
         while ( *buf == ' ' ) ++buf;
         while ( *buf != '\0' && *buf != ' ' ) ++buf;
-        long time = std::strtol( buf, &next, 10 ); buf = next;
+        long time = std::strtol( buf, &next, 10 );
+        const bool time_read = ( next != buf ); // strtol() returns 0 if it fails (B3)
+        buf = next;
 
-        if ( time == LONG_MIN || time == LONG_MAX )
+        if ( ! time_read
+             || time == LONG_MIN || time == LONG_MAX )
         {
             std::cerr << n_line << ": error: "
                       << " Illegal show info time. "
@@ -457,14 +522,18 @@ ParserV4::parseShow( const int n_line,
             while ( *buf != '\0' && *buf != ')' ) ++buf;
             while ( *buf == ')' ) ++buf;
             BallT & ball = show.ball_;
-            ball.x_ = strtof( buf, &next ); buf = next;
-            ball.y_ = strtof( buf, &next ); buf = next;
-            ball.vx_ = strtof( buf, &next ); buf = next;
-            ball.vy_ = strtof( buf, &next ); buf = next;
+            bool read_all = true; // strtof() returns 0 if it fails (B3)
+            for ( float * v : { &ball.x_, &ball.y_, &ball.vx_, &ball.vy_ } )
+            {
+                *v = strtof( buf, &next );
+                read_all = read_all && next != buf;
+                buf = next;
+            }
             while ( *buf == ')' ) ++buf;
             while ( *buf == ' ' ) ++buf;
 
-            if ( ball.vy_ == HUGE_VALF )
+            if ( ! read_all
+                 || ball.vy_ == HUGE_VALF )
             {
                 std::cerr << n_line << ": error: "
                           << " Illegal ball info. "
@@ -496,7 +565,7 @@ ParserV4::parseShow( const int n_line,
 
             ++buf;
             long unum = std::strtol( buf, &next, 10 ); buf = next;
-            if ( unum < 0 || MAX_PLAYER < unum )
+            if ( unum < 1 || MAX_PLAYER < unum ) // 0 would write player_[-1] (B2)
             {
                 std::cerr << n_line << ": error: "
                           << " Illegal player unum. " << side << ' ' << i
@@ -644,8 +713,9 @@ ParserV4::parseMsg( const int n_line,
     }
 
     std::string msg( line, n_read, std::string::npos );
-    if ( msg.length() <= 2 ) // at least, [")] + 1 char
+    if ( msg.length() < 2 ) // at least, [")]
     {
+        std::cerr << n_line << ": ERROR Illegal msg [" << line << "]" << std::endl;;
         return false;
     }
 
@@ -690,19 +760,25 @@ ParserV4::parseTeamGraphic( const int n_line,
 
     std::vector< std::string > xpm_data;
 
+    // the strings in quotes, of any length (e.g. 16 characters for 8 pixels
+    // of 2 characters each) (B6)
     const char * ptr = msg.c_str() + n_read;
-    while ( *ptr != '\0' )
+    while ( const char * first = std::strchr( ptr, '"' ) )
     {
-        char buf[16];
-        if ( std::sscanf( ptr, " \"%15[^\"]\" %n ", buf, &n_read ) != 1 )
+        const char * last = std::strchr( first + 1, '"' );
+        if ( ! last )
         {
             std::cerr << n_line << ": ERROR Illegal team_graphic [" << ptr << "]" << std::endl;;
             return false;
         }
-        ptr += n_read;
 
-        xpm_data.push_back( buf );
-        while ( *ptr != '\0' && *ptr != '"' ) ++ptr;
+        xpm_data.emplace_back( first + 1, last );
+        ptr = last + 1;
+    }
+    if ( xpm_data.empty() )
+    {
+        std::cerr << n_line << ": ERROR Illegal team_graphic [" << msg << "]" << std::endl;;
+        return false;
     }
 
     return handler.handleTeamGraphic( side, x, y, xpm_data );
@@ -764,6 +840,10 @@ ParserV4::parseTeam( const int n_line,
                   << "Illegal team line. \"" << line << "\"" << std::endl;;
         return false;
     }
+
+    // before a team connects, as in the show line (B7)
+    if ( ! std::strcmp( name_l, "null" ) ) name_l[0] = '\0';
+    if ( ! std::strcmp( name_r, "null" ) ) name_r[0] = '\0';
 
     TeamT team_l( name_l, score_l, pen_score_l, pen_miss_l );
     TeamT team_r( name_r, score_r, pen_score_r, pen_miss_r );

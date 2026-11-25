@@ -35,6 +35,7 @@
 #include <rcsc/rcg/parser.h>
 #include <rcsc/rcg/types.h>
 
+#include <cstddef>
 #include <string>
 #include <memory>
 
@@ -53,6 +54,9 @@ private:
     std::shared_ptr< Impl > M_impl;
 
 public:
+
+    // parse( const std::string & filepath, ... ) of Parser
+    using Parser::parse;
 
     /*!
       \brief create the Impl instance
@@ -79,7 +83,18 @@ public:
     bool parse( std::istream & is,
                 Handler & handler ) const override;
 
-    bool parse( const std::string & filepath,
+    /*!
+      \brief parse the game log data in memory.
+      A log of one record per line (as rcssserver writes it) is parsed record by record in place.
+      Any other log is parsed as one JSON document.
+      \param data the whole game log in memory
+      \param size the size of data
+      \param handler reference to the rcg data handler.
+      \retval true, if successfuly parsed.
+      \retval false, if incorrect format is detected, or handler.handleLogVersion() returns false.
+    */
+    bool parse( const char * data,
+                const std::size_t size,
                 Handler & handler ) const override;
 
 

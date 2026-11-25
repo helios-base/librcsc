@@ -43,10 +43,74 @@
 #include "parser_v4.h"
 #include "parser_simdjson.h"
 
-#include <fstream>
+#include <rcsc/gz/gzread_file.h>
+
+#include <algorithm>
+#include <atomic>
+#include <iostream>
+#include <streambuf>
+#include <thread>
 
 namespace rcsc {
 namespace rcg {
+
+namespace {
+
+//! the default upper limit of the number of the threads that parse a game log
+const unsigned int DEFAULT_MAX_THREADS = 8;
+
+//! the value given by Parser::setMaxThreads(). 0 means the default.
+std::atomic< int > s_max_threads( 0 );
+
+/*!
+  \class MemoryBuf
+  \brief a read-only stream buffer over data in memory, without copying it.
+
+  See docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.3.
+*/
+class MemoryBuf
+    : public std::streambuf {
+public:
+
+    MemoryBuf( const char * data,
+               const std::size_t size )
+      {
+          char * begin = const_cast< char * >( data );
+          setg( begin, begin, begin + size );
+      }
+
+protected:
+
+    pos_type seekoff( off_type off,
+                      std::ios_base::seekdir dir,
+                      std::ios_base::openmode which ) override
+      {
+          if ( ! ( which & std::ios_base::in ) )
+          {
+              return pos_type( off_type( -1 ) );
+          }
+
+          char * base = ( dir == std::ios_base::beg ? eback()
+                          : dir == std::ios_base::cur ? gptr()
+                          : egptr() );
+          if ( off < eback() - base
+               || egptr() - base < off )
+          {
+              return pos_type( off_type( -1 ) );
+          }
+
+          setg( eback(), base + off, egptr() );
+          return pos_type( gptr() - eback() );
+      }
+
+    pos_type seekpos( pos_type pos,
+                      std::ios_base::openmode which ) override
+      {
+          return seekoff( off_type( pos ), std::ios_base::beg, which );
+      }
+};
+
+}
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -115,24 +179,81 @@ Parser::create( std::istream & is )
     else if ( version == REC_VERSION_3 ) ptr = Parser::Ptr( new ParserV3() );
     else if ( version == REC_VERSION_2 ) ptr = Parser::Ptr( new ParserV2() );
     else if ( version == REC_OLD_VERSION ) ptr = Parser::Ptr( new ParserV1() );
-    //else if ( version == REC_VERSION_JSON ) ptr = Parser::Ptr( new ParserJSON() );
     else if ( version == REC_VERSION_JSON ) ptr = Parser::Ptr( new ParserSimdJSON() );
 
     return ptr;
 }
 
 
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+Parser::Ptr
+Parser::create( const char * data,
+                const std::size_t size )
+{
+    MemoryBuf buf( data, size );
+    std::istream is( &buf );
+    return create( is );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  See docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.4 (D5, S10).
+*/
+void
+Parser::setMaxThreads( const int n )
+{
+    s_max_threads = std::max( 0, n );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+int
+Parser::maxThreads()
+{
+    const int n = s_max_threads;
+    if ( n > 0 )
+    {
+        return n;
+    }
+
+    const unsigned int hardware = std::max( 1u, std::thread::hardware_concurrency() );
+    return static_cast< int >( std::min( hardware, DEFAULT_MAX_THREADS ) );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
 bool
 Parser::parse( const std::string & filepath,
                Handler & handler ) const
 {
-    std::ifstream fin( filepath );
-    if ( ! fin )
+    std::string data;
+    if ( ! gzread_file( filepath, &data ) )
     {
         return false;
     }
 
-    return parse( fin, handler );
+    return parse( data.data(), data.size(), handler );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+bool
+Parser::parse( const char * data,
+               const std::size_t size,
+               Handler & handler ) const
+{
+    MemoryBuf buf( data, size );
+    std::istream is( &buf );
+    return parse( is, handler );
 }
 
 

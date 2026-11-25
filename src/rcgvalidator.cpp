@@ -122,7 +122,9 @@ Validator::handleLogVersion( const int ver )
 {
     rcg::Handler::handleLogVersion( ver );
 
-    if ( ver < 4 )
+    // JSON (-1) and the text formats (4 or later) are supported
+    if ( ver != rcsc::rcg::REC_VERSION_JSON
+         && ver < rcsc::rcg::REC_VERSION_4 )
     {
         std::cerr << "Unsupported RCG version " << ver << std::endl;
         return false;
@@ -222,15 +224,14 @@ main( int argc, char** argv )
 
     const std::string infile = argv[1];
 
-    rcsc::gzifstream fin( infile.c_str() );
-
-    if ( ! fin.is_open() )
+    std::string data;
+    if ( ! rcsc::gzread_file( infile, &data ) )
     {
         std::cerr << "Could not open the input file : " << infile << std::endl;
         return 1;
     }
 
-    Parser::Ptr parser = rcsc::rcg::Parser::create( fin );
+    Parser::Ptr parser = rcsc::rcg::Parser::create( data.data(), data.size() );
 
     if ( ! parser )
     {
@@ -239,7 +240,7 @@ main( int argc, char** argv )
     }
 
     Validator validator;
-    if ( ! parser->parse( fin, validator ) )
+    if ( ! parser->parse( data.data(), data.size(), validator ) )
     {
         return 1;
     }
