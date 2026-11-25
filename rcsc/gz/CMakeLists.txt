@@ -10,6 +10,10 @@ target_link_libraries(rcsc_gz PRIVATE rcsc_build_settings)
 if(ZLIB_FOUND)
   target_link_libraries(rcsc_gz PRIVATE ZLIB::ZLIB)
 endif()
+# libdeflate is used only in gzread_file.cpp (the public headers do not include libdeflate.h)
+if(HAVE_LIBDEFLATE)
+  target_include_directories(rcsc_gz PRIVATE ${LIBDEFLATE_INCLUDE_DIR})
+endif()
 
 install(FILES
   gzcompressor.h

@@ -98,17 +98,17 @@ check_PROGRAMS = $(TESTS)
 
 run_test_rcg_types_SOURCES = test_types.cpp
 run_test_rcg_types_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W -pthread
-run_test_rcg_types_LDADD = librcsc_rcg.la ../gz/librcsc_gz.la $(CPPUNIT_LIBS)
+run_test_rcg_types_LDADD = librcsc_rcg.la ../gz/librcsc_gz.la $(LIBDEFLATE_LIBS) $(CPPUNIT_LIBS)
 
 # the test data are the first records of real game logs (test_data/)
 run_test_rcg_parser_SOURCES = test_parser.cpp
 run_test_rcg_parser_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_DATA_DIR=\"$(abs_srcdir)/test_data\"
 run_test_rcg_parser_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W -pthread
-run_test_rcg_parser_LDADD = librcsc_rcg.la ../gz/librcsc_gz.la $(CPPUNIT_LIBS)
+run_test_rcg_parser_LDADD = librcsc_rcg.la ../gz/librcsc_gz.la $(LIBDEFLATE_LIBS) $(CPPUNIT_LIBS)
 
 # the internal functions in line_parser.h
 run_test_rcg_line_parser_SOURCES = test_line_parser.cpp
 run_test_rcg_line_parser_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W -pthread
-run_test_rcg_line_parser_LDADD = librcsc_rcg.la ../gz/librcsc_gz.la $(CPPUNIT_LIBS)
+run_test_rcg_line_parser_LDADD = librcsc_rcg.la ../gz/librcsc_gz.la $(LIBDEFLATE_LIBS) $(CPPUNIT_LIBS)
 
 #EXTRA_DIST =

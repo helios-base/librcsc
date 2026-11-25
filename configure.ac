@@ -57,6 +57,29 @@ AC_CHECK_LIB([z], [deflate],
               LIBS="-lz $LIBS"],
              [libz="no"])
 
+# libdeflate (optional): decompresses gzip files faster than zlib (rcsc::gzread_file()).
+# LIBDEFLATE_LIBS is used only to link librcsc and its unit tests (not added to LIBS).
+AC_ARG_WITH([libdeflate],
+            [AS_HELP_STRING([--without-libdeflate],
+                            [do not use libdeflate to decompress gzip files (default: use it if it is found)])],
+            [],
+            [with_libdeflate=check])
+have_libdeflate=no
+LIBDEFLATE_LIBS=
+AS_IF([test "x$with_libdeflate" != xno],
+      [AC_CHECK_HEADER([libdeflate.h],
+                       [AC_CHECK_LIB([deflate], [libdeflate_gzip_decompress_ex],
+                                     [LIBDEFLATE_LIBS="-ldeflate"
+                                      have_libdeflate=yes
+                                      AC_DEFINE([HAVE_LIBDEFLATE], [1],
+                                                [Define to 1 if you have libdeflate.])])])
+       AS_IF([test "x$with_libdeflate" = xyes && test "x$have_libdeflate" != xyes],
+             [AC_MSG_ERROR([*** libdeflate not found ***])])])
+AC_SUBST([LIBDEFLATE_LIBS])
+AS_IF([test "x$have_libdeflate" = xyes],
+      [AC_MSG_NOTICE([gzip files are decompressed with libdeflate])],
+      [AC_MSG_NOTICE([gzip files are decompressed with zlib (libdeflate is not used)])])
+
 ##################################################
 # Checks for header files.
 ##################################################

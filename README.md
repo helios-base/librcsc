@@ -14,6 +14,7 @@ All programs can work with rcssserver-18.
 - CMake 3.16 or later
 - Boost 1.70 or later (only the headers are used) https://www.boost.org/
 - zlib (optional, needed to read and write the gzipped files)
+- libdeflate (optional, decompresses the gzipped files, e.g. game logs, faster than zlib)
 - CppUnit (optional, needed only for the unit tests)
 
 ## Quick Start
@@ -25,7 +26,7 @@ Install the packages:
 
 ```
 sudo apt update
-sudo apt install build-essential cmake pkg-config libboost-dev zlib1g-dev libcppunit-dev
+sudo apt install build-essential cmake pkg-config libboost-dev zlib1g-dev libdeflate-dev libcppunit-dev
 ```
 
 Build and install librcsc with `cmake-helper.sh`:

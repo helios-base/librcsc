@@ -36,6 +36,12 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential cmake autoconf automake libtool pkg-config \
             libboost-dev zlib1g-dev libcppunit-dev
+          # libdeflate (optional) only for the CMake jobs, so that the Autotools
+          # jobs build librcsc without it (zlib only), and both ways are built
+          # with GCC 13 and 15 (docs/plan/2026-11-24-02_rcg-parser-speedup.md D8)
+          if [ "${{ matrix.build }}" = cmake ]; then
+            sudo apt-get install -y --no-install-recommends libdeflate-dev
+          fi
 
       - name: Show the versions
         run: |
@@ -43,6 +49,7 @@ jobs:
           cmake --version | head -n 1
           grep -m 1 'define BOOST_LIB_VERSION' /usr/include/boost/version.hpp
           pkg-config --modversion cppunit
+          pkg-config --modversion libdeflate || echo "libdeflate: not installed"
 
       # CMake: use cmake-helper.sh, which prints the cmake commands
       - name: Build (CMake)

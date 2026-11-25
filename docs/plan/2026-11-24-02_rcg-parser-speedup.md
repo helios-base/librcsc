@@ -6,7 +6,7 @@
 | 最終更新日 | 2026-11-25 |
 | 対象 | `develop` (`212f5e7`)。同梱の simdjson 3.8.0 |
 | ブランチ | `feature/rcg-parser-speedup`。`develop` の `212f5e7` から、ユーザが GitHub で作った |
-| 状態 | 段階 1〜3 が完了した (CI 通過)。段階 4 を実装した (コミット前)。PR #123 (下書き)。詳しくは「進み具合」を参照 |
+| 状態 | 段階 1〜4 が完了した (CI 通過)。段階 5 を実装した (コミット前)。PR #123 (下書き)。詳しくは「進み具合」を参照 |
 | 関連 | `docs/plan/2026-11-21_boost-cmake-maintenance.md` (simdjson の更新と `parser_json` の扱いをこの計画に回した)。参照実装: rcssmonitor の PR #65 (`docs/plan/2026-11-11_3d-view.md` の Phase 2)。利用側: soccerwindow2 (`src/model/main_data.cpp`) |
 
 ## 進み具合
@@ -17,8 +17,8 @@
 | 2 | simdjson 5.1.1 への更新、`parser_json` の移動 (§4.2、D2、D3、D6、S8、S9、S14) | 完了 | 済み | 通過 | `e778865` | 済み |
 | 3 | メモリからの解析、ファイルの一括読み込み (§4.3、D7、S2、S3、S12、S15、S16、S17) | 完了 | 済み | 通過 | `20f8b9d` | 済み |
 | — | GCC 15 の警告 (`-Wdangling-reference`、段階 3 のテスト) の修正、`docs/todo.md` への記録 (§4.3.2、§8) | 完了 | 済み | 通過 | `a0adabe` | 済み |
-| 4 | 行の並列解析 (§4.4、D5、S1、S10、S13、S18、S19) | 完了 | 未 | 未 | — | 未 |
-| 5 | libdeflate による展開 (§4.5、D4) | 未着手 | 未 | 未 | — | 未 |
+| 4 | 行の並列解析 (§4.4、D5、S1、S10、S13、S18、S19) | 完了 | 済み | 通過 | `dd51505` | 済み |
+| 5 | libdeflate による展開 (§4.5、D4、D8、S20) | 完了 | 未 | 未 | — | 未 |
 | 6 | 読み込みの堅牢化 (§4.6、S5) | 未着手 | 未 | 未 | — | 未 |
 | 7 | 仕上げ: 最終の計測、全体の比較、soccerwindow2 での確認、文書 (§4.7) | 未着手 | 未 | 未 | — | 未 |
 | — | develop への取り込み (PR #123。下書き。Squash Merge の予定) | 未着手 | 未 | 未 | — | — |
@@ -142,6 +142,7 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 | D5 | 並列に解析するスレッドの数の上限を、API で設定できるようにする (例: `Parser::setMaxThreads( n )`。0 は既定、1 は並列にしない) | 2026-11-24 | 計画の作成時 |
 | D6 | `nlohmann/json.hpp` は `obsolete/` にも移さず、削除する (D3 を変えた)。`parser_json.{h,cpp}` は D3 のとおり `obsolete/rcg/` に移す | 2026-11-24 | 段階 2 の初め |
 | D7 | ファイルを (gzip なら展開して) メモリに読む関数 (S3) は `rcsc/gz/` に置く (§3.3) | 2026-11-24 | 段階 3 の初め |
+| D8 | CI では、CMake の 2 つのジョブにだけ `libdeflate-dev` を入れ、Autotools の 2 つのジョブには入れない (rcssmonitor と同じ。§3.3) | 2026-11-25 | 段階 5 の初め |
 
 ### 3.2 設計上の判断 (Claude)
 
@@ -166,12 +167,13 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 | S17 | 段階 3 では、解析できない行や、ハンドラが false を返したときの扱いを変えない (そこで読み込みをやめる)。変えるのは段階 4 (S13) と段階 6 (S5) (段階 3 で決めた) | 段階ごとに、全体の比較で出力が変わらないことを確かめるため |
 | S18 | 段階 4 から、パーサが解析できなかった行 (`parseLine()`・`parseRecord()` が false を返すか、例外を出した行) は飛ばして続け、`report_skipped()` で報告する。`parse()` は true を返す (S5 の一部を先に入れる)。空行を無視すること、知らない記録などを失敗として扱うこと (B3、B5) は段階 6 で行う (段階 4 で決めた) | rcssmonitor の `parse_lines()` は、失敗した行を飛ばす作りで、並列のときに「最初の失敗でやめる」を保つには、記録の再生を途中で止める処理が要る。それは段階 6 で消すことになるため、作らない |
 | S19 | 1 スレッドのときも、行ごとに記録用のハンドラに解析してから、すぐに本当のハンドラへ再生する。rcssmonitor は 1 スレッドのとき本当のハンドラを直接渡す (段階 4 で決めた) | スレッドの数によらず、ハンドラの扱いを同じにするため。直接渡すと、ハンドラの false を「解析できなかった行」と数え、ハンドラの例外を握りつぶす。並列のときは、戻り値は使われず、例外は `parse()` の外に出る。余計にかかる時間は 1 ms ほど (§4.4.2) |
+| S20 | libdeflate の検出と配布の扱い (段階 5 で決めた): CMake は `find_path`・`find_library` で探す (libdeflate の CMake のパッケージは使わない)。Autotools の `-ldeflate` は `LIBS` に入れず、`LIBDEFLATE_LIBS` として `librcsc.la` と単体テストにだけ渡す。`librcsc.pc`・`librcsc.spec.in`・CMake のパッケージ構成ファイルは変えない | 古いディストリビューション (Ubuntu 22.04 など) には libdeflate の CMake のパッケージがない (rcssmonitor と同じ)。ツールなどに余計な依存を付けないため。librcsc は共有ライブラリだけを作る (`disable-static`) ので、利用側は libdeflate をリンクしなくてよい。`librcsc.spec.in` には、任意の依存 (zlib も) を書いていない |
 
 ### 3.3 段階の初めに決めること
 
 - 段階 2: fallback の測定の結果を見て、On-Demand の対象の CPU を選ぶ手段 (CMake・configure のオプションなど) を設けるか。→ 設けない (S14)。
 - 段階 3: ファイルを読む関数の名前と置き場所 (案: gzip を扱う `rcsc/gz/` に置くか、rcg 専用として `rcsc/rcg/` に置くか)。→ `rcsc/gz/` に置く (D7)。名前は実装の時に決める。
-- 段階 5: CI のどのジョブに `libdeflate-dev` を入れるか (rcssmonitor は、Autotools のジョブに入れず、両方の経路をビルドしている)。
+- 段階 5: CI のどのジョブに `libdeflate-dev` を入れるか (rcssmonitor は、Autotools のジョブに入れず、両方の経路をビルドしている)。→ CMake のジョブにだけ入れる (D8)。
 - 段階 6: ボールの高さ (`z`、`vz`) を `BallT` に加えるか (rcssmonitor の B-5)。加えるなら、書き出し (`serializer_json` など) も直すか。
 
 ## 4. 設計
@@ -399,13 +401,39 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 - ファイルを読む関数で、gzip なら libdeflate で展開する。
   - 連結された複数のメンバと、後ろのゴミに対応する。出力のバッファが足りなければ倍にする。
   - 失敗した (途中で切れたファイルなど) ときは、zlib で読み直す。
-- `librcsc.so` に PRIVATE でリンクする。`librcsc.pc` (`Libs.private`)、`librcsc.spec.in`、CMake のパッケージ構成ファイルを、必要に応じて直す。
-- CI: 一部のジョブに `libdeflate-dev` を入れ、残りには入れず、両方の経路をビルドする (§3.3)。
+- `librcsc.so` に PRIVATE でリンクする。`librcsc.pc` (`Libs.private`)、`librcsc.spec.in`、CMake のパッケージ構成ファイルを、必要に応じて直す (→ 変えない。S20)。
+- CI: 一部のジョブに `libdeflate-dev` を入れ、残りには入れず、両方の経路をビルドする (§3.3。→ CMake のジョブに入れる。D8)。
 - `README.md`・`docs/build.md` に依存を書く。
 
-#### 4.5.2 実装
+#### 4.5.2 実装 (2026-11-25)
 
-未着手。
+- `rcsc/gz/gzread_file.cpp`: `HAVE_LIBDEFLATE` のとき、gzip のファイルは、まず全体をそのまま読み、`inflate_with_libdeflate()` (rcssmonitor の `inflateWithLibdeflate()` と同じ) で展開する。
+  - 出力のバッファは、末尾の ISIZE とファイルの大きさの大きい方から始め、足りなければ倍にする (上限は `ファイルの大きさ × 1032 + 1 MB`)。
+  - 連結された複数のメンバを、先頭が gzip の印 (`1f 8b`) である間、`libdeflate_gzip_decompress_ex()` で続けて展開する。後ろの gzip でないバイトは無視する (zlib と同じ)。
+  - 展開に失敗した (途中で切れたファイルなど) ときは、zlib があれば zlib で読み直し、切れた所まで読む。zlib がなければ、`broken gzip data` を出して false を返す。
+  - `gzread_file.h` の説明に、libdeflate を使うことを書いた。
+- 検出 (S20):
+  - CMake: `option(ENABLE_LIBDEFLATE ... ON)`。`find_path( libdeflate.h )`・`find_library( deflate libdeflate )` で探し、見つかれば `HAVE_LIBDEFLATE` を定義する (`cmake-config.h.in`)。`rcsc_gz` に include のディレクトリを、`rcsc` にライブラリを PRIVATE で加える。構成の出力に `libdeflate: ...` の行を出す。
+  - Autotools: `--with-libdeflate` (既定は `check`。`--without-libdeflate` で使わない。`--with-libdeflate` で見つからなければエラー)。`AC_CHECK_HEADER( libdeflate.h )` と `AC_CHECK_LIB( deflate, libdeflate_gzip_decompress_ex )`。`LIBDEFLATE_LIBS` を `librcsc.la` (`rcsc/Makefile.am`) と、`rcsc/gz`・`rcsc/rcg` の単体テストに渡す。configure の出力に、どちらで展開するかを出す。
+- CI (D8): CMake のジョブにだけ `libdeflate-dev` を入れる。「Show the versions」に libdeflate の版を出す。
+- 文書: `README.md` (必要なもの、Ubuntu のインストールのコマンド)、`docs/build.md` (必要なものの表、インストール、CMake の `ENABLE_LIBDEFLATE`、configure の `--without-libdeflate`、構成の出力)、`RELEASE_NOTES.md`。
+- 確かめたこと:
+  - CMake (Release、libdeflate あり): ビルドの警告 0。`ctest` で 19 個すべて通った。`librcsc.so` が `libdeflate.so.0` に依存する。
+  - どちらで展開したかを一時的に出して、`run_test_gzread_file` の gzip のファイル (1 MB を超えるもの、複数のメンバ、後ろのゴミ) は libdeflate で、途中で切れたファイルだけが zlib に戻って切れた所まで読むことを確かめた (出力は戻した)。
+  - CMake (`-DENABLE_LIBDEFLATE=OFF`): libdeflate に依存しない。
+  - CMake (zlib なし・libdeflate あり): rcg と gz のテスト 4 個が通った。gzip のログを読めた (`rcg2txt` の出力の行の数が変更前と同じ)。途中で切れた gzip は `broken gzip data` で読まない。
+  - Autotools: 既定 (見つかる) では `HAVE_LIBDEFLATE` が定義され、`--without-libdeflate` では定義されず、ない環境での `--with-libdeflate` (`ac_cv_header_libdeflate_h=no` で再現) は configure がエラーになった。既定と `--without-libdeflate` の両方で、コンパイラの警告 0、`make check` の 15 個が通った。`librcsc.so` が libdeflate に依存するのは既定のときだけ。`make distcheck` も通った。
+  - 全体の比較 (S11): 変更前 (`212f5e7`) と比べて、4 つのログの 8 つの変換がすべて同じだった。
+- 速さ (CMake の Release、5 回の最良、ms)。「zlib」は `-DENABLE_LIBDEFLATE=OFF`:
+
+| ログ | file (zlib) | file (libdeflate) | total (zlib) | total (libdeflate) |
+|---|---|---|---|---|
+| JSON | 51.2 | 24.8 | 73.9 | 47.3 |
+| ULG5 | 43.9 | 20.4 | 60.5 | 36.3 |
+| ULG6 | 29.2 | 14.5 | 44.0 | 25.9 |
+
+- 展開はおよそ半分になり、ツールの経路はおよそ 35〜40% 短くなった。rcssmonitor (展開だけで zlib 69 / 48 ms、libdeflate 34 / 22 ms) と同じ傾向である。
+- soccerwindow2 の経路 (`gzifstream` + `parse(istream)`) は libdeflate を使わない (`gzifstream` は zlib のまま。`docs/todo.md` に記録した soccerwindow2 の切り替えで使えるようになる)。
 
 ### 4.6 段階 6: 読み込みの堅牢化
 
@@ -568,3 +596,17 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 - テスト: `run_test_rcg_line_parser` (8 項目) を足し、`run_test_rcg_parser` を 25 項目に増やした。CMake の `ctest` 19 個、Autotools の `make check` 15 個と `make distcheck` が通った。ThreadSanitizer でデータ競合の報告はなかった。
 - 全体の比較で、変更前と出力が同じだった。ツールの経路は、JSON で 137.9 → 73.6 ms、ULG5 で 119.6 → 59.8 ms、ULG6 で 84.8 → 43.8 ms になった。
 - この後: ユーザの確認の後、段階 4 をコミットしてプッシュし、CI を確かめる。その後、段階 5 (libdeflate) に着手する。初めに、CI のどのジョブに `libdeflate-dev` を入れるかを決める (§3.3)。
+
+### 2026-11-25: 段階 4 の CI の結果
+
+- ユーザの確認の後、段階 4 を `dd51505` としてコミットし、プッシュした。
+- CI の結果 (`dd51505`): 5 ジョブすべて成功した。GCC 13.3・15.2 とも、コンパイラの警告は 0。4 つのビルドのジョブで `run_test_rcg_line_parser` と `run_test_rcg_parser` が通った (CMake は 19 個すべて、Autotools は `make check` と `make distcheck`)。テストはスレッドの数の上限を 4 にしているので、CI の計算機のコアの数によらず並列の経路を通る。
+- この後: 段階 5 (libdeflate) に着手する。初めに、CI のどのジョブに `libdeflate-dev` を入れるかを決める (§3.3)。
+
+### 2026-11-25: 段階 5 を実装した
+
+- ユーザの決定 D8: CI では CMake のジョブにだけ `libdeflate-dev` を入れる。
+- `rcsc::gzread_file()` で、gzip を libdeflate で展開するようにした。壊れたファイルは zlib で読み直す。CMake (`ENABLE_LIBDEFLATE`) と Autotools (`--with-libdeflate`) に検出を加えた (§4.5.2)。決めたこと: S20。
+- libdeflate のあり・なし、zlib のない場合を、CMake と Autotools で確かめた。全体の比較で、変更前と出力が同じだった。
+- ツールの経路は、JSON で 73.9 → 47.3 ms、ULG5 で 60.5 → 36.3 ms、ULG6 で 44.0 → 25.9 ms になった (段階 1 の `stream` の 205.9 / 123.6 / 90.5 ms と比べて、4 分の 1 から 3 分の 1)。
+- この後: ユーザの確認の後、段階 5 をコミットしてプッシュし、CI (CMake のジョブで libdeflate が使われること) を確かめる。その後、段階 6 (読み込みの堅牢化) に着手する。初めに、ボールの高さ (`z`、`vz`) を `BallT` に加えるかを決める (§3.3)。

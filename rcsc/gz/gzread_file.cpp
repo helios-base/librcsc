@@ -38,12 +38,17 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <memory>
 
 #ifdef HAVE_LIBZ
 #include <zlib.h>
 #endif
 
-// See docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.3 (S3, D7).
+#ifdef HAVE_LIBDEFLATE
+#include <libdeflate.h>
+#endif
+
+// See docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.3 (S3, D7) and 4.5 (D4).
 
 namespace rcsc {
 
@@ -83,6 +88,84 @@ read_raw( std::ifstream & fin,
     return size == 0
         || static_cast< bool >( fin.read( &( *data )[0], size ) );
 }
+
+#ifdef HAVE_LIBDEFLATE
+/*!
+  \brief decompress gzip data in memory with libdeflate, which is a few times faster than zlib.
+  The data may have more than one member, and the bytes that are not gzip after a member
+  are ignored, as zlib does.
+  \return false if the data are broken (also when they end in the middle)
+
+  The design follows rcssmonitor (src/game_log_file.cpp).
+*/
+bool
+inflate_with_libdeflate( const std::string & compressed,
+                         std::string * data )
+{
+    // the largest ratio of deflate is about 1032:1
+    const std::size_t max_size = compressed.size() * 1032 + ( 1u << 20 );
+
+    struct Free {
+        void operator()( libdeflate_decompressor * d ) const
+          {
+              libdeflate_free_decompressor( d );
+          }
+    };
+    std::unique_ptr< libdeflate_decompressor, Free > decompressor( libdeflate_alloc_decompressor() );
+    if ( ! decompressor )
+    {
+        return false;
+    }
+
+    const unsigned char * in = reinterpret_cast< const unsigned char * >( compressed.data() );
+    std::size_t in_size = compressed.size();
+    std::size_t size = 0;
+
+    // the size of the last member (modulo 2^32), from the last 4 bytes
+    const std::size_t hint
+        = ( in_size >= 4
+            ? ( static_cast< std::size_t >( in[in_size - 4] )
+                | ( static_cast< std::size_t >( in[in_size - 3] ) << 8 )
+                | ( static_cast< std::size_t >( in[in_size - 2] ) << 16 )
+                | ( static_cast< std::size_t >( in[in_size - 1] ) << 24 ) )
+            : 0 );
+    data->resize( std::min( std::max( hint, in_size ), max_size ) );
+
+    while ( in_size >= 2
+            && in[0] == 0x1f
+            && in[1] == 0x8b )
+    {
+        std::size_t in_used = 0;
+        std::size_t out_size = 0;
+        const libdeflate_result result
+            = libdeflate_gzip_decompress_ex( decompressor.get(),
+                                             in, in_size,
+                                             &( *data )[0] + size, data->size() - size,
+                                             &in_used, &out_size );
+        if ( result == LIBDEFLATE_INSUFFICIENT_SPACE )
+        {
+            if ( data->size() >= max_size )
+            {
+                return false;
+            }
+            data->resize( std::min( data->size() * 2, max_size ) );
+            continue;
+        }
+
+        if ( result != LIBDEFLATE_SUCCESS )
+        {
+            return false;
+        }
+
+        size += out_size;
+        in += in_used;
+        in_size -= in_used;
+    }
+
+    data->resize( size );
+    return true;
+}
+#endif
 
 #ifdef HAVE_LIBZ
 /*!
@@ -205,12 +288,36 @@ gzread_file( const std::string & path,
         return true;
     }
 
+#ifdef HAVE_LIBDEFLATE
+    {
+        std::string compressed;
+        if ( ! read_raw( fin, &compressed ) )
+        {
+            std::cerr << "(rcsc::gzread_file) failed to read " << path << std::endl;
+            data->clear();
+            return false;
+        }
+
+        if ( inflate_with_libdeflate( compressed, data ) )
+        {
+            return true;
+        }
+
+        // the data are broken (e.g. the file ends in the middle).
+        // zlib reads the data up to where they are broken.
+        data->clear();
+    }
+#endif
+
 #ifdef HAVE_LIBZ
     const std::size_t size_hint = gzip_size_hint( fin );
     fin.close();
     return read_gzip( path, size_hint, data );
+#elif defined(HAVE_LIBDEFLATE)
+    std::cerr << "(rcsc::gzread_file) " << path << ": broken gzip data" << std::endl;
+    return false;
 #else
-    std::cerr << "(rcsc::gzread_file) " << path << ": gzip is not supported (librcsc is built without zlib)" << std::endl;
+    std::cerr << "(rcsc::gzread_file) " << path << ": gzip is not supported (librcsc is built without zlib and libdeflate)" << std::endl;
     data->clear();
     return false;
 #endif

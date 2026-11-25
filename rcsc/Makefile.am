@@ -27,7 +27,8 @@ librcsc_la_SOURCES =
 # so that libstdc++ is linked to librcsc.so.
 nodist_EXTRA_librcsc_la_SOURCES = dummy.cxx
 
-librcsc_la_LIBADD = \
+# $(LIBDEFLATE_LIBS): libdeflate (optional) for rcsc::gzread_file()
+librcsc_la_LIBADD = $(LIBDEFLATE_LIBS) \
 	geom/librcsc_geom.la \
 	gz/librcsc_gz.la \
 	net/librcsc_net.la \

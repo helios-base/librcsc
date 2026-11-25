@@ -21,6 +21,7 @@ For a quick start, see [README.md](../README.md).
 | Autoconf / Automake / Libtool | | for the Autotools build |
 | Boost | 1.70 or later | only the headers are used (the Boost.System library is not needed) |
 | zlib | | optional; needed to read and write the gzipped files (e.g. `.rcg.gz`) |
+| libdeflate | | optional; decompresses the gzipped files (e.g. `.rcg.gz`) read by `rcsc::gzread_file()` a few times faster than zlib. zlib is still used for writing them, for the streams (`rcsc::gzifstream`), and for a broken file |
 | pkg-config | | to find CppUnit; also needed to run `./bootstrap` of the Autotools build |
 | CppUnit | 1.12 or later | optional; for the unit tests |
 | Doxygen / Graphviz | | optional; for the API documents |
@@ -38,6 +39,7 @@ The following commands are for Ubuntu 24.04 and 26.04.
 ```
 sudo apt update
 sudo apt install build-essential cmake pkg-config libboost-dev zlib1g-dev
+sudo apt install libdeflate-dev                 # optional: decompresses gzip files faster
 sudo apt install libcppunit-dev                 # for the unit tests
 sudo apt install autoconf automake libtool      # for the Autotools build
 sudo apt install doxygen graphviz               # for the API documents
@@ -104,6 +106,7 @@ Configure options (`cmake -S . -B build -D<option>=<value>`):
 | `CMAKE_BUILD_TYPE` | `Release` | the build type (`Release`, `Debug`, `RelWithDebInfo`, ...) |
 | `BUILD_TESTING` | `ON` | build the tests (see [Running the tests](#running-the-tests)) |
 | `CMAKE_PREFIX_PATH` | | the directories where the dependencies (e.g. Boost) are searched, if they are not in the standard locations |
+| `ENABLE_LIBDEFLATE` | `ON` | use libdeflate to decompress gzip files, if it is found. `OFF` uses only zlib |
 
 The configure output shows the main settings:
 
@@ -112,6 +115,7 @@ The configure output shows the main settings:
 --   BUILD_TYPE=Release
 --   INSTALL_PREFIX=/home/user/.local
 --   BUILD_TESTING=ON (unit tests: ON)
+--   libdeflate: /usr/lib/x86_64-linux-gnu/libdeflate.so (gzip files are decompressed with libdeflate)
 ```
 
 The flags given by `CMAKE_CXX_FLAGS` are used in addition to the warning options (`-W -Wall`).
@@ -254,6 +258,7 @@ Configure options:
 |---|---|
 | `--prefix=DIR` | the installation directory (default: `/usr/local`) |
 | `--enable-unit-test` | build the unit tests for `make check` (CppUnit is needed) |
+| `--without-libdeflate` | do not use libdeflate to decompress gzip files (default: use it if it is found). `--with-libdeflate` makes it an error if libdeflate is not found |
 | `--enable-debug` | define `DEBUG` in the preprocessor |
 | `--enable-example` | build the example programs in `example/` (they cannot be built at the moment) |
 

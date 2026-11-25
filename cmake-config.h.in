@@ -4,6 +4,7 @@
 #define VERSION "@librcsc_VERSION@"
 
 #cmakedefine HAVE_LIBZ
+#cmakedefine HAVE_LIBDEFLATE
 
 #cmakedefine HAVE_WINDOWS_H
 

@@ -170,3 +170,11 @@ Each item has the date when the change was made.
   - `rcsc::rcg::Handler::handleTimestamp()` is now virtual. Rebuild the programs built with librcsc of the develop branch before this change.
   - librcsc is linked with the thread library (`Threads::Threads` of CMake, `-pthread` of Autotools).
 - (2026-11-25) Tests: added the unit test `run_test_rcg_line_parser` (`rcsc/rcg`, CMake and Autotools).
+- (2026-11-25) libdeflate (optional): if it is found, `rcsc::gzread_file()` decompresses gzip files with libdeflate,
+  which is about twice as fast as zlib (e.g. loading a game log by the tools takes about 35% less time).
+  - It is used if it is found. `-DENABLE_LIBDEFLATE=OFF` (CMake) or `--without-libdeflate` (Autotools) disables it,
+    and `--with-libdeflate` makes it an error of `configure` if it is not found. Install it by `sudo apt install libdeflate-dev` on Ubuntu.
+  - zlib is still used to read a broken gzip file (e.g. one that ends in the middle) up to where it is broken,
+    to write gzip files, and for the gzip streams (`rcsc::gzifstream`, `rcsc::gzofstream`).
+  - `librcsc.so` is linked with libdeflate if it is used. The programs using librcsc do not need it themselves.
+  - CI: the CMake jobs build librcsc with libdeflate, and the Autotools jobs without it.

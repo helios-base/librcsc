@@ -55,6 +55,6 @@ check_PROGRAMS = $(TESTS)
 
 run_test_gzread_file_SOURCES = test_gzread_file.cpp
 run_test_gzread_file_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W
-run_test_gzread_file_LDADD = librcsc_gz.la $(CPPUNIT_LIBS)
+run_test_gzread_file_LDADD = librcsc_gz.la $(LIBDEFLATE_LIBS) $(CPPUNIT_LIBS)
 
 #EXTRA_DIST =

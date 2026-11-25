@@ -42,6 +42,10 @@ namespace rcsc {
   \param data the destination. Its contents are replaced by the contents of the file.
   \retval true if the file is read
   \retval false if the file cannot be opened or read, or if it is a gzip file and librcsc is built without zlib
+  (and libdeflate)
+
+  A gzip file is decompressed with libdeflate if librcsc is built with it (a few times faster than zlib),
+  and otherwise with zlib.
 
   As zlib's gzread() does, a gzip file that has more than one member is read to the end,
   and the bytes that are not gzip after a member are ignored.
