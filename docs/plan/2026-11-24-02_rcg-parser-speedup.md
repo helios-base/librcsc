@@ -6,7 +6,7 @@
 | 最終更新日 | 2026-11-25 |
 | 対象 | `develop` (`212f5e7`)。同梱の simdjson 3.8.0 |
 | ブランチ | `feature/rcg-parser-speedup`。`develop` の `212f5e7` から、ユーザが GitHub で作った |
-| 状態 | 段階 1〜7 が完了した。PR #123 で develop に取り込む前。詳しくは「進み具合」を参照 |
+| 状態 | 完了。PR #123 (`Speed up the rcg parser and update the bundled simdjson to 5.1.1`) で develop に取り込む (Squash Merge)。詳しくは「進み具合」を参照 |
 | 関連 | `docs/plan/2026-11-21_boost-cmake-maintenance.md` (simdjson の更新と `parser_json` の扱いをこの計画に回した)。参照実装: rcssmonitor の PR #65 (`docs/plan/2026-11-11_3d-view.md` の Phase 2)。利用側: soccerwindow2 (`src/model/main_data.cpp`) |
 
 ## 進み具合
@@ -20,8 +20,8 @@
 | 4 | 行の並列解析 (§4.4、D5、S1、S10、S13、S18、S19) | 完了 | 済み | 通過 | `dd51505` | 済み |
 | 5 | libdeflate による展開 (§4.5、D4、D8、S20) | 完了 | 済み | 通過 | `dfcbed2` | 済み |
 | 6 | 読み込みの堅牢化 (§4.6、D9、S5、S21、S22) | 完了 | 済み | 通過 | `9e29dc9` | 済み |
-| 7 | 仕上げ: 最終の計測、全体の比較、soccerwindow2 での確認、文書 (§4.7) | 完了 | 済み | 未 | — | 未 |
-| — | develop への取り込み (PR #123。下書き。Squash Merge の予定) | 未着手 | 未 | 未 | — | — |
+| 7 | 仕上げ: 最終の計測、全体の比較、soccerwindow2 での確認、文書 (§4.7) | 完了 | 済み | 通過 | `3e87052` | 済み |
+| — | develop への取り込み (PR #123、Squash Merge) | 完了 | 済み | 通過 | — | — |
 
 ## 1. 目的と方針
 
@@ -708,3 +708,15 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 - ユーザの問い「rcssmonitor は同じ JSON のログを 60 ms 弱で開くが、soccerwindow2 は何が原因で遅いか」を調べた (§4.7.2)。原因は soccerwindow2 の読み込み (`gzifstream` + `parse( istream )`) で、`gzifstream` を通した展開に約 90 ms かかっていた。`gzread_file()` とメモリの経路に替えると、JSON で 115 → 54 ms になることを、試しのビルドで確かめた。soccerwindow2 の切り替えは、`docs/todo.md` の項目として、この PR の後に soccerwindow2 の計画で行う。
 - 段階 7 の作業は、これで終わった。
 - この後: ユーザの確認の後、段階 7 の記録をコミットしてプッシュし、CI を確かめる。ユーザが PR #123 の説明を最終のものにし、下書きを解く。取り込みの前に、取り込みの記録をこの PR のブランチにコミットする。
+
+### 2026-11-25: develop への取り込み
+
+- ユーザの確認の後、段階 7 の記録を `3e87052` としてコミットし、プッシュした。
+- CI の結果 (`3e87052`): 5 ジョブすべて成功した。GCC 13.3・15.2 とも、コンパイラの警告は 0。CMake のジョブは 19 個すべて、Autotools のジョブは `make check` と `make distcheck` で 15 個ずつ通った。
+- ユーザが PR #123 の説明を最終のものにし、下書きを解いた。
+- PR #123 (`Speed up the rcg parser and update the bundled simdjson to 5.1.1`) を、Squash Merge で develop に取り込む。この記録は、取り込みの前に PR のブランチにコミットした。
+- この計画の結果:
+  - ツールがログを読む時間は、段階 1 と比べて JSON で 205.9 → 43.9 ms (4.7 倍)、ULG5 で 123.6 → 35.8 ms、ULG6 で 90.5 → 26.1 ms (3.5 倍) になった (CMake の Release、libdeflate あり、8 スレッド)。
+  - 同梱の simdjson を 5.1.1 にし、GCC 15 の警告 9 件を解消した。古い JSON パーサを `obsolete/rcg/` に移し、nlohmann/json を削除した。
+  - 読み込みの不具合 B1〜B14 を直した。
+- この後: soccerwindow2 の読み込みを `rcsc::gzread_file()` とメモリの経路に替える (soccerwindow2 の計画で行う)。ほかの見送った作業は `docs/todo.md` にある。
