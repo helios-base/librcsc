@@ -178,3 +178,21 @@ Each item has the date when the change was made.
     to write gzip files, and for the gzip streams (`rcsc::gzifstream`, `rcsc::gzofstream`).
   - `librcsc.so` is linked with libdeflate if it is used. The programs using librcsc do not need it themselves.
   - CI: the CMake jobs build librcsc with libdeflate, and the Autotools jobs without it.
+- (2026-11-25) Fixed the problems of the rcg parsers in reading broken or new game logs:
+  - Text (v4 to v6): a record name longer than 31 characters overflowed a buffer.
+    The player number 0 in a show wrote outside the array of the players.
+    A show with a broken time or ball was not rejected. A broken header (e.g. `ULGx`) threw an exception.
+    An empty line was an error. An unknown record now is skipped and reported once in a process.
+    The strings of a team graphic were read only up to 15 characters. The team name `null` in a team line is now empty, as in a show line.
+  - JSON: the server version and the timestamp are passed to the handler (`handleServerVersion()`, `handleTimestamp()`).
+    The view quality of a player was stored as 1 or 0 instead of `'h'` or `'l'`,
+    so a JSON game log rewritten by the tools (e.g. `rcgverconv`) had `"vq":"l"` for all the players,
+    and a text game log converted from JSON had a control character there.
+    The players of a show are placed by their side and number, not by the order in the array;
+    the fields that the server may omit keep their default values, and illegal players are skipped.
+    An unknown record or key is skipped and reported once in a process (it stopped the whole parsing before).
+    `ParserSimdJSON::parseData()` (for a live connection) returns false for a broken message instead of throwing an exception.
+- (2026-11-25) `rcgreverse`, `rcgrenameteam` and `rcgverconv` write the server version and the timestamp of a JSON game log
+  to the output, instead of `"version":"unknown"`: the beginning of the output is written before the first record,
+  after the version and the timestamp are read.
+- (2026-11-25) `rcgversion` prints the version 6 (it printed `json`), and `unknown` for an unknown version.

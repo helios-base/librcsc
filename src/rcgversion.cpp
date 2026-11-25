@@ -42,9 +42,12 @@
 
 ///////////////////////////////////////////////////////////
 
+//! the value of get_version() for an unknown version (REC_VERSION_JSON is -1)
+static const int UNKNOWN_VERSION = -2;
+
 /*---------------------------------------------------------------*/
 /*
-
+  See B12 in docs/plan/2026-11-24-02_rcg-parser-speedup.md 2.6.
 */
 static
 int
@@ -58,7 +61,7 @@ get_version( std::istream & is )
 
     if ( is.gcount() != 4 )
     {
-        return -1;
+        return UNKNOWN_VERSION;
     }
 
     if ( header[0] == '[' )
@@ -90,7 +93,12 @@ get_version( std::istream & is )
         return rcsc::rcg::REC_VERSION_5;
     }
 
-    return -1;
+    if ( version == static_cast< int >( '0' ) + rcsc::rcg::REC_VERSION_6 )
+    {
+        return rcsc::rcg::REC_VERSION_6;
+    }
+
+    return UNKNOWN_VERSION;
 }
 
 /*---------------------------------------------------------------*/
@@ -138,7 +146,8 @@ main( int argc, char ** argv )
         fin.close();
 
         std::string verstr = std::to_string( ver );
-        if ( ver == -1 ) verstr = "json";
+        if ( ver == rcsc::rcg::REC_VERSION_JSON ) verstr = "json";
+        else if ( ver == UNKNOWN_VERSION ) verstr = "unknown";
 
         std::cout << "file=" << argv[i] << ", version=" << verstr
                   << std::endl;

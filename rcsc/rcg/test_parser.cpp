@@ -517,14 +517,15 @@ check_v6_values( const RecordHandler & handler )
 }
 
 /*!
-  \brief check the values of the last show in head_json.rcg (time 5)
-
-  The view quality ("vq") is not checked here, because the JSON parser stores it in a wrong way.
-  (B9 in docs/plan/2026-11-24-02_rcg-parser-speedup.md 2.6)
+  \brief check the values of the last show in head_json.rcg (time 5), and the version and the timestamp
 */
 void
 check_json_values( const RecordHandler & handler )
 {
+    // B8 in docs/plan/2026-11-24-02_rcg-parser-speedup.md 2.6
+    CPPUNIT_ASSERT_EQUAL( std::string( "18.1.3" ), handler.serverVersion() );
+    CPPUNIT_ASSERT_EQUAL( std::string( "2024-03-19T18:13:33+0900" ), handler.timestamp() );
+
     CPPUNIT_ASSERT_EQUAL( 18, handler.player_types_ );
     CPPUNIT_ASSERT_DOUBLES_EQUAL( 3.0, handler.ball_speed_max_, EPS );
     CPPUNIT_ASSERT_DOUBLES_EQUAL( 42.514, handler.stamina_inc_max_.at( 17 ), EPS );
@@ -553,6 +554,7 @@ check_json_values( const RecordHandler & handler )
     CPPUNIT_ASSERT_DOUBLES_EQUAL( 130600.0, l1.stamina_capacity_, LARGE_EPS );
     CPPUNIT_ASSERT_EQUAL( 'l', l1.focus_side_ );
     CPPUNIT_ASSERT_EQUAL( Int16( 7 ), l1.focus_unum_ );
+    CPPUNIT_ASSERT_EQUAL( 'h', l1.view_quality_ ); // B9
     CPPUNIT_ASSERT_EQUAL( UInt16( 83 ), l1.turn_count_ );
     CPPUNIT_ASSERT_EQUAL( UInt16( 3 ), l1.attentionto_count_ );
 
@@ -722,6 +724,16 @@ class RcgParserTest
     CPPUNIT_TEST( testTextBrokenLinesSkipped );
     CPPUNIT_TEST( testJsonBrokenLinesSkipped );
     CPPUNIT_TEST( testJsonHandlerFalseDoesNotStop );
+    CPPUNIT_TEST( testTextParseLine );
+    CPPUNIT_TEST( testTextUnumZero );
+    CPPUNIT_TEST( testTextBrokenHeader );
+    CPPUNIT_TEST( testTextTeamGraphicLong );
+    CPPUNIT_TEST( testTextTeamNull );
+    CPPUNIT_TEST( testJsonPlayers );
+    CPPUNIT_TEST( testJsonShowWithoutPlayers );
+    CPPUNIT_TEST( testJsonUnknownRecords );
+    CPPUNIT_TEST( testJsonLiveShowWithTeam );
+    CPPUNIT_TEST( testJsonLiveBroken );
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -763,6 +775,16 @@ protected:
     void testTextBrokenLinesSkipped();
     void testJsonBrokenLinesSkipped();
     void testJsonHandlerFalseDoesNotStop();
+    void testTextParseLine();
+    void testTextUnumZero();
+    void testTextBrokenHeader();
+    void testTextTeamGraphicLong();
+    void testTextTeamNull();
+    void testJsonPlayers();
+    void testJsonShowWithoutPlayers();
+    void testJsonUnknownRecords();
+    void testJsonLiveShowWithTeam();
+    void testJsonLiveBroken();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION( RcgParserTest );
@@ -1156,6 +1178,9 @@ RcgParserTest::testJsonManyLines()
         CPPUNIT_ASSERT( parse_memory( data, REC_VERSION_JSON, handler ) );
         assert_events( expected, handler.events_ );
         CPPUNIT_ASSERT_DOUBLES_EQUAL( 39.3019, handler.shows_.back().player_[11].x_, EPS );
+        // passed through the recording handler of a thread (B8)
+        CPPUNIT_ASSERT_EQUAL( std::string( "18.1.3" ), handler.serverVersion() );
+        CPPUNIT_ASSERT_EQUAL( std::string( "2024-03-19T18:13:33+0900" ), handler.timestamp() );
     }
 }
 
@@ -1164,14 +1189,17 @@ RcgParserTest::testJsonManyLines()
   \brief the lines that cannot be parsed are skipped, and the parsing goes on
   (docs/plan/2026-11-24-02_rcg-parser-speedup.md S18)
 
-  The lines that ParserV4 fails to parse now: a line not beginning with "(", and an empty line.
-  (An unknown record and a broken show are not detected yet: B3 and B5 in 2.6 of the plan.)
+  An empty line and an unknown record are also skipped (B5), and a broken show is rejected (B3).
 */
 void
 RcgParserTest::testTextBrokenLinesSkipped()
 {
     const std::string data = many_text_lines( { { 100, "not a record" },
-                                                { 3000, "" } } );
+                                                { 1000, "(unknown_record 1 2)" },
+                                                { 2000, "(show abc" },
+                                                { 3000, "" },
+                                                { 3500, "   \r" },
+                                                { 4000, "(show 1 ((b) x y 0 0))" } } );
     const std::vector< std::string > expected = many_events( REC_VERSION_5, "team 1 HELIOS2022 CYRUS 0 0" );
 
     for ( const int max_threads : { 4, 1 } )
@@ -1220,6 +1248,255 @@ RcgParserTest::testJsonHandlerFalseDoesNotStop()
         handler.show_result_ = false;
         CPPUNIT_ASSERT( parse_memory( many_json_lines(), REC_VERSION_JSON, handler ) );
         assert_events( many_events( REC_VERSION_JSON, "team 1 HELIOS2023 CYRUS 0 0" ), handler.events_ );
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief ParserV4::parseLine(): B1, B3 and B5 in docs/plan/2026-11-24-02_rcg-parser-speedup.md 2.6
+*/
+void
+RcgParserTest::testTextParseLine()
+{
+    ParserV4 parser;
+    RecordHandler handler;
+
+    // B5: an empty line is not an error
+    CPPUNIT_ASSERT( parser.parseLine( 1, "", handler ) );
+    CPPUNIT_ASSERT( parser.parseLine( 2, " \t\r", handler ) );
+
+    // B1: a long record name does not overflow the buffer. B5: an unknown record is skipped
+    CPPUNIT_ASSERT( parser.parseLine( 3, "(" + std::string( 200, 'a' ) + " 1 2)", handler ) );
+    CPPUNIT_ASSERT( parser.parseLine( 4, "(unknown_record 1 2)", handler ) );
+
+    // not a record
+    CPPUNIT_ASSERT( ! parser.parseLine( 5, "not a record", handler ) );
+
+    // B3: a broken time or ball of a show
+    CPPUNIT_ASSERT( ! parser.parseLine( 6, "(show abc", handler ) );
+    CPPUNIT_ASSERT( ! parser.parseLine( 7, "(show 1 ((b) x y 0 0))", handler ) );
+
+    CPPUNIT_ASSERT( handler.events_.empty() );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief B2: the player unum 0 is rejected (it would write player_[-1])
+*/
+void
+RcgParserTest::testTextUnumZero()
+{
+    std::string line = find_line( data_path( "head_v5.rcg" ), "(show 4 " );
+    const std::string::size_type pos = line.find( "((l 1) " );
+    CPPUNIT_ASSERT( pos != std::string::npos );
+    line.replace( pos, 7, "((l 0) " );
+
+    ParserV4 parser;
+    RecordHandler handler;
+    CPPUNIT_ASSERT( ! parser.parseLine( 1, line, handler ) );
+    CPPUNIT_ASSERT( handler.events_.empty() );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief B4: a broken header does not throw
+*/
+void
+RcgParserTest::testTextBrokenHeader()
+{
+    for ( const std::string header : { "ULGx\n", "ULG\n", "ULG9\n" } )
+    {
+        const std::string data = header + "(playmode 1 kick_off_l)\n";
+        ParserV4 parser;
+        RecordHandler handler;
+        bool result = true;
+        CPPUNIT_ASSERT_NO_THROW( result = parser.parse( data.data(), data.size(), handler ) );
+        CPPUNIT_ASSERT( ! result );
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief B6: the strings of a team graphic of any length (16 characters for 8 pixels of 2 characters)
+*/
+void
+RcgParserTest::testTextTeamGraphicLong()
+{
+    const std::string row1 = "0123456789abcdef";
+    const std::string row2 = "fedcba9876543210";
+    const std::string line = "(msg 0 1 \"(team_graphic_r (3 2 \"8 8 1 2\" \"aa c None\" \""
+        + row1 + "\" \"" + row2 + "\")\")";
+
+    ParserV4 parser;
+    RecordHandler handler;
+    CPPUNIT_ASSERT( parser.parseLine( 1, line, handler ) );
+    assert_events( { "team_graphic r 3 2 4" }, handler.events_ );
+    const std::vector< std::string > & xpm = handler.team_graphics_.front();
+    CPPUNIT_ASSERT_EQUAL( std::string( "8 8 1 2" ), xpm[0] );
+    CPPUNIT_ASSERT_EQUAL( std::string( "aa c None" ), xpm[1] );
+    CPPUNIT_ASSERT_EQUAL( row1, xpm[2] );
+    CPPUNIT_ASSERT_EQUAL( row2, xpm[3] );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief B7: the team name "null" (before the team connects) is empty, as in the show line
+*/
+void
+RcgParserTest::testTextTeamNull()
+{
+    ParserV4 parser;
+    RecordHandler handler;
+    CPPUNIT_ASSERT( parser.parseLine( 1, "(team 1 null null 0 0)", handler ) );
+    CPPUNIT_ASSERT( parser.parseLine( 2, "(team 2 HELIOS null 0 0)", handler ) );
+    assert_events( { "team 1   0 0", "team 2 HELIOS  0 0" }, handler.events_ );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief B9 and B10: the players of a JSON show are placed by side and unum,
+  the omitted fields keep the default values, and illegal players are skipped
+*/
+void
+RcgParserTest::testJsonPlayers()
+{
+    const std::string record = "{\"show\":{\"time\":7,\"ball\":{\"x\":1.5,\"y\":-2,\"vx\":0.1,\"vy\":0},\"players\":["
+        // the right 11, first
+        "{\"side\":\"r\",\"unum\":11,\"type\":3,\"state\":1,\"x\":10,\"y\":20,\"vx\":0,\"vy\":0,"
+        "\"body\":45,\"neck\":0,\"vq\":\"l\",\"vw\":60,\"stamina\":7000,\"effort\":1,\"recovery\":1,\"capacity\":130600},"
+        // the left 2, with few fields
+        "{\"side\":\"l\",\"unum\":2,\"x\":-5,\"y\":3},"
+        // illegal players
+        "{\"side\":\"x\",\"unum\":1,\"x\":99},"
+        "{\"side\":\"l\",\"unum\":0,\"x\":98},"
+        "{\"side\":\"l\",\"unum\":12,\"x\":97},"
+        "{\"unum\":3,\"x\":96},"
+        // the left 2 again (replaces the first), with an unknown key
+        "{\"side\":\"l\",\"unum\":2,\"x\":-6,\"y\":4,\"extra\":1}"
+        "]}}";
+
+    ParserSimdJSON parser;
+    RecordHandler handler;
+    CPPUNIT_ASSERT( parser.parseData( record, handler ) );
+    assert_events( { "show 7" }, handler.events_ );
+
+    const ShowInfoT & show = handler.shows_.front();
+    CPPUNIT_ASSERT_DOUBLES_EQUAL( 1.5, show.ball_.x_, EPS );
+    CPPUNIT_ASSERT_DOUBLES_EQUAL( -2.0, show.ball_.y_, EPS );
+
+    const PlayerT & r11 = show.player_[21];
+    CPPUNIT_ASSERT_EQUAL( 'r', r11.side_ );
+    CPPUNIT_ASSERT_EQUAL( Int16( 11 ), r11.unum_ );
+    CPPUNIT_ASSERT_EQUAL( Int16( 3 ), r11.type_ );
+    CPPUNIT_ASSERT_DOUBLES_EQUAL( 10.0, r11.x_, EPS );
+    CPPUNIT_ASSERT_DOUBLES_EQUAL( 45.0, r11.body_, EPS );
+    CPPUNIT_ASSERT_EQUAL( 'l', r11.view_quality_ ); // B9
+    CPPUNIT_ASSERT_DOUBLES_EQUAL( 7000.0, r11.stamina_, LARGE_EPS );
+
+    const PlayerT & l2 = show.player_[1];
+    CPPUNIT_ASSERT_EQUAL( 'l', l2.side_ );
+    CPPUNIT_ASSERT_EQUAL( Int16( 2 ), l2.unum_ );
+    CPPUNIT_ASSERT_DOUBLES_EQUAL( -6.0, l2.x_, EPS );
+    CPPUNIT_ASSERT_DOUBLES_EQUAL( 4.0, l2.y_, EPS );
+    const PlayerT defaults;
+    CPPUNIT_ASSERT_EQUAL( defaults.type_, l2.type_ );
+    CPPUNIT_ASSERT_EQUAL( defaults.view_quality_, l2.view_quality_ );
+    CPPUNIT_ASSERT_DOUBLES_EQUAL( defaults.stamina_, l2.stamina_, EPS );
+
+    // the others are not there
+    for ( int i = 0; i < MAX_PLAYER * 2; ++i )
+    {
+        if ( i == 1 || i == 21 ) continue;
+        CPPUNIT_ASSERT_EQUAL( Int16( 0 ), show.player_[i].unum_ );
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief B10: a show needs only the time and the ball
+*/
+void
+RcgParserTest::testJsonShowWithoutPlayers()
+{
+    ParserSimdJSON parser;
+    {
+        RecordHandler handler;
+        CPPUNIT_ASSERT( parser.parseData( "{\"show\":{\"time\":3,\"ball\":{\"x\":1,\"y\":2}}}", handler ) );
+        assert_events( { "show 3" }, handler.events_ );
+        CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0, handler.shows_.front().ball_.y_, EPS );
+    }
+    {
+        // no ball
+        RecordHandler handler;
+        CPPUNIT_ASSERT( ! parser.parseData( "{\"show\":{\"time\":3,\"players\":[]}}", handler ) );
+        CPPUNIT_ASSERT( handler.events_.empty() );
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief B11: unknown records and keys are skipped, line by line and in one document
+*/
+void
+RcgParserTest::testJsonUnknownRecords()
+{
+    const std::vector< std::string > records = json_records();
+
+    std::string lines = "[\n";
+    std::string document = "[";
+    for ( size_t i = 0; i < records.size(); ++i )
+    {
+        if ( i == 3 )
+        {
+            lines += "{\"new_record\":{\"a\":[1,2,{\"b\":3}]}},\n";
+            document += "{\"new_record\":{\"a\":[1,2,{\"b\":3}]}},";
+        }
+        lines += records[i] + ( i + 1 < records.size() ? ",\n" : "\n" );
+        document += records[i] + ( i + 1 < records.size() ? "," : "" );
+    }
+    lines += "]\n";
+    document += "]";
+
+    for ( const std::string & data : { lines, document } )
+    {
+        RecordHandler handler;
+        CPPUNIT_ASSERT( parse_memory( data, REC_VERSION_JSON, handler ) );
+        assert_events( json_events(), handler.events_ );
+        check_json_values( handler );
+    }
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief a show of a live connection has the play mode and the teams
+*/
+void
+RcgParserTest::testJsonLiveShowWithTeam()
+{
+    const std::string record = "{\"show\":{\"time\":10,\"mode\":\"play_on\","
+        "\"team\":{\"l\":{\"name\":\"HELIOS\",\"score\":1},\"r\":{\"name\":null,\"score\":0}},"
+        "\"ball\":{\"x\":0,\"y\":0,\"vx\":0,\"vy\":0},\"players\":[]}}";
+
+    ParserSimdJSON parser;
+    RecordHandler handler;
+    CPPUNIT_ASSERT( parser.parseData( record, handler ) );
+    assert_events( { playmode_event( 10, PM_PlayOn ), "team 10 HELIOS  1 0", "show 10" }, handler.events_ );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief a broken message of a live connection does not throw
+*/
+void
+RcgParserTest::testJsonLiveBroken()
+{
+    ParserSimdJSON parser;
+    for ( const std::string data : { "{\"show\":{\"time\":", "not json", "", "[1,2]" } )
+    {
+        RecordHandler handler;
+        bool result = true;
+        CPPUNIT_ASSERT_NO_THROW( result = parser.parseData( data, handler ) );
+        CPPUNIT_ASSERT( ! result );
     }
 }
 

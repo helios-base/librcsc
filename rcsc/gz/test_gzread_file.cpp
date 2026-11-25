@@ -90,7 +90,7 @@ make_text( const size_t size,
 {
     std::string text;
     text.reserve( size + 100 );
-    for ( int i = 0; text.size() < size; ++i )
+    for ( long long i = 0; text.size() < size; ++i ) // long long: no overflow below
     {
         text += "(show " + std::to_string( i ) + " ((b) " + std::to_string( ( i * 7919 + seed ) % 10007 )
             + " " + std::to_string( ( i * 104729 + seed ) % 1009 ) + "))\n";

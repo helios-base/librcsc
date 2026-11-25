@@ -6,7 +6,7 @@
 | 最終更新日 | 2026-11-25 |
 | 対象 | `develop` (`212f5e7`)。同梱の simdjson 3.8.0 |
 | ブランチ | `feature/rcg-parser-speedup`。`develop` の `212f5e7` から、ユーザが GitHub で作った |
-| 状態 | 段階 1〜4 が完了した (CI 通過)。段階 5 を実装した (コミット前)。PR #123 (下書き)。詳しくは「進み具合」を参照 |
+| 状態 | 段階 1〜5 が完了した (CI 通過)。段階 6 を実装した (コミット前)。PR #123 (下書き)。詳しくは「進み具合」を参照 |
 | 関連 | `docs/plan/2026-11-21_boost-cmake-maintenance.md` (simdjson の更新と `parser_json` の扱いをこの計画に回した)。参照実装: rcssmonitor の PR #65 (`docs/plan/2026-11-11_3d-view.md` の Phase 2)。利用側: soccerwindow2 (`src/model/main_data.cpp`) |
 
 ## 進み具合
@@ -18,8 +18,8 @@
 | 3 | メモリからの解析、ファイルの一括読み込み (§4.3、D7、S2、S3、S12、S15、S16、S17) | 完了 | 済み | 通過 | `20f8b9d` | 済み |
 | — | GCC 15 の警告 (`-Wdangling-reference`、段階 3 のテスト) の修正、`docs/todo.md` への記録 (§4.3.2、§8) | 完了 | 済み | 通過 | `a0adabe` | 済み |
 | 4 | 行の並列解析 (§4.4、D5、S1、S10、S13、S18、S19) | 完了 | 済み | 通過 | `dd51505` | 済み |
-| 5 | libdeflate による展開 (§4.5、D4、D8、S20) | 完了 | 未 | 未 | — | 未 |
-| 6 | 読み込みの堅牢化 (§4.6、S5) | 未着手 | 未 | 未 | — | 未 |
+| 5 | libdeflate による展開 (§4.5、D4、D8、S20) | 完了 | 済み | 通過 | `dfcbed2` | 済み |
+| 6 | 読み込みの堅牢化 (§4.6、D9、S5、S21、S22) | 完了 | 未 | 未 | — | 未 |
 | 7 | 仕上げ: 最終の計測、全体の比較、soccerwindow2 での確認、文書 (§4.7) | 未着手 | 未 | 未 | — | 未 |
 | — | develop への取り込み (PR #123。下書き。Squash Merge の予定) | 未着手 | 未 | 未 | — | — |
 
@@ -98,7 +98,7 @@
 
 ### 2.6 見つかっている不具合
 
-B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツールの不具合。
+B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツールの不具合。B13・B14 は段階 3 で、B1〜B12 は段階 6 で直した (§4.6.2)。
 
 | # | 場所 | 内容 |
 |---|---|---|
@@ -143,6 +143,7 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 | D6 | `nlohmann/json.hpp` は `obsolete/` にも移さず、削除する (D3 を変えた)。`parser_json.{h,cpp}` は D3 のとおり `obsolete/rcg/` に移す | 2026-11-24 | 段階 2 の初め |
 | D7 | ファイルを (gzip なら展開して) メモリに読む関数 (S3) は `rcsc/gz/` に置く (§3.3) | 2026-11-24 | 段階 3 の初め |
 | D8 | CI では、CMake の 2 つのジョブにだけ `libdeflate-dev` を入れ、Autotools の 2 つのジョブには入れない (rcssmonitor と同じ。§3.3) | 2026-11-25 | 段階 5 の初め |
+| D9 | ボールの高さ (`ball.z`、`ball.vz`。rcssmonitor の B-5) は、今回は `BallT` に加えない。サーバの形式が決まってから加える。今は知らないキーとして飛ばす。`docs/todo.md` に記録する (§3.3) | 2026-11-25 | 段階 6 の初め |
 
 ### 3.2 設計上の判断 (Claude)
 
@@ -167,6 +168,8 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 | S17 | 段階 3 では、解析できない行や、ハンドラが false を返したときの扱いを変えない (そこで読み込みをやめる)。変えるのは段階 4 (S13) と段階 6 (S5) (段階 3 で決めた) | 段階ごとに、全体の比較で出力が変わらないことを確かめるため |
 | S18 | 段階 4 から、パーサが解析できなかった行 (`parseLine()`・`parseRecord()` が false を返すか、例外を出した行) は飛ばして続け、`report_skipped()` で報告する。`parse()` は true を返す (S5 の一部を先に入れる)。空行を無視すること、知らない記録などを失敗として扱うこと (B3、B5) は段階 6 で行う (段階 4 で決めた) | rcssmonitor の `parse_lines()` は、失敗した行を飛ばす作りで、並列のときに「最初の失敗でやめる」を保つには、記録の再生を途中で止める処理が要る。それは段階 6 で消すことになるため、作らない |
 | S19 | 1 スレッドのときも、行ごとに記録用のハンドラに解析してから、すぐに本当のハンドラへ再生する。rcssmonitor は 1 スレッドのとき本当のハンドラを直接渡す (段階 4 で決めた) | スレッドの数によらず、ハンドラの扱いを同じにするため。直接渡すと、ハンドラの false を「解析できなかった行」と数え、ハンドラの例外を握りつぶす。並列のときは、戻り値は使われず、例外は `parse()` の外に出る。余計にかかる時間は 1 ms ほど (§4.4.2) |
+| S21 | テキストの知らない記録は、JSON の知らないキーと同じく、記録の名前ごとにプロセスで 1 度だけ報告し、解析できなかった行には数えない (`parseLine()` は true)。rcssmonitor は、行ごとにエラーを出し、解析できなかった行として数える (段階 6 で決めた) | 新しいサーバが記録を足したとき、行ごとにエラーが並ばないようにするため。JSON と扱いをそろえる |
+| S22 | `rcgreverse`・`rcgrenameteam`・`rcgverconv` は、出力の先頭 (version と timestamp) を `handleLogVersion()` で書かず、最初の記録を受け取るときに書く (`begin()`) (段階 6 で決めた) | JSON のログでは、version と timestamp の記録は `handleLogVersion()` の後に来る。パーサがそれを渡すようになっても (B8)、先頭を `handleLogVersion()` で書くと `"version":"unknown"` のままになる (段階 6 で確かめた) |
 | S20 | libdeflate の検出と配布の扱い (段階 5 で決めた): CMake は `find_path`・`find_library` で探す (libdeflate の CMake のパッケージは使わない)。Autotools の `-ldeflate` は `LIBS` に入れず、`LIBDEFLATE_LIBS` として `librcsc.la` と単体テストにだけ渡す。`librcsc.pc`・`librcsc.spec.in`・CMake のパッケージ構成ファイルは変えない | 古いディストリビューション (Ubuntu 22.04 など) には libdeflate の CMake のパッケージがない (rcssmonitor と同じ)。ツールなどに余計な依存を付けないため。librcsc は共有ライブラリだけを作る (`disable-static`) ので、利用側は libdeflate をリンクしなくてよい。`librcsc.spec.in` には、任意の依存 (zlib も) を書いていない |
 
 ### 3.3 段階の初めに決めること
@@ -174,7 +177,7 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 - 段階 2: fallback の測定の結果を見て、On-Demand の対象の CPU を選ぶ手段 (CMake・configure のオプションなど) を設けるか。→ 設けない (S14)。
 - 段階 3: ファイルを読む関数の名前と置き場所 (案: gzip を扱う `rcsc/gz/` に置くか、rcg 専用として `rcsc/rcg/` に置くか)。→ `rcsc/gz/` に置く (D7)。名前は実装の時に決める。
 - 段階 5: CI のどのジョブに `libdeflate-dev` を入れるか (rcssmonitor は、Autotools のジョブに入れず、両方の経路をビルドしている)。→ CMake のジョブにだけ入れる (D8)。
-- 段階 6: ボールの高さ (`z`、`vz`) を `BallT` に加えるか (rcssmonitor の B-5)。加えるなら、書き出し (`serializer_json` など) も直すか。
+- 段階 6: ボールの高さ (`z`、`vz`) を `BallT` に加えるか (rcssmonitor の B-5)。加えるなら、書き出し (`serializer_json` など) も直すか。→ 今回は加えない (D9)。
 
 ## 4. 設計
 
@@ -451,9 +454,36 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
   - プレイヤーを side と unum の位置に置き、正しくない side・unum は飛ばす。省かれうるフィールドは既定の値のままにする。
 - ボールの高さは §3.3 で決める。rcssmonitor の B-9 (パラメータの既定値) は対象外とする。
 
-#### 4.6.2 実装
+#### 4.6.2 実装 (2026-11-25)
 
-未着手。
+- テキスト (`parser_v4.cpp`):
+  - B1: 記録の名前を `" ( %31[^ ()] "` で読む。
+  - B2: `unum < 1` を拒む (0 は `player_[-1]` に書いていた)。
+  - B3: show の時刻とボールの 4 つの値を、`strtol()`・`strtof()` が読み進んだかで確かめる。時刻の確かめは rcssmonitor にはなく、librcsc で足した (ボールの確かめは rcssmonitor と同じ)。
+  - B4: ヘッダの版を `std::atoi()` で読む。
+  - B5: `parseLine()` は空白だけの行で true を返し、各記録の解析の結果を返す。知らない記録は、名前ごとに 1 度だけ報告して true を返す (S21)。
+  - B6: チームのグラフィックの文字列を、`strchr()` で `"` の組を探して、長さによらず読む。
+  - B7: `parseTeam()` でも、チーム名 `null` を空にする。
+  - msg の最小の長さの確かめを、rcssmonitor と同じく `")` の 2 文字に直し、短すぎるときに報告するようにした。
+- JSON (`parser_simdjson.cpp`。rcssmonitor の `read_double()`・`read_int()`・`read_team()`・`parsePlayer()`・`parseTeams()`・`parseShow()` を移した):
+  - B8: `version`・`timestamp` を `handleServerVersion()`・`handleTimestamp()` に渡す。
+  - B9: `vq` を `'h'`・`'l'` で入れる。
+  - B10: show は時刻とボールだけを必須とし、プレイヤーを side と unum の位置に置く。正しくない side・unum は飛ばし、同じプレイヤーが 2 度あれば後のもので置き換える。省かれうるフィールドは既定の値のまま。ライブの show の `mode`・`team` は、show の時刻で渡す。ボールの高さは読まない (D9)。
+  - B11: 知らない記録とキーは飛ばし、プロセスで 1 度だけ報告する (`std::mutex` で守る)。
+  - ライブの入口 `parseData()` で例外を catch し、壊れたメッセージで false を返す。
+- B12: `rcgversion` は v6 を判別し、知らない版と短すぎるファイルは `unknown` と表示する。
+- S22: `rcgreverse`・`rcgrenameteam`・`rcgverconv` に `begin()` を加え、出力の先頭を最初の記録の前に 1 度だけ書く。B8 を直しても、ツールの JSON の出力が `"version":"unknown"` のままだったことで見つけた。
+- テスト (`run_test_rcg_parser`、35 項目): JSON の値の確かめに version・timestamp・`vq` を足した (大きなログの並列の経路でも)。B1〜B11 の項目 (`testTextParseLine`、`testTextUnumZero`、`testTextBrokenHeader`、`testTextTeamGraphicLong`、`testTextTeamNull`、`testJsonPlayers`、`testJsonShowWithoutPlayers`、`testJsonUnknownRecords`、`testJsonLiveShowWithTeam`、`testJsonLiveBroken`) を足し、大きなテキストのログの壊れた行に、知らない記録・壊れた show・空白だけの行を加えた。
+- 確かめたこと:
+  - 新しいテストを段階 5 (`dfcbed2`) のライブラリにかけると、35 項目のうち 20 項目が失敗した (B1〜B11 の項目と、version・timestamp・`vq` を確かめる JSON の項目)。今のライブラリでは 35 項目すべて通る。
+  - CMake (Release): ビルドの警告 0。`ctest` で 19 個すべて通った。
+  - AddressSanitizer と UndefinedBehaviorSanitizer (`-fsanitize=address,undefined -O1`): `run_test_rcg_parser`・`run_test_rcg_line_parser`・`run_test_gzread_file` と、`rcgverconv` での実際のログの変換 (JSON → v6、v5 → JSON) で、エラーはなかった。テストの補助の関数 (`test_gzread_file.cpp` の `make_text()`) の `int` のあふれを見つけ、`long long` に直した。
+  - Autotools: コンパイラの警告 0。`make check` で 15 個すべて通り、`make distcheck` (`--enable-unit-test`) も通った。
+  - 全体の比較 (S11): テキストのログの 6 つの変換は、変更前 (`212f5e7`) と同じだった。JSON のログの 2 つの変換 (→ v6、→ v5) は、6,209 行の show の `vq` の所だけが違った (変更前は 136,598 か所に制御文字 `\x01` を書いていた。今は `h`)。
+  - `rcgreverse`・`rcgrenameteam`: テキストのログの出力は変更前と同じ。JSON のログの出力の違いは、version (`"unknown"` → `"18.1.3"`)、timestamp の行が加わったこと、`vq` (変更前は 136,598 か所すべてを `"l"` と書いていた。元のログはすべて `"h"`) だけだった。
+  - `rcgverconv` は、同じ版への変換を今までどおり断る (出力は空)。
+  - `rcgversion`: JSON は `json`、ULG5 は `5`、ULG6 は `6`、`ULG9` と短すぎるファイルは `unknown`。
+- 速さ (CMake の Release、5 回の最良、ms): ツールの経路 (`total`) は JSON 43.2 (段階 5 は 47.3)、ULG5 36.7 (36.3)、ULG6 26.1 (25.9)。JSON の解析 (`memory`) は 21.0 → 17.5 ms で、少し速くなった。
 
 ### 4.7 段階 7: 仕上げ
 
@@ -522,6 +552,7 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 - `rcsc::gzifstream` 自体の速さ (バッファの大きさなど)。
 - v1〜v3 (バイナリ) のパーサの速さ。
 - `example/` の修正。
+- ボールの高さ (`ball.z`、`ball.vz`) を読むこと (D9)。
 
 ## 9. 記録
 
@@ -610,3 +641,20 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 - libdeflate のあり・なし、zlib のない場合を、CMake と Autotools で確かめた。全体の比較で、変更前と出力が同じだった。
 - ツールの経路は、JSON で 73.9 → 47.3 ms、ULG5 で 60.5 → 36.3 ms、ULG6 で 44.0 → 25.9 ms になった (段階 1 の `stream` の 205.9 / 123.6 / 90.5 ms と比べて、4 分の 1 から 3 分の 1)。
 - この後: ユーザの確認の後、段階 5 をコミットしてプッシュし、CI (CMake のジョブで libdeflate が使われること) を確かめる。その後、段階 6 (読み込みの堅牢化) に着手する。初めに、ボールの高さ (`z`、`vz`) を `BallT` に加えるかを決める (§3.3)。
+
+### 2026-11-25: 段階 5 の CI の結果
+
+- ユーザの確認の後、段階 5 を `dfcbed2` としてコミットし、プッシュした。
+- CI の結果 (`dfcbed2`): 5 ジョブすべて成功した。コンパイラの警告は 0。
+  - CMake のジョブは libdeflate で展開した (Ubuntu 24.04 は libdeflate 1.19、26.04 は 1.23)。構成の出力の `libdeflate:` の行で確かめた。
+  - Autotools のジョブは libdeflate を入れず、zlib だけで展開した (configure の出力で確かめた。`distcheck` でも同じ)。
+  - libdeflate あり・なしの両方の経路が、GCC 13.3 と 15.2 でビルドされ、テストが通った。
+- この後: 段階 6 (読み込みの堅牢化) に着手する。初めに、ボールの高さ (`z`、`vz`) を `BallT` に加えるかを決める (§3.3)。
+
+### 2026-11-25: 段階 6 を実装した
+
+- ユーザの決定 D9: ボールの高さは今回は加えない。`docs/todo.md` に記録した。
+- テキストの B1〜B7、JSON の B8〜B11、`rcgversion` の B12 を直した (§4.6.2)。決めたこと: S21 (テキストの知らない記録は 1 度だけ報告して飛ばす)、S22 (ツールは出力の先頭を最初の記録の前に書く)。
+- `run_test_rcg_parser` を 35 項目に増やした。段階 5 のライブラリでは 20 項目が失敗し、今のライブラリでは通ることを確かめた。サニタイザでもエラーはなかった。CMake の `ctest` 19 個、Autotools の `make check` 15 個と `make distcheck` が通った。
+- 全体の比較とツールの出力の比較で、違いは B8・B9 の修正による想定どおりのものだけだった。
+- この後: ユーザの確認の後、段階 6 をコミットしてプッシュし、CI を確かめる。その後、段階 7 (仕上げ: 最終の計測、soccerwindow2 での確認、文書) に着手する。
