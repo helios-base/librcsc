@@ -34,9 +34,12 @@
   and the best and the median are printed in milliseconds.
 
     stream : open the file by rcsc::gzifstream, and call rcsc::rcg::Parser::create() and parse(std::istream&).
-             This is the way of the tools of librcsc and soccerwindow2.
+             This is the way of soccerwindow2 (and of the tools of librcsc before the speedup).
     read   : read the whole file into memory through rcsc::gzifstream (decompression only).
     parse  : call Parser::create() and parse(std::istream&) on the data in memory (std::istringstream).
+    file   : read the whole file into memory by rcsc::gzread_file() (decompression only).
+    memory : call Parser::create(data,size) and parse(data,size,handler) on the data in memory.
+    total  : file + memory. This is the way of the tools of librcsc.
 
   The handler stores all the shows in a std::vector, as a viewer does.
   The messages of Parser::create() are printed to stderr; redirect them by "2>/dev/null".
@@ -54,6 +57,7 @@
 
 #include <rcsc/rcg.h>
 #include <rcsc/gz/gzfstream.h>
+#include <rcsc/gz/gzread_file.h>
 
 #if defined(__linux__)
 #include <link.h>
@@ -223,13 +227,31 @@ bool
 bench( const std::string & path,
        const int repeat )
 {
-    Timing stream( "stream", "gzifstream + parse(std::istream&)" );
-    Timing read( "read", "gzifstream into memory" );
-    Timing parse( "parse", "parse(std::istream&) on the data in memory" );
-
     size_t n_shows = 0;
     size_t n_records = 0;
     size_t n_bytes = 0;
+
+    Timing stream( "stream", "gzifstream + parse(std::istream&)" );
+    Timing read( "read", "gzifstream into memory" );
+    Timing parse( "parse", "parse(std::istream&) on the data in memory" );
+    Timing file( "file", "gzread_file()" );
+    Timing memory( "memory", "parse(data,size) on the data in memory" );
+    Timing total( "total", "gzread_file() + parse(data,size)" );
+
+    // parse the data in memory
+    auto parse_memory = []( const std::string & data,
+                            StoreHandler & handler )
+        {
+            rcsc::rcg::Parser::Ptr parser = rcsc::rcg::Parser::create( data.data(), data.size() );
+            return parser
+                && parser->parse( data.data(), data.size(), handler );
+        };
+    // check that the same data are read
+    auto same_data = [&]( const StoreHandler & handler )
+        {
+            return handler.shows_.size() == n_shows
+                && handler.n_records_ == n_records;
+        };
 
     for ( int i = 0; i < repeat; ++i )
     {
@@ -282,10 +304,57 @@ bench( const std::string & path,
                                              },
                                              &result ) );
             if ( ! result
-                 || handler.shows_.size() != n_shows
-                 || handler.n_records_ != n_records )
+                 || ! same_data( handler ) )
             {
                 std::cerr << "Failed to parse the data in memory " << path << std::endl;
+                return false;
+            }
+        }
+
+        // file
+        std::string file_data;
+        file.msecs_.push_back( measure( [&]()
+                                        {
+                                            return rcsc::gzread_file( path, &file_data );
+                                        },
+                                        &result ) );
+        if ( ! result
+             || file_data != data )
+        {
+            std::cerr << "Failed to read by gzread_file() " << path << std::endl;
+            return false;
+        }
+
+        // memory
+        {
+            StoreHandler handler;
+            memory.msecs_.push_back( measure( [&]()
+                                              {
+                                                  return parse_memory( file_data, handler );
+                                              },
+                                              &result ) );
+            if ( ! result
+                 || ! same_data( handler ) )
+            {
+                std::cerr << "Failed to parse the data in memory by parse(data,size) " << path << std::endl;
+                return false;
+            }
+        }
+
+        // total
+        {
+            StoreHandler handler;
+            total.msecs_.push_back( measure( [&]()
+                                             {
+                                                 std::string d;
+                                                 return rcsc::gzread_file( path, &d )
+                                                     && parse_memory( d, handler );
+                                             },
+                                             &result ) );
+            if ( ! result
+                 || ! same_data( handler ) )
+            {
+                std::cerr << "Failed to read and parse " << path << std::endl;
                 return false;
             }
         }
@@ -296,6 +365,9 @@ bench( const std::string & path,
     stream.print( std::cout );
     read.print( std::cout );
     parse.print( std::cout );
+    file.print( std::cout );
+    memory.print( std::cout );
+    total.print( std::cout );
     std::cout << std::flush;
     return true;
 }

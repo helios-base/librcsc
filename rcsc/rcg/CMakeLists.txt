@@ -2,6 +2,7 @@
 add_library(rcsc_rcg OBJECT
   simdjson/simdjson.cpp
   handler.cpp
+  line_parser.cpp
   parser.cpp
   parser_v1.cpp
   parser_v2.cpp

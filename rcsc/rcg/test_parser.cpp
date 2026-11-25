@@ -37,14 +37,20 @@
 #include "parser_simdjson.h"
 #include "types.h"
 
+#include <rcsc/gz/gzfstream.h>
+#include <rcsc/gz/gzread_file.h>
+
 #include <cppunit/extensions/HelperMacros.h>
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
 #include <vector>
+
+#include <unistd.h>
 
 #ifndef TEST_DATA_DIR
 #error "TEST_DATA_DIR is not defined"
@@ -67,6 +73,72 @@ data_path( const std::string & name )
 {
     return std::string( TEST_DATA_DIR ) + "/" + name;
 }
+
+std::string
+read_file( const std::string & path )
+{
+    std::ifstream fin( path, std::ios_base::in | std::ios_base::binary );
+    std::ostringstream os;
+    os << fin.rdbuf();
+    return os.str();
+}
+
+std::string
+replace_all( std::string str,
+             const std::string & from,
+             const std::string & to )
+{
+    for ( std::string::size_type pos = str.find( from );
+          pos != std::string::npos;
+          pos = str.find( from, pos + to.length() ) )
+    {
+        str.replace( pos, from.length(), to );
+    }
+    return str;
+}
+
+/*!
+  \brief the records of head_json.rcg, without the "[" and "]" lines and the commas at the ends
+*/
+std::vector< std::string >
+json_records()
+{
+    std::vector< std::string > records;
+    std::istringstream is( read_file( data_path( "head_json.rcg" ) ) );
+    std::string line;
+    while ( std::getline( is, line ) )
+    {
+        if ( line == "[" || line == "]" ) continue;
+        if ( ! line.empty() && line.back() == ',' ) line.pop_back();
+        records.push_back( line );
+    }
+    return records;
+}
+
+/*!
+  \brief a temporary file, removed by the destructor
+*/
+class TempFile {
+private:
+    std::string M_path;
+public:
+    explicit
+    TempFile( const std::string & name )
+        : M_path( ( std::filesystem::temp_directory_path()
+                    / ( "rcsc_test_parser_" + std::to_string( ::getpid() ) + "_" + name ) ).string() )
+      { }
+
+    ~TempFile()
+      {
+          std::error_code ec;
+          std::filesystem::remove( M_path, ec );
+      }
+
+    const std::string & path() const
+      {
+          return M_path;
+      }
+};
 
 /*!
   \brief get the first line that starts with prefix in the file
@@ -104,11 +176,13 @@ public:
     std::map< int, double > stamina_inc_max_; //!< the values of player_type, by the id
 
     bool show_result_ = true; //!< the value returned by handleShow()
+    bool log_version_result_ = true; //!< the value returned by handleLogVersion()
 
     bool handleLogVersion( const int ver ) override
       {
           events_.push_back( "log_version " + std::to_string( ver ) );
-          return Handler::handleLogVersion( ver );
+          return Handler::handleLogVersion( ver )
+              && log_version_result_;
       }
 
     bool handleEOF() override
@@ -245,6 +319,21 @@ parse_stream( const std::string & path,
     CPPUNIT_ASSERT_EQUAL( expected_parser_version, parser->version() );
 
     return parser->parse( fin, handler );
+}
+
+/*!
+  \brief parse the data in memory by the parser that Parser::create( const char *, std::size_t ) chooses
+*/
+bool
+parse_memory( const std::string & data,
+              const int expected_parser_version,
+              RecordHandler & handler )
+{
+    Parser::Ptr parser = Parser::create( data.data(), data.size() );
+    CPPUNIT_ASSERT( parser );
+    CPPUNIT_ASSERT_EQUAL( expected_parser_version, parser->version() );
+
+    return parser->parse( data.data(), data.size(), handler );
 }
 
 std::vector< std::string >
@@ -506,8 +595,20 @@ class RcgParserTest
     CPPUNIT_TEST( testTextV5Stream );
     CPPUNIT_TEST( testTextV6Stream );
     CPPUNIT_TEST( testJsonStream );
+    CPPUNIT_TEST( testTextV5Memory );
+    CPPUNIT_TEST( testTextV6Memory );
+    CPPUNIT_TEST( testJsonMemory );
+    CPPUNIT_TEST( testTextWithoutLastNewline );
     CPPUNIT_TEST( testTextFilePath );
     CPPUNIT_TEST( testJsonFilePath );
+#ifdef HAVE_LIBZ
+    CPPUNIT_TEST( testGzipFilePath );
+#endif
+    CPPUNIT_TEST( testJsonWithoutClosingBracket );
+    CPPUNIT_TEST( testJsonOneLine );
+    CPPUNIT_TEST( testJsonPrettyPrinted );
+    CPPUNIT_TEST( testJsonCRLF );
+    CPPUNIT_TEST( testJsonLogVersionFalse );
     CPPUNIT_TEST( testTextLiveLine );
     CPPUNIT_TEST( testJsonLiveData );
     CPPUNIT_TEST( testJsonTeamGraphic );
@@ -523,8 +624,20 @@ protected:
     void testTextV5Stream();
     void testTextV6Stream();
     void testJsonStream();
+    void testTextV5Memory();
+    void testTextV6Memory();
+    void testJsonMemory();
+    void testTextWithoutLastNewline();
     void testTextFilePath();
     void testJsonFilePath();
+#ifdef HAVE_LIBZ
+    void testGzipFilePath();
+#endif
+    void testJsonWithoutClosingBracket();
+    void testJsonOneLine();
+    void testJsonPrettyPrinted();
+    void testJsonCRLF();
+    void testJsonLogVersionFalse();
     void testTextLiveLine();
     void testJsonLiveData();
     void testJsonTeamGraphic();
@@ -568,14 +681,69 @@ RcgParserTest::testJsonStream()
 }
 
 /*-------------------------------------------------------------------*/
+/*!
+  \brief Parser::create( const char *, std::size_t ) and parse( const char *, std::size_t, Handler & )
+*/
+void
+RcgParserTest::testTextV5Memory()
+{
+    RecordHandler handler;
+    CPPUNIT_ASSERT( parse_memory( read_file( data_path( "head_v5.rcg" ) ), REC_VERSION_4, handler ) );
+
+    assert_events( v5_events(), handler.events_ );
+    check_v5_values( handler );
+}
+
+/*-------------------------------------------------------------------*/
+void
+RcgParserTest::testTextV6Memory()
+{
+    RecordHandler handler;
+    CPPUNIT_ASSERT( parse_memory( read_file( data_path( "head_v6.rcg" ) ), REC_VERSION_4, handler ) );
+
+    assert_events( v6_events(), handler.events_ );
+    check_v6_values( handler );
+}
+
+/*-------------------------------------------------------------------*/
+void
+RcgParserTest::testJsonMemory()
+{
+    RecordHandler handler;
+    CPPUNIT_ASSERT( parse_memory( read_file( data_path( "head_json.rcg" ) ), REC_VERSION_JSON, handler ) );
+
+    assert_events( json_events(), handler.events_ );
+    check_json_values( handler );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief the last line without a line break is parsed, as std::getline() does
+*/
+void
+RcgParserTest::testTextWithoutLastNewline()
+{
+    std::string data = read_file( data_path( "head_v5.rcg" ) );
+    CPPUNIT_ASSERT( data.back() == '\n' );
+    data.pop_back();
+
+    RecordHandler handler;
+    CPPUNIT_ASSERT( parse_memory( data, REC_VERSION_4, handler ) );
+
+    assert_events( v5_events(), handler.events_ );
+    check_v5_values( handler );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief Parser::parse( const std::string & filepath, ... ) is not hidden by ParserV4 (using Parser::parse)
+*/
 void
 RcgParserTest::testTextFilePath()
 {
     ParserV4 parser;
     RecordHandler handler;
-    // ParserV4::parse(std::istream&,...) hides Parser::parse(const std::string&,...)
-    const Parser & base = parser;
-    CPPUNIT_ASSERT( base.parse( data_path( "head_v6.rcg" ), handler ) );
+    CPPUNIT_ASSERT( parser.parse( data_path( "head_v6.rcg" ), handler ) );
 
     assert_events( v6_events(), handler.events_ );
     check_v6_values( handler );
@@ -591,6 +759,158 @@ RcgParserTest::testJsonFilePath()
 
     assert_events( json_events(), handler.events_ );
     check_json_values( handler );
+}
+
+#ifdef HAVE_LIBZ
+/*-------------------------------------------------------------------*/
+/*!
+  \brief Parser::parse( const std::string & filepath, ... ) reads a gzip file
+*/
+void
+RcgParserTest::testGzipFilePath()
+{
+    TempFile v6_file( "head_v6.rcg.gz" );
+    TempFile json_file( "head_json.rcg.gz" );
+    for ( const auto & f : { std::make_pair( &v6_file, "head_v6.rcg" ),
+                             std::make_pair( &json_file, "head_json.rcg" ) } )
+    {
+        const std::string text = read_file( data_path( f.second ) );
+        rcsc::gzofstream fout( f.first->path().c_str() );
+        fout.write( text.data(), text.size() );
+        fout.close();
+    }
+
+    {
+        ParserV4 parser;
+        RecordHandler handler;
+        CPPUNIT_ASSERT( parser.parse( v6_file.path(), handler ) );
+        assert_events( v6_events(), handler.events_ );
+        check_v6_values( handler );
+    }
+    {
+        ParserSimdJSON parser;
+        RecordHandler handler;
+        CPPUNIT_ASSERT( parser.parse( json_file.path(), handler ) );
+        assert_events( json_events(), handler.events_ );
+        check_json_values( handler );
+    }
+    {
+        // the way of the tools: rcsc::gzread_file() and the parser for the data in memory
+        std::string data;
+        CPPUNIT_ASSERT( rcsc::gzread_file( v6_file.path(), &data ) );
+        RecordHandler handler;
+        CPPUNIT_ASSERT( parse_memory( data, REC_VERSION_4, handler ) );
+        assert_events( v6_events(), handler.events_ );
+    }
+}
+#endif
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief a JSON log whose last "]" is missing (rcssserver stopped abnormally) is read,
+  because it is parsed line by line
+*/
+void
+RcgParserTest::testJsonWithoutClosingBracket()
+{
+    std::string data = "[\n";
+    for ( const std::string & record : json_records() )
+    {
+        data += record + ",\n";
+    }
+
+    RecordHandler handler;
+    CPPUNIT_ASSERT( parse_memory( data, REC_VERSION_JSON, handler ) );
+
+    assert_events( json_events(), handler.events_ );
+    check_json_values( handler );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief a JSON log in one line is parsed as one JSON document
+*/
+void
+RcgParserTest::testJsonOneLine()
+{
+    std::string data = "[";
+    for ( const std::string & record : json_records() )
+    {
+        if ( data.size() > 1 ) data += ',';
+        data += record;
+    }
+    data += "]";
+
+    RecordHandler handler;
+    CPPUNIT_ASSERT( parse_memory( data, REC_VERSION_JSON, handler ) );
+
+    assert_events( json_events(), handler.events_ );
+    check_json_values( handler );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief a JSON log whose first record does not end on its line (e.g. pretty-printed)
+  is parsed as one JSON document, not line by line
+*/
+void
+RcgParserTest::testJsonPrettyPrinted()
+{
+    const std::vector< std::string > records = json_records();
+    CPPUNIT_ASSERT_EQUAL( std::string( "{\"version\":\"18.1.3\"}" ), records.front() );
+
+    std::string data = "[\n{\n  \"version\": \"18.1.3\"\n},\n";
+    for ( size_t i = 1; i < records.size(); ++i )
+    {
+        data += records[i];
+        data += ( i + 1 < records.size() ? ",\n" : "\n" );
+    }
+    data += "]\n";
+
+    RecordHandler handler;
+    CPPUNIT_ASSERT( parse_memory( data, REC_VERSION_JSON, handler ) );
+
+    assert_events( json_events(), handler.events_ );
+    check_json_values( handler );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief a JSON log with "\r\n" line breaks is parsed line by line
+*/
+void
+RcgParserTest::testJsonCRLF()
+{
+    const std::string data = replace_all( read_file( data_path( "head_json.rcg" ) ), "\n", "\r\n" );
+
+    RecordHandler handler;
+    CPPUNIT_ASSERT( parse_memory( data, REC_VERSION_JSON, handler ) );
+
+    assert_events( json_events(), handler.events_ );
+    check_json_values( handler );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  \brief the JSON parser stops if handleLogVersion() returns false, as the text parser does
+  (docs/plan/2026-11-24-02_rcg-parser-speedup.md S12)
+*/
+void
+RcgParserTest::testJsonLogVersionFalse()
+{
+    const std::string data = read_file( data_path( "head_json.rcg" ) );
+    {
+        RecordHandler handler;
+        handler.log_version_result_ = false;
+        CPPUNIT_ASSERT( ! parse_memory( data, REC_VERSION_JSON, handler ) );
+        assert_events( { "log_version -1" }, handler.events_ );
+    }
+    {
+        RecordHandler handler;
+        handler.log_version_result_ = false;
+        CPPUNIT_ASSERT( ! parse_memory( read_file( data_path( "head_v5.rcg" ) ), REC_VERSION_4, handler ) );
+        assert_events( { "log_version 5" }, handler.events_ );
+    }
 }
 
 /*-------------------------------------------------------------------*/

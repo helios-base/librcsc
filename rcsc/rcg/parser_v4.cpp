@@ -36,9 +36,12 @@
 #include "parser_v4.h"
 
 #include "handler.h"
+#include "line_parser.h"
 #include "types.h"
 
 #include <iostream>
+#include <string>
+#include <vector>
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
@@ -64,11 +67,38 @@ ParserV4::parse( std::istream & is,
         return false;
     }
 
+    // read the whole stream, and parse it in memory
+    std::string data;
+    if ( ! read_stream( is, &data ) )
+    {
+        std::cerr << "(ParserV4::parse) failed to read the stream." << std::endl;
+        return false;
+    }
+
+    return parse( data.data(), data.size(), handler );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  See docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.3.
+ */
+bool
+ParserV4::parse( const char * data,
+                 const std::size_t size,
+                 Handler & handler ) const
+{
+    const std::vector< LineRef > lines = split_lines( data, size );
+
     std::string line;
     line.reserve( 8192 );
 
     // skip header line
-    if ( ! std::getline( is, line )
+    if ( ! lines.empty() )
+    {
+        line.assign( lines.front().begin_, lines.front().length_ );
+    }
+
+    if ( lines.empty()
          || line.length() < 4
          || line.compare( 0, 3, "ULG" ) != 0 )
     {
@@ -91,22 +121,16 @@ ParserV4::parse( std::istream & is,
         return false;
     }
 
-    int n_line = 1;
-    while ( std::getline( is, line ) )
+    for ( std::size_t i = 1; i < lines.size(); ++i )
     {
-        ++n_line;
-        if ( ! parseLine( n_line, line, handler ) )
+        line.assign( lines[i].begin_, lines[i].length_ );
+        if ( ! parseLine( lines[i].number_, line, handler ) )
         {
             return false;
         }
     }
 
-    if ( is.eof() )
-    {
-        return handler.handleEOF();
-    }
-
-    return false;
+    return handler.handleEOF();
 }
 
 /*-------------------------------------------------------------------*/

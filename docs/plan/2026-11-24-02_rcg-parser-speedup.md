@@ -3,10 +3,10 @@
 | 項目 | 内容 |
 |---|---|
 | 作成日 | 2026-11-24 |
-| 最終更新日 | 2026-11-24 |
+| 最終更新日 | 2026-11-25 |
 | 対象 | `develop` (`212f5e7`)。同梱の simdjson 3.8.0 |
 | ブランチ | `feature/rcg-parser-speedup`。`develop` の `212f5e7` から、ユーザが GitHub で作った |
-| 状態 | 段階 1・2 が完了した (CI 通過)。段階 3 の前で作業を中断している。PR #123 (下書き)。詳しくは「進み具合」を参照 |
+| 状態 | 段階 1・2 が完了した (CI 通過)。段階 3 を実装した (コミット前)。PR #123 (下書き)。詳しくは「進み具合」を参照 |
 | 関連 | `docs/plan/2026-11-21_boost-cmake-maintenance.md` (simdjson の更新と `parser_json` の扱いをこの計画に回した)。参照実装: rcssmonitor の PR #65 (`docs/plan/2026-11-11_3d-view.md` の Phase 2)。利用側: soccerwindow2 (`src/model/main_data.cpp`) |
 
 ## 進み具合
@@ -15,7 +15,7 @@
 |---|---|---|---|---|---|---|
 | 1 | 計測と回帰テストの土台 (§4.1、S11) | 完了 | 済み | 通過 | `b4d1b5c` | 済み |
 | 2 | simdjson 5.1.1 への更新、`parser_json` の移動 (§4.2、D2、D3、D6、S8、S9、S14) | 完了 | 済み | 通過 | `e778865` | 済み |
-| 3 | メモリからの解析、ファイルの一括読み込み (§4.3、D7、S2、S3、S12) | 未着手 | 未 | 未 | — | 未 |
+| 3 | メモリからの解析、ファイルの一括読み込み (§4.3、D7、S2、S3、S12、S15、S16、S17) | 完了 | 未 | 未 | — | 未 |
 | 4 | 行の並列解析 (§4.4、D5、S1、S10、S13) | 未着手 | 未 | 未 | — | 未 |
 | 5 | libdeflate による展開 (§4.5、D4) | 未着手 | 未 | 未 | — | 未 |
 | 6 | 読み込みの堅牢化 (§4.6、S5) | 未着手 | 未 | 未 | — | 未 |
@@ -97,7 +97,7 @@
 
 ### 2.6 見つかっている不具合
 
-B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツールの不具合。
+B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツールの不具合。
 
 | # | 場所 | 内容 |
 |---|---|---|
@@ -113,6 +113,8 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
 | B10 | `parser_simdjson.cpp` の `parseShow()` | プレイヤーを出てきた順に並べている (side と unum の位置に置いていない)。省かれうるフィールドがないと失敗する。失敗しても途中までのデータで `handleShow()` を呼ぶ |
 | B11 | `parser_simdjson.cpp:151-157` | 知らないキーがあると、読み込み全体が失敗する |
 | B12 | `src/rcgversion.cpp` の `get_version()` | v6 を判別できず、知らない版を `-1` として `json` と表示する (ULG6 のログが `version=json` になる)。段階 1 で見つけた |
+| B13 | `src/rcg2csv.cpp`・`src/rcgvalidator.cpp` の `handleLogVersion()` | 版が 4 より小さいと false を返すため、JSON (-1) も断っている (`rcgvalidator` は `Unsupported RCG version -1` と出す)。JSON のパーサがこの戻り値を無視していたため、読めていただけだった。段階 3 で見つけ、直した |
+| B14 | `src/resultprinter.cpp` (`rcgresultprinter`) | `strptime()` の前に `tm` を初期化していないため、`tm_isdst` が不定になり、出す日時が 1 時間ずれることがある。段階 3 で見つけ、直した |
 
 ### 2.7 計測に使うログ
 
@@ -158,6 +160,9 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
 | S12 | JSON のパーサも、`handleLogVersion()` が false なら読み込みをやめる (段階 3。段階 1 で決めた) | テキストのパーサと同じにする。`rcgverconv` は同じ版への変換をこれで断っているが、JSON では今は効いていない |
 | S13 | ハンドラが false を返しても、読み込みは止めない (段階 4 から。JSON も)。JSON の動作が変わることをリリースノートに書く (段階 1 で決めた) | 並列の経路では、ハンドラは解析が終わった後に呼ばれるため、戻り値で止められない。テキストは今も止まらない |
 | S14 | On-Demand の対象の CPU を選ぶ手段 (CMake・configure のオプションなど) は設けない (段階 2 で測って決めた。§3.3) | ライブラリ全体を haswell 向けにしても、JSON の解析の時間は変わらなかった (§4.2.2) |
+| S15 | JSON を 1 行ずつ解析するかの判定では、最初のレコードがその行で閉じていること (`}` か `},` で終わること) も確かめる。rcssmonitor は `{` で始まることだけを見ている (段階 3 で決めた) | 整形された JSON (`{` だけの行が続く) を 1 行ずつ解析すると、すべての行が失敗する。そのようなログは、文書全体として解析する |
+| S16 | ファイルを読む関数は `bool rcsc::gzread_file( const std::string & path, std::string * data )` (`rcsc/gz/gzread_file.h`) とする。gzip でないファイルは zlib を通さずにそのまま読む。zlib のないビルドでは、gzip のファイルは読めない (false) (段階 3 で決めた) | 名前は、gzip も普通のファイルも読める zlib の `gzread()` に倣った。gzip の末尾の大きさ (ISIZE) は、確保の見積もりだけに使い、deflate の最大の圧縮率 (約 1032 倍) で抑える (壊れたファイルで大きな値になりうるため) |
+| S17 | 段階 3 では、解析できない行や、ハンドラが false を返したときの扱いを変えない (そこで読み込みをやめる)。変えるのは段階 4 (S13) と段階 6 (S5) (段階 3 で決めた) | 段階ごとに、全体の比較で出力が変わらないことを確かめるため |
 
 ### 3.3 段階の初めに決めること
 
@@ -281,16 +286,56 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
   - 基底の `parse(filepath)` と `ParserSimdJSON::parse(filepath)` を、この関数で読むようにする。
 - ツール (`src/`): 読む関数、`create(data,size)`、`parse(data,size,h)` に替える。`rcgresultprinter` の一時ファイルをやめる。
 
-#### 4.3.2 実装
+#### 4.3.2 実装 (2026-11-25)
 
-未着手。
+- `rcsc/gz/gzread_file.{h,cpp}` (新規。D7、S16): `rcsc::gzread_file()`。インストールし、`rcsc/gz.h` にも加えた。
+  - 先頭の 2 バイトで gzip かを見る。gzip でなければ、`std::ifstream` で大きさを調べて一度に読む。
+  - gzip なら、zlib の `gzread()` で 1 MB ずつ読む (`gzbuffer()` も 1 MB)。複数のメンバ、後ろのゴミは zlib のとおり。途中で切れたファイルは、`gzerror()` が `Z_BUF_ERROR` のときに警告を出し、そこまでのデータで true を返す。
+  - 確保の見積もりに、末尾の ISIZE を `min( ISIZE, ファイルの大きさ × 1032 )` で使う。
+- `rcsc/rcg/line_parser.{h,cpp}` (新規。インストールしない): `LineRef`、`split_lines()` (rcssmonitor と同じ。`memchr` で分け、`std::getline()` と同じ分け方)、`read_stream()` (ストリームの残りを 1 MB ずつメモリに読む)。並列の解析は段階 4 で足す。
+- `Parser` (`parser.h`・`parser.cpp`):
+  - `static Ptr create( const char * data, std::size_t size )` と `virtual bool parse( const char * data, std::size_t size, Handler & ) const` を加えた。基底の実装は、写さない `MemoryBuf` (rcssmonitor と同じ) で包み、今の `create(istream)`・`parse(istream)` を呼ぶ。
+  - `parse( const std::string & filepath, ... )` は `gzread_file()` で読み、`parse( data, size, ... )` を呼ぶ。gzip を読める。
+  - `parser_v1.h`〜`parser_v4.h`・`parser_simdjson.h` に `using Parser::parse;` を加えた (§2.1 の、`parse(filepath)` が隠れる問題が直った)。`ParserSimdJSON::parse( filepath )` の上書きは消し、基底のものを使う。
+- `ParserV4`: `parse( data, size, ... )` を上書きし、`split_lines()` で分けた行を順に `parseLine()` に渡す。`parse(istream)` は `read_stream()` でメモリに読んでから、これを呼ぶ。ヘッダの扱い、解析できない行でやめることは変えていない (S17)。
+- `ParserSimdJSON`:
+  - `parse( data, size, ... )` を上書きした。初めに `handleLogVersion( -1 )` を呼び、false ならやめる (S12)。
+  - 1 行 1 レコードなら (`is_record_per_line()`。S15)、`Impl::parseLines()` で行ごとに解析する。行の前後の空白と末尾の `,` を除き、空の行と `[`・`]` だけの行は飛ばす。各レコードは `Impl::parseRecord()` で、後ろに `SIMDJSON_PADDING` バイトの余裕があれば `padded_string_view` でバッファの上で解析し、なければ (最後の数レコード) `padded_string` に写す。失敗した行で読み込みをやめる (S17)。
+  - そうでなければ、`Impl::parseLog()` で今のとおり文書全体を解析する。
+  - `parse(istream)` は `read_stream()` でメモリに読んでから `parse( data, size, ... )` を呼ぶ。写しは 2 回から 1 回 (文書全体のときは 2 回) になった。
+- ツール (`src/`): `rcg2csv`・`rcg2txt`・`rcgrenameteam`・`rcgreverse`・`rcgvalidator`・`rcgverconv`・`rcgresultprinter` を、`gzread_file()`・`create( data, size )`・`parse( data, size, ... )` に替えた。
+  - `rcgresultprinter` の、gzip を一時ファイル `temp.rcg` に展開する処理をなくした。
+  - B13: `rcg2csv` と `rcgvalidator` の `handleLogVersion()` が JSON (-1) を受け付けるようにした。S12 で JSON のパーサが戻り値を見るようになり、`rcg2csv` の JSON の出力が空になったことで見つけた。
+  - B14: `rcgresultprinter` の 2 か所の `tm` を初期化し、`mktime()` の前に `tm_isdst = -1` にした。ツールの出力を比べたとき、日時が変更前と 1 時間ずれたことで見つけた (変更前の出力も、テキストのログでは 1 時間ずれていた)。
+- ベンチマーク: `file` (`gzread_file()`)、`memory` (`create( data, size )`・`parse( data, size, ... )`)、`total` (両方。ツールの経路) を加えた。
+- テスト:
+  - `run_test_rcg_parser` (20 項目。zlib のないビルドでは 19): メモリの経路 (v5・v6・JSON)、最後の行に改行がない場合、`ParserV4` から直接 `parse(filepath)`、gzip のファイルの `parse(filepath)` (テストの中で `gzofstream` で作る)、JSON の最後の `]` がないログ・1 行の文書・整形された文書・CRLF、`handleLogVersion()` が false のとき (JSON とテキスト) を足した。
+  - `run_test_gzread_file` (新規。`rcsc/gz`、7 項目。zlib のないビルドでは 3): 普通のファイル (`\r\n` と `\0` を含む)、空のファイル、ないファイル、5 MB の gzip、複数のメンバ (最後のメンバが小さく、見積もりより大きくなる)、途中で切れた gzip、後ろのゴミ。
+  - S15 の判定を一時的に rcssmonitor と同じにすると、`testJsonPrettyPrinted` だけが失敗することを確かめた。
+- 確かめたこと:
+  - CMake (Release): ビルドの警告 0。`ctest` で 18 個すべて通った。
+  - CMake (zlib なし。`-DCMAKE_DISABLE_FIND_PACKAGE_ZLIB=ON`): 新しいファイルからの警告 0 (zlib なしでもとから出る、`rcsc/gz` の使わない引数の警告だけ)。rcg と gz のテストが通った。gzip のログは読めず、普通の rcg は読めることを確かめた。
+  - Autotools: コンパイラの警告 0。`make check` で 14 個すべて通り、`make distcheck` (`--enable-unit-test`) も通った。`gzread_file.h` がインストールされ、`line_parser.h` はインストールされず配布物に入ることを確かめた。インストールしたヘッダは単独でコンパイルできた (`./cmake-helper.sh check-headers`)。
+  - 全体の比較 (S11): 変更前 (`212f5e7`) と比べて、§2.7 の 3 つのログと、圧縮していない ULG6 のログ (`20250220172149-HELIOS2024_1-vs-RoboCIn_4.rcg`) の 8 つの変換がすべて同じだった。
+  - ほかのツールの出力: `rcg2txt`・`rcg2csv`・`rcgvalidator`・`rcgresultprinter` の出力を変更前と比べた。違いは B13・B14 の修正によるもの (`rcgvalidator` の誤った警告がなくなった、`rcgresultprinter` の日時がログに合うようになった) だけだった。
+- 速さ (CMake の Release、5 回の最良、ms):
+
+| ログ | stream (段階 2) | stream | file | memory | total |
+|---|---|---|---|---|---|
+| JSON | 201.1 | 156.2 | 51.3 | 85.1 | 137.9 |
+| ULG5 | 124.0 | 128.4 | 43.4 | 78.9 | 119.6 |
+| ULG6 | 90.6 | 93.9 | 28.9 | 53.3 | 84.8 |
+
+- ツールの経路 (`total`) は、JSON で 201.1 → 137.9 ms、テキストで 124.0 → 119.6 ms・90.6 → 84.8 ms になった。rcssmonitor の A3〜A5 (JSON 222 → 151 ms、テキスト 130 → 122 ms) と同じ傾向である。
+- 読み込みは、`gzifstream` (`read`) より `gzread_file()` (`file`) が速い (JSON で 82.0 → 51.3 ms)。
+- soccerwindow2 の経路 (`stream`) は、JSON で速くなった (201.1 → 156.2 ms) が、テキストではストリームをメモリに写す分だけ 3〜4 ms 遅くなった。段階 4 の並列化で取り戻せる見込み。
 
 ### 4.4 段階 4: 行の並列解析
 
 #### 4.4.1 設計
 
-- rcssmonitor の `line_parser.{h,cpp}` を `rcsc/rcg/` に移す (インストールしない内部のヘッダ)。
-  - `split_lines()`: `memchr` で行に分ける。写さずに、バッファの中を指す。
+- rcssmonitor の `line_parser.{h,cpp}` の残りを、段階 3 で作った `rcsc/rcg/line_parser.{h,cpp}` (インストールしない内部のヘッダ) に足す。
+  - `split_lines()`: `memchr` で行に分ける。写さずに、バッファの中を指す (段階 3 で作った)。
   - `parse_lines()`: スレッドの数を決めて、行を連続したブロックに分け、ブロックごとに `std::thread` で解析する。`join` の後、ブロックの順に本当のハンドラへ再生する (S1)。
   - `RecordingHandler`: librcsc の `Handler` の仮想関数 (v4 と JSON のパーサが呼ぶもの) を、すべて記録する。`ServerParamT`・`PlayerParamT` は `copyFrom()` で写す。
   - `report_skipped()`: 飛ばした行の番号を、初めの 10 個と合計の数で出す。
@@ -383,7 +428,7 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
 - `run_test_rcg_line_parser` (`rcsc/rcg/test_line_parser.cpp`、段階 4)
   - `split_lines()` (`\r` を残す、最後の `\n` で空の行を作らない、空の入力)。
   - 20,000 行の順序。失敗した行・例外を出した行の報告。`setMaxThreads( 1 )`。
-- ファイルを読む関数のテスト (段階 3・5。zlib があるときだけ)
+- `run_test_gzread_file` (`rcsc/gz/test_gzread_file.cpp`、段階 3・5。gzip の項目は zlib があるときだけ)
   - 普通のファイル、1 MB を超える gzip、連結された複数のメンバ、途中で切れた gzip、後ろのゴミ、ないファイル。
 - 各段階のテストは、その段階の修正を戻すと失敗することを確かめる。
 - 手元での動かし方:
@@ -395,7 +440,7 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
 ## 7. 変更するファイル (見込み)
 
 - `rcsc/rcg/`: `parser.{h,cpp}`、`parser_v1.h`〜`parser_v3.h` (`using`)、`parser_v4.{h,cpp}`、`parser_simdjson.{h,cpp}`、`handler.h`、`line_parser.{h,cpp}` (新規)、`simdjson/*`、`test_parser.cpp`・`test_line_parser.cpp` (新規)、`test_data/` (新規)、`CMakeLists.txt`、`Makefile.am`
-- ファイルを読む関数 (`rcsc/gz/`。D7)。`rcsc/gz/Makefile.am`・`rcsc/gz/CMakeLists.txt`・`rcsc/gz.h`
+- `rcsc/gz/gzread_file.{h,cpp}`・`rcsc/gz/test_gzread_file.cpp` (新規。D7)、`rcsc/gz/Makefile.am`・`rcsc/gz/CMakeLists.txt`・`rcsc/gz.h`
 - `obsolete/rcg/` (移動先)
 - `src/`: rcg を読むツール、`rcg_parser_bench.cpp` (新規)、`CMakeLists.txt`、`Makefile.am`
 - `CMakeLists.txt`、`configure.ac`、`cmake-config.h.in`、`librcsc.pc.in`、`librcsc.spec.in`、CMake のパッケージ構成ファイル (必要なら)
@@ -459,3 +504,13 @@ B1〜B11 は、rcssmonitor では直してある。B12 は librcsc のツール�
   - 単体テストには CppUnit (Ubuntu では `libcppunit-dev`) が要る。
   - 速さは、ビルドの種類 (CMake の Release) と計算機によって変わる。新しい場所では、段階 2 の状態 (`e778865`) で測り直してから比べる。
 - この後: 段階 3 に着手する。
+
+### 2026-11-25: 段階 3 を実装した
+
+- 作業の場所は移らなかった。scratchpad に残っていた変更前 (`212f5e7`) のインストールとビルドで続けた。
+- `rcsc::gzread_file()`、`Parser` のメモリの入口 (`create( data, size )`・`parse( data, size, ... )`)、`ParserV4` と `ParserSimdJSON` のメモリ上での解析、ツールの切り替えを実装した (§4.3.2)。
+- 決めたこと: S15 (JSON の 1 行ずつの判定を rcssmonitor より厳しくする)、S16 (`gzread_file()` の名前と動作)、S17 (段階 3 では失敗の扱いを変えない)。
+- 見つけて直したこと: B13 (`rcg2csv`・`rcgvalidator` が JSON を断っていた)、B14 (`rcgresultprinter` の日時のずれ)。
+- テスト: `run_test_rcg_parser` を 20 項目に増やし、`run_test_gzread_file` (7 項目) を足した。CMake の `ctest` 18 個、Autotools の `make check` 14 個と `make distcheck` が通った。zlib のないビルドも確かめた。
+- 全体の比較で、変更前と出力が同じだった。ツールの経路は、JSON で 201.1 → 137.9 ms、ULG5 で 124.0 → 119.6 ms、ULG6 で 90.6 → 84.8 ms になった。
+- この後: ユーザの確認の後、段階 3 をコミットしてプッシュし、CI を確かめる。その後、段階 4 (行の並列解析) に着手する。

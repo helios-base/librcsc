@@ -177,6 +177,7 @@ The tests of the CMake build are:
 | `test_clang_parser` | the unit test of `rcsc/clang` (CppUnit) |
 | `run_test_rcg_types` | the unit test of the data types of `rcsc/rcg` (e.g. the output of `rcsc::rcg::PlayerTypeT`) (CppUnit) |
 | `run_test_rcg_parser` | the unit test of the rcg parsers of `rcsc/rcg`, on the first records of real game logs in `rcsc/rcg/test_data` (CppUnit) |
+| `run_test_gzread_file` | the unit test of `rcsc::gzread_file()` in `rcsc/gz` (e.g. gzip files of more than one member, and truncated gzip files) (CppUnit) |
 | `run_test_server_param` | the unit test of `rcsc::ServerParam` and `rcsc::rcg::ServerParamT` in `rcsc/common` (CppUnit) |
 | `install` | installs librcsc into `test-install` in the build directory, for the following tests |
 | `installed_headers` | each installed header file can be compiled alone (e.g. no header file that it includes is missing in the installation) |

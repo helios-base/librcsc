@@ -128,3 +128,30 @@ Each item has the date when the change was made.
   Compiling `simdjson.cpp` takes longer (about 9 seconds instead of 3 with `-O3`).
 - (2026-11-24) Moved the old JSON rcg parser `rcsc/rcg/parser_json.{h,cpp}`, which has never been built, to `obsolete/rcg`.
   Deleted the bundled nlohmann/json (`rcsc/rcg/nlohmann/json.hpp`), which only this parser used.
+- (2026-11-25) New function `rcsc::gzread_file()` (`rcsc/gz/gzread_file.h`, also included by `rcsc/gz.h`)
+  reads a whole file into memory: a gzip file is decompressed with zlib, and any other file is read as it is.
+  It is faster than reading the file through `rcsc::gzifstream`.
+  A gzip file that ends in the middle is read up to there, with a warning.
+- (2026-11-25) The rcg parser parses the game log in memory, which is faster:
+  - New functions `rcsc::rcg::Parser::create( const char * data, std::size_t size )` and
+    `Parser::parse( const char * data, std::size_t size, Handler & handler )` for the whole game log in memory
+    (e.g. read by `rcsc::gzread_file()`).
+  - `Parser::parse( const std::string & filepath, Handler & )` reads the file by `rcsc::gzread_file()`, so it can read a gzip file.
+    It can be called on the derived classes (e.g. `ParserV4`), which hid it before.
+  - `ParserV4::parse( std::istream &, Handler & )` and `ParserSimdJSON::parse( std::istream &, Handler & )`
+    read the stream into memory and parse it there, so the programs using them (e.g. soccerwindow2) also get faster.
+  - A JSON game log of one record per line, as rcssserver writes it, is parsed line by line.
+    A JSON game log whose last `]` is missing (rcssserver stopped abnormally) can be read.
+    The other JSON game logs (e.g. in one line, or pretty-printed) are parsed as one JSON document as before.
+  - The JSON parser stops if `Handler::handleLogVersion()` returns false, as the text parser does.
+    A handler that returns false for the version -1 (JSON) no longer reads JSON game logs.
+  - The virtual functions of `Parser` are changed. Rebuild the programs built with librcsc of the develop branch before this change.
+- (2026-11-25) The tools (`rcg2csv`, `rcg2txt`, `rcgrenameteam`, `rcgresultprinter`, `rcgreverse`, `rcgvalidator` and `rcgverconv`)
+  read the game log by `rcsc::gzread_file()` and parse it in memory.
+  - `rcgresultprinter` no longer writes the decompressed gzip file to the temporary file `temp.rcg`.
+  - `rcg2csv` and `rcgvalidator` accept JSON game logs explicitly.
+    They returned false from `handleLogVersion()` for JSON (`rcgvalidator` printed `Unsupported RCG version -1`),
+    and read JSON game logs only because the JSON parser ignored it.
+  - Fixed the dates printed by `rcgresultprinter`, which could be one hour off,
+    because `tm_isdst` was not initialized before `mktime()`.
+- (2026-11-25) Tests: added the unit test `run_test_gzread_file` (`rcsc/gz`, CMake and Autotools).

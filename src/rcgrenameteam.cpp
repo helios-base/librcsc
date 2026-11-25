@@ -413,9 +413,8 @@ main( int argc, char** argv )
         return 1;
     }
 
-    rcsc::gzifstream fin( input_file.c_str() );
-
-    if ( ! fin.is_open() )
+    std::string data;
+    if ( ! rcsc::gzread_file( input_file, &data ) )
     {
         std::cerr << "Failed to open file : " << input_file << std::endl;
         return 1;
@@ -441,7 +440,7 @@ main( int argc, char** argv )
         return 1;
     }
 
-    rcsc::rcg::Parser::Ptr parser = rcsc::rcg::Parser::create( fin );
+    rcsc::rcg::Parser::Ptr parser = rcsc::rcg::Parser::create( data.data(), data.size() );
 
     if ( ! parser )
     {
@@ -454,7 +453,7 @@ main( int argc, char** argv )
                              left_team_name,
                              right_team_name );
 
-    parser->parse( fin, renamer );
+    parser->parse( data.data(), data.size(), renamer );
 
     return 0;
 }

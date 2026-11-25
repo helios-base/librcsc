@@ -39,11 +39,14 @@
 #include "types.h"
 #include "util.h"
 
+#include "line_parser.h"
+
 #include "simdjson/simdjson.h"
 
 #include <unordered_map>
 #include <string_view>
 #include <functional>
+#include <vector>
 
 namespace rcsc {
 namespace rcg {
@@ -56,6 +59,17 @@ struct ParserSimdJSON::Impl {
     //std::unordered_map< simdjson::ondemand::raw_json_string, Func > funcs_;
 
     Impl();
+
+    bool parseLog( simdjson::padded_string & json,
+                   Handler & handler );
+    bool parseLines( const char * data,
+                     const std::size_t size,
+                     Handler & handler );
+    bool parseRecord( simdjson::ondemand::parser & parser,
+                      const char * record,
+                      const std::size_t length,
+                      const char * buffer_end,
+                      Handler & handler );
 
     bool parseData( simdjson::ondemand::field & field,
                     Handler & handler );
@@ -81,6 +95,50 @@ struct ParserSimdJSON::Impl {
     bool parseShow( simdjson::ondemand::value & val,
                     Handler & handler );
 };
+
+namespace {
+
+bool
+is_space( const char c )
+{
+    return c == ' ' || c == '\t' || c == '\r' || c == '\n';
+}
+
+/*!
+  \brief check if the log has one record per line, as rcssserver writes it:
+  "[" alone on the first line, and a record ("{...},") on each of the next.
+
+  The first record must end on its line, so that a log written in another way
+  (e.g. pretty-printed: "{" alone on a line) is parsed as one JSON document.
+  (rcssmonitor checks only that the record begins with "{".)
+  See docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.3.
+*/
+bool
+is_record_per_line( const char * data,
+                    const std::size_t size )
+{
+    const char * p = data;
+    const char * const end = data + size;
+
+    while ( p < end && is_space( *p ) ) ++p;
+    if ( p == end || *p != '[' ) return false;
+    ++p;
+    while ( p < end && ( *p == ' ' || *p == '\t' || *p == '\r' ) ) ++p;
+    if ( p == end || *p != '\n' ) return false;
+    while ( p < end && is_space( *p ) ) ++p;
+    if ( p == end || *p != '{' ) return false;
+
+    // the end of the first record: "}" or "}," at the end of the line
+    const char * eol = p;
+    while ( eol < end && *eol != '\n' ) ++eol;
+    const char * last = eol;
+    while ( p < last && is_space( *( last - 1 ) ) ) --last;
+    if ( p < last && *( last - 1 ) == ',' ) --last;
+    while ( p < last && is_space( *( last - 1 ) ) ) --last;
+    return p < last && *( last - 1 ) == '}';
+}
+
+}
 
 /*-------------------------------------------------------------------*/
 ParserSimdJSON::Impl::Impl()
@@ -135,6 +193,133 @@ ParserSimdJSON::Impl::Impl()
           {
               return this->parseShow( val, handler );
           };
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  parse a whole log as one JSON document: an array of the records
+ */
+bool
+ParserSimdJSON::Impl::parseLog( simdjson::padded_string & json,
+                                Handler & handler )
+{
+    try
+    {
+        simdjson::ondemand::parser parser;
+        simdjson::ondemand::document rcg = parser.iterate( json );
+        simdjson::ondemand::array root_array = rcg.get_array();
+
+        for ( simdjson::ondemand::object data : root_array )
+        {
+            for ( simdjson::ondemand::field field : data )
+            {
+                if ( ! parseData( field, handler ) )
+                {
+                    return false;
+                }
+            }
+        }
+    }
+    catch ( std::exception & e )
+    {
+        std::cerr << "(ParserSimdJSON::parse) ERROR\n\t" << e.what() << std::endl;
+        return false;
+    }
+
+    handler.handleEOF();
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  parse a log of one record per line. The "[" and "]" lines are skipped,
+  so a log whose last "]" is missing (rcssserver stopped abnormally) is read too.
+  See docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.3.
+ */
+bool
+ParserSimdJSON::Impl::parseLines( const char * data,
+                                  const std::size_t size,
+                                  Handler & handler )
+{
+    const char * const end = data + size;
+
+    simdjson::ondemand::parser parser;
+    for ( const LineRef & line : split_lines( data, size ) )
+    {
+        const char * first = line.begin_;
+        const char * last = line.begin_ + line.length_;
+
+        while ( first < last && is_space( *first ) ) ++first;
+        while ( first < last && is_space( *( last - 1 ) ) ) --last;
+        if ( first < last && *( last - 1 ) == ',' )
+        {
+            --last;
+            while ( first < last && is_space( *( last - 1 ) ) ) --last;
+        }
+
+        if ( first == last
+             || ( last - first == 1 && ( *first == '[' || *first == ']' ) ) )
+        {
+            continue;
+        }
+
+        if ( ! parseRecord( parser, first, static_cast< std::size_t >( last - first ), end, handler ) )
+        {
+            std::cerr << "(ParserSimdJSON::parse) failed to parse the line " << line.number_ << std::endl;
+            return false;
+        }
+    }
+
+    handler.handleEOF();
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+  parse one record. simdjson reads up to SIMDJSON_PADDING bytes beyond the
+  end of its input; the lines after the record are those bytes, so the
+  record is parsed in place, and only a record near the end of the buffer
+  is copied.
+ */
+bool
+ParserSimdJSON::Impl::parseRecord( simdjson::ondemand::parser & parser,
+                                   const char * record,
+                                   const std::size_t length,
+                                   const char * buffer_end,
+                                   Handler & handler )
+{
+    auto dispatch = [&]( simdjson::ondemand::document & doc ) -> bool
+        {
+            for ( simdjson::ondemand::field field : doc.get_object() )
+            {
+                if ( ! parseData( field, handler ) )
+                {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+    try
+    {
+        const std::size_t capacity = static_cast< std::size_t >( buffer_end - record );
+        if ( capacity >= length + simdjson::SIMDJSON_PADDING )
+        {
+            simdjson::ondemand::document doc
+                = parser.iterate( simdjson::padded_string_view( record, length, capacity ) );
+            return dispatch( doc );
+        }
+
+        simdjson::padded_string copy( record, length );
+        simdjson::ondemand::document doc = parser.iterate( copy );
+        return dispatch( doc );
+    }
+    catch ( std::exception & e )
+    {
+        std::cerr << "(ParserSimdJSON::parseRecord) " << e.what() << std::endl;
+    }
+
+    return false;
 }
 
 /*-------------------------------------------------------------------*/
@@ -557,69 +742,39 @@ ParserSimdJSON::parse( std::istream & is,
         return false;
     }
 
-    handler.handleLogVersion( REC_VERSION_JSON );
-
-    try
+    // read the whole stream, and parse it in memory
+    std::string data;
+    if ( ! read_stream( is, &data ) )
     {
-        simdjson::ondemand::parser parser;
-        simdjson::padded_string json( std::string( std::istreambuf_iterator< char >( is ), {} ) );
-        simdjson::ondemand::document rcg = parser.iterate( json );
-        simdjson::ondemand::array root_array = rcg.get_array();
-
-        for ( simdjson::ondemand::object data : root_array )
-        {
-            for ( simdjson::ondemand::field field : data )
-            {
-                if ( ! M_impl->parseData( field, handler ) )
-                {
-                    return false;
-                }
-            }
-        }
-    }
-    catch ( std::exception & e )
-    {
-        std::cerr << "(ParserSimdJSON::parse) ERROR\n\t" << e.what() << std::endl;
+        std::cerr << "(ParserSimdJSON::parse) failed to read the stream." << std::endl;
         return false;
     }
 
-    handler.handleEOF();
-    return true;
+    return parse( data.data(), data.size(), handler );
 }
 
 /*-------------------------------------------------------------------*/
+/*!
+  See docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.3 (S12).
+ */
 bool
-ParserSimdJSON::parse( const std::string & filepath,
+ParserSimdJSON::parse( const char * data,
+                       const std::size_t size,
                        Handler & handler ) const
 {
-    handler.handleLogVersion( REC_VERSION_JSON );
-
-    try
+    if ( ! handler.handleLogVersion( REC_VERSION_JSON ) )
     {
-        simdjson::ondemand::parser parser;
-        simdjson::padded_string json = simdjson::padded_string::load( filepath );
-        simdjson::ondemand::document rcg = parser.iterate( json );
-        simdjson::ondemand::array root_array = rcg.get_array();
-
-        for ( simdjson::ondemand::object data : root_array )
-        {
-            for ( simdjson::ondemand::field field : data )
-            {
-                if ( ! M_impl->parseData( field, handler ) )
-                {
-                    return false;
-                }
-            }
-        }
-    }
-    catch ( std::exception & e )
-    {
-        std::cerr << "(ParserSimdJSON::parse) ERROR\n\t" << e.what() << std::endl;
+        std::cerr << "(ParserSimdJSON::parse) the handler does not accept the JSON game log." << std::endl;
         return false;
     }
 
-    handler.handleEOF();
-    return true;
+    if ( is_record_per_line( data, size ) )
+    {
+        return M_impl->parseLines( data, size, handler );
+    }
+
+    simdjson::padded_string json( data, size );
+    return M_impl->parseLog( json, handler );
 }
 
 /*-------------------------------------------------------------------*/

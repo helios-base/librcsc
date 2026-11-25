@@ -8,6 +8,7 @@ noinst_LTLIBRARIES = librcsc_rcg.la
 librcsc_rcg_la_SOURCES = \
 	simdjson/simdjson.cpp \
 	handler.cpp \
+	line_parser.cpp \
 	parser.cpp \
 	parser_v1.cpp \
 	parser_v2.cpp \
@@ -48,6 +49,7 @@ librcsc_rcginclude_HEADERS = \
 	util.h
 
 noinst_HEADERS = \
+	line_parser.h \
 	simdjson/simdjson.h
 
 librcsc_rcg_la_LDFLAGS = -version-info 6:0:0
@@ -94,12 +96,12 @@ check_PROGRAMS = $(TESTS)
 
 run_test_rcg_types_SOURCES = test_types.cpp
 run_test_rcg_types_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W
-run_test_rcg_types_LDADD = librcsc_rcg.la $(CPPUNIT_LIBS)
+run_test_rcg_types_LDADD = librcsc_rcg.la ../gz/librcsc_gz.la $(CPPUNIT_LIBS)
 
 # the test data are the first records of real game logs (test_data/)
 run_test_rcg_parser_SOURCES = test_parser.cpp
 run_test_rcg_parser_CPPFLAGS = $(AM_CPPFLAGS) -DTEST_DATA_DIR=\"$(abs_srcdir)/test_data\"
 run_test_rcg_parser_CXXFLAGS = $(CPPUNIT_CFLAGS) -Wall -W
-run_test_rcg_parser_LDADD = librcsc_rcg.la $(CPPUNIT_LIBS)
+run_test_rcg_parser_LDADD = librcsc_rcg.la ../gz/librcsc_gz.la $(CPPUNIT_LIBS)
 
 #EXTRA_DIST =

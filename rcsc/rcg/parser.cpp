@@ -43,10 +43,65 @@
 #include "parser_v4.h"
 #include "parser_simdjson.h"
 
-#include <fstream>
+#include <rcsc/gz/gzread_file.h>
+
+#include <iostream>
+#include <streambuf>
 
 namespace rcsc {
 namespace rcg {
+
+namespace {
+
+/*!
+  \class MemoryBuf
+  \brief a read-only stream buffer over data in memory, without copying it.
+
+  See docs/plan/2026-11-24-02_rcg-parser-speedup.md 4.3.
+*/
+class MemoryBuf
+    : public std::streambuf {
+public:
+
+    MemoryBuf( const char * data,
+               const std::size_t size )
+      {
+          char * begin = const_cast< char * >( data );
+          setg( begin, begin, begin + size );
+      }
+
+protected:
+
+    pos_type seekoff( off_type off,
+                      std::ios_base::seekdir dir,
+                      std::ios_base::openmode which ) override
+      {
+          if ( ! ( which & std::ios_base::in ) )
+          {
+              return pos_type( off_type( -1 ) );
+          }
+
+          char * base = ( dir == std::ios_base::beg ? eback()
+                          : dir == std::ios_base::cur ? gptr()
+                          : egptr() );
+          if ( off < eback() - base
+               || egptr() - base < off )
+          {
+              return pos_type( off_type( -1 ) );
+          }
+
+          setg( eback(), base + off, egptr() );
+          return pos_type( gptr() - eback() );
+      }
+
+    pos_type seekpos( pos_type pos,
+                      std::ios_base::openmode which ) override
+      {
+          return seekoff( off_type( pos ), std::ios_base::beg, which );
+      }
+};
+
+}
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -121,17 +176,48 @@ Parser::create( std::istream & is )
 }
 
 
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+Parser::Ptr
+Parser::create( const char * data,
+                const std::size_t size )
+{
+    MemoryBuf buf( data, size );
+    std::istream is( &buf );
+    return create( is );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
 bool
 Parser::parse( const std::string & filepath,
                Handler & handler ) const
 {
-    std::ifstream fin( filepath );
-    if ( ! fin )
+    std::string data;
+    if ( ! gzread_file( filepath, &data ) )
     {
         return false;
     }
 
-    return parse( fin, handler );
+    return parse( data.data(), data.size(), handler );
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+bool
+Parser::parse( const char * data,
+               const std::size_t size,
+               Handler & handler ) const
+{
+    MemoryBuf buf( data, size );
+    std::istream is( &buf );
+    return parse( is, handler );
 }
 
 
