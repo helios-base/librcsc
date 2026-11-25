@@ -7,6 +7,7 @@
 ## RCG パーサの高速化 (`docs/plan/2026-11-24-02_rcg-parser-speedup.md`)
 
 - (2026-11-24) soccerwindow2 で rcg のファイルを読む所を、`rcsc::gzread_file()` とメモリの経路 (`Parser::create( data, size )`・`Parser::parse( data, size, handler )`) に替える。soccerwindow2 の別の計画で行う。今の `gzifstream` と `parse( std::istream & )` のままでも解析は速くなるが、`gzifstream` での展開の遅さは残る。(§8)
+  - (2026-11-25) 試しのビルドで測った: `MainData::openRCG()` を替えるだけで、ログを開く時間が JSON で約 115 → 54 ms、ULG5 で約 96 → 48 ms、ULG6 で約 77 → 41 ms になる (rcssmonitor と同じ水準)。(§4.7.2)
 - (2026-11-24) simdjson のシンボルを `librcsc.so` から公開しないようにする。librcsc を使うプログラムが別の版の simdjson を使うと、ぶつかるおそれがある。(§8)
 - (2026-11-24) ライブ受信 (`ParserSimdJSON::parseData()`、`ParserV4::parseLine()`) の速さ。1 パケットずつの解析で、今は問題にならないため見送った。(§8)
 - (2026-11-24) `rcsc::gzifstream` 自体の速さ (8192 バイトのバッファなど)。(§8)

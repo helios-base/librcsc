@@ -6,7 +6,7 @@
 | 最終更新日 | 2026-11-25 |
 | 対象 | `develop` (`212f5e7`)。同梱の simdjson 3.8.0 |
 | ブランチ | `feature/rcg-parser-speedup`。`develop` の `212f5e7` から、ユーザが GitHub で作った |
-| 状態 | 段階 1〜5 が完了した (CI 通過)。段階 6 を実装した (コミット前)。PR #123 (下書き)。詳しくは「進み具合」を参照 |
+| 状態 | 段階 1〜7 が完了した。PR #123 で develop に取り込む前。詳しくは「進み具合」を参照 |
 | 関連 | `docs/plan/2026-11-21_boost-cmake-maintenance.md` (simdjson の更新と `parser_json` の扱いをこの計画に回した)。参照実装: rcssmonitor の PR #65 (`docs/plan/2026-11-11_3d-view.md` の Phase 2)。利用側: soccerwindow2 (`src/model/main_data.cpp`) |
 
 ## 進み具合
@@ -19,8 +19,8 @@
 | — | GCC 15 の警告 (`-Wdangling-reference`、段階 3 のテスト) の修正、`docs/todo.md` への記録 (§4.3.2、§8) | 完了 | 済み | 通過 | `a0adabe` | 済み |
 | 4 | 行の並列解析 (§4.4、D5、S1、S10、S13、S18、S19) | 完了 | 済み | 通過 | `dd51505` | 済み |
 | 5 | libdeflate による展開 (§4.5、D4、D8、S20) | 完了 | 済み | 通過 | `dfcbed2` | 済み |
-| 6 | 読み込みの堅牢化 (§4.6、D9、S5、S21、S22) | 完了 | 未 | 未 | — | 未 |
-| 7 | 仕上げ: 最終の計測、全体の比較、soccerwindow2 での確認、文書 (§4.7) | 未着手 | 未 | 未 | — | 未 |
+| 6 | 読み込みの堅牢化 (§4.6、D9、S5、S21、S22) | 完了 | 済み | 通過 | `9e29dc9` | 済み |
+| 7 | 仕上げ: 最終の計測、全体の比較、soccerwindow2 での確認、文書 (§4.7) | 完了 | 済み | 未 | — | 未 |
 | — | develop への取り込み (PR #123。下書き。Squash Merge の予定) | 未着手 | 未 | 未 | — | — |
 
 ## 1. 目的と方針
@@ -494,9 +494,39 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 - soccerwindow2 を新しい librcsc でビルドし、ログを開いて、速さと表示を確かめる (ユーザの確認)。soccerwindow2 側の変更は別の計画で行う。
 - `RELEASE_NOTES.md`、`docs/build.md` (テストの一覧、依存、ベンチマークの使い方) を書く。
 
-#### 4.7.2 実装
+#### 4.7.2 実装 (2026-11-25)
 
-未着手。
+- 最終の計測 (5 回の最良、ms)。段階 6 (`9e29dc9`) のコードを、4 つの組み合わせでビルドした。CMake は Release (`-O3`)、Autotools は既定 (`-g -O2`)。「zlib」は libdeflate なし (`-DENABLE_LIBDEFLATE=OFF`、`--without-libdeflate`)。`total` はツールの経路 (`gzread_file()` + `parse( data, size, ... )`)、`stream` は soccerwindow2 の経路 (`gzifstream` + `parse( istream )`):
+
+| ログ | 段階 1 の stream | CMake・libdeflate | CMake・zlib | Autotools・libdeflate | Autotools・zlib | stream (CMake・libdeflate) |
+|---|---|---|---|---|---|---|
+| JSON | 205.9 | 43.9 | 72.4 | 45.1 | 70.9 | 89.1 |
+| ULG5 | 123.6 | 35.8 | 60.8 | 35.9 | 61.2 | 74.2 |
+| ULG6 | 90.5 | 26.1 | 43.8 | 25.9 | 43.7 | 54.8 |
+
+- ツールの経路は、段階 1 と比べて、libdeflate ありで JSON 4.7 倍、テキスト 3.5 倍ほど速くなった。zlib だけでも 2〜3 倍ほど。soccerwindow2 の経路 (soccerwindow2 を変えない場合) も、JSON 2.3 倍、テキスト 1.7 倍ほどになった。
+- 全体の比較 (S11): 変更前 (`212f5e7`) と新しい librcsc をそれぞれインストールした所の `rcgverconv` で、手元の 7 つのログ (§2.7 の 3 つ、圧縮していない ULG6、ほかの ULG6 3 つ) の 14 の変換を比べた。12 は同じで、JSON のログの 2 つ (→ v5、→ v6) は、`vq` の所 (B9) だけが違った。
+- soccerwindow2 (`6c9d09c`、`develop`) での確認:
+  - soccerwindow2 を変えずに、変更前 (`212f5e7`) と新しい librcsc をそれぞれ scratchpad にインストールした所に向けて (`-DLIBRCSC_INSTALL_DIR`)、CMake (Release、Qt 6.4) でビルドした。どちらも警告 0。soccerwindow2 のテスト (`ctest`) は、どちらでも 9 個のうち 8 個が通り、ライブのサーバが要る 1 個 (`monitor_client_live`) は飛ばされた。
+  - 画面を使わずに (`QT_QPA_PLATFORM=offscreen`) `-l <ログ>` で開き、soccerwindow2 が出すパースの時間 (`RCG paser elapsed time`) を 3 回ずつ測った。フレームの数は同じだった:
+
+| ログ | 変更前 (ms) | 新しい librcsc (ms) |
+|---|---|---|
+| JSON | 234.4〜242.3 | 112.7〜115.1 |
+| ULG5 | 131.7〜149.5 | 94.3〜96.1 |
+| ULG6 | 116.2〜120.3 | 78.2〜84.0 |
+
+  - ユーザが画面で、3 つのログの表示と操作を確かめた (問題なし)。
+- soccerwindow2 が rcssmonitor より遅い理由 (ユーザの問い): rcssmonitor は同じ JSON のログを 60 ms 弱で開く。soccerwindow2 の `MainData::openRCG()` を、`gzread_file()`・`create( data, size )`・`parse( data, size, ... )` に替えた試しのビルド (scratchpad のソースの写しで。soccerwindow2 のリポジトリは変えていない) で、読み込みと解析の時間を分けて測った (3 回ずつ):
+
+| ログ | 今の soccerwindow2 (ms) | 読み込みを替えた場合 (ms) | 内訳: 読み込み + 解析 (ms) |
+|---|---|---|---|
+| JSON | 114.0〜117.5 | 54.0〜54.5 | 32.8〜33.0 + 21.2〜21.5 |
+| ULG5 | 94.9〜96.9 | 47.5〜47.7 | 26.7〜27.6 + 20.0〜20.8 |
+| ULG6 | 76.3〜78.3 | 41.1〜41.8 | 20.0〜20.1 + 21.1〜21.6 |
+
+  - 解析 (soccerwindow2 のハンドラ `ViewHolder` に渡す分を含む) は約 21 ms で、どちらも同じ。差のほとんどは、`rcsc::gzifstream` を通した展開 (zlib を 8 KB ずつ。libdeflate を使わない) にかかる時間である。ベンチマークでは、`gzifstream` で読むのに約 83 ms、`gzread_file()` (zlib) で約 51 ms、`gzread_file()` (libdeflate) で約 25 ms かかる (JSON)。
+  - soccerwindow2 の読み込みを替えれば、JSON で 54 ms ほどになり、rcssmonitor と同じ水準になる。この切り替えは `docs/todo.md` の項目 (soccerwindow2 の別の計画) で行う。測った値を `docs/todo.md` に書き足した。
 
 ## 5. 段階
 
@@ -658,3 +688,23 @@ B1〜B11 は、rcssmonitor では直してある。B12〜B14 は librcsc のツ�
 - `run_test_rcg_parser` を 35 項目に増やした。段階 5 のライブラリでは 20 項目が失敗し、今のライブラリでは通ることを確かめた。サニタイザでもエラーはなかった。CMake の `ctest` 19 個、Autotools の `make check` 15 個と `make distcheck` が通った。
 - 全体の比較とツールの出力の比較で、違いは B8・B9 の修正による想定どおりのものだけだった。
 - この後: ユーザの確認の後、段階 6 をコミットしてプッシュし、CI を確かめる。その後、段階 7 (仕上げ: 最終の計測、soccerwindow2 での確認、文書) に着手する。
+
+### 2026-11-25: 段階 6 の CI の結果
+
+- ユーザの確認の後、段階 6 を `9e29dc9` としてコミットし、プッシュした。
+- CI の結果 (`9e29dc9`): 5 ジョブすべて成功した。GCC 13.3・15.2 とも、コンパイラの警告は 0。CMake のジョブは 19 個すべて、Autotools のジョブは `make check` と `make distcheck` で 15 個ずつ通った。
+- この後: 段階 7 (仕上げ) に着手する。最終の計測 (zlib だけ・libdeflate、CMake・Autotools)、全体の比較の最終の確かめ、soccerwindow2 を新しい librcsc でビルドしてログを開くこと (ユーザの確認)、文書の仕上げを行う。
+
+### 2026-11-25: 段階 7 の計測と確かめ
+
+- 最終の計測を、CMake・Autotools と zlib だけ・libdeflate の 4 つの組み合わせで行った (§4.7.2)。ツールの経路は、段階 1 と比べて JSON で 205.9 → 43.9 ms、ULG5 で 123.6 → 35.8 ms、ULG6 で 90.5 → 26.1 ms (CMake・libdeflate) になった。
+- 全体の比較を 7 つのログの 14 の変換で行い、違いは JSON のログの `vq` (B9) だけだった。
+- soccerwindow2 を変えずに新しい librcsc でビルドでき、テストが通り、ログを開くパースの時間は JSON で約 235 → 113 ms、テキストで約 140 → 95 ms・118 → 80 ms になった。
+- この後: ユーザが soccerwindow2 の画面で、ログの表示と操作を確かめる。その後、段階 7 の記録をコミットしてプッシュし、PR の説明を最終のものにして、下書きを解く。
+
+### 2026-11-25: soccerwindow2 での確認と、遅さの理由
+
+- ユーザが、新しい librcsc でビルドした soccerwindow2 の画面で、3 つのログ (JSON、ULG5、ULG6) の表示と操作を確かめた。問題はなかった。
+- ユーザの問い「rcssmonitor は同じ JSON のログを 60 ms 弱で開くが、soccerwindow2 は何が原因で遅いか」を調べた (§4.7.2)。原因は soccerwindow2 の読み込み (`gzifstream` + `parse( istream )`) で、`gzifstream` を通した展開に約 90 ms かかっていた。`gzread_file()` とメモリの経路に替えると、JSON で 115 → 54 ms になることを、試しのビルドで確かめた。soccerwindow2 の切り替えは、`docs/todo.md` の項目として、この PR の後に soccerwindow2 の計画で行う。
+- 段階 7 の作業は、これで終わった。
+- この後: ユーザの確認の後、段階 7 の記録をコミットしてプッシュし、CI を確かめる。ユーザが PR #123 の説明を最終のものにし、下書きを解く。取り込みの前に、取り込みの記録をこの PR のブランチにコミットする。
