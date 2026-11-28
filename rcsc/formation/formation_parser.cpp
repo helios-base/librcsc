@@ -83,30 +83,38 @@ FormationParser::checkRoleNames( const Formation::ConstPtr ptr )
 
 /*-------------------------------------------------------------------*/
 bool
-FormationParser::checkPositionPair( const Formation::ConstPtr ptr )
+FormationParser::checkPositionPair( const Formation::Ptr ptr )
 {
     if ( ! ptr )
     {
-        std::cerr << "(FormationParser::checkPositionPairs) null ptr " << std::endl;
+        std::cerr << "(FormationParser::checkPositionPair) null ptr " << std::endl;
         return false;
     }
 
-    const std::array< int, 11 > & pairs = ptr->positionPairs();
+    std::array< int, 11 > pairs = ptr->positionPairs();
 
+    // e.g. "2 -> 3" and "3 -> -1" become "2 -> 3" and "3 -> 2".
+    // If two players refer to the same player, only the first one is set here,
+    // and setPositionPairs() rejects the second one.
     for ( size_t i = 0; i < pairs.size(); ++i )
     {
-        if ( 1 <= pairs[i] && pairs[i] <= 11 )
+        const int paired_num = pairs[i];
+        if ( 1 <= paired_num && paired_num <= 11
+             && pairs[paired_num - 1] == -1 )
         {
-            const int p = pairs[ pairs[i] - 1 ];
-            if ( p != -1
-                 && p != static_cast< int >( i + 1 ) )
-            {
-                std::cerr << "(FormationParser::checkPositionPairs) illegal pair "
-                          << " pair=" << pairs[i] << " - " << p
-                          << std::endl;
-                return false;
-            }
+            pairs[paired_num - 1] = static_cast< int >( i + 1 );
         }
+    }
+
+    if ( ! ptr->setPositionPairs( pairs ) )
+    {
+        std::cerr << "(FormationParser::checkPositionPair) illegal position pairs:";
+        for ( const int p : ptr->positionPairs() )
+        {
+            std::cerr << ' ' << p;
+        }
+        std::cerr << std::endl;
+        return false;
     }
 
     return true;

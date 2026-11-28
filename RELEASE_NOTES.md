@@ -196,3 +196,20 @@ Each item has the date when the change was made.
   to the output, instead of `"version":"unknown"`: the beginning of the output is written before the first record,
   after the version and the timestamp are read.
 - (2026-11-25) `rcgversion` prints the version 6 (it printed `json`), and `unknown` for an unknown version.
+- (2026-11-28) Formation (for the undo of the formation editor of soccerwindow2, https://github.com/helios-base/librcsc/issues/124):
+  - `rcsc::FormationData` can be copied and moved (the copy constructor and the copy assignment were deleted).
+  - New function `rcsc::Formation::setPositionPairs( const std::array< int, 11 > & pairs )` sets the position pairs of all players at once.
+    It checks that the paired players refer to each other, and changes nothing if they do not.
+    Unlike `setPositionPair()`, it can change the pairs at once, e.g. from 2-3 and 4-5 to 2-4 and 3-5.
+  - Fixed `FormationData::data()`, `replaceData()`, `removeData()` and `changeDataIndex()` (the old index),
+    which accepted the index equal to the number of the data and accessed past the end.
+  - The paired players read from a formation file always refer to each other.
+    In the formation files, -1 means that the paired player refers to this player.
+    If the referred player came after the referring player in the file (e.g. 2 is paired with 3, and 3 has -1),
+    the -1 was kept, and only one of the paired players referred to the other.
+    Now such -1 is replaced with the number of the referring player. A -1 that no player refers to is kept.
+  - The JSON formation files are checked for the consistency of the position pairs, as the other formats are.
+    A JSON formation file in which a player refers to a player that does not refer back (e.g. 2 is paired with 3, and 3 has 0) cannot be read.
+  - `FormationParser::checkPositionPair()` (protected) takes `Formation::Ptr` instead of `Formation::ConstPtr`,
+    because it completes the position pairs as above.
+- (2026-11-28) Tests: added the unit test `run_test_formation` (`rcsc/formation`, CMake and Autotools).

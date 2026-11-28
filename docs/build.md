@@ -184,6 +184,7 @@ The tests of the CMake build are:
 | `run_test_rcg_line_parser` | the unit test of parsing the lines of a game log in parallel in `rcsc/rcg` (CppUnit) |
 | `run_test_gzread_file` | the unit test of `rcsc::gzread_file()` in `rcsc/gz` (e.g. gzip files of more than one member, and truncated gzip files) (CppUnit) |
 | `run_test_server_param` | the unit test of `rcsc::ServerParam` and `rcsc::rcg::ServerParamT` in `rcsc/common` (CppUnit) |
+| `run_test_formation` | the unit test of `rcsc/formation` (e.g. the copy of `rcsc::FormationData`, and the position pairs read from the formation files in `rcsc/formation/test_data`) (CppUnit) |
 | `install` | installs librcsc into `test-install` in the build directory, for the following tests |
 | `installed_headers` | each installed header file can be compiled alone (e.g. no header file that it includes is missing in the installation) |
 | `find_package` | a CMake project can use the installed librcsc by `find_package(librcsc CONFIG)` and `librcsc::rcsc` |

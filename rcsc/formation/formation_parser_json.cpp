@@ -217,6 +217,7 @@ FormationParserJSON::parseImpl( std::istream & is )
     ptr->setVersion( get_version( doc ) );
 
     if ( ! parse_role( doc, ptr ) ) return Formation::Ptr();
+    if ( ! checkPositionPair( ptr ) ) return Formation::Ptr();
     if ( ! parse_data( doc, ptr ) ) return Formation::Ptr();
 
     return ptr;

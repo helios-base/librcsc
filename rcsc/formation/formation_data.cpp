@@ -83,8 +83,7 @@ const
 FormationData::Data *
 FormationData::data( const size_t idx ) const
 {
-    if ( M_data_cont.empty()
-         || M_data_cont.size() < idx )
+    if ( M_data_cont.size() <= idx )
     {
         return nullptr;
     }
@@ -221,7 +220,7 @@ std::string
 FormationData::replaceData( const size_t idx,
                             const FormationData::Data & data )
 {
-    if ( M_data_cont.size() < idx )
+    if ( M_data_cont.size() <= idx )
     {
         return std::string( "Invalid index" );
     }
@@ -263,7 +262,7 @@ FormationData::replaceData( const size_t idx,
 std::string
 FormationData::removeData( const size_t idx )
 {
-    if ( M_data_cont.size() < idx )
+    if ( M_data_cont.size() <= idx )
     {
         return std::string( "Invalid index" );
     }
@@ -287,8 +286,9 @@ std::string
 FormationData::changeDataIndex( const size_t old_idx,
                                 const size_t new_idx )
 {
+    // new_idx == size() moves the data to the end
     if ( old_idx == new_idx
-         || M_data_cont.size() < old_idx
+         || M_data_cont.size() <= old_idx
          || M_data_cont.size() < new_idx )
     {
         return std::string( "Invalid index" );

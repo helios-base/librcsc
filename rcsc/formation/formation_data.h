@@ -108,10 +108,6 @@ private:
 
     DataCont M_data_cont; //!< data container.
 
-    // not used
-    FormationData( const FormationData & other ) = delete;
-    const FormationData & operator=( const FormationData & other ) = delete;
-
 public:
 
     /*!
@@ -119,6 +115,31 @@ public:
     */
     FormationData();
 
+    /*!
+      \brief copy constructor. all data are copied, including their index values.
+      \param other the data to be copied
+    */
+    FormationData( const FormationData & other ) = default;
+
+    /*!
+      \brief move constructor.
+      \param other the data to be moved
+    */
+    FormationData( FormationData && other ) = default;
+
+    /*!
+      \brief copy assignment. all data are copied, including their index values.
+      \param other the data to be copied
+      \return reference to this object
+    */
+    FormationData & operator=( const FormationData & other ) = default;
+
+    /*!
+      \brief move assignment.
+      \param other the data to be moved
+      \return reference to this object
+    */
+    FormationData & operator=( FormationData && other ) = default;
 
     /*!
       \brief virtual destructor.
@@ -148,6 +169,7 @@ public:
 
     /*!
       \brief get the specified index data.
+      \param idx the index of the data [0, dataCont().size())
       \return const pointer to the data. if no matched data, NULL is returned.
     */
     const Data * data( const size_t idx ) const;
@@ -194,7 +216,7 @@ public:
 
     /*!
       \brief replace exsiting data at input index with input data.
-      \param idx target index.
+      \param idx target index [0, dataCont().size()).
       \param data new data.
       \return error message if error occurd. otherwise, empty string.
     */
@@ -203,15 +225,17 @@ public:
 
     /*!
       \brief delete exsiting data at input index.
-      \param idx input index.
+      \param idx input index [0, dataCont().size()).
       \return error message if error occurd. otherwise, empty string.
     */
     std::string removeData( const size_t idx );
 
     /*!
       \brief move the specified data to new index position.
-      \param old_idx old index.
-      \param new_idx new index.
+      The data is moved just before the data at new_idx in the order before the move.
+      If new_idx is dataCont().size(), the data is moved to the end.
+      \param old_idx old index [0, dataCont().size()).
+      \param new_idx new index [0, dataCont().size()].
       \return error message if error occurd. otherwise, empty string.
     */
     std::string changeDataIndex( const size_t old_idx,

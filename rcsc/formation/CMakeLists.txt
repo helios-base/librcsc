@@ -34,3 +34,14 @@ install(FILES
   role_type.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rcsc/formation
   )
+
+# unit tests (CppUnit): the same program as "make check" of the Autotools build
+if(LIBRCSC_UNIT_TESTS)
+  # the formation files for the tests are in test_data/
+  add_executable(run_test_formation test_formation.cpp)
+  target_link_libraries(run_test_formation PRIVATE rcsc_build_settings rcsc PkgConfig::CPPUNIT)
+  target_compile_definitions(run_test_formation PRIVATE
+    TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test_data")
+  add_test(NAME run_test_formation COMMAND run_test_formation)
+  librcsc_set_unit_test_environment(run_test_formation)
+endif()
