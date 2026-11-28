@@ -93,10 +93,17 @@ protected:
     bool checkRoleNames( const Formation::ConstPtr ptr );
 
     /*!
-      \brief check the consistency of position pairs
+      \brief complete the position pairs read from the file, and check their consistency
+      \param ptr the formation whose roles have been read
       \return true if success
+
+      In the formation files, -1 means that the paired player refers to this player.
+      Formation::setPositionPair() also sets the number of the referring player to the referred player,
+      but if the referred player is read after that, its -1 overwrites the number.
+      Such -1 is replaced with the number of the referring player, so that the paired players
+      refer to each other. Then the pairs are checked by Formation::setPositionPairs().
      */
-    bool checkPositionPair( const Formation::ConstPtr ptr );
+    bool checkPositionPair( const Formation::Ptr ptr );
 
 
 private:

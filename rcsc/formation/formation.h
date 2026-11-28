@@ -37,6 +37,7 @@
 #include <rcsc/geom/vector_2d.h>
 #include <rcsc/types.h>
 
+#include <array>
 #include <memory>
 #include <string>
 #include <list>
@@ -193,6 +194,18 @@ public:
     */
     bool setPositionPair( const int num,
                           const int paired_num );
+
+    /*!
+      \brief set the position pairs of all players at once
+      \param pairs the paired position numbers. pairs[0] is for the position number 1.
+      \return true if success
+
+      Each value must be -1, 0 (no pair) or a position number [1, 11] other than the player itself,
+      and the paired players must refer to each other (if pairs[i] is n (> 0), pairs[n - 1] must be i + 1).
+      If the values are not consistent, nothing is changed and false is returned.
+      Unlike setPositionPair(), the pairs can be changed at once, e.g. from 2-3 and 4-5 to 2-4 and 3-5.
+    */
+    bool setPositionPairs( const std::array< int, 11 > & pairs );
 
     /*!
       \brief set role data

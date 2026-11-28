@@ -148,6 +148,43 @@ Formation::setPositionPair( const int num,
 
 /*-------------------------------------------------------------------*/
 bool
+Formation::setPositionPairs( const std::array< int, 11 > & pairs )
+{
+    // check all values before changing anything
+    for ( size_t i = 0; i < pairs.size(); ++i )
+    {
+        const int num = static_cast< int >( i + 1 );
+        const int paired_num = pairs[i];
+
+        if ( paired_num < -1 || 11 < paired_num )
+        {
+            std::cerr << "(Formation::setPositionPairs) illegal paired number. num=" << num
+                      << " paired=" << paired_num << std::endl;
+            return false;
+        }
+
+        if ( paired_num == num )
+        {
+            std::cerr << "(Formation::setPositionPairs) paired with itself. num=" << num << std::endl;
+            return false;
+        }
+
+        if ( 1 <= paired_num
+             && pairs[paired_num - 1] != num )
+        {
+            std::cerr << "(Formation::setPositionPairs) the paired player does not refer to the player."
+                      << " num=" << num << " paired=" << paired_num
+                      << " pair of " << paired_num << "=" << pairs[paired_num - 1] << std::endl;
+            return false;
+        }
+    }
+
+    M_position_pairs = pairs;
+    return true;
+}
+
+/*-------------------------------------------------------------------*/
+bool
 Formation::setRole( const int num,
                     const std::string & name,
                     const RoleType & type,
